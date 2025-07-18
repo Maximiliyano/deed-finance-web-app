@@ -6,6 +6,7 @@ using Deed.Infrastructure.Persistence.Constants;
 using Deed.Infrastructure.Persistence.Interceptors;
 using Deed.Infrastructure.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Quartz;
@@ -62,6 +63,8 @@ public static class DependencyInjection
             var auditableInterceptor = sp.GetRequiredService<UpdateAuditableEntitiesInterceptor>();
 
             options.UseSqlServer(databaseSettings)
+                .ConfigureWarnings(w =>
+                    w.Ignore(RelationalEventId.PendingModelChangesWarning))
                 .AddInterceptors(auditableInterceptor);
         });
 

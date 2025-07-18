@@ -2,6 +2,7 @@ using Deed.Application.Capitals.Commands.Create;
 using Deed.Domain.Entities;
 using Deed.Domain.Enums;
 using Deed.Domain.Repositories;
+using Deed.Domain.Results;
 using FluentAssertions;
 using NSubstitute;
 
@@ -23,12 +24,12 @@ public sealed class CreateCapitalCommandHandlerTests
     public async Task Handle_CreateValidCapital_ReturnsSuccess()
     {
         // Arrange
-        var command = new CreateCapitalCommand("FancyName", 1000, CurrencyType.USD);
-        var capital = new Capital
+        var command = new CreateCapitalCommand("FancyName  ", 1000, CurrencyType.USD);
+        var exceptedCapital = new Capital(1)
         {
-            Name = command.Name,
-            Balance = command.Balance,
-            Currency = command.Currency
+            Name = "FancyName",
+            Balance = 1000,
+            Currency = CurrencyType.USD
         };
 
         // Act
@@ -36,9 +37,13 @@ public sealed class CreateCapitalCommandHandlerTests
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        result.Value.Should().Be(capital.Id);
+        result.Errors.Should().OnlyContain(c => c.Equals(Error.None));
 
-        _repositoryMock.Received(1).Create(Arg.Any<Capital>());
+        _repositoryMock.Received(1).Create(Arg.Is<Capital>(c =>
+            c.Name.Equals(exceptedCapital.Name, StringComparison.Ordinal) &&
+            c.Balance.Equals(exceptedCapital.Balance) &&
+            c.Currency.Equals(exceptedCapital.Currency)
+        ));
 
         await _unitOfWorkMock.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
     }
