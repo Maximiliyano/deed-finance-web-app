@@ -16,7 +16,7 @@ using NSubstitute;
 
 namespace Deed.Tests.Unit.Exchanges.Services;
 
-public sealed class ExchangeHttpServiceTests
+public sealed class ExchangeHttpServiceTests // TODO refactor
 {
     private readonly IDateTimeProvider _dateTimeProvider = Substitute.For<IDateTimeProvider>();
     private readonly ILogger<ExchangeHttpService> _logger = Substitute.For<ILogger<ExchangeHttpService>>();
