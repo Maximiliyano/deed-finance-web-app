@@ -178,22 +178,22 @@ public partial class Initial : Migration
             columns: ["Id", "CreatedAt", "CreatedBy", "DeletedAt", "IsDeleted", "Name", "Period", "PlannedPeriodAmount", "Type", "UpdatedAt", "UpdatedBy"],
             values: new object[,]
             {
-                { 1, new DateTimeOffset(new DateTime(2025, 6, 14, 16, 28, 52, 0, DateTimeKind.Unspecified).AddTicks(9258), new TimeSpan(0, 0, 0, 0, 0)), 0, null, null, "Groceries", 0, 0f, 1, null, null },
-                { 2, new DateTimeOffset(new DateTime(2025, 6, 14, 16, 28, 52, 0, DateTimeKind.Unspecified).AddTicks(9258), new TimeSpan(0, 0, 0, 0, 0)), 0, null, null, "Utilities", 0, 0f, 1, null, null },
-                { 3, new DateTimeOffset(new DateTime(2025, 6, 14, 16, 28, 52, 0, DateTimeKind.Unspecified).AddTicks(9258), new TimeSpan(0, 0, 0, 0, 0)), 0, null, null, "Rent", 0, 0f, 1, null, null },
-                { 4, new DateTimeOffset(new DateTime(2025, 6, 14, 16, 28, 52, 0, DateTimeKind.Unspecified).AddTicks(9258), new TimeSpan(0, 0, 0, 0, 0)), 0, null, null, "Transportation", 0, 0f, 1, null, null },
-                { 5, new DateTimeOffset(new DateTime(2025, 6, 14, 16, 28, 52, 0, DateTimeKind.Unspecified).AddTicks(9258), new TimeSpan(0, 0, 0, 0, 0)), 0, null, null, "Healthcare", 0, 0f, 1, null, null },
-                { 6, new DateTimeOffset(new DateTime(2025, 6, 14, 16, 28, 52, 0, DateTimeKind.Unspecified).AddTicks(9258), new TimeSpan(0, 0, 0, 0, 0)), 0, null, null, "Entertainment", 0, 0f, 1, null, null },
-                { 7, new DateTimeOffset(new DateTime(2025, 6, 14, 16, 28, 52, 0, DateTimeKind.Unspecified).AddTicks(9258), new TimeSpan(0, 0, 0, 0, 0)), 0, null, null, "Education", 0, 0f, 1, null, null },
-                { 8, new DateTimeOffset(new DateTime(2025, 6, 14, 16, 28, 52, 0, DateTimeKind.Unspecified).AddTicks(9258), new TimeSpan(0, 0, 0, 0, 0)), 0, null, null, "Clothing", 0, 0f, 1, null, null },
-                { 9, new DateTimeOffset(new DateTime(2025, 6, 14, 16, 28, 52, 0, DateTimeKind.Unspecified).AddTicks(9258), new TimeSpan(0, 0, 0, 0, 0)), 0, null, null, "Subscriptions", 0, 0f, 1, null, null },
-                { 10, new DateTimeOffset(new DateTime(2025, 6, 14, 16, 28, 52, 0, DateTimeKind.Unspecified).AddTicks(9258), new TimeSpan(0, 0, 0, 0, 0)), 0, null, null, "Travel", 0, 0f, 1, null, null },
-                { 11, new DateTimeOffset(new DateTime(2025, 6, 14, 16, 28, 52, 0, DateTimeKind.Unspecified).AddTicks(9258), new TimeSpan(0, 0, 0, 0, 0)), 0, null, null, "Gifts", 0, 0f, 1, null, null },
-                { 12, new DateTimeOffset(new DateTime(2025, 6, 14, 16, 28, 52, 0, DateTimeKind.Unspecified).AddTicks(9258), new TimeSpan(0, 0, 0, 0, 0)), 0, null, null, "Donations", 0, 0f, 1, null, null },
-                { 13, new DateTimeOffset(new DateTime(2025, 6, 14, 16, 28, 52, 0, DateTimeKind.Unspecified).AddTicks(9258), new TimeSpan(0, 0, 0, 0, 0)), 0, null, null, "Salary", 0, 0f, 2, null, null },
-                { 14, new DateTimeOffset(new DateTime(2025, 6, 14, 16, 28, 52, 0, DateTimeKind.Unspecified).AddTicks(9258), new TimeSpan(0, 0, 0, 0, 0)), 0, null, null, "Gifts", 0, 0f, 2, null, null },
-                { 15, new DateTimeOffset(new DateTime(2025, 6, 14, 16, 28, 52, 0, DateTimeKind.Unspecified).AddTicks(9258), new TimeSpan(0, 0, 0, 0, 0)), 0, null, null, "Grants", 0, 0f, 2, null, null },
-                { 16, new DateTimeOffset(new DateTime(2025, 6, 14, 16, 28, 52, 0, DateTimeKind.Unspecified).AddTicks(9258), new TimeSpan(0, 0, 0, 0, 0)), 0, null, null, "Sales", 0, 0f, 2, null, null }
+                { 1, new DateTimeOffset(new DateTime(2025, 6, 15, 14, 45, 23, 25, DateTimeKind.Unspecified).AddTicks(6836), new TimeSpan(0, 0, 0, 0, 0)), 0, null, null, "Groceries", 0, 0f, 1, null, null },
+                { 2, new DateTimeOffset(new DateTime(2025, 6, 15, 14, 45, 23, 25, DateTimeKind.Unspecified).AddTicks(6836), new TimeSpan(0, 0, 0, 0, 0)), 0, null, null, "Utilities", 0, 0f, 1, null, null },
+                { 3, new DateTimeOffset(new DateTime(2025, 6, 15, 14, 45, 23, 25, DateTimeKind.Unspecified).AddTicks(6836), new TimeSpan(0, 0, 0, 0, 0)), 0, null, null, "Rent", 0, 0f, 1, null, null },
+                { 4, new DateTimeOffset(new DateTime(2025, 6, 15, 14, 45, 23, 25, DateTimeKind.Unspecified).AddTicks(6836), new TimeSpan(0, 0, 0, 0, 0)), 0, null, null, "Transportation", 0, 0f, 1, null, null },
+                { 5, new DateTimeOffset(new DateTime(2025, 6, 15, 14, 45, 23, 25, DateTimeKind.Unspecified).AddTicks(6836), new TimeSpan(0, 0, 0, 0, 0)), 0, null, null, "Healthcare", 0, 0f, 1, null, null },
+                { 6, new DateTimeOffset(new DateTime(2025, 6, 15, 14, 45, 23, 25, DateTimeKind.Unspecified).AddTicks(6836), new TimeSpan(0, 0, 0, 0, 0)), 0, null, null, "Entertainment", 0, 0f, 1, null, null },
+                { 7, new DateTimeOffset(new DateTime(2025, 6, 15, 14, 45, 23, 25, DateTimeKind.Unspecified).AddTicks(6836), new TimeSpan(0, 0, 0, 0, 0)), 0, null, null, "Education", 0, 0f, 1, null, null },
+                { 8, new DateTimeOffset(new DateTime(2025, 6, 15, 14, 45, 23, 25, DateTimeKind.Unspecified).AddTicks(6836), new TimeSpan(0, 0, 0, 0, 0)), 0, null, null, "Clothing", 0, 0f, 1, null, null },
+                { 9, new DateTimeOffset(new DateTime(2025, 6, 15, 14, 45, 23, 25, DateTimeKind.Unspecified).AddTicks(6836), new TimeSpan(0, 0, 0, 0, 0)), 0, null, null, "Subscriptions", 0, 0f, 1, null, null },
+                { 10, new DateTimeOffset(new DateTime(2025, 6, 15, 14, 45, 23, 25, DateTimeKind.Unspecified).AddTicks(6836), new TimeSpan(0, 0, 0, 0, 0)), 0, null, null, "Travel", 0, 0f, 1, null, null },
+                { 11, new DateTimeOffset(new DateTime(2025, 6, 15, 14, 45, 23, 25, DateTimeKind.Unspecified).AddTicks(6836), new TimeSpan(0, 0, 0, 0, 0)), 0, null, null, "Gifts", 0, 0f, 1, null, null },
+                { 12, new DateTimeOffset(new DateTime(2025, 6, 15, 14, 45, 23, 25, DateTimeKind.Unspecified).AddTicks(6836), new TimeSpan(0, 0, 0, 0, 0)), 0, null, null, "Donations", 0, 0f, 1, null, null },
+                { 13, new DateTimeOffset(new DateTime(2025, 6, 15, 14, 45, 23, 25, DateTimeKind.Unspecified).AddTicks(6836), new TimeSpan(0, 0, 0, 0, 0)), 0, null, null, "Salary", 0, 0f, 2, null, null },
+                { 14, new DateTimeOffset(new DateTime(2025, 6, 15, 14, 45, 23, 25, DateTimeKind.Unspecified).AddTicks(6836), new TimeSpan(0, 0, 0, 0, 0)), 0, null, null, "Gifts", 0, 0f, 2, null, null },
+                { 15, new DateTimeOffset(new DateTime(2025, 6, 15, 14, 45, 23, 25, DateTimeKind.Unspecified).AddTicks(6836), new TimeSpan(0, 0, 0, 0, 0)), 0, null, null, "Grants", 0, 0f, 2, null, null },
+                { 16, new DateTimeOffset(new DateTime(2025, 6, 15, 14, 45, 23, 25, DateTimeKind.Unspecified).AddTicks(6836), new TimeSpan(0, 0, 0, 0, 0)), 0, null, null, "Sales", 0, 0f, 2, null, null }
             });
 
         migrationBuilder.InsertData(
@@ -201,18 +201,18 @@ public partial class Initial : Migration
             columns: ["Id", "Buy", "CreatedAt", "CreatedBy", "DeletedAt", "IsDeleted", "NationalCurrencyCode", "Sale", "TargetCurrencyCode", "UpdatedAt", "UpdatedBy"],
             values: new object[,]
             {
-                { 1, 44.63f, new DateTimeOffset(new DateTime(2025, 6, 14, 16, 28, 52, 2, DateTimeKind.Unspecified).AddTicks(8635), new TimeSpan(0, 0, 0, 0, 0)), 0, null, null, "UAH", 45.45455f, "EUR", null, null },
-                { 2, 41.2f, new DateTimeOffset(new DateTime(2025, 6, 14, 16, 28, 52, 2, DateTimeKind.Unspecified).AddTicks(8635), new TimeSpan(0, 0, 0, 0, 0)), 0, null, null, "UAH", 34f, "USD", null, null },
-                { 3, 43f, new DateTimeOffset(new DateTime(2025, 6, 14, 16, 28, 52, 2, DateTimeKind.Unspecified).AddTicks(8635), new TimeSpan(0, 0, 0, 0, 0)), 0, null, null, "UAH", 43f, "PLN", null, null },
-                { 4, 43f, new DateTimeOffset(new DateTime(2025, 6, 14, 16, 28, 52, 2, DateTimeKind.Unspecified).AddTicks(8635), new TimeSpan(0, 0, 0, 0, 0)), 0, null, null, "USD", 43f, "UAH", null, null },
-                { 5, 32f, new DateTimeOffset(new DateTime(2025, 6, 14, 16, 28, 52, 2, DateTimeKind.Unspecified).AddTicks(8635), new TimeSpan(0, 0, 0, 0, 0)), 0, null, null, "USD", 32f, "EUR", null, null },
-                { 6, 41f, new DateTimeOffset(new DateTime(2025, 6, 14, 16, 28, 52, 2, DateTimeKind.Unspecified).AddTicks(8635), new TimeSpan(0, 0, 0, 0, 0)), 0, null, null, "USD", 43f, "PLN", null, null },
-                { 7, 41f, new DateTimeOffset(new DateTime(2025, 6, 14, 16, 28, 52, 2, DateTimeKind.Unspecified).AddTicks(8635), new TimeSpan(0, 0, 0, 0, 0)), 0, null, null, "EUR", 40f, "USD", null, null },
-                { 8, 39f, new DateTimeOffset(new DateTime(2025, 6, 14, 16, 28, 52, 2, DateTimeKind.Unspecified).AddTicks(8635), new TimeSpan(0, 0, 0, 0, 0)), 0, null, null, "EUR", 38f, "UAH", null, null },
-                { 9, 30f, new DateTimeOffset(new DateTime(2025, 6, 14, 16, 28, 52, 2, DateTimeKind.Unspecified).AddTicks(8635), new TimeSpan(0, 0, 0, 0, 0)), 0, null, null, "EUR", 32f, "PLN", null, null },
-                { 10, 20f, new DateTimeOffset(new DateTime(2025, 6, 14, 16, 28, 52, 2, DateTimeKind.Unspecified).AddTicks(8635), new TimeSpan(0, 0, 0, 0, 0)), 0, null, null, "PLN", 10f, "UAH", null, null },
-                { 11, 7f, new DateTimeOffset(new DateTime(2025, 6, 14, 16, 28, 52, 2, DateTimeKind.Unspecified).AddTicks(8635), new TimeSpan(0, 0, 0, 0, 0)), 0, null, null, "PLN", 6f, "USD", null, null },
-                { 12, 3f, new DateTimeOffset(new DateTime(2025, 6, 14, 16, 28, 52, 2, DateTimeKind.Unspecified).AddTicks(8635), new TimeSpan(0, 0, 0, 0, 0)), 0, null, null, "PLN", 20f, "EUR", null, null }
+                { 1, 44.63f, new DateTimeOffset(new DateTime(2025, 6, 15, 14, 45, 23, 28, DateTimeKind.Unspecified).AddTicks(4270), new TimeSpan(0, 0, 0, 0, 0)), 0, null, null, "UAH", 45.45455f, "EUR", null, null },
+                { 2, 41.2f, new DateTimeOffset(new DateTime(2025, 6, 15, 14, 45, 23, 28, DateTimeKind.Unspecified).AddTicks(4270), new TimeSpan(0, 0, 0, 0, 0)), 0, null, null, "UAH", 34f, "USD", null, null },
+                { 3, 43f, new DateTimeOffset(new DateTime(2025, 6, 15, 14, 45, 23, 28, DateTimeKind.Unspecified).AddTicks(4270), new TimeSpan(0, 0, 0, 0, 0)), 0, null, null, "UAH", 43f, "PLN", null, null },
+                { 4, 43f, new DateTimeOffset(new DateTime(2025, 6, 15, 14, 45, 23, 28, DateTimeKind.Unspecified).AddTicks(4270), new TimeSpan(0, 0, 0, 0, 0)), 0, null, null, "USD", 43f, "UAH", null, null },
+                { 5, 32f, new DateTimeOffset(new DateTime(2025, 6, 15, 14, 45, 23, 28, DateTimeKind.Unspecified).AddTicks(4270), new TimeSpan(0, 0, 0, 0, 0)), 0, null, null, "USD", 32f, "EUR", null, null },
+                { 6, 41f, new DateTimeOffset(new DateTime(2025, 6, 15, 14, 45, 23, 28, DateTimeKind.Unspecified).AddTicks(4270), new TimeSpan(0, 0, 0, 0, 0)), 0, null, null, "USD", 43f, "PLN", null, null },
+                { 7, 41f, new DateTimeOffset(new DateTime(2025, 6, 15, 14, 45, 23, 28, DateTimeKind.Unspecified).AddTicks(4270), new TimeSpan(0, 0, 0, 0, 0)), 0, null, null, "EUR", 40f, "USD", null, null },
+                { 8, 39f, new DateTimeOffset(new DateTime(2025, 6, 15, 14, 45, 23, 28, DateTimeKind.Unspecified).AddTicks(4270), new TimeSpan(0, 0, 0, 0, 0)), 0, null, null, "EUR", 38f, "UAH", null, null },
+                { 9, 30f, new DateTimeOffset(new DateTime(2025, 6, 15, 14, 45, 23, 28, DateTimeKind.Unspecified).AddTicks(4270), new TimeSpan(0, 0, 0, 0, 0)), 0, null, null, "EUR", 32f, "PLN", null, null },
+                { 10, 20f, new DateTimeOffset(new DateTime(2025, 6, 15, 14, 45, 23, 28, DateTimeKind.Unspecified).AddTicks(4270), new TimeSpan(0, 0, 0, 0, 0)), 0, null, null, "PLN", 10f, "UAH", null, null },
+                { 11, 7f, new DateTimeOffset(new DateTime(2025, 6, 15, 14, 45, 23, 28, DateTimeKind.Unspecified).AddTicks(4270), new TimeSpan(0, 0, 0, 0, 0)), 0, null, null, "PLN", 6f, "USD", null, null },
+                { 12, 3f, new DateTimeOffset(new DateTime(2025, 6, 15, 14, 45, 23, 28, DateTimeKind.Unspecified).AddTicks(4270), new TimeSpan(0, 0, 0, 0, 0)), 0, null, null, "PLN", 20f, "EUR", null, null }
             });
 
         migrationBuilder.CreateIndex(

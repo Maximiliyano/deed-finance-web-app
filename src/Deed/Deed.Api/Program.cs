@@ -11,9 +11,6 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Host.UseSerilogDependencies();
 
-builder.WebHost.ConfigureKestrel(options => options
-    .ListenAnyIP(8080));
-
 builder.Configuration.AddEnvironmentVariables();
 
 builder.Services

@@ -1,5 +1,6 @@
 using Deed.Api.Infrastructure;
 using Deed.Domain.Providers;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 namespace Deed.Api;
 

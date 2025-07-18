@@ -14,7 +14,7 @@ public sealed class SaveLatestExchangeJob(
     ILogger<SaveLatestExchangeJob> logger)
     : IJob
 {
-    public async Task Execute(IJobExecutionContext context)
+    public async Task Execute(IJobExecutionContext context) // TODO tests
     {
         logger.LogInformation("Save latest exchange background job has been started.");
 
