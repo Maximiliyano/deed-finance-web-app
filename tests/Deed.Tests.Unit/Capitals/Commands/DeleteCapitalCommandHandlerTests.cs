@@ -38,13 +38,15 @@ public sealed class DeleteCapitalCommandHandlerTests
             .Returns(capital);
 
         // Act
-        Result result = await _handler.Handle(command, CancellationToken.None);
+        var result = await _handler.Handle(command, CancellationToken.None);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
+        result.Errors.Should().OnlyContain(c => c.Equals(Error.None));
 
         _capitalRepositoryMock.Received(1).Delete(capital);
 
+        await _capitalRepositoryMock.Received(1).GetAsync(Arg.Any<CapitalByIdSpecification>());
         await _unitOfWorkMock.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 
@@ -66,6 +68,7 @@ public sealed class DeleteCapitalCommandHandlerTests
 
         _capitalRepositoryMock.Received(0).Delete(Arg.Any<Capital>());
 
+        await _capitalRepositoryMock.Received(1).GetAsync(Arg.Any<CapitalByIdSpecification>());
         await _unitOfWorkMock.Received(0).SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 };

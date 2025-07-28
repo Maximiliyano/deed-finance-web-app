@@ -9,6 +9,6 @@ export class DialogService {
   constructor() { }
 
   hasError(formGroup: FormGroup, controlName: string, error: string): boolean {
-    return (formGroup.get(controlName)?.hasError(error))!;
+    return (formGroup.get(controlName)?.hasError(error)) ?? false;
   }
 }

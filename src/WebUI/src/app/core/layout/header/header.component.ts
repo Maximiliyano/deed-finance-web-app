@@ -1,7 +1,7 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Exchange } from '../../models/exchange-model';
 import { ExchangeService } from '../../../shared/services/exchange.service';
-import { Subject, takeUntil, tap } from 'rxjs';
+import { Subject, takeUntil } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
 import { OverlayRef } from '@angular/cdk/overlay';
 import { ExchangeDialogComponent } from '../../../shared/components/exchange-dialog/exchange-dialog.component';

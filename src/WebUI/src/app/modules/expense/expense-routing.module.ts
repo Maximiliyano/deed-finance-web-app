@@ -3,7 +3,7 @@ import { RouterModule, Routes } from '@angular/router';
 import { ExpensesComponent } from './expenses.component';
 import { ExpenseListComponent } from './components/expense-list/expense-list.component';
 
-let routes: Routes = [
+const routes: Routes = [
   {
     path: '',
     component: ExpensesComponent,

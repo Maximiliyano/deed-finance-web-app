@@ -8,4 +8,4 @@ export function getCurrencies(currency: string = 'None'): Currency[] {
         CurrencyType[key] != 'None' &&
         (currency != 'None' && currency != CurrencyType[key]))
       .map((key: any) => ({ key: key, value: CurrencyType[key] }));
-};
+}

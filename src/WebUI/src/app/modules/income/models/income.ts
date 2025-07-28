@@ -6,3 +6,10 @@ export interface Income {
     type: string;
     createdAt: Date;
 }
+
+export interface AddIncomeRequest {
+    capitalId: number;
+    amount: number;
+    type: string;
+    purpose: string;
+}

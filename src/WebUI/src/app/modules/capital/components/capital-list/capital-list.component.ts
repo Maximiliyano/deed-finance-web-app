@@ -97,7 +97,7 @@ export class CapitalListComponent implements OnInit, OnDestroy {
 
   symbol(value: string): string {
     return currencyToSymbol(value);
-  };
+  }
 
   onCurrencyChange(newCurrency: string): void {
     // TODO update default currency for user here
