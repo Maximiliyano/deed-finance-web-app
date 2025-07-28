@@ -413,6 +413,6 @@ src/Deed/.idea/
 /src/WebUI/.idea/projectSettingsUpdater.xml
 /src/WebUI/.idea/workspace.xml
 /src/WebUI/.idea
-
+/src/WebUI/dist/
 # Local Netlify folder
 .netlify
