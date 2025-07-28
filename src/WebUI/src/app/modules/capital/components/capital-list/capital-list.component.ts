@@ -19,10 +19,10 @@ export class CapitalListComponent implements OnInit, OnDestroy {
   exchanges: Exchange[];
   mainCurrency: string = 'UAH';
   propsItems: { key: keyof CapitalResponse; title: string; icon: string, style: string }[] = [
-    { key: 'totalIncome', title: 'Incomes', icon: 'attach_money', style: 'cp-incomes' },
-    { key: 'totalExpense', title: 'Expenses', icon: 'money_off', style: 'cp-expenses' },
-    { key: 'totalTransferOut', title: 'Transfer Out', icon: 'arrow_upward', style: '' },
-    { key: 'totalTransferIn', title: 'Transfer In', icon: 'arrow_downward', style: '' },
+    { key: 'totalIncome', title: 'Incomes', icon: 'fa-dollar-sign', style: 'cp-incomes' },
+    { key: 'totalExpense', title: 'Expenses', icon: 'fa-money-bill-wave', style: 'cp-expenses' },
+    { key: 'totalTransferOut', title: 'Transfer Out', icon: 'fa-arrow-up', style: '' },
+    { key: 'totalTransferIn', title: 'Transfer In', icon: 'fa-arrow-down', style: '' },
   ];
 
   searchTerm: string = '';

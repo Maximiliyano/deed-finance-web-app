@@ -4,7 +4,7 @@ import { ExchangeService } from '../../../shared/services/exchange.service';
 import { Subject, takeUntil } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
 import { OverlayRef } from '@angular/cdk/overlay';
-import { ExchangeDialogComponent } from '../../../shared/components/exchange-dialog/exchange-dialog.component';
+import { ExchangeDialogComponent } from '../../../shared/components/dialogs/exchange-dialog/exchange-dialog.component';
 
 @Component({
   selector: 'app-header',
@@ -16,11 +16,11 @@ export class HeaderComponent implements OnInit, OnDestroy {
   isSidebarExpanded: boolean;
   overlayRef: OverlayRef;
   navItems = [
-    { label: 'Capitals', icon: 'account_balance_wallet', link: '/capitals' },
-    { label: 'Incomes', icon: 'attach_money', link: '/incomes' },
-    { label: 'Expenses', icon: 'money_off', link: '/expenses' },
-    { label: 'Transfers', icon: 'import_export', link: '' },
-    { label: 'Goals', icon: 'star', link: '' }
+    { label: 'Capitals', icon: 'fa-wallet', link: '/capitals' },
+    { label: 'Goals', icon: 'fa-star', link: '/goals' },
+    { label: 'Incomes', icon: 'fa-dollar-sign', link: '/incomes' },
+    { label: 'Expenses', icon: 'fa-money-bill-wave', link: '/expenses' },
+    { label: 'Transfers', icon: 'fa-exchange-alt', link: '/transfers' },
   ];
 
   private unsubscribe = new Subject<void>();

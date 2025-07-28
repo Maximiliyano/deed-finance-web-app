@@ -1,7 +1,7 @@
 <form [formGroup]="capitalForm" class="cp-details" *ngIf="capital" (ngSubmit)="saveChanges()">
   <div class="cp-header">
     <button class="cp-return" routerLink="../">
-      <mat-icon>exit_to_app</mat-icon>
+      <app-icon [name]="'fa-sign-out-alt'"></app-icon>
     </button>
   </div>
 
@@ -51,7 +51,7 @@
       (click)="redirectToExpensePage(capital.id)"
     >
       <span>Redirect to expense page</span>
-      <mat-icon>arrow_forward</mat-icon>
+      <app-icon [name]="'fa-arrow-right'"></app-icon>
     </button>
   </div>
 

@@ -11,6 +11,7 @@ import { errorInterceptor } from './core/interceptors/error.interceptor';
 import { loadingInterceptor } from './core/interceptors/loading.interceptor';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { LoadingComponent } from './shared/components/loading/loading.component';
+import { SharedModule } from "./shared/shared.module";
 
 @NgModule({
   declarations: [
@@ -22,8 +23,9 @@ import { LoadingComponent } from './shared/components/loading/loading.component'
   imports: [
     AppRoutingModule,
     BrowserModule,
-    AngularMaterialModule
-  ],
+    AngularMaterialModule,
+    SharedModule
+],
   bootstrap: [AppComponent],
   providers: [
     provideHttpClient(
