@@ -5,4 +5,4 @@ const currencySymbols: { [key: string]: string } = {
 
 export function currencyToSymbol(currency: string): string {
   return currencySymbols[currency] || currency;
-};
+}

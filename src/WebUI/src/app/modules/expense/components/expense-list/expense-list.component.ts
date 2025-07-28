@@ -110,7 +110,7 @@ export class ExpenseListComponent implements OnInit, OnDestroy {
   }
 
   openDialogDatePicker(): void {
-    let dialogProps: DialogDatePickerComponentProps = {
+    const dialogProps: DialogDatePickerComponentProps = {
       startDate: this.startDate,
       endDate: this.endDate,
       allTime: this.allTime,
@@ -132,7 +132,7 @@ export class ExpenseListComponent implements OnInit, OnDestroy {
   }
 
   openDialogAddExpense(): void {
-    let dialogRef = this.dialog.open(ExpenseDialogComponent, {
+    const dialogRef = this.dialog.open(ExpenseDialogComponent, {
       data: {
         capitals: this.capitals,
         categories: this.dialogCategories
@@ -166,7 +166,7 @@ export class ExpenseListComponent implements OnInit, OnDestroy {
 
   symbol(value?: string): string {
     return currencyToSymbol(value ?? this.defaultCurrency);
-  };
+  }
 
   onCapitalChange(capital: CapitalResponse | null): void {
     this.selectedCapital = capital;

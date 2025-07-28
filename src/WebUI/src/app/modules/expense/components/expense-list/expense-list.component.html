@@ -18,7 +18,7 @@
   <div class="period-tab-menu">
     <ul class="per-tabs">
       <li *ngFor="let period of periods"
-          [ngClass]="{ 'active': period == selectedPeriod}"
+          [ngClass]="{ 'active': period === selectedPeriod}"
           class="per-tab"
           (click)="selectTab(period)">
         {{ period }}
@@ -31,7 +31,7 @@
           {{ startDate | date }} - {{ endDate | date }}
         </span>
 
-        <span *ngIf="allTime && selectedPeriod == Periods.Custom">
+        <span *ngIf="allTime && selectedPeriod === Periods.Custom">
           All time
         </span>
       </p>

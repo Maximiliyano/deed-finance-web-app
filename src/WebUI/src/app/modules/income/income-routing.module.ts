@@ -2,7 +2,7 @@ import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { IncomesComponent } from './incomes.component';
 
-let routes: Routes = [
+const routes: Routes = [
   {
     path: '',
     component: IncomesComponent

@@ -85,14 +85,13 @@ export class ExpenseDialogComponent implements OnInit, OnDestroy {
       return;
     }
 
-    let addExpenseRequest: AddExpenseRequest = {
+    const addExpenseRequest: AddExpenseRequest = {
       capitalId: this.addExpenseForm.value.CapitalId,
       categoryId: this.addExpenseForm.value.CategoryId,
       amount: this.addExpenseForm.value.Amount,
       paymentDate: this.addExpenseForm.value.PaymentDate,
       purpose: this.addExpenseForm.value.Purpose
     };
-
 
     this.expenseService.add(addExpenseRequest)
       .pipe(takeUntil(this.$unsubscribe))

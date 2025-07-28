@@ -4,6 +4,7 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { Subject, takeUntil } from 'rxjs';
 import { IncomeService } from '../../../services/income.service';
 import { IncomeType } from '../../../models/income-type';
+import { AddIncomeRequest } from '../../../models/income';
 
 @Component({
   selector: 'app-income-dialog',
@@ -36,7 +37,7 @@ export class IncomeDialogComponent implements OnInit, OnDestroy {
   }
 
   addNewIncome(): void {
-    const request = {
+    const request: AddIncomeRequest = {
       capitalId: this.data,
       amount: this.addIncomeForm.value.Amount,
       type: this.addIncomeForm.value.Type,
