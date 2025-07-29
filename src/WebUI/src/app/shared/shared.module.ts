@@ -8,6 +8,9 @@ import { CurrencyComponent } from './components/currency/currency.component';
 import { LayoutComponent } from './components/layout/layout.component';
 import { ExchangeDialogComponent } from './components/dialogs/exchange-dialog/exchange-dialog.component';
 import { IconComponent } from './components/icon/icon.component';
+import { DialogComponent } from './components/dialogs/dialog.component';
+import { FormErrorComponent } from './components/forms/form-error/form-error.component';
+import { FormComponent } from './components/forms/form.component';
 
 @NgModule({
   declarations: [
@@ -16,7 +19,10 @@ import { IconComponent } from './components/icon/icon.component';
     ExchangeDialogComponent,
     CurrencyComponent,
     LayoutComponent,
-    IconComponent
+    IconComponent,
+    DialogComponent,
+    FormComponent,
+    FormErrorComponent
   ],
   imports: [
     CommonModule,
@@ -31,7 +37,10 @@ import { IconComponent } from './components/icon/icon.component';
     ReactiveFormsModule,
     CurrencyComponent,
     LayoutComponent,
-    IconComponent
+    IconComponent,
+    DialogComponent,
+    FormComponent,
+    FormErrorComponent
   ]
 })
 export class SharedModule { }

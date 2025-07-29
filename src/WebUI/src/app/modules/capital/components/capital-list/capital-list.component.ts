@@ -1,13 +1,13 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
-import {MatDialog} from '@angular/material/dialog';
 import {Subject, takeUntil} from 'rxjs';
 import {CapitalService} from '../../services/capital.service';
-import {CapitalDialogComponent} from '../capital-dialog/capital-dialog.component';
 import {PopupMessageService} from '../../../../shared/services/popup-message.service';
 import {ExchangeService} from "../../../../shared/services/exchange.service";
 import {Exchange} from "../../../../core/models/exchange-model";
 import { currencyToSymbol } from '../../../../shared/components/currency/functions/currencyToSymbol.component';
 import { CapitalResponse } from '../../models/capital-response';
+import { AddCapitalDialogComponent } from '../capital-dialog/add-capital-dialog.component';
+import { DialogService } from '../../../../shared/services/dialog.service';
 
 @Component({
   selector: 'app-capital-list',
@@ -31,13 +31,16 @@ export class CapitalListComponent implements OnInit, OnDestroy {
   sortDirection: 'asc' | 'desc' = 'asc';
   sortOptions: string[] = ['name', 'balance', 'expenses', 'incomes', 'transfers in', 'transfers out'];
 
+  createDialogOpened: boolean = false;
+
   private unsubcribe$ = new Subject<void>;
 
   constructor(
-    private readonly dialog: MatDialog,
     private readonly capitalService: CapitalService,
     private readonly popupMessageService: PopupMessageService,
-    private readonly exchangeService: ExchangeService) { }
+    private readonly exchangeService: ExchangeService,
+    private readonly dialogService: DialogService
+  ) { }
 
     ngOnInit(): void {
       // TODO execute user capitals
@@ -106,17 +109,7 @@ export class CapitalListComponent implements OnInit, OnDestroy {
   }
 
   openToCreateCapitalDialog(): void {
-    const dialogRef = this.dialog.open(CapitalDialogComponent);
-
-    dialogRef
-      .afterClosed()
-      .pipe(takeUntil(this.unsubcribe$))
-      .subscribe({
-        next: (response: boolean) => {
-          if (response) {
-            this.executeCapitals();
-          }
-      }});
+    this.dialogService.open(AddCapitalDialogComponent);
   }
 
   totalCapitalAmount(): number {
