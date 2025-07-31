@@ -15,9 +15,9 @@ export class HeaderComponent implements OnInit, OnDestroy {
   isSidebarExpanded: boolean;
   navItems = [
     { label: 'Capitals', icon: 'fa-wallet', link: '/capitals' },
-    { label: 'Goals', icon: 'fa-star', link: '/goals' },
-    { label: 'Incomes', icon: 'fa-dollar-sign', link: '/incomes' },
     { label: 'Expenses', icon: 'fa-money-bill-wave', link: '/expenses' },
+    { label: 'Incomes', icon: 'fa-dollar-sign', link: '/incomes' },
+    { label: 'Goals', icon: 'fa-star', link: '/goals' },
     { label: 'Transfers', icon: 'fa-exchange-alt', link: '/transfers' },
   ];
 
