@@ -110,7 +110,8 @@ export class CapitalListComponent implements OnInit, OnDestroy {
   }
 
   openToCreateCapitalDialog(): void {
-    this.dialogService.open(AddCapitalDialogComponent, {
+    this.dialogService.open({
+      component: AddCapitalDialogComponent,
       onSubmit: (request: AddCapitalRequest) => {
         if (request) {
           this.capitalService.create(request)

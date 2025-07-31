@@ -2,9 +2,8 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Exchange } from '../../models/exchange-model';
 import { ExchangeService } from '../../../shared/services/exchange.service';
 import { Subject, takeUntil } from 'rxjs';
-import { MatDialog } from '@angular/material/dialog';
-import { OverlayRef } from '@angular/cdk/overlay';
 import { ExchangeDialogComponent } from '../../../shared/components/dialogs/exchange-dialog/exchange-dialog.component';
+import { DialogService } from '../../../shared/services/dialog.service';
 
 @Component({
   selector: 'app-header',
@@ -12,9 +11,8 @@ import { ExchangeDialogComponent } from '../../../shared/components/dialogs/exch
   styleUrl: './header.component.scss'
 })
 export class HeaderComponent implements OnInit, OnDestroy {
-  exchanges: Exchange[] | null;
+  exchanges: Exchange[] = [];
   isSidebarExpanded: boolean;
-  overlayRef: OverlayRef;
   navItems = [
     { label: 'Capitals', icon: 'fa-wallet', link: '/capitals' },
     { label: 'Goals', icon: 'fa-star', link: '/goals' },
@@ -26,7 +24,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   private unsubscribe = new Subject<void>();
 
   constructor(
-    private readonly dialog: MatDialog,
+    private readonly dialogService: DialogService,
     private readonly exchangeService: ExchangeService) { }
 
   ngOnInit(): void {
@@ -34,21 +32,21 @@ export class HeaderComponent implements OnInit, OnDestroy {
       .getAll()
       .pipe(
         takeUntil(this.unsubscribe))
-      .subscribe(
-        (exchanges) => {
-          this.exchanges = exchanges.slice(0, 3);
-        },
-      (error) => console.error(error));
+      .subscribe({
+        next: (exchanges) => this.exchanges = exchanges.slice(0, 3)
+      });
   }
 
   ngOnDestroy(): void {
     this.unsubscribe.complete();
-    this.overlayRef.dispose();
   }
 
   openExchangeDialog(): void {
-    this.dialog.open(ExchangeDialogComponent, {
-      data: this.exchanges
+    this.dialogService.open({
+      component: ExchangeDialogComponent,
+      data: {
+        exchanges: this.exchanges
+      }
     });
   }
 }

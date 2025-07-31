@@ -45,8 +45,8 @@ export class DialogComponent implements OnInit, OnDestroy {
 
       const instance = this.componentRef.instance as any;
 
-      if (instance.formSubmitted && typeof instance.formSubmitted.subscribe === 'function' && this.dialogData.onSubmit) {
-        instance.formSubmitted.subscribe((result: any) => {
+      if (instance.submitted && typeof instance.submitted.subscribe === 'function' && this.dialogData.onSubmit) {
+        instance.submitted.subscribe((result: any) => {
           this.dialogData?.onSubmit?.(result);
         });
       }

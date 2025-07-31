@@ -13,7 +13,7 @@ import { DialogService } from '../../../../shared/services/dialog.service';
   templateUrl: './add-capital-dialog.component.html'
 })
 export class AddCapitalDialogComponent implements OnInit, OnDestroy {
-  @Output() formSubmitted = new Subject<AddCapitalRequest>();
+  @Output() submitted = new Subject<AddCapitalRequest>();
 
   form: FormGroup;
   fields: FormFields[];
@@ -77,7 +77,7 @@ export class AddCapitalDialogComponent implements OnInit, OnDestroy {
       currency: this.form.value.Currency
     };
 
-    this.formSubmitted.next(request);
+    this.submitted.next(request);
   }
 
   handleCancel() {
