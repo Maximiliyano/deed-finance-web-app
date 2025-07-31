@@ -8,6 +8,7 @@ import { currencyToSymbol } from '../../../../shared/components/currency/functio
 import { CapitalResponse } from '../../models/capital-response';
 import { AddCapitalDialogComponent } from '../capital-dialog/add-capital-dialog.component';
 import { DialogService } from '../../../../shared/services/dialog.service';
+import { AddCapitalRequest } from '../../models/add-capital-request';
 
 @Component({
   selector: 'app-capital-list',
@@ -109,8 +110,36 @@ export class CapitalListComponent implements OnInit, OnDestroy {
   }
 
   openToCreateCapitalDialog(): void {
-    this.dialogService.open(AddCapitalDialogComponent);
+    this.dialogService.open(AddCapitalDialogComponent, {
+      onSubmit: (request: AddCapitalRequest) => {
+        if (request) {
+          this.capitalService.create(request)
+            .pipe(takeUntil(this.unsubcribe$))
+            .subscribe({
+              next: (id) => this.addCapitalToTheList(id, request)
+            });
+        }
+      }
+    });
   }
+
+  addCapitalToTheList(id: number, request: AddCapitalRequest): void {
+    const response: CapitalResponse = {
+      id: id,
+      name: request.name,
+      balance: request.balance,
+      currency: request.currency,
+      includeInTotal: false,
+      totalIncome: 0,
+      totalExpense: 0,
+      totalTransferIn: 0,
+      totalTransferOut: 0
+    };
+
+    this.capitals.push(response);
+    this.popupMessageService.success("Capital successfully added.");
+    this.dialogService.close();
+  };
 
   totalCapitalAmount(): number {
     return this.capitals?.reduce((accumulator, capital) => {

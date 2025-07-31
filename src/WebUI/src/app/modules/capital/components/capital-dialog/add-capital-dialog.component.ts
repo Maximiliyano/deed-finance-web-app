@@ -1,7 +1,6 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, Output } from '@angular/core';
 import { FormGroup, FormControl, Validators } from '@angular/forms';
-import { Subject, takeUntil } from 'rxjs';
-import { CapitalService } from '../../services/capital.service';
+import { Subject } from 'rxjs';
 import { PopupMessageService } from '../../../../shared/services/popup-message.service';
 import { CurrencyType } from '../../../../core/types/currency-type';
 import { AddCapitalRequest } from '../../models/add-capital-request';
@@ -14,15 +13,16 @@ import { DialogService } from '../../../../shared/services/dialog.service';
   templateUrl: './add-capital-dialog.component.html'
 })
 export class AddCapitalDialogComponent implements OnInit, OnDestroy {
+  @Output() formSubmitted = new Subject<AddCapitalRequest>();
+
   form: FormGroup;
   fields: FormFields[];
 
-  readonly currencyOptions = getEnumKeys(CurrencyType);
+  readonly currencyOptions = getEnumKeys(CurrencyType); // TODO exclude 'None' option, add validation message, border red
 
   private readonly unsubscribe$ = new Subject<void>();
 
   constructor(
-    private readonly capitalService: CapitalService,
     private readonly popupMessageService: PopupMessageService,
     private readonly dialogService: DialogService
   ) {}
@@ -41,7 +41,7 @@ export class AddCapitalDialogComponent implements OnInit, OnDestroy {
     this.form = new FormGroup({
       Name: new FormControl('', [Validators.required, Validators.minLength(1), Validators.maxLength(24)]),
       Balance: new FormControl(0, [Validators.required, Validators.min(0)]),
-      Currency: new FormControl(CurrencyType.None, [Validators.required])
+      Currency: new FormControl(CurrencyType.UAH, [Validators.required])
     });
   }
 
@@ -77,14 +77,7 @@ export class AddCapitalDialogComponent implements OnInit, OnDestroy {
       currency: this.form.value.Currency
     };
 
-    this.capitalService.create(request)
-      .pipe(takeUntil(this.unsubscribe$))
-      .subscribe({
-        next: () => {
-          this.popupMessageService.success("Capital successfully added.");
-          this.handleCancel();
-        }
-    });
+    this.formSubmitted.next(request);
   }
 
   handleCancel() {

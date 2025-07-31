@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, ViewChild, ViewContainerRef, ComponentRef, AfterViewInit } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, ViewContainerRef, ComponentRef } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { DialogData, DialogService } from '../../services/dialog.service';
 
@@ -38,8 +38,17 @@ export class DialogComponent implements OnInit, OnDestroy {
 
     if (this.dialogData) {
       this.componentRef = this.container.createComponent(this.dialogData.component);
+
       if (this.dialogData.data) {
         Object.assign(this.componentRef.instance, this.dialogData.data);
+      }
+
+      const instance = this.componentRef.instance as any;
+
+      if (instance.formSubmitted && typeof instance.formSubmitted.subscribe === 'function' && this.dialogData.onSubmit) {
+        instance.formSubmitted.subscribe((result: any) => {
+          this.dialogData?.onSubmit?.(result);
+        });
       }
     }
   }
