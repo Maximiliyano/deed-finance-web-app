@@ -6,7 +6,7 @@
 
   <div class="cp-bar">
     <div class="cp-search">
-      <mat-icon>search</mat-icon>
+      <app-icon [name]="'fa-search'"></app-icon>
       <input placeholder="Search for..." maxlength="24" [(ngModel)]="searchTerm" (ngModelChange)="onSearchChange()" />
     </div>
 
@@ -17,9 +17,7 @@
       </select>
 
       <button class="sort-direction" (click)="toggleSortDirection()" [title]="sortDirection === 'asc' ? 'Ascending' : 'Descending'">
-        <mat-icon>
-          {{ sortDirection === 'asc' ? 'arrow_upward' : 'arrow_downward' }}
-        </mat-icon>
+        <app-icon [name]="sortDirection === 'asc' ? 'fa-arrow-up' : 'fa-arrow-down'"></app-icon>
       </button>
     </div>
 
@@ -29,7 +27,7 @@
     </div>
 
     <button (click)="openToCreateCapitalDialog()" title="Create new">
-      <mat-icon class="btn-create-icon">add_circle</mat-icon>
+      <app-icon class="btn-create-icon" [name]="'fa-circle-plus'"></app-icon>
     </button>
   </div>
 </div>
@@ -48,7 +46,7 @@
           [title]="propsItem.title"
           [ngClass]="propsItem.style"
         >
-          <mat-icon>{{ propsItem.icon }}</mat-icon>
+          <app-icon [name]="propsItem.icon"></app-icon>
           {{ capital[propsItem.key] }}
         </div>
       </div>
@@ -60,7 +58,7 @@
         class="cp-d-act cp-delete"
         (click)="removeCapital(capital.id)"
       >
-        <mat-icon>delete_outline</mat-icon>
+        <app-icon [name]="'fa-trash'"></app-icon>
       </button>
 
       <button
@@ -68,7 +66,7 @@
         class="cp-d-act cp-visible"
         (click)="toggleVisible(capital)"
       >
-        <mat-icon>{{ capital.includeInTotal ? 'visibility' : 'visibility_off' }}</mat-icon>
+        <app-icon [name]="capital.includeInTotal ? 'fa-eye' : 'fa-eye-slash'"></app-icon>
       </button>
     </div>
   </div>

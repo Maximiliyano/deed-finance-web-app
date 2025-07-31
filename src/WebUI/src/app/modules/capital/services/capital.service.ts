@@ -26,11 +26,11 @@ export class CapitalService {
     return this.httpClient.post<number>(this.baseApiUrl, request);
   }
 
-  update(id: number, request: UpdateCapitalRequest): Observable<Object> {
-    return this.httpClient.put(`${this.baseApiUrl}/${id}`, request);
+  update(id: number, request: UpdateCapitalRequest): Observable<void> {
+    return this.httpClient.put<void>(`${this.baseApiUrl}/${id}`, request);
   }
 
-  delete(id: number): Observable<Object> {
-    return this.httpClient.delete(`${this.baseApiUrl}/${id}`);
+  delete(id: number): Observable<void> {
+    return this.httpClient.delete<void>(`${this.baseApiUrl}/${id}`);
   }
 }

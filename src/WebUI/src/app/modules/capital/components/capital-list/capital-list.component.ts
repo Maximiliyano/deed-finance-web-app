@@ -1,13 +1,14 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
-import {MatDialog} from '@angular/material/dialog';
 import {Subject, takeUntil} from 'rxjs';
 import {CapitalService} from '../../services/capital.service';
-import {CapitalDialogComponent} from '../capital-dialog/capital-dialog.component';
 import {PopupMessageService} from '../../../../shared/services/popup-message.service';
 import {ExchangeService} from "../../../../shared/services/exchange.service";
 import {Exchange} from "../../../../core/models/exchange-model";
 import { currencyToSymbol } from '../../../../shared/components/currency/functions/currencyToSymbol.component';
 import { CapitalResponse } from '../../models/capital-response';
+import { AddCapitalDialogComponent } from '../capital-dialog/add-capital-dialog.component';
+import { DialogService } from '../../../../shared/services/dialog.service';
+import { AddCapitalRequest } from '../../models/add-capital-request';
 
 @Component({
   selector: 'app-capital-list',
@@ -19,10 +20,10 @@ export class CapitalListComponent implements OnInit, OnDestroy {
   exchanges: Exchange[];
   mainCurrency: string = 'UAH';
   propsItems: { key: keyof CapitalResponse; title: string; icon: string, style: string }[] = [
-    { key: 'totalIncome', title: 'Incomes', icon: 'attach_money', style: 'cp-incomes' },
-    { key: 'totalExpense', title: 'Expenses', icon: 'money_off', style: 'cp-expenses' },
-    { key: 'totalTransferOut', title: 'Transfer Out', icon: 'arrow_upward', style: '' },
-    { key: 'totalTransferIn', title: 'Transfer In', icon: 'arrow_downward', style: '' },
+    { key: 'totalIncome', title: 'Incomes', icon: 'fa-dollar-sign', style: 'cp-incomes' },
+    { key: 'totalExpense', title: 'Expenses', icon: 'fa-money-bill-wave', style: 'cp-expenses' },
+    { key: 'totalTransferOut', title: 'Transfer Out', icon: 'fa-arrow-up', style: '' },
+    { key: 'totalTransferIn', title: 'Transfer In', icon: 'fa-arrow-down', style: '' },
   ];
 
   searchTerm: string = '';
@@ -31,13 +32,16 @@ export class CapitalListComponent implements OnInit, OnDestroy {
   sortDirection: 'asc' | 'desc' = 'asc';
   sortOptions: string[] = ['name', 'balance', 'expenses', 'incomes', 'transfers in', 'transfers out'];
 
+  createDialogOpened: boolean = false;
+
   private unsubcribe$ = new Subject<void>;
 
   constructor(
-    private readonly dialog: MatDialog,
     private readonly capitalService: CapitalService,
     private readonly popupMessageService: PopupMessageService,
-    private readonly exchangeService: ExchangeService) { }
+    private readonly exchangeService: ExchangeService,
+    private readonly dialogService: DialogService
+  ) { }
 
     ngOnInit(): void {
       // TODO execute user capitals
@@ -106,18 +110,37 @@ export class CapitalListComponent implements OnInit, OnDestroy {
   }
 
   openToCreateCapitalDialog(): void {
-    const dialogRef = this.dialog.open(CapitalDialogComponent);
-
-    dialogRef
-      .afterClosed()
-      .pipe(takeUntil(this.unsubcribe$))
-      .subscribe({
-        next: (response: boolean) => {
-          if (response) {
-            this.executeCapitals();
-          }
-      }});
+    this.dialogService.open({
+      component: AddCapitalDialogComponent,
+      onSubmit: (request: AddCapitalRequest) => {
+        if (request) {
+          this.capitalService.create(request)
+            .pipe(takeUntil(this.unsubcribe$))
+            .subscribe({
+              next: (id) => this.addCapitalToTheList(id, request)
+            });
+        }
+      }
+    });
   }
+
+  addCapitalToTheList(id: number, request: AddCapitalRequest): void {
+    const response: CapitalResponse = {
+      id: id,
+      name: request.name,
+      balance: request.balance,
+      currency: request.currency,
+      includeInTotal: false,
+      totalIncome: 0,
+      totalExpense: 0,
+      totalTransferIn: 0,
+      totalTransferOut: 0
+    };
+
+    this.capitals.push(response);
+    this.popupMessageService.success("Capital successfully added.");
+    this.dialogService.close();
+  };
 
   totalCapitalAmount(): number {
     return this.capitals?.reduce((accumulator, capital) => {

@@ -5,13 +5,14 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 import { PopupMessageService } from '../../../../shared/services/popup-message.service';
 import { UpdateCapitalRequest } from '../../models/update-capital-request';
-import { ConfirmDialogService } from '../../../../shared/services/confirm-dialog.service';
 import { CurrencyType } from '../../../../core/types/currency-type';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Currency } from '../../../../shared/components/currency/models/currency';
 import { getCurrencies } from '../../../../shared/components/currency/functions/get-currencies.component';
 import { ExchangeService } from '../../../../shared/services/exchange.service';
 import { Exchange } from '../../../../core/models/exchange-model';
+import { DialogService } from '../../../../shared/services/dialog.service';
+import { ConfirmDialogComponent } from '../../../../shared/components/dialogs/confirm-dialog/confirm-dialog.component';
 
 @Component({
   selector: 'app-capital-details',
@@ -35,7 +36,7 @@ export class CapitalDetailsComponent implements OnInit, OnDestroy {
     private readonly exchangeService: ExchangeService,
     private readonly capitalService: CapitalService,
     private readonly popupMessageService: PopupMessageService,
-    private readonly confirmDialogService: ConfirmDialogService) {}
+    private readonly dialogService: DialogService) {}
 
   ngOnInit(): void {
     this.capital = this.route.snapshot.data['capital'];
@@ -98,43 +99,61 @@ export class CapitalDetailsComponent implements OnInit, OnDestroy {
       currency: this.capital.currency == updatedCapital.currency ? null : updatedCapital.currency
     };
 
-    this.confirmDialogService.toggle('update capital', 'update')
-      .then((confirmed) => {
+    this.dialogService.open({
+      component: ConfirmDialogComponent,
+      data: {
+        title: 'update capital',
+        action: 'update'
+      },
+      onSubmit: (confirmed: boolean) => {
         if (confirmed) {
           this.capitalService
             .update(capitalId, request)
             .pipe(takeUntil(this.unsubscribe))
-            .subscribe(() => {
-              this.popupMessageService.success('The capital was successfully updated.');
-              this.formModified = false;
+            .subscribe({
+              next: () => {
+                this.popupMessageService.success('The capital was successfully updated.');
+                this.formModified = false;
+                this.dialogService.close();
+              }
             });
         } else {
           this.cancelChanges();
         }
-      });
+      }
+    });
   }
 
   cancelChanges(): void {
     this.capitalForm.reset(this.capital);
     this.formModified = false;
-    this.popupMessageService.warning('The changes was reverted.')
+    this.dialogService.close();
   }
 
   remove(id: number): void {
-    this.confirmDialogService.toggle('delete capital', 'delete')
-      .then((confirmed) => {
+    this.dialogService.open({
+      component: ConfirmDialogComponent,
+      data: {
+        title: 'delete capital',
+        action: 'delete'
+      },
+      onSubmit: (confirmed: boolean) => {
         if (confirmed) {
           this.capitalService
             .delete(id)
             .pipe(takeUntil(this.unsubscribe))
-            .subscribe(() => {
-              this.popupMessageService.success('The capital was successfully deleted.');
-              this.router.navigate(['/capitals']);
+            .subscribe({
+              next: () => {
+                this.popupMessageService.success('The capital was successfully deleted.');
+                this.router.navigate(['/capitals']);
+                this.dialogService.close();
+              }
             });
         } else {
-          this.popupMessageService.warning('The deletion of capital was canceled.');
+          this.dialogService.close();
         }
-      });
+      }
+    });
   }
 
   isFormEqualToModel(): boolean {

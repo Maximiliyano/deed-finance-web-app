@@ -20,7 +20,7 @@ jobs:
           node-version: 18
 
       - name: Install Dependencies
-        run: npm ci --legacy-peer-deps
+        run: npm install
         working-directory: src/WebUI
 
       - name: Build Frontend

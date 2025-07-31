@@ -3,7 +3,7 @@
     <div class="header-inner">
       <div class="head">
         <button class="burger-menu" (click)="isSidebarExpanded = true" aria-label="Open menu">
-          <mat-icon>menu</mat-icon>
+          <app-icon [name]="'fa-bars'"></app-icon>
         </button>
 
         <a class="logo" routerLink="/">
@@ -11,11 +11,11 @@
         </a>
 
         <button class="home" routerLink="/" aria-label="Home">
-          <mat-icon>home</mat-icon>
+          <app-icon [name]="'fa-home'"></app-icon>
         </button>
 
         <button class="exchange-button" (click)="openExchangeDialog()" aria-label="Open exchange dialog">
-          <mat-icon>attach_money</mat-icon>
+          <app-icon [name]="'fa-money-bill-wave'"></app-icon>
         </button>
       </div>
 
@@ -37,7 +37,7 @@
       <nav class="navigation">
         <ul class="list">
           <li *ngFor="let item of navItems" class="item" [routerLink]="item.link">
-            <mat-icon>{{ item.icon }}</mat-icon>
+            <app-icon [name]="item.icon"></app-icon>
             {{ item.label }}
           </li>
         </ul>
@@ -45,7 +45,7 @@
 
       <div class="profile">
         <button class="account-button">
-          <mat-icon>account_circle</mat-icon>
+          <app-icon [name]="'fa-user-circle'"></app-icon>
         </button>
       </div>
     </div>
@@ -54,7 +54,7 @@
   <div class="sidebar" [ngClass]="{'expanded': isSidebarExpanded}">
     <div class="sidebar-header">
       <button class="sidebar-btn-close" (click)="isSidebarExpanded = false" aria-label="Close menu">
-        <mat-icon>close</mat-icon>
+        <app-icon [name]="'fa-times'"></app-icon>
       </button>
       <span>Menu</span>
     </div>
@@ -63,7 +63,7 @@
       <nav class="sidebar-nav">
         <ul class="sidebar-nav-list">
           <li *ngFor="let item of navItems" class="sidebar-nav-item" [routerLink]="item.link" (click)="isSidebarExpanded = false">
-            <mat-icon>{{ item.icon }}</mat-icon>
+            <app-icon [name]="item.icon"></app-icon>
             {{ item.label }}
           </li>
         </ul>
