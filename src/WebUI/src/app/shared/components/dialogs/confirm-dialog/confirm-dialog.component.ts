@@ -1,5 +1,5 @@
-import { Component, Inject } from '@angular/core';
-import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { Component, Output } from '@angular/core';
+import { Subject } from 'rxjs';
 
 @Component({
   selector: 'app-confirm-dialog',
@@ -7,16 +7,16 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
   styleUrl: './confirm-dialog.component.scss'
 })
 export class ConfirmDialogComponent {
-  constructor(
-    private readonly dialogRef: MatDialogRef<ConfirmDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: { title: string, action: string }
-  ) {}
+  @Output() submitted = new Subject<boolean>();
 
-  onConfirm(): void {
-    this.dialogRef.close(true);
+  title: string;
+  action: string;
+
+  handleConfirm() {
+    this.submitted.next(true);
   }
 
-  onCancel(): void {
-    this.dialogRef.close(false);
+  handleCancel() {
+    this.submitted.next(false);
   }
 }
