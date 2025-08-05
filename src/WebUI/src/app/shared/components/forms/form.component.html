@@ -31,6 +31,7 @@
       <textarea
         *ngIf="field.textArea"
         [formControlName]="field.controlName"
+        class="w-full h-32 border border-black rounded px-3 py-2 resize-none"
       ></textarea>
 
       <app-form-error [form]="form" [controlName]="field.controlName"></app-form-error>

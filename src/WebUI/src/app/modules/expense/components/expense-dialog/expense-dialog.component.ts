@@ -20,8 +20,8 @@ export class ExpenseDialogComponent implements OnInit, OnDestroy {
   capitals: CapitalResponse[] = [];
   categories: CategoryResponse[] = [];
 
-  categoryOptions: SelectOptionModel[] = this.categories?.map(x => { return { key: x.name, value: x.id } }) ?? [];
-  capitalsOptions: SelectOptionModel[] = this.capitals?.map(x => { return { key: x.name, value: x.id } }) ?? [];
+  categoryOptions: SelectOptionModel[] = [];
+  capitalsOptions: SelectOptionModel[] = [];
 
   form: FormGroup;
   fields: FormFields[];
@@ -43,7 +43,6 @@ export class ExpenseDialogComponent implements OnInit, OnDestroy {
   }
 
   private initFields(): void {
-
     this.fields = [
       {
         label: 'Amount',
@@ -80,6 +79,9 @@ export class ExpenseDialogComponent implements OnInit, OnDestroy {
   }
 
   private initForm(): void {
+    this.categoryOptions = this.categories.map(x => { return { key: x.name, value: x.id } });
+    this.capitalsOptions = this.capitals.map(x => { return { key: x.name, value: x.id } });
+
     this.form = new FormGroup({
       Amount: new FormControl('', [Validators.required]),
       CapitalId: new FormControl({ value: '', disabled: this.capitalsOptions.length === 0 }, Validators.required),

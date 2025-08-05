@@ -170,9 +170,10 @@ export class ExpenseListComponent implements OnInit, OnDestroy {
 
                   this.selectedCapital?.balance ? this.selectedCapital.balance -= response.amount : this.totalCapitalsBalance -= response.amount;
                   this.selectedCapital?.totalExpense ? this.selectedCapital.totalExpense += response.amount : this.totalCapitalsExpense += response.amount;
-                  this.expenses.push(response);
                   this.categories = this.constructCategories();
                 }
+
+                this.expenses.push(response);
 
                 this.dialogService.close();
               }
