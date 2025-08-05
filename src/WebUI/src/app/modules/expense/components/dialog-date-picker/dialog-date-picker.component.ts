@@ -1,5 +1,4 @@
-import {Component, Inject} from '@angular/core';
-import {MAT_DIALOG_DATA, MatDialogRef} from "@angular/material/dialog";
+import {Component, EventEmitter, Output} from '@angular/core';
 import {FormBuilder, FormGroup, Validators} from "@angular/forms";
 
 @Component({
@@ -8,17 +7,20 @@ import {FormBuilder, FormGroup, Validators} from "@angular/forms";
   styleUrl: './dialog-date-picker.component.scss'
 })
 export class DialogDatePickerComponent {
+  @Output() submitted = new EventEmitter<{}>();
+
+  startDate: Date | null;
+  endDate: Date | null;
+  allTime: boolean;
+
   datePickerForm: FormGroup;
 
-  constructor(
-      private fb: FormBuilder,
-      public dialogRef: MatDialogRef<DialogDatePickerComponent>,
-      @Inject(MAT_DIALOG_DATA) public data: DialogDatePickerComponentProps)
+  constructor(private fb: FormBuilder)
   {
     this.datePickerForm = this.fb.group({
-      startDate: [this.data.startDate, Validators.required],
-      endDate: [this.data.endDate, Validators.required],
-      allTimeCheck: [this.data.allTime]
+      startDate: [this.startDate, Validators.required],
+      endDate: [this.endDate, Validators.required],
+      allTimeCheck: [this.allTime]
     });
 
     this.toggleAllTime();
@@ -31,7 +33,7 @@ export class DialogDatePickerComponent {
 
     const { startDate, endDate, allTimeCheck } = this.datePickerForm.value;
 
-    this.dialogRef.close({
+    this.submitted.next({
       startDate: startDate,
       endDate: endDate,
       allTime: allTimeCheck
@@ -39,10 +41,10 @@ export class DialogDatePickerComponent {
   }
 
   cancel(): void {
-    this.dialogRef.close({
-      startDate: this.data.startDate,
-      endDate: this.data.endDate,
-      allTime: this.data.allTime,
+    this.submitted.next({
+      startDate: this.startDate,
+      endDate: this.endDate,
+      allTime: this.allTime,
     });
   }
 
@@ -60,10 +62,4 @@ export class DialogDatePickerComponent {
         }
     });
   }
-}
-
-export interface DialogDatePickerComponentProps {
-  startDate: Date | null;
-  endDate: Date | null;
-  allTime: boolean;
 }

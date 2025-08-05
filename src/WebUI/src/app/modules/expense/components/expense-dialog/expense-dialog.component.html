@@ -1,46 +1,10 @@
-<form [formGroup]="addExpenseForm">
-  <h1 mat-dialog-title>Add expense</h1>
-  <div mat-dialog-content class="dialog-content">
-    <mat-form-field>
-      <mat-label>Amount</mat-label>
-      <input matInput placeholder="Amount" type="number" formControlName="Amount">
-    </mat-form-field>
-
-    <mat-form-field>
-      <mat-label>Select capital</mat-label>
-
-      <mat-select formControlName="CapitalId">
-        <mat-option *ngFor="let capital of data.capitals" [value]="capital.id">{{ capital.name }}</mat-option>
-      </mat-select>
-
-      <mat-hint *ngIf="errCapitalMsg">{{ errCapitalMsg }}</mat-hint>
-    </mat-form-field>
-
-    <mat-form-field>
-      <mat-label>Select category</mat-label>
-
-      <mat-select formControlName="CategoryId">
-        <mat-option *ngFor="let category of data.categories" [value]="category.id">{{ category.name }}</mat-option>
-      </mat-select>
-
-      <mat-hint *ngIf="errCategoryMsg">{{ errCategoryMsg }}</mat-hint>
-    </mat-form-field>
-
-    <mat-form-field>
-      <mat-label>Choose a payment date</mat-label>
-      <input matInput [matDatepicker]="picker" formControlName="PaymentDate">
-      <mat-hint>MM/DD/YYYY</mat-hint>
-      <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
-      <mat-datepicker #picker></mat-datepicker>
-    </mat-form-field>
-
-    <mat-form-field>
-      <mat-label>Purpose</mat-label>
-      <textarea  matInput formControlName="Purpose"></textarea>
-    </mat-form-field>
-  </div>
-  <div mat-dialog-actions>
-    <button mat-button [disabled]="!addExpenseForm.valid" (click)="add()">Save</button>
-    <button mat-button (click)="onCancel(null)">Cancel</button>
-  </div>
-</form>
+<app-form
+  [form]="form"
+  [fields]="fields"
+  headerText="Add new expense"
+  submitButtonText="Save"
+  cancelButtonText="Cancel"
+  (submitForm)="handleSubmit()"
+  (cancelForm)="handleCancel()"
+>
+</app-form>

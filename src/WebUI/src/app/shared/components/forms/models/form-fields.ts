@@ -1,11 +1,18 @@
+import { SelectOptionModel } from "./select-option-model"
+
 export interface FormFields {
   label: string,
   controlName: string,
   input?: {
-    type: string,
-    placeholder: string
+    type: 'text' | 'number',
+    placeholder?: string
   },
   select?: {
-    options: string[]
+    options: SelectOptionModel[],
+    optionCaption?: string
+  },
+  dateTimePicker?: {
+  },
+  textArea?: {
   }
 }

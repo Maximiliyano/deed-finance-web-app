@@ -60,7 +60,7 @@ export class AddCapitalDialogComponent implements OnInit, OnDestroy {
       {
         label: 'Currency',
         controlName: 'Currency',
-        select: { options: this.currencyOptions }
+        select: { options: this.currencyOptions.map(x => { return { key: x, value: x } }) }
       }
     ];
   }
@@ -80,7 +80,7 @@ export class AddCapitalDialogComponent implements OnInit, OnDestroy {
     this.submitted.next(request);
   }
 
-  handleCancel() {
+  handleCancel(): void {
     this.dialogService.close();
   }
 }

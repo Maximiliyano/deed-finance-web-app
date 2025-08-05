@@ -11,6 +11,7 @@ import { IconComponent } from './components/icon/icon.component';
 import { DialogComponent } from './components/dialogs/dialog.component';
 import { FormErrorComponent } from './components/forms/form-error/form-error.component';
 import { FormComponent } from './components/forms/form.component';
+import { DatePickerComponent } from './components/date-picker/date-picker.component';
 
 @NgModule({
   declarations: [
@@ -22,7 +23,8 @@ import { FormComponent } from './components/forms/form.component';
     IconComponent,
     DialogComponent,
     FormComponent,
-    FormErrorComponent
+    FormErrorComponent,
+    DatePickerComponent
   ],
   imports: [
     CommonModule,
@@ -40,7 +42,8 @@ import { FormComponent } from './components/forms/form.component';
     IconComponent,
     DialogComponent,
     FormComponent,
-    FormErrorComponent
+    FormErrorComponent,
+    DatePickerComponent
   ]
 })
 export class SharedModule { }

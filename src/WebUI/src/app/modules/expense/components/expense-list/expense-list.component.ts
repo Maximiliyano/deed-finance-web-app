@@ -2,11 +2,7 @@ import {Component, OnDestroy, OnInit} from '@angular/core';
 import {BehaviorSubject, Subject, takeUntil} from 'rxjs';
 import {CapitalResponse} from '../../../capital/models/capital-response';
 import {currencyToSymbol} from '../../../../shared/components/currency/functions/currencyToSymbol.component';
-import {MatDialog} from "@angular/material/dialog";
-import {
-  DialogDatePickerComponent,
-  DialogDatePickerComponentProps
-} from "../dialog-date-picker/dialog-date-picker.component";
+import { DialogDatePickerComponent } from "../dialog-date-picker/dialog-date-picker.component";
 import {CapitalService} from "../../../capital/services/capital.service";
 import {Periods} from "../../models/periods";
 import {CategoryResponse} from "../../../../core/models/category-model";
@@ -16,6 +12,9 @@ import { ExpenseService } from '../../services/expense.service';
 import { ExpenseResponse } from '../../models/expense-response';
 import { CategoryService } from '../../../../shared/services/category.service';
 import { CategoryType } from '../../../../core/types/category-type';
+import { DialogService } from '../../../../shared/services/dialog.service';
+import { AddExpenseRequest } from '../../models/add-expense-request';
+import { PopupMessageService } from '../../../../shared/services/popup-message.service';
 
 @Component({
   selector: 'app-expense-list',
@@ -47,11 +46,13 @@ export class ExpenseListComponent implements OnInit, OnDestroy {
 
   private $unsubscribe = new Subject<void>();
 
-  constructor(private readonly route: ActivatedRoute,
-              private readonly expenseService: ExpenseService,
-              private readonly capitalService: CapitalService,
-              private readonly categoryService: CategoryService,
-              private readonly dialog: MatDialog) {}
+  constructor(
+    private readonly route: ActivatedRoute,
+    private readonly popupService: PopupMessageService,
+    private readonly expenseService: ExpenseService,
+    private readonly capitalService: CapitalService,
+    private readonly categoryService: CategoryService,
+    private readonly dialogService: DialogService) {}
 
   ngOnInit(): void {
     this.fetchCapitals();
@@ -110,58 +111,75 @@ export class ExpenseListComponent implements OnInit, OnDestroy {
   }
 
   openDialogDatePicker(): void {
-    const dialogProps: DialogDatePickerComponentProps = {
-      startDate: this.startDate,
-      endDate: this.endDate,
-      allTime: this.allTime,
-    };
-
-    const dialogRef = this.dialog.open(DialogDatePickerComponent, { data: dialogProps });
-
-    dialogRef
-      .afterClosed()
-      .subscribe({
-        next: (result: DialogDatePickerComponentProps) => {
-          if (result) {
-            this.startDate = result.startDate;
-            this.endDate = result.endDate;
-            this.allTime = result.allTime;
-          }
+    this.dialogService.open({
+      component: DialogDatePickerComponent,
+      data: {
+        startDate: this.startDate,
+        endDate: this.endDate,
+        allTime: this.allTime
+      },
+      onSubmit: (result) => {
+        if (result) {
+          this.startDate = result.startDate;
+          this.endDate = result.endDate;
+          this.allTime = result.allTime;
+          this.dialogService.close();
         }
-      });
+      }
+    });
   }
 
   openDialogAddExpense(): void {
-    const dialogRef = this.dialog.open(ExpenseDialogComponent, {
+    let category: CategoryResponse | null = null;
+
+    this.dialogService.open({
+      component: ExpenseDialogComponent,
       data: {
         capitals: this.capitals,
         categories: this.dialogCategories
+      },
+      onSubmit: (request: AddExpenseRequest) => {
+        if (request) {
+          this.expenseService.add(request)
+            .pipe(takeUntil(this.$unsubscribe))
+            .subscribe({
+              next: (id) => {
+                this.popupService.success('The expense is successfully added.');
+
+                const response: ExpenseResponse = {
+                  id: id,
+                  amount: request.amount,
+                  paymentDate: request.paymentDate,
+                  capitalId: request.capitalId,
+                  category: {
+                    id: request.categoryId,
+                    name: '',
+                    type: CategoryType.Expenses,
+                    totalExpenses: 0,
+                    totalExpensesPercent: '0'
+                  },
+                  purpose: request.purpose
+                };
+
+                category = this.setCategoryById(response.category.id);
+
+                if (category != null) {
+                  category.totalExpenses += response.amount;
+                  category.totalExpensesPercent = this.calculatePercent(category.totalExpenses);
+                  response.category = category;
+
+                  this.selectedCapital?.balance ? this.selectedCapital.balance -= response.amount : this.totalCapitalsBalance -= response.amount;
+                  this.selectedCapital?.totalExpense ? this.selectedCapital.totalExpense += response.amount : this.totalCapitalsExpense += response.amount;
+                  this.expenses.push(response);
+                  this.categories = this.constructCategories();
+                }
+
+                this.dialogService.close();
+              }
+            })
+        }
       }
     });
-
-    let category: CategoryResponse | null = null;
-
-    dialogRef
-      .afterClosed()
-      .pipe(takeUntil(this.$unsubscribe))
-      .subscribe({
-        next: (response: ExpenseResponse) => {
-          if (response) {
-            category = this.setCategoryById(response.category.id);
-
-            if (category != null) {
-              category.totalExpenses += response.amount;
-              category.totalExpensesPercent = this.calculatePercent(category.totalExpenses);
-              response.category = category;
-
-              this.selectedCapital?.balance ? this.selectedCapital.balance -= response.amount : this.totalCapitalsBalance -= response.amount;
-              this.selectedCapital?.totalExpense ? this.selectedCapital.totalExpense += response.amount : this.totalCapitalsExpense += response.amount;
-              this.expenses.push(response);
-              this.categories = this.constructCategories();
-            }
-          }
-        }
-      })
   }
 
   symbol(value?: string): string {

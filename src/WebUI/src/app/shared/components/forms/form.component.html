@@ -9,18 +9,29 @@
         [type]="field.input.type || 'text'"
         class="w-full border rounded px-3 py-2"
         [formControlName]="field.controlName"
-        [placeholder]="field.input.placeholder"
+        [placeholder]="field.input.placeholder ?? 'Enter the value'"
       />
 
       <select
         *ngIf="field.select"
         [formControlName]="field.controlName"
-        class="w-full border rounded px-3 py-2"
+        class="w-full border rounded px-3 py-2 {{ field.select.options.length === 0 ? 'cursor-not-allowed text-gray-300' : '' }}"
       >
-        <option *ngFor="let option of field.select.options" [value]="option">
-          {{ option }}
+        <option *ngIf="field.select.optionCaption" value="">{{ field.select.optionCaption }}</option>
+        <option *ngFor="let option of field.select.options" [value]="option.value">
+          {{ option.key }}
         </option>
       </select>
+
+      <app-date-picker
+        *ngIf="field.dateTimePicker"
+        [formControlName]="field.controlName">
+      </app-date-picker>
+
+      <textarea
+        *ngIf="field.textArea"
+        [formControlName]="field.controlName"
+      ></textarea>
 
       <app-form-error [form]="form" [controlName]="field.controlName"></app-form-error>
     </div>
