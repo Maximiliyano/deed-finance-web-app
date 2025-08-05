@@ -14,15 +14,4 @@
 .dialog-actions {
   display: flex;
   justify-content: space-around;
-
-  button[mat-button] {
-    background-color: #eee;
-    border-radius: 5px;
-    min-width: 100px;
-    font-weight: 500;
-
-    &[color="warn"] {
-      color: #f44336;
-    }
-  }
 }
