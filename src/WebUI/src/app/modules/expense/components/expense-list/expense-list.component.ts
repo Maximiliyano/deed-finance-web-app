@@ -2,7 +2,6 @@ import {Component, OnDestroy, OnInit} from '@angular/core';
 import {BehaviorSubject, Subject, takeUntil} from 'rxjs';
 import {CapitalResponse} from '../../../capital/models/capital-response';
 import {currencyToSymbol} from '../../../../shared/components/currency/functions/currencyToSymbol.component';
-import { DialogDatePickerComponent } from "../dialog-date-picker/dialog-date-picker.component";
 import {CapitalService} from "../../../capital/services/capital.service";
 import {Periods} from "../../models/periods";
 import {CategoryResponse} from "../../../../core/models/category-model";
@@ -104,29 +103,10 @@ export class ExpenseListComponent implements OnInit, OnDestroy {
     this.selectedPeriod = period;
 
     if (period == Periods.Custom) {
-      this.openDialogDatePicker();
+      // TODO custom
     } else {
       this.updateDateRange();
     }
-  }
-
-  openDialogDatePicker(): void {
-    this.dialogService.open({
-      component: DialogDatePickerComponent,
-      data: {
-        startDate: this.startDate,
-        endDate: this.endDate,
-        allTime: this.allTime
-      },
-      onSubmit: (result) => {
-        if (result) {
-          this.startDate = result.startDate;
-          this.endDate = result.endDate;
-          this.allTime = result.allTime;
-          this.dialogService.close();
-        }
-      }
-    });
   }
 
   openDialogAddExpense(): void {
