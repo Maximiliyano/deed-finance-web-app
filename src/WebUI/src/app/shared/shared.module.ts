@@ -1,12 +1,16 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { AngularMaterialModule } from './angular-material.module';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { OverlayComponent } from './components/overlay/overlay.component';
-import { ConfirmDialogComponent } from './components/confirm-dialog/confirm-dialog.component';
-import { ExchangeDialogComponent } from './components/exchange-dialog/exchange-dialog.component';
+import { ConfirmDialogComponent } from './components/dialogs/confirm-dialog/confirm-dialog.component';
 import { CurrencyComponent } from './components/currency/currency.component';
 import { LayoutComponent } from './components/layout/layout.component';
+import { ExchangeDialogComponent } from './components/dialogs/exchange-dialog/exchange-dialog.component';
+import { IconComponent } from './components/icon/icon.component';
+import { DialogComponent } from './components/dialogs/dialog.component';
+import { FormErrorComponent } from './components/forms/form-error/form-error.component';
+import { FormComponent } from './components/forms/form.component';
+import { DatePickerComponent } from './components/date-picker/date-picker.component';
 
 @NgModule({
   declarations: [
@@ -14,21 +18,29 @@ import { LayoutComponent } from './components/layout/layout.component';
     ConfirmDialogComponent,
     ExchangeDialogComponent,
     CurrencyComponent,
-    LayoutComponent
+    LayoutComponent,
+    IconComponent,
+    DialogComponent,
+    FormComponent,
+    FormErrorComponent,
+    DatePickerComponent
   ],
   imports: [
     CommonModule,
-    AngularMaterialModule,
     FormsModule,
     ReactiveFormsModule
   ],
   exports: [
     CommonModule,
-    AngularMaterialModule,
     FormsModule,
     ReactiveFormsModule,
     CurrencyComponent,
-    LayoutComponent
+    LayoutComponent,
+    IconComponent,
+    DialogComponent,
+    FormComponent,
+    FormErrorComponent,
+    DatePickerComponent
   ]
 })
 export class SharedModule { }

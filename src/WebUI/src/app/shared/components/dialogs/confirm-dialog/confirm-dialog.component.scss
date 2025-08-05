@@ -1,0 +1,17 @@
+.dialog-title {
+  font-size: 22px;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.dialog-content {
+  font-size: 16px;
+  padding: 16px;
+  text-align: center;
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: space-around;
+}

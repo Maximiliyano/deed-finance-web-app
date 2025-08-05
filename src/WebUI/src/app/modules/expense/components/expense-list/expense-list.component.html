@@ -1,6 +1,6 @@
 <div class="expense-header">
   <div class="capital-selector">
-    <mat-icon>account_balance_wallet</mat-icon>
+    <app-icon [name]="'fa-wallet'"></app-icon>
     <select [ngModel]="selectedCapital" (ngModelChange)="onCapitalChange($event)">
       <option [value]="null">All</option>
       <option *ngFor="let capital of capitals" [ngValue]="capital">
@@ -43,8 +43,8 @@
       {{ getCapitalTotalExpenses() | currency: symbol(selectedCapital?.currency) }}
     </span>
 
-    <button class="add-expense" (click)="openDialogAddExpense()">
-      <mat-icon>add_circle</mat-icon>
+    <button class="add-expense" (click)="openDialogAddExpense()" title="Add expense">
+      <app-icon [name]="'fa-circle-plus'"></app-icon>
     </button>
   </div>
 

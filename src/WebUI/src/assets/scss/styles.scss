@@ -1,6 +1,11 @@
 @import './reset.scss';
 @import './popup.scss';
-@import "tailwindcss";
+
+@import "@fortawesome/fontawesome-free/css/all.min.css";
+
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
 
 [class*='-container'] {
     max-width: 1396px;

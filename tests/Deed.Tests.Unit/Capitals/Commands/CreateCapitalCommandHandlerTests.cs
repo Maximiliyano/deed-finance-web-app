@@ -24,7 +24,7 @@ public sealed class CreateCapitalCommandHandlerTests
     public async Task Handle_CreateValidCapital_ReturnsSuccess()
     {
         // Arrange
-        var command = new CreateCapitalCommand("FancyName  ", 1000, CurrencyType.USD);
+        var command = new CreateCapitalCommand("FancyName  ", 1000, CurrencyType.USD.ToString());
         var exceptedCapital = new Capital(1)
         {
             Name = "FancyName",

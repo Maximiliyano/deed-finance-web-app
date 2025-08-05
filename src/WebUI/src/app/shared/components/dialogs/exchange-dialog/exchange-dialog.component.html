@@ -1,0 +1,13 @@
+<div class="exchanges">
+  <div class="exchange" *ngFor="let exchange of exchanges">
+      <div class="prices">
+          <span>{{ exchange?.buy | number: '1.2-2' }}</span>
+          <span>{{ exchange?.sale | number: '1.2-2' }}</span>
+      </div>
+      <div class="currencies">
+          <span>{{ exchange?.targetCurrency ?? 'None' }}</span>
+          <span>{{ exchange?.nationalCurrency ?? 'None' }}</span>
+      </div>
+  </div>
+  <div *ngIf="exchanges.length === 0">Nothing there.</div>
+</div>
