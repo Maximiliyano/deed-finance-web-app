@@ -414,5 +414,6 @@ src/Deed/.idea/
 /src/WebUI/.idea/workspace.xml
 /src/WebUI/.idea
 /src/WebUI/dist/
+/src/WebUI/package-lock.json
 # Local Netlify folder
 .netlify
