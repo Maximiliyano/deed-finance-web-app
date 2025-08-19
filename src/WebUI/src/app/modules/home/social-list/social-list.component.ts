@@ -22,24 +22,37 @@ export class SocialListComponent implements OnInit {
 
     // this.dialog.open(NewRequestDialogComponent, { value: selectedValue })
 
-    // OPTION 1: pass options Expenses -> Education,Certification
-    let valueSubOptions: string[] = [];
-    switch (selectedValue as SocialPackageEnum) {
-      case SocialPackageEnum.ExpenseCompensation:
-        valueSubOptions = [ "Education", "Certifaction", "Team Lunch" ];
-        break;
-    }
-    //===========================================================
-
-    this.dialogService.open({
-      component: NewRequestDialogComponent,
-      data: {
-        value: selectedValue,
-        valueSubOptions: valueSubOptions
+    // OPTION 2: pass options Expenses with SubOptions
+    let optionMegaTron: optionMega[] = [
+      {
+        name: SocialPackageEnum.ExpenseCompensation,
+        subOptions: [
+          "Education", "Certifaction", "Team Lunch"
+        ]
+      },
+      {
+        name: SocialPackageEnum.Vacation,
+        subOptions: []
       }
-    })
+    ]
+
+    let optionMega = optionMegaTron.find(x => x.name == selectedValue as SocialPackageEnum)!;
+
+    if (optionMega) {
+      this.dialogService.open({
+        component: NewRequestDialogComponent,
+        data: {
+          optionMega: optionMega
+        }
+      })
+    }
   }
 }
+
+export type optionMega = {
+  name: string;
+  subOptions: string[]
+};
 
 export enum SocialPackageEnum {
   Vacation = "Vacation",

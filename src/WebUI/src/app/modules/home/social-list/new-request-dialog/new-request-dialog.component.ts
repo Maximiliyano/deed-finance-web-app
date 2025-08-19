@@ -1,7 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 import { FormFields } from '../../../../shared/components/forms/models/form-fields';
-import { SocialPackageEnum } from '../social-list.component';
+import { optionMega, SocialPackageEnum } from '../social-list.component';
+import { DialogService } from '../../../../shared/services/dialog.service';
 
 @Component({
   selector: 'app-new-request-dialog',
@@ -9,117 +10,221 @@ import { SocialPackageEnum } from '../social-list.component';
   styleUrl: './new-request-dialog.component.scss'
 })
 export class NewRequestDialogComponent implements OnInit {
-  // constructor
-  // @Inject(MAT_DIALOG_DATA) data: { name: ... } valueSubOptions
-  value: string;
-  valueSubOptions: string[]; // OPTION 1
+  // You receive the optionMega from inject, matdialogdata constructor
+  constructor(
+    private readonly dialogService: DialogService,
+    // @Inject(MAT_DIALOG_DATA) data: { name: ... }
+  ) {
+  }
+  optionMega: optionMega;
 
   form: FormGroup;
   fields: FormFields[];
 
   ngOnInit(): void {
-    this.form = new FormGroup({
-      SubOptions: new FormControl(this.valueSubOptions), // depends on selected option show fields
-      Subject: new FormControl(''),
-      Calendar: new FormControl('')
-    });
+    // OPTION 2: I init form & fields based on OptionMega.InputValue
+    this.initForm();
 
-    this.fields = [];
-
-    this.addSubOptions();
-
-    // OPTION 1: I take value from parent component Expense, pass SubOptions Expenses
-    // before initialize I check Expense - I add needed fields
-    if (this.value as SocialPackageEnum === SocialPackageEnum.ExpenseCompensation) {
-      this.fields.push({
-        label: "Calendar",
-        controlName: "Calendar",
-        dateTimePicker: {}
-      });
-    }
-    // TODO If you need for specific SocialPackageEnum fields, you just create a condition for it
-
+    // If you need for specific SocialPackageEnum fields, you just create a condition for it
+    this.initFields();
   }
 
-  addSubOptions(): void {
-    if (this.valueSubOptions.length > 0 && !this.fields.find(x => x.label === "SubOptions")) {
-      this.fields.push({
-        label: 'SubOptions',
-        controlName: 'SubOptions',
-        select: {
-          onChange: (value) => this.handleSubOptionClick(value),
-          options: this.valueSubOptions.map(x => { return { key: x, value: x }}) }
-      });
-    };
+  initForm(): void {
+    switch(this.optionMega.name as SocialPackageEnum) {
+      case SocialPackageEnum.ExpenseCompensation: {
+        this.form = new FormGroup({
+          SubOption: new FormControl(''), // depends on selected option show fields
+          Subject: new FormControl(''),
+          Calendar: new FormControl('')
+        });
+        break;
+      }
+      case SocialPackageEnum.Vacation: {
+        this.form = new FormGroup({
+          Date: new FormControl(''),
+          Purpose: new FormControl('')
+        })
+      }
+    }
+  }
+
+  initFields(): void {
+    // init parent enum options fields
+    switch(this.optionMega.name as SocialPackageEnum) {
+      case SocialPackageEnum.ExpenseCompensation: {
+        this.fields = [
+          {
+            label: 'Subsection options',
+            controlName: 'SubOption',
+            select: {
+              onChange: (value) => this.handleSubOptionClick(value),
+              options: this.optionMega.subOptions.map(x => { return { key: x, value: x }})
+            }
+          },
+          {
+            label: 'Subject',
+            controlName: 'Subject',
+            input: {
+              type: 'text'
+            }
+          },
+          {
+            label: 'Calendar',
+            controlName: 'Calendar',
+            dateTimePicker: {}
+          }
+        ];
+        break;
+      }
+      case SocialPackageEnum.Vacation: {
+        this.fields = [
+          {
+            label: 'Date Time',
+            controlName: 'Date',
+            dateTimePicker: {}
+          },
+          {
+            label: 'Purpose',
+            controlName: 'Purpose',
+            input: {
+              type: 'text'
+            }
+          }
+        ]
+      }
+    }
+  }
+
+  initSubOptions(subOption: string): void {
+    switch (subOption) {
+      case 'Education': {
+        // add/update controls you could extract it into const of EducationSubOptions
+        this.setFormControls(['Knowledge', 'Degree']);
+
+        // update form fields you can you constants instead of the methods
+        this.fields = this.getEducationFields();
+        break;
+      }
+
+      case 'Team Lunch': {
+        this.setFormControls(['SubOption', 'Subject', 'Eaten', 'Employees', 'Projects']);
+        this.fields = this.getTeamFields();
+        break;
+      }
+
+      case 'Certifaction': {
+        this.setFormControls(['SubOption', 'Name']);
+        this.fields = this.getCertificateFields();
+        break;
+      }
+
+      default: {
+        // if selected invalid suboptions, do nothing or push an error for ex
+
+        // cleanup formControlls instead of recreationg new FormControl...
+        Object.keys(this.form.controls).forEach(ctrl => this.form.removeControl(ctrl));
+        // cleanup fields on the form
+        this.fields = [];
+        break;
+      }
+    }
+  }
+
+  // If you want not only to create FormControl & add value just pass not string[] -> SubOptionProps - (controlName, value)
+  setFormControls(subOptions: string[]): void {
+    subOptions.forEach(ctrl => {
+      if (!this.form.contains(ctrl)) {
+        this.form.addControl(ctrl, new FormControl(''));
+      }
+    })
   }
 
   handleSubOptionClick(event: Event): void {
     const subOptionValue = (event.target as HTMLSelectElement).value;
 
-    switch (subOptionValue) {
-      case "Team Lunch":
-        this.form = new FormGroup({
-          SubOptions: new FormControl(this.valueSubOptions),
-          Subject: new FormControl(''),
-          Radio: new FormControl(false),
-          Employees: new FormControl([]),
-          Projects: new FormControl([])
-        });
-        this.fields.push(
-          {
-            label: 'Subject',
-            controlName: "Subject",
-            input: {
-              type: 'text'
-            }
-          });
+    this.initSubOptions(subOptionValue);
+  }
 
-        this.fields.push(
-          {
-            label: 'Radio',
-            controlName: 'Radio',
-            input: {
-              type: 'number'
-            }
-          }
-        );
+  handleClose(): void {
+    this.dialogService.close();
+  }
 
-        this.fields.push({
-          label: 'Employees',
-          controlName: 'Employees',
-          select:{
-            options: []
-          }
-        })
+  getCertificateFields(): FormFields[]  {
+    return [
+      {
+        label: 'Subsection options',
+        controlName: 'SubOption',
+        select: {
+          onChange: (value) => this.handleSubOptionClick(value),
+          options: this.optionMega.subOptions.map(x => { return { key: x, value: x }})
+        }
+      },
+      {
+        label: 'Name',
+        controlName: 'Name',
+        input: { type: 'text' }
+      }
+    ];
+  }
 
-        this.fields.push({
-          label: 'Projects',
-          controlName: 'Projects',
-          select:{
-            options: []
-          }
-        })
-        break;
+  getEducationFields(): FormFields[] {
+    return [
+      {
+        label: 'Knowledge',
+        controlName: 'Knowledge',
+        input: { type: 'text' }
+      },
+      {
+        label: `Degree's`,
+        controlName: 'Degree',
+        select: {
+          options: [
+            { key: "Select a degree...", value: ''},
+            { key: "Minecraft", value: "Minecraft" }
+          ]
+        }
+      }
+    ];
+  }
 
-      case "Certifaction":
-        this.form = new FormGroup({
-          SubOptions: new FormControl(this.valueSubOptions),
-          Name: new FormControl('')
-        });
-
-        this.fields = [
-          {
-            label: 'Name',
-            controlName: 'Name',
-            input: {
-              type: 'text'
-            }
-          }
-        ];
-
-        this.addSubOptions();
-        break;
-    }
-
+  getTeamFields(): FormFields[] {
+    return [
+      {
+        label: 'Subsection options',
+        controlName: 'SubOption',
+        select: {
+          onChange: (value) => this.handleSubOptionClick(value),
+          options: this.optionMega.subOptions.map(x => { return { key: x, value: x }})
+        }
+      },
+      {
+        label: 'Subject',
+        controlName: "Subject",
+        input: {
+          type: 'text'
+        }
+      },
+      {
+        label: 'Did you eaten your Bo-bo?',
+        controlName: 'Eaten',
+        input: {
+          type: 'checkbox'
+        }
+      },
+      {
+        label: 'Employees',
+        controlName: 'Employees',
+        select:{
+          options: [ { key: 'Select a employee...', value: '' } ]
+        }
+      },
+      {
+        label: 'Projects',
+        controlName: 'Projects',
+        select:{
+          options: [ { key: 'Select a project...', value: '' } ]
+        }
+      }
+    ];
   }
 }
