@@ -26,9 +26,7 @@ export class SocialListComponent implements OnInit {
     let optionMegaTron: optionMega[] = [
       {
         name: SocialPackageEnum.ExpenseCompensation,
-        subOptions: [
-          "Education", "Certifaction", "Team Lunch"
-        ]
+        subOptions: Object.values(SocialPackageEnumOption)
       },
       {
         name: SocialPackageEnum.Vacation,
@@ -58,6 +56,12 @@ export enum SocialPackageEnum {
   Vacation = "Vacation",
   ExpenseCompensation = "ExpenseCompensation"
 };
+
+export enum SocialPackageEnumOption {
+  Education = "Education",
+  Certifaction = "Certifaction",
+  TeamLunch = "Team Lunch"
+}
 
 export const SOCIAL_LIST: Social[] = [
   {name: SocialPackageEnum.Vacation, property: 'vacation', disabled: false},

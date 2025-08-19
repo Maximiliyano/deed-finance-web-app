@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
-import { FormControl, FormGroup } from '@angular/forms';
+import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { FormFields } from '../../../../shared/components/forms/models/form-fields';
-import { optionMega, SocialPackageEnum } from '../social-list.component';
+import { optionMega, SocialPackageEnum, SocialPackageEnumOption } from '../social-list.component';
 import { DialogService } from '../../../../shared/services/dialog.service';
 
 @Component({
@@ -21,6 +21,8 @@ export class NewRequestDialogComponent implements OnInit {
   form: FormGroup;
   fields: FormFields[];
 
+  isUserManager: boolean = true;
+
   ngOnInit(): void {
     // OPTION 2: I init form & fields based on OptionMega.InputValue
     this.initForm();
@@ -33,10 +35,13 @@ export class NewRequestDialogComponent implements OnInit {
     switch(this.optionMega.name as SocialPackageEnum) {
       case SocialPackageEnum.ExpenseCompensation: {
         this.form = new FormGroup({
-          SubOption: new FormControl(''), // depends on selected option show fields
-          Subject: new FormControl(''),
+          SubOption: new FormControl('', [ Validators.required ]), // depends on selected option show fields
           Calendar: new FormControl('')
         });
+
+        if (this.isUserManager) {
+          this.form.addControl('Subject', new FormControl(''));
+        }
         break;
       }
       case SocialPackageEnum.Vacation: {
@@ -62,18 +67,22 @@ export class NewRequestDialogComponent implements OnInit {
             }
           },
           {
-            label: 'Subject',
-            controlName: 'Subject',
-            input: {
-              type: 'text'
-            }
-          },
-          {
             label: 'Calendar',
             controlName: 'Calendar',
             dateTimePicker: {}
           }
         ];
+
+        if (this.isUserManager) {
+          this.fields.push({
+            label: 'Subject',
+            controlName: 'Subject',
+            input: {
+              type: 'text'
+            }
+          });
+        }
+
         break;
       }
       case SocialPackageEnum.Vacation: {
@@ -97,7 +106,7 @@ export class NewRequestDialogComponent implements OnInit {
 
   initSubOptions(subOption: string): void {
     switch (subOption) {
-      case 'Education': {
+      case SocialPackageEnumOption.Education: {
         // add/update controls you could extract it into const of EducationSubOptions
         this.setFormControls(['Knowledge', 'Degree']);
 
@@ -106,13 +115,13 @@ export class NewRequestDialogComponent implements OnInit {
         break;
       }
 
-      case 'Team Lunch': {
+      case SocialPackageEnumOption.TeamLunch: {
         this.setFormControls(['SubOption', 'Subject', 'Eaten', 'Employees', 'Projects']);
         this.fields = this.getTeamFields();
         break;
       }
 
-      case 'Certifaction': {
+      case SocialPackageEnumOption.Certifaction: {
         this.setFormControls(['SubOption', 'Name']);
         this.fields = this.getCertificateFields();
         break;
