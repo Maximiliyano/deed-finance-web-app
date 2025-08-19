@@ -7,9 +7,13 @@ export interface FormFields {
     type: 'text' | 'number',
     placeholder?: string
   },
+  autoComplete?: {
+    options: string[]
+  },
   select?: {
     options: SelectOptionModel[],
     optionCaption?: string
+    onChange?: (value: Event) => void,
   },
   dateTimePicker?: {},
   textArea?: {}
