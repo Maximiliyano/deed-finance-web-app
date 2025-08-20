@@ -12,7 +12,7 @@ internal sealed class Create : IEndpoint
     {
         app.MapPost("api/capitals", async (AddCapitalRequest request, ISender sender) =>
             (await sender
-                .Send(new CreateCapitalCommand(request.Name, request.Balance, request.Currency)))
+                .Send(new CreateCapitalCommand(request.Name, request.Balance, request.Currency, request.IncludeInTotal)))
                 .Process())
             .WithTags(nameof(Capitals));
     }

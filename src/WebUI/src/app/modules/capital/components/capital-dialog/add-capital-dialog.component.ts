@@ -18,7 +18,7 @@ export class AddCapitalDialogComponent implements OnInit, OnDestroy {
   form: FormGroup;
   fields: FormFields[];
 
-  readonly currencyOptions = getEnumKeys(CurrencyType); // TODO exclude 'None' option, add validation message, border red
+  readonly currencyOptions = getEnumKeys(CurrencyType).filter(x => x !== CurrencyType.None); // TODO exclude 'None' option, add validation message, border red
 
   private readonly unsubscribe$ = new Subject<void>();
 
@@ -41,7 +41,8 @@ export class AddCapitalDialogComponent implements OnInit, OnDestroy {
     this.form = new FormGroup({
       Name: new FormControl('', [Validators.required, Validators.minLength(1), Validators.maxLength(24)]),
       Balance: new FormControl(0, [Validators.required, Validators.min(0)]),
-      Currency: new FormControl(CurrencyType.UAH, [Validators.required])
+      Currency: new FormControl(CurrencyType.UAH, [Validators.required]),
+      IncludeInTotal: new FormControl(true),
     });
   }
 
@@ -50,17 +51,22 @@ export class AddCapitalDialogComponent implements OnInit, OnDestroy {
       {
         label: 'Name',
         controlName: 'Name',
-        input: { type: 'text', placeholder: 'Capital name' }
+        input: { type: 'text', placeholder: 'Type a name...' }
       },
       {
         label: 'Balance',
         controlName: 'Balance',
-        input: { type: 'number', placeholder: 'Balance' }
+        input: { type: 'number', placeholder: 'Type a balance...' }
       },
       {
         label: 'Currency',
         controlName: 'Currency',
         select: { options: this.currencyOptions.map(x => { return { key: x, value: x } }) }
+      },
+      {
+        label: 'Include in Total balance',
+        controlName: 'IncludeInTotal',
+        input: { type: 'checkbox' }
       }
     ];
   }
@@ -74,7 +80,8 @@ export class AddCapitalDialogComponent implements OnInit, OnDestroy {
     const request: AddCapitalRequest = {
       name: this.form.value.Name,
       balance: this.form.value.Balance,
-      currency: this.form.value.Currency
+      currency: this.form.value.Currency,
+      includeInTotal: this.form.value.IncludeInTotal
     };
 
     this.submitted.next(request);

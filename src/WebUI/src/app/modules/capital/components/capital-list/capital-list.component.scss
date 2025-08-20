@@ -5,15 +5,14 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
     gap: 10px;
     width: 100%;
     margin-bottom: 10px;
 
     .ta {
       display: flex;
-      align-items: center;
       flex-direction: column;
+      align-items: center;
 
       .ta-text {
         font-size: 14px;
@@ -29,48 +28,70 @@
     }
 
     .cp-bar {
-      display: none;
+      display: flex;
       align-items: center;
       justify-content: space-between;
-      flex-direction: row;
-      gap: 5px;
+      flex-wrap: wrap;
+      gap: 10px;
       border: 1px solid #ccc;
       border-radius: 5px;
       background-color: #e6e6e6;
-      padding: 5px;
+      padding: 8px;
       width: 100%;
-
-      @include respond-to('md') {
-        display: flex;
-      }
 
       .cp-search {
         display: flex;
         align-items: center;
-        gap: 5px;
-
-        input {
-          padding: 3px;
-          border-radius: 5px;
-          border: 1px #ccc solid;
-        }
+        flex: 1;
+        padding: 3px 8px;
+        border-radius: 5px;
+        border: 1px #ccc solid;
+        background-color: white;
+        min-width: 150px;
       }
 
       .cp-sort {
+        display: none;
+        align-items: center;
+        gap: 5px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        background-color: white;
+        padding: 1px;
+
+        @include respond-to('md') {
+          display: flex;
+        }
+
+        select,
         label {
-          padding-right: 5px;
+          font-size: 14px;
+          font-weight: 500;
         }
 
         select {
-          padding: 5px;
-          border-radius: 5px;
-          border: 1px #ccc solid;
+          padding: 5px 8px;
+          outline: none;
         }
       }
 
       .cp-currency {
+        display: none;
+        align-items: center;
+        gap: 5px;
+        background-color: #fff;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        padding: 1px;
+
+        @include respond-to('md') {
+          display: flex;
+        }
+
         span {
-          padding-right: 5px;
+          margin-left: 5px;
+          font-size: 14px;
+          font-weight: 500;
         }
       }
 
@@ -80,7 +101,7 @@
         transition: color 0.3s ease;
 
         &:hover {
-          color: #c0c0c0;
+          color: #007bff;
         }
       }
     }
@@ -90,92 +111,131 @@
     display: flex;
     flex-direction: column;
     gap: 10px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    height: 410px;
+    padding: 4px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
 
-    .cp-contain {
-      position: relative;
+    .cp {
+      display: flex;
+      flex-direction: row;
+      justify-content: space-between;
+      align-items: center;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      padding: 10px;
 
-      .cp {
+      .cp-name-balance {
         display: flex;
-        flex-direction: column;
-        align-items: center;
-        background-color: #e6e6e6;
-        border-radius: 5px;
-        border: 1px solid #ccc;
-        padding: 10px;
-        gap: 5px;
+        min-width: 260px;
+        justify-content: space-between;
+        gap: 15px;
+        flex-wrap: wrap;
         cursor: pointer;
-        transition: background-color 0.3s ease-out, transform 0.3s ease-out;
-
-        .cp-name, .cp-incomes, .cp-expenses {
-            font-size: 16px;
-            font-weight: 400;
-            color: #282828;
-        }
 
         .cp-balance {
           font-size: 18px;
           font-weight: 600;
         }
+      }
 
-        .cp-props {
+      .cp-stats {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 7px;
+
+        .cp-stats-item {
           display: flex;
-          flex-direction: row;
-          gap: 15px;
-
-          .cp-props-item {
-            display: flex;
-            align-items: center;
-            font-size: 16px;
-            font-weight: 400;
-            gap: 2px;
-          }
-
-          .cp-incomes {
-            color: green;
-          }
-
-          .cp-expenses {
-            color: red;
-          }
+          align-items: center;
+          font-size: 14px;
+          font-weight: 400;
+          gap: 2px;
         }
 
-        &:hover {
-          background-color: #cfcfcf;
-          transform: scale(101%);
+        .cp-incomes {
+          color: green;
+        }
+
+        .cp-expenses {
+          color: red;
         }
       }
 
-      .cp-detail-actions {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
+      .cp-name,
+      .cp-incomes,
+      .cp-expenses {
+          font-size: 16px;
+          font-weight: 400;
+          color: #282828;
+      }
 
-        position: absolute;
-        top: 10px;
-        right: 10px;
+      .cp-actions {
+        position: relative;
 
-        .cp-d-act {
-          position: relative;
+        .menu {
+          background: none;
+          border: none;
           cursor: pointer;
-        }
+          padding: 5px;
+          font-size: 18px;
+          color: #282828;
+          transition: color 0.2s;
 
-        .cp-delete {
           &:hover {
-            color: red;
+            color: #0053ff;
           }
         }
 
-        .cp-visible {
-          &:hover {
-            color: #0053ff;
+        .actions {
+          position: fixed;
+          background: #fff;
+          border: 1px solid #ccc;
+          border-radius: 5px;
+          list-style: none;
+          padding: 5px 0;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+          z-index: 1000;
+
+          li {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 8px 12px;
+            cursor: pointer;
+            transition: background-color 0.2s, color 0.2s;
+
+            &:hover {
+              background-color: #f0f0f0;
+            }
+
+            &.cp-delete:hover {
+              color: red;
+            }
+
+            &.cp-visible:hover {
+              color: #0053ff;
+            }
           }
         }
       }
     }
 }
 
-@media (max-width: 745px) {
-  .cp-bar {
-    display: none;
+.no-capitals {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  border: 1px #ccc solid;
+  border-radius: 5px;
+  background-color: #e6e6e6;
+  padding: 5px;
+  transition: background-color 0.3s ease-out, color 0.3s ease-out;
+
+  &:hover {
+    color: #282828;
+    background-color: #cfcfcf;
   }
 }

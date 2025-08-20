@@ -19,7 +19,7 @@ import { ConfirmDialogComponent } from '../../../../shared/components/dialogs/co
   templateUrl: './capital-details.component.html',
   styleUrl: './capital-details.component.scss'
 })
-export class CapitalDetailsComponent implements OnInit, OnDestroy {
+export class CapitalDetailsComponent implements OnInit, OnDestroy { // TODO refactor into form - type: update
   capitalForm: FormGroup;
   formModified: boolean = false;
   capital: Capital | null;
@@ -96,7 +96,8 @@ export class CapitalDetailsComponent implements OnInit, OnDestroy {
     const request: UpdateCapitalRequest = {
       name: this.capital.name == updatedCapital.name ? null : updatedCapital.name,
       balance: this.capital.balance == updatedCapital.name ? null : updatedCapital.balance,
-      currency: this.capital.currency == updatedCapital.currency ? null : updatedCapital.currency
+      currency: this.capital.currency == updatedCapital.currency ? null : updatedCapital.currency,
+      includeInTotal: this.capital.includeInTotal === updatedCapital.includeInTotal ? null : updatedCapital.includeInTotal,
     };
 
     this.dialogService.open({

@@ -1,4 +1,4 @@
-import {Component, OnDestroy, OnInit} from '@angular/core';
+import {Component, HostListener, OnDestroy, OnInit} from '@angular/core';
 import {Subject, takeUntil} from 'rxjs';
 import {CapitalService} from '../../services/capital.service';
 import {PopupMessageService} from '../../../../shared/services/popup-message.service';
@@ -9,6 +9,8 @@ import { CapitalResponse } from '../../models/capital-response';
 import { AddCapitalDialogComponent } from '../capital-dialog/add-capital-dialog.component';
 import { DialogService } from '../../../../shared/services/dialog.service';
 import { AddCapitalRequest } from '../../models/add-capital-request';
+import { CapitalItem } from '../../models/capital-item';
+import { ConfirmDialogComponent } from '../../../../shared/components/dialogs/confirm-dialog/confirm-dialog.component';
 
 @Component({
   selector: 'app-capital-list',
@@ -16,23 +18,35 @@ import { AddCapitalRequest } from '../../models/add-capital-request';
   styleUrl: './capital-list.component.scss',
 })
 export class CapitalListComponent implements OnInit, OnDestroy {
-  capitals: CapitalResponse[];
-  exchanges: Exchange[];
-  mainCurrency: string = 'UAH';
-  propsItems: { key: keyof CapitalResponse; title: string; icon: string, style: string }[] = [
+  capitals: CapitalResponse[] = [];
+  sortedCapitals: CapitalResponse[] = [];
+  capitalStatItems: CapitalItem[] = [
     { key: 'totalIncome', title: 'Incomes', icon: 'fa-dollar-sign', style: 'cp-incomes' },
     { key: 'totalExpense', title: 'Expenses', icon: 'fa-money-bill-wave', style: 'cp-expenses' },
-    { key: 'totalTransferOut', title: 'Transfer Out', icon: 'fa-arrow-up', style: '' },
-    { key: 'totalTransferIn', title: 'Transfer In', icon: 'fa-arrow-down', style: '' },
+    { key: 'totalTransferOut', title: 'Transfer Out', icon: 'fa-arrow-up', style: 'text-blue-400' },
+    { key: 'totalTransferIn', title: 'Transfer In', icon: 'fa-arrow-down', style: 'text-pink-400' },
   ];
+  exchanges: Exchange[] = [];
 
   searchTerm: string = '';
-
   selectedSortOption: keyof CapitalResponse = 'name';
   sortDirection: 'asc' | 'desc' = 'asc';
-  sortOptions: string[] = ['name', 'balance', 'expenses', 'incomes', 'transfers in', 'transfers out'];
+
+  mainCurrency: string = 'UAH';
+
+  sortOptions: {label: string; key: keyof CapitalResponse}[] = [
+    { label: 'name', key: 'name' },
+    { label: 'balance', key: 'balance' },
+    { label: 'expenses', key: 'totalExpense' },
+    { label: 'incomes', key: 'totalIncome' },
+    { label: 'transfers in', key: 'totalTransferIn' },
+    { label: 'transfers out', key: 'totalTransferOut' },
+  ];
 
   createDialogOpened: boolean = false;
+
+  isCapitalActionsOpen: boolean = false;
+  openMenuId: number | null = null;
 
   private unsubcribe$ = new Subject<void>;
 
@@ -43,44 +57,26 @@ export class CapitalListComponent implements OnInit, OnDestroy {
     private readonly dialogService: DialogService
   ) { }
 
-    ngOnInit(): void {
-      // TODO execute user capitals
-      this.executeCapitals();
+  @HostListener('document:click', ['$event.target'])
+  onClickOutside(targetElement: HTMLElement) {
+    const clickedInside = targetElement.closest('.cp-actions');
 
-      this.executeExchanges();
-
-      // TODO execute currency by default from user settings for 'mainCurrency'
+    if (!clickedInside) {
+      this.onMenuItemClick();
     }
-
-    ngOnDestroy(): void {
-      this.unsubcribe$.next();
-      this.unsubcribe$.complete();
-    }
-
-    onSearchChange() {
-      const term = this.searchTerm.trim().toLowerCase();
-
-      this.capitals = this.capitals.filter(capital =>
-        capital.name.toLowerCase().includes(term)
-      );
-
-      this.sortCapitals(this.selectedSortOption);
-    }
-
-    onSortChange(event: Event): void {
-      const selectElement = event.target as HTMLSelectElement;
-      const key = selectElement.value as keyof CapitalResponse;
-
-      this.sortCapitals(key);
-    }
-
-  toggleSortDirection(): void {
-    this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
-
-    this.sortCapitals(this.selectedSortOption);
   }
 
-  executeExchanges(): void {
+  ngOnInit(): void {
+    this.fetchCapitals();
+    this.fetchExchanges();
+  }
+
+  ngOnDestroy(): void {
+    this.unsubcribe$.next();
+    this.unsubcribe$.complete();
+  }
+
+  fetchExchanges(): void {
     this.exchangeService
       .getAll()
       .pipe(takeUntil(this.unsubcribe$))
@@ -89,14 +85,71 @@ export class CapitalListComponent implements OnInit, OnDestroy {
       });
   }
 
-  executeCapitals(): void {
+  fetchCapitals(): void {
     this.capitalService.getAll()
       .pipe(takeUntil(this.unsubcribe$))
       .subscribe({
         next: (response) => {
           this.capitals = response;
+          this.applyFilters();
         }
-      });
+    });
+  }
+
+  onSearchChange() {
+    this.applyFilters();
+  }
+
+  onSortChange(event: Event): void {
+    const selectElement = event.target as HTMLSelectElement;
+    this.selectedSortOption = selectElement.value as keyof CapitalResponse;
+    console.log(this.selectedSortOption);
+    this.applyFilters();
+  }
+
+  toggleSortDirection(): void {
+    this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+
+    this.applyFilters();
+  }
+
+  applyFilters(): void {
+    const term = this.searchTerm.trim().toLowerCase();
+
+    let filtered = this.capitals.filter(capital =>
+      capital.name.toLowerCase().includes(term)
+    );
+
+    filtered = filtered.sort((a, b) => {
+      const key = this.selectedSortOption;
+
+      let valA = a[key];
+      let valB = b[key];
+
+      if (valA === undefined || valA === null) return 1;
+      if (valB === undefined || valB === null) return -1;
+
+      if (typeof valA === 'string' && typeof valB === 'string') {
+        valA = valA.toLowerCase();
+        valB = valB.toLowerCase();
+
+        if (valA < valB) return this.sortDirection === 'asc' ? -1 : 1;
+        if (valA > valB) return this.sortDirection === 'asc' ? 1 : -1;
+
+        return 0;
+      }
+
+      if (typeof valA === 'number' && typeof valB === 'number') {
+        return this.sortDirection === 'asc'
+          ? valA - valB
+          : valB - valA;
+      }
+
+      return 0;
+    });
+    console.log(filtered);
+
+    this.sortedCapitals = filtered;
   }
 
   symbol(value: string): string {
@@ -104,12 +157,13 @@ export class CapitalListComponent implements OnInit, OnDestroy {
   }
 
   onCurrencyChange(newCurrency: string): void {
-    // TODO update default currency for user here
     this.popupMessageService.success(`The default currency updated to <b>${newCurrency}</b>`);
     this.mainCurrency = newCurrency;
   }
 
   openToCreateCapitalDialog(): void {
+    this.onMenuItemClick();
+
     this.dialogService.open({
       component: AddCapitalDialogComponent,
       onSubmit: (request: AddCapitalRequest) => {
@@ -130,7 +184,7 @@ export class CapitalListComponent implements OnInit, OnDestroy {
       name: request.name,
       balance: request.balance,
       currency: request.currency,
-      includeInTotal: false,
+      includeInTotal: request.includeInTotal,
       totalIncome: 0,
       totalExpense: 0,
       totalTransferIn: 0,
@@ -157,35 +211,43 @@ export class CapitalListComponent implements OnInit, OnDestroy {
     }, 0) ?? 0;
   }
 
-  toggleVisible(capital: CapitalResponse): void {
-    capital.includeInTotal = !capital.includeInTotal;
+  toggleMenu(id: number): void {
+    if (this.openMenuId === id) {
+      this.openMenuId = null;
+      this.isCapitalActionsOpen = false;
+    } else {
+      this.openMenuId = id;
+      this.isCapitalActionsOpen = true;
+    }
   }
 
   removeCapital(id: number): void {
-    this.capitalService
-      .delete(id)
-      .pipe(takeUntil(this.unsubcribe$))
-      .subscribe({
-        next: () => {
-          this.capitals = this.capitals.filter(x => x.id !== id);
-          this.popupMessageService.success("The capital was successful removed.");
-        }});
-  }
+    this.onMenuItemClick();
 
-  sortCapitals(key: keyof CapitalResponse) {
-    if (!this.capitals) return;
-
-    const dir = this.sortDirection === 'asc' ? 1 : -1;
-    this.capitals = [...this.capitals].sort((a, b) => {
-      const aVal = a[key];
-      const bVal = b[key];
-
-      if (typeof aVal === 'string') {
-        return (aVal as string).localeCompare(bVal as string) * dir;
+    this.dialogService.open({
+      component: ConfirmDialogComponent,
+      data: {
+        title: 'removal capital',
+        action: 'remove'
+      },
+      onSubmit: (confirmed: boolean) => {
+        if (confirmed) {
+          this.capitalService
+            .delete(id)
+            .pipe(takeUntil(this.unsubcribe$))
+            .subscribe({
+              next: () => {
+                this.capitals = this.capitals.filter(x => x.id !== id);
+                this.popupMessageService.success("The capital was successful removed.");
+              }});
+        }
+        this.dialogService.close();
       }
-
-      return ((aVal as number) - (bVal as number)) * dir;
-    });
+    })
   }
 
+  onMenuItemClick() {
+    this.isCapitalActionsOpen = false;
+    this.openMenuId = null;
+  }
 }

@@ -20,8 +20,4 @@ export class DialogService {
   close(): void {
     this._dialogState.next(null);
   }
-
-  hasError(formGroup: FormGroup, controlName: string, error: string): boolean { // TODO to be removed
-    return (formGroup.get(controlName)?.hasError(error)) ?? false;
-  }
 }

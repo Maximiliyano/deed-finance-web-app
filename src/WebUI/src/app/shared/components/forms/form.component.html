@@ -2,15 +2,39 @@
     <h2 class="text-xl font-semibold mb-4">{{ headerText }}</h2>
 
     <div class="mb-4" *ngFor="let field of fields">
-      <label [for]="field.controlName" class="block mb-1 text-sm font-medium">{{ field.label }}</label>
+      <ng-container *ngIf="field.input?.type !== 'checkbox'; else inputLabelInline">
+        <label [for]="field.controlName" class="block mb-1 text-sm font-medium">{{ field.label }}</label>
 
-      <input
-        *ngIf="field.input"
-        [type]="field.input.type || 'text'"
-        class="w-full border rounded px-3 py-2"
-        [formControlName]="field.controlName"
-        [placeholder]="field.input.placeholder ?? 'Enter the value'"
-      />
+        <input
+          *ngIf="field.input"
+          [type]="field.input.type"
+          class="w-full border rounded px-3 py-2"
+          [id]="field.controlName"
+          [formControlName]="field.controlName"
+          [placeholder]="field.input.placeholder ?? 'Enter the value'"
+          autocomplete="off"
+        />
+      </ng-container>
+
+      <ng-template #inputLabelInline>
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center">
+            <input
+              type="checkbox"
+              [id]="field.controlName"
+              [formControlName]="field.controlName"
+              class="h-4 w-4 text-blue-600 border-gray-300 rounded"
+              autocomplete="off"
+            >
+            <label
+              [for]="field.controlName"
+              class="ml-2 text-sm font-medium"
+            >
+              {{ field.label }}
+            </label>
+          </div>
+        </div>
+      </ng-template>
 
       <select
         *ngIf="field.select"

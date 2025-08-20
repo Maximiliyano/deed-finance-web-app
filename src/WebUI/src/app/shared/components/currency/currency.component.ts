@@ -11,6 +11,8 @@ import { stringToCurrencyEnum } from './functions/string-to-currency-enum';
 })
 export class CurrencyComponent implements OnInit {
   @Input() currency: string = 'None';
+  @Input() withBorder: boolean = true;
+
   @Output() currencyChange = new EventEmitter<string>();
 
   type: CurrencyType;

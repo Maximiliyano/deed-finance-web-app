@@ -1,4 +1,4 @@
-<select class="currency" [ngModel]="type" (ngModelChange)="onCurrencyChange($event)">
+<select [ngClass]="withBorder ? 'currency currency-wb' : 'currency'" [ngModel]="type" (ngModelChange)="onCurrencyChange($event)">
   <option [value]="type">{{ currency }}</option>
   <option *ngFor="let currency of currencyOptions" [value]="currency.key">{{ currency.value }}</option>
 </select>

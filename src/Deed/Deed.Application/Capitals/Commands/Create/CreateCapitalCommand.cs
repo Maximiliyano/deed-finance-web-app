@@ -6,5 +6,6 @@ namespace Deed.Application.Capitals.Commands.Create;
 public sealed record CreateCapitalCommand(
     string Name,
     float Balance,
-    string Currency)
+    string Currency,
+    bool IncludeInTotal)
     : ICommand<int>;

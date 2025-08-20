@@ -16,7 +16,7 @@ import {
   ]
 })
 export class DatePickerComponent implements ControlValueAccessor {
-  @Input() label: string = 'Choose a date...';
+  @Input() label: string | null = null;
 
   value: string | null = null;
   disabled = false;
