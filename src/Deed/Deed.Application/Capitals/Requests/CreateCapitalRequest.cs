@@ -2,8 +2,8 @@ using Deed.Domain.Enums;
 
 namespace Deed.Application.Capitals.Requests;
 
-public sealed record AddCapitalRequest(
+public sealed record CreateCapitalRequest(
     string Name,
     float Balance,
-    string Currency,
+    CurrencyType Currency,
     bool IncludeInTotal);

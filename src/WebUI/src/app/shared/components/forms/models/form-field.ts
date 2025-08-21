@@ -1,6 +1,6 @@
 import { SelectOptionModel } from "./select-option-model"
 
-export interface FormFields {
+export interface FormField {
   label: string,
   controlName: string,
   input?: {

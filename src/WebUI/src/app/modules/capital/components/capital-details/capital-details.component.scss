@@ -13,22 +13,6 @@
   box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
   background-color: #fafafa;
 
-  .cp-header {
-    display: flex;
-    justify-content: flex-end;
-    width: 100%;
-    position: relative;
-
-    .cp-return {
-      position: absolute;
-      transition: 0.3s ease-out color;
-
-      &:hover {
-        color: #377e21;
-      }
-    }
-  }
-
   .cp-details-col {
     display: flex;
     flex-direction: column;

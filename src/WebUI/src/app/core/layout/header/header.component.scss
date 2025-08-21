@@ -101,7 +101,7 @@
             align-items: center;
             color: rgb(34, 34, 34);
             font-weight: 500;
-            font-size: 15px;
+            font-size: 16px;
             padding: 3px;
             gap: 5px;
             border-radius: 5px;
@@ -126,29 +126,31 @@
         gap: 5px;
         color: black;
         font-weight: 500;
-        font-size: 13px;
-
-        .balance {
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          border-radius: 5px;
-          background-color: #e7e6e6;
-          padding: 5px;
-        }
+        font-size: 16px;
 
         .account-button {
           display: flex;
           align-items: center;
           gap: 5px;
-          padding: 5px;
-          border-radius: 5px;
-          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
           color: rgb(49, 40, 40);
           transition: background-color 0.3s ease-in-out;
 
           &.active {
             color: $button-active-color;
+          }
+
+          .profile-text {
+            display: none;
+          }
+
+          @include respond-to('xs') {
+            padding: 5px;
+            border-radius: 5px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+
+            .profile-text {
+              display: block;
+            }
           }
 
           &:hover {

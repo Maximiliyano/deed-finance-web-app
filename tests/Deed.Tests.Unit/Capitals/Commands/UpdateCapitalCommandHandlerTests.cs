@@ -66,13 +66,13 @@ public sealed class UpdateCapitalCommandHandlerTests
     }
 
     [Theory]
-    [InlineData("New Name", 200f, "EUR")]
+    [InlineData("New Name", 200f, CurrencyType.EUR)]
     [InlineData("Modified Name", 150f, null)]
     [InlineData(null, 150f, null)]
-    [InlineData(null, null, "UAH")]
-    [InlineData("Updated Name", null, "USD")]
+    [InlineData(null, null, CurrencyType.UAH)]
+    [InlineData("Updated Name", null, CurrencyType.USD)]
     [InlineData("Refreshed Name", null, null)]
-    public async Task Handle_ShouldUpdateCapitalSuccessfully(string? name, float? balance, string? currency)
+    public async Task Handle_ShouldUpdateCapitalSuccessfully(string? name, float? balance, CurrencyType? currency)
     {
         // Arrange
         const string oldName = "Old Name";
@@ -96,7 +96,7 @@ public sealed class UpdateCapitalCommandHandlerTests
         capital.Name.Should().Be(name ?? oldName);
         capital.Balance.Should().Be(balance ?? oldBalance);
         capital.Currency.Should().Be(currency is not null
-            ? Enum.Parse<CurrencyType>(currency)
+            ? currency
             : CurrencyType.USD);
 
         _repositoryMock.Received(1).Update(capital);
@@ -109,7 +109,7 @@ public sealed class UpdateCapitalCommandHandlerTests
     {
         // Arrange
         var capital = new Capital(1) { Name = "Test", Balance = 100, Currency = CurrencyType.USD };
-        var command = new UpdateCapitalCommand(1, "Test", 100, "INVALID");
+        var command = new UpdateCapitalCommand(1, "Test", 100, CurrencyType.None);
         _repositoryMock.GetAsync(Arg.Any<CapitalByIdSpecification>()).Returns(capital);
 
         // Act

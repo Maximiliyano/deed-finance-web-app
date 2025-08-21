@@ -5,6 +5,7 @@ $secondary-color: #2ecc71;
 $font-stack: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 $breakpoints: (
     'xs': 320px,
+    's': 470px,
     'sm': 576px,
     'md': 768px,
     'lg': 992px,
@@ -20,3 +21,4 @@ $text-shadow: 1px 1px 2px #ccc;
 $exchange-border-color: #7a7979;
 $navigation-item-hover-color: #efefef;
 $button-active-color: #f4ca93;
+$button-remove-color: #e15240;

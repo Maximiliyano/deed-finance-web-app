@@ -1,4 +1,95 @@
 <app-layout title="Capitals">
-  <router-outlet></router-outlet>
+  <div class="cp-lh">
+    <div class="ta">
+      <span class="ta-text">Total balance:</span>
+      <span class="ta-sum">{{ totalCapitalAmount() | currency: symbol(mainCurrency) }}</span>
+    </div>
+
+    <div class="cp-bar">
+      <input class="cp-search" placeholder="Search for..." maxlength="24" [(ngModel)]="searchTerm" (ngModelChange)="onSearchChange()" />
+
+      <div class="cp-sort">
+        <button class="sort-direction" (click)="toggleSortDirection()" [title]="sortDirection === 'asc' ? 'Ascending' : 'Descending'">
+          <app-icon [name]="sortDirection === 'asc' ? 'fa-arrow-up' : 'fa-arrow-down'"></app-icon>
+        </button>
+
+        <label>Sort by:</label>
+        <select [(ngModel)]="selectedSortOption" (change)="onSortChange($event)">
+          <option *ngFor="let option of sortOptions" [value]="option.key">{{ option.label }}</option>
+        </select>
+      </div>
+
+      <div class="cp-currency">
+        <span>Default:</span>
+        <select [(ngModel)]="mainCurrency" (change)="onCurrencyChange($event)">
+          <option *ngFor="let option of currencyOptions" [value]="option.key">{{ option.value }}</option>
+        </select>
+      </div>
+
+      <button *ngIf="sortedCapitals && sortedCapitals.length > 0" (click)="openToCreateCapitalDialog()" title="Create new">
+        <app-icon class="btn-create-icon" [name]="'fa-circle-plus'"></app-icon>
+      </button>
+    </div>
+  </div>
+
+  <div class="cp-list" *ngIf="sortedCapitals?.length; else noCapitals">
+    <div *ngFor="let capital of sortedCapitals"
+      [@slideRemove]
+      [ngClass]="capital.includeInTotal ? 'cp bg-[#e6e6e6]' : 'cp'"
+    >
+      <div class="cp-name-balance">
+        <div class="cp-name" (click)="toggleEditDialog(capital)">{{ capital.name }}</div>
+        <div class="cp-balance" title="Balance">
+          {{ capital.balance | currency: symbol(capital.currency) }}
+        </div>
+      </div>
+
+      <div class="cp-stats">
+        <div *ngFor="let propsItem of capitalStatItems"
+          class="cp-stats-item"
+          [title]="propsItem.title + ' ' + capital[propsItem.key]"
+          [ngClass]="propsItem.style"
+        >
+          <app-icon [name]="propsItem.icon"></app-icon>
+          <span class="cp-stats-value">
+            {{ capital[propsItem.key] }}
+          </span>
+        </div>
+      </div>
+
+      <div class="cp-actions-compact">
+        <button class="menu" (click)="toggleMenu(capital.id)">
+          <app-icon [name]="isCapitalActionsOpen && openMenuId === capital.id ? 'fa-solid fa-caret-left' : 'fa-solid fa-caret-down'"></app-icon>
+        </button>
+
+        <ul class="actions" [ngClass]="{'open': isCapitalActionsOpen && openMenuId === capital.id}">
+          <li title="Include capital into total balance" class="cp-d-act cp-visible" (click)="capital.includeInTotal = !capital.includeInTotal"><app-icon [name]="capital.includeInTotal ? 'fa-eye' : 'fa-eye-slash'"></app-icon></li>
+          <li title="Remove capital" class="cp-d-act cp-delete" (click)="removeCapital(capital.id)"><app-icon [name]="'fa-trash'"></app-icon></li>
+        </ul>
+      </div>
+
+      <div class="cp-actions">
+        <button title="Include capital into total balance" class="cp-visible" (click)="capital.includeInTotal = !capital.includeInTotal">
+          <app-icon [name]="capital.includeInTotal ? 'fa-eye' : 'fa-eye-slash'"></app-icon>
+        </button>
+
+        <button title="Remove capital" class="cp-delete" (click)="removeCapital(capital.id)">
+          <app-icon [name]="'fa-trash'"></app-icon>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <ng-template #noCapitals>
+    <button
+    class="no-capitals"
+    (click)="openToCreateCapitalDialog()"
+    >
+      Create your first capital...
+      <app-icon class="btn-create-icon" [name]="'fa-circle-plus'"></app-icon>
+    </button>
+  </ng-template>
+
+  <span *ngIf="sortedCapitals.length > 0" class="text-sm text-gray-400 flex justify-center">In total {{ sortedCapitals.length }} capitals</span>
 </app-layout>
 

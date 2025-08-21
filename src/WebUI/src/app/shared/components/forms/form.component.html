@@ -61,17 +61,14 @@
       <app-form-error [form]="form" [controlName]="field.controlName"></app-form-error>
     </div>
 
-    <div class="flex justify-end space-x-2 mt-6">
-      <button type="submit"
-              [disabled]="form.invalid"
-              class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded disabled:opacity-50">
-        {{ submitButtonText }}
-      </button>
-
-      <button type="button"
-              (click)="onCancel()"
-              class="bg-gray-300 hover:bg-gray-400 px-4 py-2 rounded">
-        {{ cancelButtonText }}
+    <div class="flex justify-center space-x-2 mt-6">
+      <button *ngFor="let button of buttons"
+        [type]="button.type"
+        [disabled]="button.disabled"
+        (click)="button.onClick"
+        class="{{button.styles}} px-4 py-2 rounded disabled:opacity-50"
+      >
+        {{ button.text }}
       </button>
     </div>
   </form>

@@ -21,18 +21,7 @@ internal sealed class UpdateCapitalCommandHandler(ICapitalRepository repository,
 
         capital.Name = command.Name?.Trim() ?? capital.Name;
         capital.Balance = command.Balance ?? capital.Balance;
-
-        if (command.Currency != null)
-        {
-            if (Enum.TryParse(command.Currency, out CurrencyType updatedCurrency))
-            {
-                capital.Currency = updatedCurrency;
-            }
-            else
-            {
-                return Result.Failure(DomainErrors.Capital.InvalidCurrency);
-            }
-        }
+        capital.Currency = command.Currency ?? capital.Currency;
 
         repository.Update(capital);
 

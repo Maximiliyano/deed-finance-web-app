@@ -1,41 +1,30 @@
-<form [formGroup]="capitalForm" class="cp-details" *ngIf="capital" (ngSubmit)="saveChanges()">
-  <div class="cp-header">
-    <button class="cp-return" routerLink="../">
-      <app-icon [name]="'fa-sign-out-alt'"></app-icon>
-    </button>
-  </div>
+<app-form
+  [form]="form"
+  [fields]="fields"
+  headerText="{{capital.name}} details"
+  submitButtonText="Update"
+  cancelButtonText="Cancel"
+  (submitForm)="saveChanges()"
+  (cancelForm)="cancelChanges()"
+>
+</app-form>
 
+<form [formGroup]="form" class="cp-details" *ngIf="capital" (ngSubmit)="saveChanges()">
   <div class="cp-details-col">
-    <label formArrayName="name" class="cp-text">Name</label>
-    <input
-      id="name"
-      type="text"
-      formControlName="name"
-      placeholder="Name"
-    />
-
-    <div *ngIf="modelInvalidAndTouched('name')" class="error-message">
-      <span *ngIf="modelError('name', 'required')">Name is required.</span>
-      <span *ngIf="modelError('name', 'maxlength')">Name must be less than 32.</span>
-      <!-- <span *ngIf="modelError('name', 'exists')">Name already exists.</span> TODO -->
-    </div>
-  </div>
-
-  <div class="cp-details-col">
-    <label class="cp-text" for="balance">Balance</label>
+    <label class="cp-text" for="Balance">Balance</label>
     <div class="balance-input">
       <input
         id="balance"
         type="number"
-        formControlName="balance"
+        formControlName="Balance"
         placeholder="Balance"
       />
 
-      <select class="currency" formControlName="currency">
+      <select class="currency" formControlName="Currency">
         <option [value]="capital.currency">
           {{ capital.currency }}
         </option>
-        <option *ngFor="let currency of currencies" [value]="currency.value">{{ currency.value }}</option>
+        <option *ngFor="let currency of currencyOptions" [value]="currency.key">{{ currency.value }}</option>
       </select>
     </div>
 
@@ -60,7 +49,7 @@
       <button
         class="cp-act-item save"
         type="submit"
-        [disabled]="capitalForm.invalid">
+        [disabled]="form.invalid">
           Save
         </button>
       <button type="button" class="cp-act-item cancel" (click)="cancelChanges()">Cancel</button>

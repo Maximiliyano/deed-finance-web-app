@@ -11,7 +11,7 @@ export class FormErrorComponent {
 
   get errorMessage(): string | null {
     const control = this.form?.get(this.controlName);
-    if (!control || !control.errors || !control.touched) return null;
+    if (!control || !control.errors) return null;
 
     if (control.errors['required']) return 'This field is required.';
     if (control.errors['minlength']) return `Minimum length is ${control.errors['minlength'].requiredLength}.`;

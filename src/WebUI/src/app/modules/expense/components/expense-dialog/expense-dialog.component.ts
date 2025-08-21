@@ -5,7 +5,7 @@ import { DialogService } from '../../../../shared/services/dialog.service';
 import {CapitalResponse} from "../../../capital/models/capital-response";
 import {CategoryResponse} from "../../../../core/models/category-model";
 import { AddExpenseRequest } from '../../models/add-expense-request';
-import { FormFields } from '../../../../shared/components/forms/models/form-fields';
+import { FormField } from '../../../../shared/components/forms/models/form-field';
 import { PopupMessageService } from '../../../../shared/services/popup-message.service';
 import { SelectOptionModel } from '../../../../shared/components/forms/models/select-option-model';
 
@@ -24,7 +24,7 @@ export class ExpenseDialogComponent implements OnInit, OnDestroy {
   capitalsOptions: SelectOptionModel[] = [];
 
   form: FormGroup;
-  fields: FormFields[];
+  fields: FormField[] = [];
 
   private $unsubscribe = new Subject<void>();
 

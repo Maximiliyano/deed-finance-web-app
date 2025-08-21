@@ -4,8 +4,7 @@ import { Subject } from 'rxjs';
 import { PopupMessageService } from '../../../../shared/services/popup-message.service';
 import { CurrencyType } from '../../../../core/types/currency-type';
 import { AddCapitalRequest } from '../../models/add-capital-request';
-import { FormFields } from '../../../../shared/components/forms/models/form-fields';
-import { getEnumKeys } from '../../../../core/utils/enum-utils';
+import { FormField } from '../../../../shared/components/forms/models/form-field';
 import { DialogService } from '../../../../shared/services/dialog.service';
 
 @Component({
@@ -15,10 +14,10 @@ import { DialogService } from '../../../../shared/services/dialog.service';
 export class AddCapitalDialogComponent implements OnInit, OnDestroy {
   @Output() submitted = new Subject<AddCapitalRequest>();
 
-  form: FormGroup;
-  fields: FormFields[];
+  currencyOptions: { key: string, value: CurrencyType }[] = [];
 
-  readonly currencyOptions = getEnumKeys(CurrencyType).filter(x => x !== CurrencyType.None); // TODO exclude 'None' option, add validation message, border red
+  form: FormGroup;
+  fields: FormField[] = [];
 
   private readonly unsubscribe$ = new Subject<void>();
 
@@ -42,7 +41,7 @@ export class AddCapitalDialogComponent implements OnInit, OnDestroy {
       Name: new FormControl('', [Validators.required, Validators.minLength(1), Validators.maxLength(24)]),
       Balance: new FormControl(0, [Validators.required, Validators.min(0)]),
       Currency: new FormControl(CurrencyType.UAH, [Validators.required]),
-      IncludeInTotal: new FormControl(true),
+      IncludeInTotal: new FormControl(true, [Validators.required]),
     });
   }
 
@@ -61,7 +60,7 @@ export class AddCapitalDialogComponent implements OnInit, OnDestroy {
       {
         label: 'Currency',
         controlName: 'Currency',
-        select: { options: this.currencyOptions.map(x => { return { key: x, value: x } }) }
+        select: { options: this.currencyOptions }
       },
       {
         label: 'Include in Total balance',
