@@ -14,7 +14,7 @@ export class FormComponent {
   @Input() buttons: FormButton[] = [
     {
       type: 'submit',
-      text: 'Submit',
+      text: 'Save',
       styles: 'bg-blue-600 hover:bg-blue-700 text-white',
       disabled: this.form.invalid,
     },
@@ -22,7 +22,7 @@ export class FormComponent {
       type: 'button',
       text: 'Cancel',
       styles: 'bg-gray-300 hover:bg-gray-400',
-      onClick: this.onCancel
+      onClick: () => this.onCancel()
     }
   ];
 

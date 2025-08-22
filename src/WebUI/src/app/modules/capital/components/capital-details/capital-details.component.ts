@@ -1,17 +1,14 @@
 import { Component, EventEmitter, OnDestroy, OnInit, Output } from '@angular/core';
-import { CapitalService } from '../../services/capital.service';
-import { Router } from '@angular/router';
-import { Subject, takeUntil } from 'rxjs';
 import { PopupMessageService } from '../../../../shared/services/popup-message.service';
 import { UpdateCapitalRequest } from '../../models/update-capital-request';
 import { CurrencyType } from '../../../../core/types/currency-type';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { Exchange } from '../../../../core/models/exchange-model';
-import { DialogService } from '../../../../shared/services/dialog.service';
-import { ConfirmDialogComponent } from '../../../../shared/components/dialogs/confirm-dialog/confirm-dialog.component';
 import { CapitalResponse } from '../../models/capital-response';
 import { FormField } from '../../../../shared/components/forms/models/form-field';
 import { stringToCurrencyEnum } from '../../../../shared/components/currency/functions/string-to-currency-enum';
+import { FormButton } from '../../../../shared/components/forms/models/form-button';
+import { Subject, takeUntil } from 'rxjs';
 
 @Component({
   selector: 'app-capital-details',
@@ -27,45 +24,24 @@ export class CapitalDetailsComponent implements OnInit, OnDestroy {
 
   form: FormGroup;
   fields: FormField[] = [];
+  buttons: FormButton[] = [];
+  isFormModified: boolean = false;
 
-  formModified: boolean = false;
-
-  unsubscribe = new Subject<void>;
+  private unsubcribe$ = new Subject<void>;
 
   constructor(
-    private readonly router: Router,
-    private readonly capitalService: CapitalService,
-    private readonly popupMessageService: PopupMessageService,
-    private readonly dialogService: DialogService) {}
+    private readonly popupMessageService: PopupMessageService) {}
 
   ngOnInit(): void {
     this.initForm();
     this.initFields();
-
-    this.form.valueChanges.subscribe(() => {
-      this.formModified = !this.isFormEqualToModel();
-    });
-
-    this.form.get("currency")?.valueChanges.subscribe((value) => {
-      const exchange = this.exchanges.find(x => x.targetCurrency === this.capital?.currency); // TODO && nationcurrency == value.currency
-
-      if (value !== this.capital?.currency &&
-          exchange
-      ) {
-        // TODO get exchanges and perform calculation, the best approach to separate logic of calc into separate service
-        const saleAmount = (this.capital?.balance ?? 0) * exchange.sale;
-
-        this.form.patchValue({ balance: saleAmount });
-      }
-      else if (this.capital?.currency !== this.form.get("balance")?.value){
-        this.form.patchValue({ balance: this.capital?.balance });
-      }
-    })
+    this.initButtons();
+    this.checkFormModified();
   }
 
   ngOnDestroy(): void {
-    this.unsubscribe.next();
-    this.unsubscribe.complete();
+    this.unsubcribe$.next();
+    this.unsubcribe$.complete();
   }
 
   initForm(): void {
@@ -74,6 +50,28 @@ export class CapitalDetailsComponent implements OnInit, OnDestroy {
       Balance: new FormControl(this.capital.balance, Validators.required),
       Currency: new FormControl(stringToCurrencyEnum(this.capital.currency), Validators.required),
       IncludeInTotal: new FormControl(this.capital.includeInTotal, Validators.required)
+    });
+  }
+
+  checkFormModified(): void {
+    const capitalCurrency = stringToCurrencyEnum(this.capital.currency);
+    const capitalBalance = Number(this.capital.balance);
+
+    this.form.valueChanges
+      .pipe(takeUntil(this.unsubcribe$))
+      .subscribe({
+        next: (formValue) => {
+          const isFormEqualToModel = (
+            formValue.Name == this.capital.name &&
+            formValue.Balance == capitalBalance &&
+            formValue.Currency == capitalCurrency &&
+            formValue.IncludeInTotal == this.capital.includeInTotal
+          );
+
+          this.isFormModified = !isFormEqualToModel;
+
+          this.initButtons();
+        }
     });
   }
 
@@ -110,104 +108,48 @@ export class CapitalDetailsComponent implements OnInit, OnDestroy {
     ]
   }
 
-  redirectToExpensePage(capitalId: number): void {
-    this.router.navigate(['/expenses'], { queryParams: { capitalId: capitalId }});
-    // TODO complete
+  initButtons(): void {
+    const isSubmitBtnDisabled = this.form.invalid || !this.isFormModified;
+
+    this.buttons = [
+      {
+        type: 'submit',
+        text: 'Update',
+        styles: `bg-[#377e21] ${!isSubmitBtnDisabled ? 'hover:bg-[#47a42b]' : 'cursor-not-allowed'} text-white`,
+        disabled: isSubmitBtnDisabled,
+      },
+      {
+        type: 'button',
+        text: 'Cancel',
+        styles: 'bg-[#e15240] hover:bg-[#f26243] text-white',
+        onClick: () => this.handleCancel()
+      }
+    ];
   }
 
-  saveChanges(): void {
-    if (this.form.invalid || !this.capital) {
-      this.popupMessageService.error('The capital was empty.');
+  handleSubmit(): void {
+    if (this.form.invalid || !this.isFormModified) {
+      this.popupMessageService.error('Cannot update error occurred.');
       return;
     }
 
     const updatedCapital = this.form.value;
 
+    let capitalCurrency = stringToCurrencyEnum(this.capital.currency);
+    let updatedCurrency = !isNaN(updatedCapital.Currency) ? Number(updatedCapital.Currency) : capitalCurrency;
+
     const request: UpdateCapitalRequest = {
       id: this.capital.id,
-      name: this.capital.name == updatedCapital.name ? null : updatedCapital.name,
-      balance: this.capital.balance == updatedCapital.name ? null : updatedCapital.balance,
-      currency: this.capital.currency == updatedCapital.currency ? null : updatedCapital.currency,
-      includeInTotal: this.capital.includeInTotal === updatedCapital.includeInTotal ? null : updatedCapital.includeInTotal,
+      name: this.capital.name === updatedCapital.Name ? null : updatedCapital.Name,
+      balance: this.capital.balance === updatedCapital.Balance ? null : updatedCapital.Balance,
+      currency: capitalCurrency === updatedCurrency ? null : updatedCurrency,
+      includeInTotal: this.capital.includeInTotal === updatedCapital.IncludeInTotal ? null : updatedCapital.IncludeInTotal,
     };
 
     this.submitted.emit(request);
-    this.dialogService.open({
-              component: ConfirmDialogComponent,
-              data: {
-                title: 'update capital',
-                action: 'update'
-              },
-              onSubmit: (confirmed: boolean) => {
-                if (confirmed) {
-                  this.capitalService
-                    .update(request.id, request)
-                    .pipe(takeUntil(this.unsubscribe))
-                    .subscribe({
-                      next: () => {
-                        this.popupMessageService.success('The capital was successfully updated.');
-                        this.formModified = false;
-                        this.dialogService.close();
-                      }
-                    });
-                } else {
-                  this.cancelChanges();
-                }
-              }
-            });
   }
 
-  cancelChanges(): void {
+  handleCancel(): void {
     this.submitted.emit(null);
-
-    this.form.reset(this.capital);
-    this.formModified = false;
-    this.dialogService.close();
-  }
-
-  remove(id: number): void {
-    this.dialogService.open({
-      component: ConfirmDialogComponent,
-      data: {
-        title: 'delete capital',
-        action: 'delete'
-      },
-      onSubmit: (confirmed: boolean) => {
-        if (confirmed) {
-          this.capitalService
-            .delete(id)
-            .pipe(takeUntil(this.unsubscribe))
-            .subscribe({
-              next: () => {
-                this.popupMessageService.success('The capital was successfully deleted.');
-                this.router.navigate(['/capitals']);
-                this.dialogService.close();
-              }
-            });
-        } else {
-          this.dialogService.close();
-        }
-      }
-    });
-  }
-
-  isFormEqualToModel(): boolean {
-    const capitalForm = this.form.value;
-
-    return (
-      capitalForm.name == this.capital?.name &&
-      capitalForm.balance == this.capital?.balance &&
-      capitalForm.currency == this.capital?.currency
-    );
-  }
-
-  modelInvalidAndTouched(controlName: string): boolean | undefined {
-    return this.form.get(controlName)?.invalid &&
-          (this.form.get(controlName)?.dirty ||
-          this.form.get(controlName)?.touched);
-  }
-
-  modelError(controlName: string, error: string): boolean {
-    return (this.form.get(controlName)?.hasError(error) && this.form.get(controlName)?.touched)!;
   }
 }

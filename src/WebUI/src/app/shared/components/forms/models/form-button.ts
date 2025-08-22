@@ -3,5 +3,6 @@ export interface FormButton {
   text: string;
   styles?: string;
   disabled?: boolean;
+  visible?: boolean;
   onClick?: () => void;
 };

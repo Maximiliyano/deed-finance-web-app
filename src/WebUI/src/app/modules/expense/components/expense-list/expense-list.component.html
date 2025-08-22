@@ -10,7 +10,7 @@
   </div>
 
   <div class="capital-totalExpense">
-    <span>{{ getCapitalBalance() | currency: symbol(selectedCapital?.currency) }}</span>
+    <span>{{ getCapitalBalance() | currencySymbol: selectedCapital?.currency ?? 'None' }}</span>
   </div>
 </div>
 
@@ -40,7 +40,7 @@
 
   <div class="expense-diagram">
     <span class="expense-amount" *ngIf="hasExpenses(); else noExpenses">
-      {{ getCapitalTotalExpenses() | currency: symbol(selectedCapital?.currency) }}
+      {{ getCapitalTotalExpenses() | currencySymbol: selectedCapital?.currency ?? 'None' }}
     </span>
 
     <button class="add-expense" (click)="openDialogAddExpense()" title="Add expense">
@@ -55,7 +55,7 @@
   <div class="categories">
     <a [routerLink]="['/categories', category.id]" class="category" *ngFor="let category of categories">
       <div class="category-name">{{ category.name }}</div>
-      <div class="category-expense">{{ category.totalExpenses | currency: symbol(selectedCapital?.currency) }}</div>
+      <div class="category-expense">{{ category.totalExpenses | currencySymbol: selectedCapital?.currency ?? 'None' }}</div>
       <div class="category-percent">{{ category.totalExpensesPercent }} %</div>
     </a>
   </div>

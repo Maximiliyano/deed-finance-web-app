@@ -1,6 +1,7 @@
 using Deed.Application.Abstractions.Data;
 using Deed.Domain.Entities;
 using Deed.Domain.Repositories;
+using Microsoft.EntityFrameworkCore;
 
 namespace Deed.Infrastructure.Persistence.Repositories;
 
@@ -9,7 +10,10 @@ internal sealed class CapitalRepository(
     : GeneralRepository<Capital>(context), ICapitalRepository
 {
     public new async Task<IEnumerable<Capital>> GetAllAsync()
-        => await base.GetAllAsync();
+        => await DbContext.Set<Capital>()
+            .Where(c => !(c.IsDeleted.HasValue && c.IsDeleted.Value))
+            .AsSplitQuery()
+            .ToListAsync();
 
     public new async Task<Capital?> GetAsync(ISpecification<Capital> specification)
         => await base.GetAsync(specification);

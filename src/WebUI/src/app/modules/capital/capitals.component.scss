@@ -62,17 +62,6 @@
         @include respond-to('sm') {
           display: flex;
         }
-
-        select,
-        label {
-          font-size: 14px;
-          font-weight: 500;
-        }
-
-        select {
-          padding: 5px 8px;
-          outline: none;
-        }
       }
 
       .cp-currency {
@@ -103,6 +92,17 @@
         &:hover {
           color: #007bff;
         }
+      }
+
+      select,
+      label {
+        font-size: 14px;
+        font-weight: 500;
+      }
+
+      select {
+        padding: 5px 8px;
+        outline: none;
       }
     }
 }

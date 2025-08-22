@@ -1,18 +1,17 @@
-import { Component, OnDestroy, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, OnDestroy, OnInit, Output } from '@angular/core';
 import { FormGroup, FormControl, Validators } from '@angular/forms';
 import { Subject } from 'rxjs';
 import { PopupMessageService } from '../../../../shared/services/popup-message.service';
 import { CurrencyType } from '../../../../core/types/currency-type';
 import { AddCapitalRequest } from '../../models/add-capital-request';
 import { FormField } from '../../../../shared/components/forms/models/form-field';
-import { DialogService } from '../../../../shared/services/dialog.service';
 
 @Component({
   selector: 'app-add-capital-dialog',
   templateUrl: './add-capital-dialog.component.html'
 })
 export class AddCapitalDialogComponent implements OnInit, OnDestroy {
-  @Output() submitted = new Subject<AddCapitalRequest>();
+  @Output() submitted = new EventEmitter<AddCapitalRequest | null>();
 
   currencyOptions: { key: string, value: CurrencyType }[] = [];
 
@@ -22,8 +21,7 @@ export class AddCapitalDialogComponent implements OnInit, OnDestroy {
   private readonly unsubscribe$ = new Subject<void>();
 
   constructor(
-    private readonly popupMessageService: PopupMessageService,
-    private readonly dialogService: DialogService
+    private readonly popupMessageService: PopupMessageService
   ) {}
 
   ngOnInit(): void {
@@ -78,15 +76,15 @@ export class AddCapitalDialogComponent implements OnInit, OnDestroy {
 
     const request: AddCapitalRequest = {
       name: this.form.value.Name,
-      balance: this.form.value.Balance,
-      currency: this.form.value.Currency,
+      balance: Number(this.form.value.Balance),
+      currency: Number(this.form.value.Currency),
       includeInTotal: this.form.value.IncludeInTotal
     };
 
-    this.submitted.next(request);
+    this.submitted.emit(request);
   }
 
   handleCancel(): void {
-    this.dialogService.close();
+    this.submitted.emit(null);
   }
 }

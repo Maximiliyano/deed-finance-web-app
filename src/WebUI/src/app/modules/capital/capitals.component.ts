@@ -1,7 +1,6 @@
 import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
 import { Subject, takeUntil } from 'rxjs';
 import { Exchange } from '../../core/models/exchange-model';
-import { currencyToSymbol } from '../../shared/components/currency/functions/currencyToSymbol.component';
 import { ConfirmDialogComponent } from '../../shared/components/dialogs/confirm-dialog/confirm-dialog.component';
 import { DialogService } from '../../shared/services/dialog.service';
 import { ExchangeService } from '../../shared/services/exchange.service';
@@ -16,6 +15,7 @@ import { animate, style, transition, trigger } from '@angular/animations';
 import { CurrencyType } from '../../core/types/currency-type';
 import { getCurrencies } from '../../shared/components/currency/functions/get-currencies.component';
 import { UpdateCapitalRequest } from './models/update-capital-request';
+import { stringToCurrencyEnum } from '../../shared/components/currency/functions/string-to-currency-enum';
 
 @Component({
   selector: 'app-capitals',
@@ -49,6 +49,7 @@ export class CapitalsComponent implements OnInit, OnDestroy {
   sortDirection: 'asc' | 'desc' = 'asc';
 
   mainCurrency: string = 'UAH';
+  mainCurrencyVal: CurrencyType = stringToCurrencyEnum(this.mainCurrency) ?? CurrencyType.None;
 
   sortOptions: {label: string; key: keyof CapitalResponse}[] = [
     { label: 'name', key: 'name' },
@@ -166,14 +167,13 @@ export class CapitalsComponent implements OnInit, OnDestroy {
     });
   }
 
-  symbol(value: string): string {
-    return currencyToSymbol(value);
-  }
-
   onCurrencyChange(event: Event): void {
     const newCurrency = (event.target as HTMLSelectElement).value;
-    this.popupMessageService.success(`The default currency updated to <b>${newCurrency}</b>`);
-    this.mainCurrency = newCurrency;
+
+    if (newCurrency) {
+      this.mainCurrency = CurrencyType[Number(newCurrency)];
+      this.popupMessageService.success(`The default currency updated to <b>${this.mainCurrency}</b>`);
+    }
   }
 
   toggleEditDialog(capital: CapitalResponse) {
@@ -186,11 +186,33 @@ export class CapitalsComponent implements OnInit, OnDestroy {
         currencyOptions: this.currencyOptions,
         exchanges: this.exchanges
       },
-      onSubmit: (request: UpdateCapitalRequest) => {
-
+      onSubmit: (request: UpdateCapitalRequest | null) => {
+        if (request) {
+          this.capitalService
+            .update(request.id, request)
+            .pipe(takeUntil(this.unsubcribe$))
+            .subscribe({
+              next: () => this.capitalUpdated(request)
+            });
+        }
         this.dialogService.close();
       }
     })
+  }
+
+  capitalUpdated(request: UpdateCapitalRequest): void {
+    const capital = this.sortedCapitals.find(c => c.id === request.id);
+
+    if (capital) {
+      capital.name = request.name ?? capital.name;
+      capital.balance = request.balance ?? capital.balance;
+      capital.currency = request.currency ? CurrencyType[request.currency] : capital.currency;
+      capital.includeInTotal = request.includeInTotal ?? capital.includeInTotal;
+
+      this.popupMessageService.success(`${capital.name} was successfully updated.`);
+    } else {
+      this.popupMessageService.error('Error while updating occured.');
+    }
   }
 
   openToCreateCapitalDialog(): void {
@@ -201,7 +223,7 @@ export class CapitalsComponent implements OnInit, OnDestroy {
       data: {
         currencyOptions: this.currencyOptions
       },
-      onSubmit: (request: AddCapitalRequest) => {
+      onSubmit: (request: AddCapitalRequest | null) => {
         if (request) {
           this.capitalService.create(request)
             .pipe(takeUntil(this.unsubcribe$))
@@ -209,6 +231,7 @@ export class CapitalsComponent implements OnInit, OnDestroy {
               next: (id) => this.addCapitalToTheList(id, request)
             });
         }
+        this.dialogService.close();
       }
     });
   }
@@ -227,21 +250,25 @@ export class CapitalsComponent implements OnInit, OnDestroy {
     };
 
     this.sortedCapitals.push(response);
-    this.popupMessageService.success("Capital successfully added.");
-    this.dialogService.close();
+    this.popupMessageService.success(`${request.name} successfully added.`);
   };
 
   totalCapitalAmount(): number {
     return this.sortedCapitals?.reduce((accumulator, capital) => {
       if (!capital.includeInTotal) return accumulator;
 
+      const balance = Number(capital.balance) || 0;
+
       if (capital.currency === this.mainCurrency) {
-        return accumulator + capital.balance;
+        return accumulator + balance;
       }
 
-      const exchange = this.exchanges?.find(e => e.nationalCurrency === this.mainCurrency && e.targetCurrency === capital.currency);
+      const exchange = this.exchanges?.find(
+        e => e.nationalCurrency === this.mainCurrency && e.targetCurrency === capital.currency
+      );
+
       return exchange
-        ? accumulator + capital.balance * exchange.sale
+        ? accumulator + balance * exchange.sale
         : accumulator;
     }, 0) ?? 0;
   }
