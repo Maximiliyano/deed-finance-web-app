@@ -11,6 +11,7 @@ import { FormErrorComponent } from './components/forms/form-error/form-error.com
 import { FormComponent } from './components/forms/form.component';
 import { DatePickerComponent } from './components/date-picker/date-picker.component';
 import { CurrencySymbolPipe } from './components/currency/pipes/currency-symbol-pipe';
+import { DragDropModule } from '@angular/cdk/drag-drop';
 
 @NgModule({
   declarations: [
@@ -29,19 +30,22 @@ import { CurrencySymbolPipe } from './components/currency/pipes/currency-symbol-
   imports: [
     CommonModule,
     FormsModule,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    DragDropModule,
   ],
   exports: [
     CommonModule,
     FormsModule,
     ReactiveFormsModule,
+    DragDropModule,
+
     LayoutComponent,
     IconComponent,
     DialogComponent,
     FormComponent,
     FormErrorComponent,
     DatePickerComponent,
-    CurrencySymbolPipe
+    CurrencySymbolPipe,
   ]
 })
 export class SharedModule { }

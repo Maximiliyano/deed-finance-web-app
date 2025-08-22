@@ -16,6 +16,7 @@ import { CurrencyType } from '../../core/types/currency-type';
 import { getCurrencies } from '../../shared/components/currency/functions/get-currencies.component';
 import { UpdateCapitalRequest } from './models/update-capital-request';
 import { stringToCurrencyEnum } from '../../shared/components/currency/functions/string-to-currency-enum';
+import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 
 @Component({
   selector: 'app-capitals',
@@ -308,8 +309,12 @@ export class CapitalsComponent implements OnInit, OnDestroy {
     })
   }
 
-  onMenuItemClick() {
+  onMenuItemClick(): void {
     this.isCapitalActionsOpen = false;
     this.openMenuId = null;
+  }
+
+  drop(event: CdkDragDrop<any[]>) {
+    moveItemInArray(this.sortedCapitals, event.previousIndex, event.currentIndex);
   }
 }
