@@ -14,36 +14,19 @@ internal sealed class CapitalRepository(
 {
     public async Task<IEnumerable<Capital>> GetAllAsync(string? searchTerm = null, string? sortBy = null, string? sortDirection = null)
     {
-        var query = DbContext.Capitals.AsSplitQuery().AsQueryable();
+        var query = DbContext.Capitals
+            .Where(c => !(c.IsDeleted ?? false))
+            .AsSplitQuery()
+            .AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(searchTerm))
         {
             query = query.Where(c => c.Name.ToLower().Contains(searchTerm.ToLower()));
         }
 
-        if (!string.IsNullOrWhiteSpace(sortBy))
-        {
-            bool asc = sortDirection?.ToLower(CultureInfo.CurrentCulture) == "asc";
+        query = ApplySorting(query, sortBy, sortDirection);
 
-            query = sortBy.ToLower(CultureInfo.CurrentCulture) switch
-            {
-                SortKeysConstants.Name => asc ? query.OrderBy(c => c.Name) : query.OrderByDescending(c => c.Name),
-                SortKeysConstants.Balance => asc ? query.OrderBy(c => c.Balance) : query.OrderByDescending(c => c.Balance),
-                SortKeysConstants.Expenses => asc ? query.OrderBy(c => c.TotalExpense) : query.OrderByDescending(c => c.TotalExpense),
-                SortKeysConstants.Incomes => asc ? query.OrderBy(c => c.TotalIncome) : query.OrderByDescending(c => c.TotalIncome),
-                SortKeysConstants.TransfersIn => asc ? query.OrderBy(c => c.TotalTransferIn) : query.OrderByDescending(c => c.TotalTransferIn),
-                SortKeysConstants.TransfersOut => asc ? query.OrderBy(c => c.TotalTransferOut) : query.OrderByDescending(c => c.TotalTransferOut),
-                _ => query.OrderBy(c => c.OrderIndex)
-            };
-        }
-        else
-        {
-            query = query.OrderBy(c => c.OrderIndex);
-        }
-
-        return await query
-            .Where(c => !(c.IsDeleted.HasValue && c.IsDeleted.Value))
-            .ToListAsync();
+        return await query.ToListAsync();
     }
 
     public new async Task<Capital?> GetAsync(ISpecification<Capital> specification)
@@ -75,4 +58,23 @@ internal sealed class CapitalRepository(
 
     public new async Task<bool> AnyAsync(ISpecification<Capital> specification)
         => await base.AnyAsync(specification);
+
+    private static IQueryable<Capital> ApplySorting(
+        IQueryable<Capital> query,
+        string? sortBy,
+        string? sortDirection)
+    {
+        bool asc = sortDirection?.ToLower() == "asc";
+
+        return sortBy?.ToLower() switch
+        {
+            SortKeysConstants.Name => asc ? query.OrderBy(c => c.Name) : query.OrderByDescending(c => c.Name),
+            SortKeysConstants.Balance => asc ? query.OrderBy(c => c.Balance) : query.OrderByDescending(c => c.Balance),
+            SortKeysConstants.Expenses => asc ? query.OrderBy(c => c.TotalExpense) : query.OrderByDescending(c => c.TotalExpense),
+            SortKeysConstants.Incomes => asc ? query.OrderBy(c => c.TotalIncome) : query.OrderByDescending(c => c.TotalIncome),
+            SortKeysConstants.TransfersIn => asc ? query.OrderBy(c => c.TotalTransferIn) : query.OrderByDescending(c => c.TotalTransferIn),
+            SortKeysConstants.TransfersOut => asc ? query.OrderBy(c => c.TotalTransferOut) : query.OrderByDescending(c => c.TotalTransferOut),
+            _ => query.OrderBy(c => c.OrderIndex)
+        };
+    }
 }
