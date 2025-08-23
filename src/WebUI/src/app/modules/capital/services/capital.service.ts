@@ -1,10 +1,11 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment } from '../../../../environments/environment.development';
 import { AddCapitalRequest } from '../models/add-capital-request';
 import { UpdateCapitalRequest } from '../models/update-capital-request';
 import { CapitalResponse } from '../models/capital-response';
+import { UpdateCapitalOrderRequest } from '../models/update-capital-order-request';
 
 @Injectable({
   providedIn: 'root'
@@ -14,8 +15,19 @@ export class CapitalService {
 
   constructor(private readonly httpClient: HttpClient) { }
 
-  getAll(): Observable<CapitalResponse[]> {
-    return this.httpClient.get<CapitalResponse[]>(this.baseApiUrl);
+  getAll(searchTerm?: string, sortBy?: string, sortDirection?: string): Observable<CapitalResponse[]> {
+    let params = new HttpParams();
+    if (searchTerm) {
+      params = params.set("searchTerm", searchTerm);
+    }
+    if (sortBy) {
+      params = params.set("sortBy", sortBy);
+    }
+    if (sortDirection) {
+      params = params.set("sortDirection", sortDirection);
+    }
+
+    return this.httpClient.get<CapitalResponse[]>(this.baseApiUrl, { params });
   }
 
   getById(id: number): Observable<CapitalResponse> {
@@ -28,6 +40,10 @@ export class CapitalService {
 
   update(id: number, request: UpdateCapitalRequest): Observable<void> {
     return this.httpClient.put<void>(`${this.baseApiUrl}/${id}`, request);
+  }
+
+  updateOrder(request: UpdateCapitalOrderRequest): Observable<void> {
+    return this.httpClient.put<void>(`${this.baseApiUrl}/orders`, request);
   }
 
   delete(id: number): Observable<void> {

@@ -11,12 +11,12 @@
       <input class="cp-search" placeholder="Search for..." maxlength="24" [(ngModel)]="searchTerm" (ngModelChange)="onSearchChange()" />
 
       <div class="cp-sort">
-        <button class="sort-direction" (click)="toggleSortDirection()" [title]="sortDirection === 'asc' ? 'Ascending' : 'Descending'">
+        <button class="sort-direction" (click)="onSortDirectionChange()" [title]="sortDirection === 'asc' ? 'Ascending' : 'Descending'">
           <app-icon [name]="sortDirection === 'asc' ? 'fa-arrow-up' : 'fa-arrow-down'"></app-icon>
         </button>
 
         <label>Sort by:</label>
-        <select [(ngModel)]="selectedSortOption" (change)="onSortChange($event)">
+        <select [(ngModel)]="selectedSortOption" (change)="onSortChange()">
           <option *ngFor="let option of sortOptions" [value]="option.key">{{ option.label }}</option>
         </select>
       </div>
@@ -28,14 +28,14 @@
         </select>
       </div>
 
-      <button *ngIf="sortedCapitals && sortedCapitals.length > 0" (click)="openToCreateCapitalDialog()" title="Create new">
+      <button *ngIf="capitals && capitals.length > 0" (click)="openToCreateCapitalDialog()" title="Create new">
         <app-icon class="btn-create-icon" [name]="'fa-circle-plus'"></app-icon>
       </button>
     </div>
   </div>
 
-  <div cdkDropList (cdkDropListDropped)="drop($event)" class="cp-list" *ngIf="sortedCapitals?.length; else noCapitals">
-    <div *ngFor="let capital of sortedCapitals"
+  <div cdkDropList (cdkDropListDropped)="drop($event)" class="cp-list" *ngIf="capitals?.length; else noCapitals">
+    <div *ngFor="let capital of capitals"
       cdkDrag
       [@slideRemove]
       [ngClass]="capital.includeInTotal ? 'cp bg-[#e6e6e6]' : 'cp'"
@@ -95,6 +95,6 @@
     </button>
   </ng-template>
 
-  <span *ngIf="sortedCapitals.length > 0" class="text-sm text-gray-400 flex justify-center">In total {{ sortedCapitals.length }} capitals</span>
+  <span *ngIf="capitals.length > 0" class="text-sm text-gray-400 flex justify-center">In total {{ capitals.length }} capitals</span>
 </app-layout>
 

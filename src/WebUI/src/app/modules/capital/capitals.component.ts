@@ -1,5 +1,5 @@
 import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
-import { Subject, takeUntil } from 'rxjs';
+import { debounceTime, distinctUntilChanged, Subject, takeUntil } from 'rxjs';
 import { Exchange } from '../../core/models/exchange-model';
 import { ConfirmDialogComponent } from '../../shared/components/dialogs/confirm-dialog/confirm-dialog.component';
 import { DialogService } from '../../shared/services/dialog.service';
@@ -36,7 +36,6 @@ import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 })
 export class CapitalsComponent implements OnInit, OnDestroy {
   capitals: CapitalResponse[] = [];
-  sortedCapitals: CapitalResponse[] = [];
   capitalStatItems: CapitalItem[] = [
     { key: 'totalIncome', title: 'Incomes', icon: 'fa-dollar-sign', style: 'cp-incomes' },
     { key: 'totalExpense', title: 'Expenses', icon: 'fa-money-bill-wave', style: 'cp-expenses' },
@@ -46,13 +45,14 @@ export class CapitalsComponent implements OnInit, OnDestroy {
   exchanges: Exchange[] = [];
 
   searchTerm: string = '';
-  selectedSortOption: keyof CapitalResponse = 'name';
+  selectedSortOption: string = '';
   sortDirection: 'asc' | 'desc' = 'asc';
 
   mainCurrency: string = 'UAH';
   mainCurrencyVal: CurrencyType = stringToCurrencyEnum(this.mainCurrency) ?? CurrencyType.None;
 
-  sortOptions: {label: string; key: keyof CapitalResponse}[] = [
+  sortOptions: {label: string; key: string}[] = [
+    { label: 'user order', key: '' },
     { label: 'name', key: 'name' },
     { label: 'balance', key: 'balance' },
     { label: 'expenses', key: 'totalExpense' },
@@ -68,6 +68,7 @@ export class CapitalsComponent implements OnInit, OnDestroy {
 
   currencyOptions = getCurrencies({ excludeNone: true });
 
+  private queryParams$ = new Subject<void>;
   private unsubcribe$ = new Subject<void>;
 
   constructor(
@@ -78,7 +79,7 @@ export class CapitalsComponent implements OnInit, OnDestroy {
   ) { }
 
   @HostListener('document:click', ['$event.target'])
-  onClickOutside(targetElement: HTMLElement) {
+  onClickOutside(targetElement: HTMLElement): void {
     const clickedInside = targetElement.closest('.cp-actions-compact');
 
     if (!clickedInside) {
@@ -87,6 +88,15 @@ export class CapitalsComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    this.queryParams$
+      .pipe(
+        debounceTime(300),
+        takeUntil(this.unsubcribe$)
+      )
+      .subscribe({
+        next: () => this.fetchCapitals()
+      })
+
     this.fetchCapitals();
     this.fetchExchanges();
   }
@@ -94,6 +104,7 @@ export class CapitalsComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.unsubcribe$.next();
     this.unsubcribe$.complete();
+    this.queryParams$.complete();
   }
 
   fetchExchanges(): void {
@@ -106,66 +117,26 @@ export class CapitalsComponent implements OnInit, OnDestroy {
   }
 
   fetchCapitals(): void {
-    this.capitalService.getAll()
+    this.capitalService.getAll(this.searchTerm, this.selectedSortOption, this.sortDirection)
       .pipe(takeUntil(this.unsubcribe$))
       .subscribe({
         next: (response) => {
           this.capitals = response;
-          this.applyFilters();
         }
     });
   }
 
-  onSearchChange() {
-    this.applyFilters();
+  onSearchChange(): void {
+    this.queryParams$.next();
   }
 
-  onSortChange(event: Event): void {
-    const selectElement = event.target as HTMLSelectElement;
-    this.selectedSortOption = selectElement.value as keyof CapitalResponse;
-    this.applyFilters();
+  onSortChange(): void {
+    this.queryParams$.next();
   }
 
-  toggleSortDirection(): void {
+  onSortDirectionChange(): void {
     this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
-
-    this.applyFilters();
-  }
-
-  applyFilters(): void {
-    const term = this.searchTerm.trim().toLowerCase();
-
-    let searchedCapitals = this.capitals.filter(capital =>
-      capital.name.toLowerCase().includes(term)
-    );
-
-    this.sortedCapitals = searchedCapitals.sort((a, b) => {
-      const key = this.selectedSortOption;
-
-      let valA = a[key];
-      let valB = b[key];
-
-      if (valA === undefined || valA === null) return 1;
-      if (valB === undefined || valB === null) return -1;
-
-      if (typeof valA === 'string' && typeof valB === 'string') {
-        valA = valA.toLowerCase();
-        valB = valB.toLowerCase();
-
-        if (valA < valB) return this.sortDirection === 'asc' ? -1 : 1;
-        if (valA > valB) return this.sortDirection === 'asc' ? 1 : -1;
-
-        return 0;
-      }
-
-      if (typeof valA === 'number' && typeof valB === 'number') {
-        return this.sortDirection === 'asc'
-          ? valA - valB
-          : valB - valA;
-      }
-
-      return 0;
-    });
+    this.queryParams$.next();
   }
 
   onCurrencyChange(event: Event): void {
@@ -202,7 +173,7 @@ export class CapitalsComponent implements OnInit, OnDestroy {
   }
 
   capitalUpdated(request: UpdateCapitalRequest): void {
-    const capital = this.sortedCapitals.find(c => c.id === request.id);
+    const capital = this.capitals.find(c => c.id === request.id);
 
     if (capital) {
       capital.name = request.name ?? capital.name;
@@ -250,12 +221,12 @@ export class CapitalsComponent implements OnInit, OnDestroy {
       totalTransferOut: 0
     };
 
-    this.sortedCapitals.push(response);
+    this.capitals.push(response);
     this.popupMessageService.success(`${request.name} successfully added.`);
   };
 
   totalCapitalAmount(): number {
-    return this.sortedCapitals?.reduce((accumulator, capital) => {
+    return this.capitals?.reduce((accumulator, capital) => {
       if (!capital.includeInTotal) return accumulator;
 
       const balance = Number(capital.balance) || 0;
@@ -300,7 +271,7 @@ export class CapitalsComponent implements OnInit, OnDestroy {
             .pipe(takeUntil(this.unsubcribe$))
             .subscribe({
               next: () => {
-                this.sortedCapitals = this.sortedCapitals.filter(x => x.id !== id);
+                this.capitals = this.capitals.filter(x => x.id !== id);
                 this.popupMessageService.success("The capital was successful removed.");
               }});
         }
@@ -315,6 +286,20 @@ export class CapitalsComponent implements OnInit, OnDestroy {
   }
 
   drop(event: CdkDragDrop<any[]>) {
-    moveItemInArray(this.sortedCapitals, event.previousIndex, event.currentIndex);
+    moveItemInArray(this.capitals, event.previousIndex, event.currentIndex);
+
+    const orders = this.capitals.map((c, index) => ({
+      id: c.id,
+      orderIndex: index
+    }));
+
+    this.capitalService
+      .updateOrder({ capitals: orders })
+      .pipe(takeUntil(this.unsubcribe$))
+      .subscribe({
+        next: () => {
+          this.popupMessageService.success("Sort order is changed.");
+        }
+      });
   }
 }

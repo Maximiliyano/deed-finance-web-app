@@ -5,11 +5,11 @@ namespace Deed.Api.Middlewares;
 
 internal sealed class RequestContextLoggingMiddleware(RequestDelegate next)
 {
-    private const string CorrelationIdHeaderName = "Correlation-Id";
+    private const string CorrelationIdHeaderName = "CorrelationId";
 
     public Task Invoke(HttpContext context)
     {
-        using (LogContext.PushProperty("CorrelationId", GetCorrelationId(context)))
+        using (LogContext.PushProperty(CorrelationIdHeaderName, GetCorrelationId(context)))
         {
             return next.Invoke(context);
         }
