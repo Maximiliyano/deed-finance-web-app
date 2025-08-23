@@ -12,7 +12,7 @@ internal sealed class CapitalRepository(
     IDeedDbContext context)
     : GeneralRepository<Capital>(context), ICapitalRepository
 {
-    public async Task<IEnumerable<Capital>> GetAllAsync(string? searchTerm, string? sortBy = null, string? sortDirection = null)
+    public async Task<IEnumerable<Capital>> GetAllAsync(string? searchTerm = null, string? sortBy = null, string? sortDirection = null)
     {
         var query = DbContext.Capitals.AsSplitQuery().AsQueryable();
 
