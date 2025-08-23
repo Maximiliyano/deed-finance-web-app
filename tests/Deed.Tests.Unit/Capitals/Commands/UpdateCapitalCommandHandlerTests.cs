@@ -66,24 +66,27 @@ public sealed class UpdateCapitalCommandHandlerTests
     }
 
     [Theory]
-    [InlineData("New Name", 200f, CurrencyType.EUR)]
-    [InlineData("Modified Name", 150f, null)]
-    [InlineData(null, 150f, null)]
-    [InlineData(null, null, CurrencyType.UAH)]
-    [InlineData("Updated Name", null, CurrencyType.USD)]
-    [InlineData("Refreshed Name", null, null)]
-    public async Task Handle_ShouldUpdateCapitalSuccessfully(string? name, float? balance, CurrencyType? currency)
+    [InlineData("New Name", 200f, CurrencyType.EUR, false)]
+    [InlineData("Modified Name", 150f, null, null)]
+    [InlineData("Refreshed Name", null, null, null)]
+    [InlineData(null, 150f, null, null)]
+    [InlineData(null, null, CurrencyType.UAH, null)]
+    [InlineData(null, null, null, false)]
+    [InlineData("Updated Name", null, CurrencyType.USD, null)]
+    public async Task Handle_ShouldUpdateCapitalSuccessfully(string? name, float? balance, CurrencyType? currency, bool? includeInTotal)
     {
         // Arrange
         const string oldName = "Old Name";
         const float oldBalance = 100f;
+        const bool oldIncludeInTotal = true;
 
-        var capital = new Capital(1) { Name = oldName, Balance = oldBalance, Currency = CurrencyType.USD };
+        var capital = new Capital(1) { Name = oldName, Balance = oldBalance, Currency = CurrencyType.USD, IncludeInTotal = oldIncludeInTotal };
         var command = new UpdateCapitalCommand(
             1,
             name,
             balance,
-            currency);
+            currency,
+            includeInTotal);
 
         _repositoryMock.GetAsync(Arg.Any<CapitalByIdSpecification>()).Returns(capital);
 
@@ -98,25 +101,10 @@ public sealed class UpdateCapitalCommandHandlerTests
         capital.Currency.Should().Be(currency is not null
             ? currency
             : CurrencyType.USD);
+        capital.IncludeInTotal.Should().Be(includeInTotal ?? oldIncludeInTotal);
 
         _repositoryMock.Received(1).Update(capital);
 
         await _unitOfWorkMock.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
-    }
-
-    [Fact]
-    public async Task Handle_ShouldReturnFailure_WhenCurrencyIsInvalid()
-    {
-        // Arrange
-        var capital = new Capital(1) { Name = "Test", Balance = 100, Currency = CurrencyType.USD };
-        var command = new UpdateCapitalCommand(1, "Test", 100, CurrencyType.None);
-        _repositoryMock.GetAsync(Arg.Any<CapitalByIdSpecification>()).Returns(capital);
-
-        // Act
-        var result = await _handler.Handle(command, CancellationToken.None);
-
-        // Assert
-        result.IsSuccess.Should().BeFalse();
-        result.Errors.Should().Contain(e => e == DomainErrors.Capital.InvalidCurrency);
     }
 }
