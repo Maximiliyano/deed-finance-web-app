@@ -255,6 +255,27 @@ export class CapitalsComponent implements OnInit, OnDestroy {
     }
   }
 
+  includeInTotalCapital(id: number): void {
+    const capital = this.capitals.find(c => c.id === id);
+
+    if (capital) {
+      const request: UpdateCapitalRequest = {
+        id: id,
+        name: null,
+        balance: null,
+        currency: null,
+        includeInTotal: !capital.includeInTotal,
+      };
+
+      this.capitalService
+        .update(request.id, request)
+        .pipe(takeUntil(this.unsubcribe$))
+        .subscribe({
+          next: () => capital.includeInTotal = !capital.includeInTotal
+        });
+    }
+  }
+
   removeCapital(id: number): void {
     this.onMenuItemClick();
 

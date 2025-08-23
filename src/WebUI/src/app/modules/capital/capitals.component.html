@@ -68,13 +68,13 @@
         </button>
 
         <ul class="actions" [ngClass]="{'open': isCapitalActionsOpen && openMenuId === capital.id}">
-          <li title="Include capital into total balance" class="cp-d-act cp-visible" (click)="capital.includeInTotal = !capital.includeInTotal"><app-icon [name]="capital.includeInTotal ? 'fa-eye' : 'fa-eye-slash'"></app-icon></li>
+          <li title="Include capital into total balance" class="cp-d-act cp-visible" (click)="includeInTotalCapital(capital.id)"><app-icon [name]="capital.includeInTotal ? 'fa-eye' : 'fa-eye-slash'"></app-icon></li>
           <li title="Remove capital" class="cp-d-act cp-delete" (click)="removeCapital(capital.id)"><app-icon [name]="'fa-trash'"></app-icon></li>
         </ul>
       </div>
 
       <div class="cp-actions">
-        <button title="Include capital into total balance" class="cp-visible" (click)="capital.includeInTotal = !capital.includeInTotal">
+        <button title="Include capital into total balance" class="cp-visible" (click)="includeInTotalCapital(capital.id)">
           <app-icon [name]="capital.includeInTotal ? 'fa-eye' : 'fa-eye-slash'"></app-icon>
         </button>
 

@@ -22,6 +22,7 @@ internal sealed class UpdateCapitalCommandHandler(ICapitalRepository repository,
         capital.Name = command.Name?.Trim() ?? capital.Name;
         capital.Balance = command.Balance ?? capital.Balance;
         capital.Currency = command.Currency ?? capital.Currency;
+        capital.IncludeInTotal = command.IncludeInTotal ?? capital.IncludeInTotal;
 
         repository.Update(capital);
 
