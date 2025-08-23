@@ -3,6 +3,8 @@ using Deed.Domain.Entities;
 using Deed.Domain.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Deed.Infrastructure.Persistence;
 
@@ -26,6 +28,9 @@ public sealed class DeedDbContext(DbContextOptions<DeedDbContext> options)
     public new DbSet<TEntity> Set<TEntity>()
         where TEntity : Entity
             => base.Set<TEntity>();
+
+    public async Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken cancellationToken = default)
+        => await Database.BeginTransactionAsync(cancellationToken);
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

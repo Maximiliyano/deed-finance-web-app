@@ -1,11 +1,9 @@
-import {Component, EventEmitter, OnDestroy, OnInit, Output} from '@angular/core';
+import {Component, EventEmitter, OnInit, Output} from '@angular/core';
 import {FormControl, FormGroup, Validators} from "@angular/forms";
-import {Subject} from "rxjs";
-import { DialogService } from '../../../../shared/services/dialog.service';
 import {CapitalResponse} from "../../../capital/models/capital-response";
 import {CategoryResponse} from "../../../../core/models/category-model";
 import { AddExpenseRequest } from '../../models/add-expense-request';
-import { FormFields } from '../../../../shared/components/forms/models/form-fields';
+import { FormField } from '../../../../shared/components/forms/models/form-field';
 import { PopupMessageService } from '../../../../shared/services/popup-message.service';
 import { SelectOptionModel } from '../../../../shared/components/forms/models/select-option-model';
 
@@ -14,8 +12,8 @@ import { SelectOptionModel } from '../../../../shared/components/forms/models/se
   templateUrl: './expense-dialog.component.html',
   styleUrl: './expense-dialog.component.scss'
 })
-export class ExpenseDialogComponent implements OnInit, OnDestroy {
-  @Output() submitted = new EventEmitter<AddExpenseRequest>();
+export class ExpenseDialogComponent implements OnInit {
+  @Output() submitted = new EventEmitter<AddExpenseRequest | null>();
 
   capitals: CapitalResponse[] = [];
   categories: CategoryResponse[] = [];
@@ -24,22 +22,13 @@ export class ExpenseDialogComponent implements OnInit, OnDestroy {
   capitalsOptions: SelectOptionModel[] = [];
 
   form: FormGroup;
-  fields: FormFields[];
+  fields: FormField[] = [];
 
-  private $unsubscribe = new Subject<void>();
-
-  constructor(
-    private readonly popupMessageService: PopupMessageService,
-    private readonly dialogService: DialogService) {}
+  constructor(private readonly popupMessageService: PopupMessageService) {}
 
   ngOnInit(): void {
     this.initForm();
     this.initFields();
-  }
-
-  ngOnDestroy(): void {
-    this.$unsubscribe.next();
-    this.$unsubscribe.complete();
   }
 
   private initFields(): void {
@@ -109,6 +98,6 @@ export class ExpenseDialogComponent implements OnInit, OnDestroy {
   }
 
   handleCancel(): void {
-    this.dialogService.close();
+    this.submitted.next(null);
   }
 }

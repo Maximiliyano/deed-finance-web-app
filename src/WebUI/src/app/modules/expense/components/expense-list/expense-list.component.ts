@@ -1,7 +1,6 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
 import {BehaviorSubject, Subject, takeUntil} from 'rxjs';
 import {CapitalResponse} from '../../../capital/models/capital-response';
-import {currencyToSymbol} from '../../../../shared/components/currency/functions/currencyToSymbol.component';
 import {CapitalService} from "../../../capital/services/capital.service";
 import {Periods} from "../../models/periods";
 import {CategoryResponse} from "../../../../core/models/category-model";
@@ -161,10 +160,6 @@ export class ExpenseListComponent implements OnInit, OnDestroy {
         }
       }
     });
-  }
-
-  symbol(value?: string): string {
-    return currencyToSymbol(value ?? this.defaultCurrency);
   }
 
   onCapitalChange(capital: CapitalResponse | null): void {

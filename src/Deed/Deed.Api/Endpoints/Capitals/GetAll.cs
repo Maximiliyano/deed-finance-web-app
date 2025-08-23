@@ -1,5 +1,6 @@
 ﻿using Deed.Api.Extensions;
 using Deed.Application.Capitals.Queries.GetAll;
+using Deed.Application.Capitals.Requests;
 using MediatR;
 
 namespace Deed.Api.Endpoints.Capitals;
@@ -8,9 +9,9 @@ internal sealed class GetAll : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("api/capitals", async (ISender sender) =>
+        app.MapGet("api/capitals", async (ISender sender, string? searchTerm, string? sortBy, string? sortDirection) =>
             (await sender
-                .Send(new GetAllCapitalsQuery()))
+                .Send(new GetAllCapitalsQuery(searchTerm, sortBy, sortDirection)))
                 .Process())
             .WithTags(nameof(Capitals));
     }

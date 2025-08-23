@@ -10,9 +10,9 @@ internal sealed class Create : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPost("api/capitals", async (AddCapitalRequest request, ISender sender) =>
+        app.MapPost("api/capitals", async (CreateCapitalRequest request, ISender sender) =>
             (await sender
-                .Send(new CreateCapitalCommand(request.Name, request.Balance, request.Currency)))
+                .Send(new CreateCapitalCommand(request.Name, request.Balance, request.Currency, request.IncludeInTotal)))
                 .Process())
             .WithTags(nameof(Capitals));
     }

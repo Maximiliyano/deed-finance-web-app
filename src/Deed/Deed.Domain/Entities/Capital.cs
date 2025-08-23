@@ -21,6 +21,8 @@ public sealed class Capital
     public required CurrencyType Currency { get; set; }
 
     public bool IncludeInTotal { get; set; }
+    
+    public int OrderIndex { get; init; }
 
     public float TotalIncome => Incomes?.Sum(i => i.Amount) ?? 0;
 

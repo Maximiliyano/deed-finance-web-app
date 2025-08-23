@@ -1,30 +1,27 @@
-import { Component, OnDestroy, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, OnDestroy, OnInit, Output } from '@angular/core';
 import { FormGroup, FormControl, Validators } from '@angular/forms';
 import { Subject } from 'rxjs';
 import { PopupMessageService } from '../../../../shared/services/popup-message.service';
 import { CurrencyType } from '../../../../core/types/currency-type';
 import { AddCapitalRequest } from '../../models/add-capital-request';
-import { FormFields } from '../../../../shared/components/forms/models/form-fields';
-import { getEnumKeys } from '../../../../core/utils/enum-utils';
-import { DialogService } from '../../../../shared/services/dialog.service';
+import { FormField } from '../../../../shared/components/forms/models/form-field';
 
 @Component({
   selector: 'app-add-capital-dialog',
   templateUrl: './add-capital-dialog.component.html'
 })
 export class AddCapitalDialogComponent implements OnInit, OnDestroy {
-  @Output() submitted = new Subject<AddCapitalRequest>();
+  @Output() submitted = new EventEmitter<AddCapitalRequest | null>();
+
+  currencyOptions: { key: string, value: CurrencyType }[] = [];
 
   form: FormGroup;
-  fields: FormFields[];
-
-  readonly currencyOptions = getEnumKeys(CurrencyType); // TODO exclude 'None' option, add validation message, border red
+  fields: FormField[] = [];
 
   private readonly unsubscribe$ = new Subject<void>();
 
   constructor(
-    private readonly popupMessageService: PopupMessageService,
-    private readonly dialogService: DialogService
+    private readonly popupMessageService: PopupMessageService
   ) {}
 
   ngOnInit(): void {
@@ -41,7 +38,8 @@ export class AddCapitalDialogComponent implements OnInit, OnDestroy {
     this.form = new FormGroup({
       Name: new FormControl('', [Validators.required, Validators.minLength(1), Validators.maxLength(24)]),
       Balance: new FormControl(0, [Validators.required, Validators.min(0)]),
-      Currency: new FormControl(CurrencyType.UAH, [Validators.required])
+      Currency: new FormControl(CurrencyType.UAH, [Validators.required]),
+      IncludeInTotal: new FormControl(true, [Validators.required]),
     });
   }
 
@@ -50,17 +48,22 @@ export class AddCapitalDialogComponent implements OnInit, OnDestroy {
       {
         label: 'Name',
         controlName: 'Name',
-        input: { type: 'text', placeholder: 'Capital name' }
+        input: { type: 'text', placeholder: 'Type a name...' }
       },
       {
         label: 'Balance',
         controlName: 'Balance',
-        input: { type: 'number', placeholder: 'Balance' }
+        input: { type: 'number', placeholder: 'Type a balance...' }
       },
       {
         label: 'Currency',
         controlName: 'Currency',
-        select: { options: this.currencyOptions.map(x => { return { key: x, value: x } }) }
+        select: { options: this.currencyOptions }
+      },
+      {
+        label: 'Include in Total balance',
+        controlName: 'IncludeInTotal',
+        input: { type: 'checkbox' }
       }
     ];
   }
@@ -73,14 +76,15 @@ export class AddCapitalDialogComponent implements OnInit, OnDestroy {
 
     const request: AddCapitalRequest = {
       name: this.form.value.Name,
-      balance: this.form.value.Balance,
-      currency: this.form.value.Currency
+      balance: Number(this.form.value.Balance),
+      currency: Number(this.form.value.Currency),
+      includeInTotal: this.form.value.IncludeInTotal
     };
 
-    this.submitted.next(request);
+    this.submitted.emit(request);
   }
 
   handleCancel(): void {
-    this.dialogService.close();
+    this.submitted.emit(null);
   }
 }

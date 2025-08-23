@@ -27,6 +27,7 @@ internal static class CapitalExtensions
         {
             Name = command.Name.Trim(),
             Balance = command.Balance,
-            Currency = Enum.Parse<CurrencyType>(command.Currency, true),
+            Currency = command.Currency,
+            IncludeInTotal = command.IncludeInTotal
         };
 }

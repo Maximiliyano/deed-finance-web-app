@@ -1,5 +1,6 @@
 using Deed.Application.Abstractions.Messaging;
 using Deed.Application.Capitals.Responses;
+using Deed.Application.Capitals.Specifications;
 using Deed.Domain.Repositories;
 using Deed.Domain.Results;
 
@@ -11,7 +12,7 @@ internal sealed class GetAllCapitalsQueryHandler(
 {
     public async Task<Result<IEnumerable<CapitalResponse>>> Handle(GetAllCapitalsQuery query, CancellationToken cancellationToken)
     {
-        var capitals = await repository.GetAllAsync();
+        var capitals = await repository.GetAllAsync(query.SearchTerm, query.SortBy, query.SortDirection);
 
         var capitalResponses = capitals.ToResponses();
 

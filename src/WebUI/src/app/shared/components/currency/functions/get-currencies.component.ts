@@ -1,10 +1,13 @@
 import { CurrencyType } from "../../../../core/types/currency-type";
-import { Currency } from "../models/currency";
 
-export function getCurrencies(currency: string = 'None'): Currency[] {
+export function getCurrencies(options?: { excludeNone?: boolean }): { key: string, value: CurrencyType }[] {
+  const excludeNone = options?.excludeNone ?? false;
+
   return Object.keys(CurrencyType)
-      .filter((key: string) =>
-        key !== 'None' &&
-        (currency !== 'None' && currency !== key))
-      .map((key: any) => ({ key: key, value: key }));
+    .filter(k => isNaN(Number(k)))
+    .filter(k => !(excludeNone && k === 'None'))
+    .map(k => ({
+      key: k,
+      value: CurrencyType[k as keyof typeof CurrencyType]
+    }));
 }

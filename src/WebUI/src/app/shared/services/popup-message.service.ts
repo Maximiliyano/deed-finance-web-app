@@ -4,7 +4,7 @@ import { Injectable, NgZone } from '@angular/core';
   providedIn: 'root'
 })
 export class PopupMessageService {
-  private defaultDuration: number = 10000;
+  private defaultDuration: number = 3000;
   private messageContainer: HTMLDivElement | null = null;
 
   constructor(private readonly zone: NgZone) {}

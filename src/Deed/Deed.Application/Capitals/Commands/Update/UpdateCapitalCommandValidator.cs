@@ -23,8 +23,8 @@ internal sealed class UpdateCapitalCommandValidator : AbstractValidator<UpdateCa
             .MaximumLength(ValidationConstants.MaxLenghtName);
 
         RuleFor(c => c.Currency)
-            .Must(currency => !int.TryParse(currency, out _) && Enum.TryParse<CurrencyType>(currency, out _))
-            .When(c => !string.IsNullOrEmpty(c.Currency))
+            .Must(currency => currency.HasValue && currency.Value != CurrencyType.None)
+            .When(c => c.Currency.HasValue)
             .WithError(ValidationErrors.Capital.InvalidCurrencyType);
     }
 }
