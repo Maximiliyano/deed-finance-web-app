@@ -1,6 +1,7 @@
 using Deed.Application.Abstractions.Data;
 using Deed.Domain.Entities;
 using Deed.Domain.Repositories;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Infrastructure;
@@ -9,7 +10,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 namespace Deed.Infrastructure.Persistence;
 
 public sealed class DeedDbContext(DbContextOptions<DeedDbContext> options)
-    : DbContext(options),
+    : IdentityDbContext<ApplicationUser>(options),
         IDeedDbContext,
         IUnitOfWork
 {
@@ -32,10 +33,10 @@ public sealed class DeedDbContext(DbContextOptions<DeedDbContext> options)
     public async Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken cancellationToken = default)
         => await Database.BeginTransactionAsync(cancellationToken);
 
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    protected override void OnModelCreating(ModelBuilder builder)
     {
-        base.OnModelCreating(modelBuilder);
+        base.OnModelCreating(builder);
 
-        modelBuilder.ApplyConfigurationsFromAssembly(AssemblyReference.Assembly);
+        builder.ApplyConfigurationsFromAssembly(AssemblyReference.Assembly);
     }
 }
