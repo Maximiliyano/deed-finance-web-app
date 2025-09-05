@@ -6,6 +6,7 @@ using Deed.Infrastructure.Persistence.Constants;
 using Deed.Infrastructure.Persistence.DataSeed;
 using Deed.Infrastructure.Persistence.Interceptors;
 using Deed.Infrastructure.Persistence.Repositories;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
@@ -21,9 +22,19 @@ public static class DependencyInjection
     {
         services.AddDbDependencies();
 
+        services.AddIdentityDependencies();
+
         services.AddRepositories();
 
         services.AddBackgroundJobs();
+
+        return services;
+    }
+
+    private static IServiceCollection AddIdentityDependencies(this IServiceCollection services)
+    {
+        services.AddIdentity<ApplicationUser, IdentityRole>()
+            .AddEntityFrameworkStores<DeedDbContext>();
 
         return services;
     }

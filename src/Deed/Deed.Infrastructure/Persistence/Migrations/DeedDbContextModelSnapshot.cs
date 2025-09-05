@@ -17,7 +17,7 @@ namespace Deed.Infrastructure.Persistence.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.6")
+                .HasAnnotation("ProductVersion", "9.0.8")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -85,7 +85,7 @@ namespace Deed.Infrastructure.Persistence.Migrations
                             CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 2, 12, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             CreatedBy = 0,
                             Currency = "UAH",
-                            IncludeInTotal = false,
+                            IncludeInTotal = true,
                             Name = "Cash",
                             OrderIndex = 0
                         },
@@ -96,7 +96,7 @@ namespace Deed.Infrastructure.Persistence.Migrations
                             CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 2, 12, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             CreatedBy = 0,
                             Currency = "UAH",
-                            IncludeInTotal = false,
+                            IncludeInTotal = true,
                             Name = "Bank",
                             OrderIndex = 1
                         },
@@ -107,7 +107,7 @@ namespace Deed.Infrastructure.Persistence.Migrations
                             CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 2, 12, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             CreatedBy = 0,
                             Currency = "USD",
-                            IncludeInTotal = false,
+                            IncludeInTotal = true,
                             Name = "Investments",
                             OrderIndex = 2
                         },
@@ -118,7 +118,7 @@ namespace Deed.Infrastructure.Persistence.Migrations
                             CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 2, 12, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             CreatedBy = 0,
                             Currency = "USD",
-                            IncludeInTotal = false,
+                            IncludeInTotal = true,
                             Name = "Savings",
                             OrderIndex = 3
                         });
@@ -381,7 +381,7 @@ namespace Deed.Infrastructure.Persistence.Migrations
                         {
                             Id = 1,
                             Buy = 44.63f,
-                            CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 3, 12, 19, 51, 344, DateTimeKind.Unspecified).AddTicks(2938), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 5, 16, 9, 1, 444, DateTimeKind.Unspecified).AddTicks(3598), new TimeSpan(0, 0, 0, 0, 0)),
                             CreatedBy = 0,
                             NationalCurrencyCode = "UAH",
                             Sale = 45.45455f,
@@ -391,7 +391,7 @@ namespace Deed.Infrastructure.Persistence.Migrations
                         {
                             Id = 2,
                             Buy = 41.2f,
-                            CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 3, 12, 19, 51, 344, DateTimeKind.Unspecified).AddTicks(2938), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 5, 16, 9, 1, 444, DateTimeKind.Unspecified).AddTicks(3598), new TimeSpan(0, 0, 0, 0, 0)),
                             CreatedBy = 0,
                             NationalCurrencyCode = "UAH",
                             Sale = 34f,
@@ -401,7 +401,7 @@ namespace Deed.Infrastructure.Persistence.Migrations
                         {
                             Id = 3,
                             Buy = 43f,
-                            CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 3, 12, 19, 51, 344, DateTimeKind.Unspecified).AddTicks(2938), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 5, 16, 9, 1, 444, DateTimeKind.Unspecified).AddTicks(3598), new TimeSpan(0, 0, 0, 0, 0)),
                             CreatedBy = 0,
                             NationalCurrencyCode = "UAH",
                             Sale = 43f,
@@ -411,7 +411,7 @@ namespace Deed.Infrastructure.Persistence.Migrations
                         {
                             Id = 4,
                             Buy = 43f,
-                            CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 3, 12, 19, 51, 344, DateTimeKind.Unspecified).AddTicks(2938), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 5, 16, 9, 1, 444, DateTimeKind.Unspecified).AddTicks(3598), new TimeSpan(0, 0, 0, 0, 0)),
                             CreatedBy = 0,
                             NationalCurrencyCode = "USD",
                             Sale = 43f,
@@ -421,7 +421,7 @@ namespace Deed.Infrastructure.Persistence.Migrations
                         {
                             Id = 5,
                             Buy = 32f,
-                            CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 3, 12, 19, 51, 344, DateTimeKind.Unspecified).AddTicks(2938), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 5, 16, 9, 1, 444, DateTimeKind.Unspecified).AddTicks(3598), new TimeSpan(0, 0, 0, 0, 0)),
                             CreatedBy = 0,
                             NationalCurrencyCode = "USD",
                             Sale = 32f,
@@ -431,7 +431,7 @@ namespace Deed.Infrastructure.Persistence.Migrations
                         {
                             Id = 6,
                             Buy = 41f,
-                            CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 3, 12, 19, 51, 344, DateTimeKind.Unspecified).AddTicks(2938), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 5, 16, 9, 1, 444, DateTimeKind.Unspecified).AddTicks(3598), new TimeSpan(0, 0, 0, 0, 0)),
                             CreatedBy = 0,
                             NationalCurrencyCode = "USD",
                             Sale = 43f,
@@ -441,7 +441,7 @@ namespace Deed.Infrastructure.Persistence.Migrations
                         {
                             Id = 7,
                             Buy = 41f,
-                            CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 3, 12, 19, 51, 344, DateTimeKind.Unspecified).AddTicks(2938), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 5, 16, 9, 1, 444, DateTimeKind.Unspecified).AddTicks(3598), new TimeSpan(0, 0, 0, 0, 0)),
                             CreatedBy = 0,
                             NationalCurrencyCode = "EUR",
                             Sale = 40f,
@@ -451,7 +451,7 @@ namespace Deed.Infrastructure.Persistence.Migrations
                         {
                             Id = 8,
                             Buy = 39f,
-                            CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 3, 12, 19, 51, 344, DateTimeKind.Unspecified).AddTicks(2938), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 5, 16, 9, 1, 444, DateTimeKind.Unspecified).AddTicks(3598), new TimeSpan(0, 0, 0, 0, 0)),
                             CreatedBy = 0,
                             NationalCurrencyCode = "EUR",
                             Sale = 38f,
@@ -461,7 +461,7 @@ namespace Deed.Infrastructure.Persistence.Migrations
                         {
                             Id = 9,
                             Buy = 30f,
-                            CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 3, 12, 19, 51, 344, DateTimeKind.Unspecified).AddTicks(2938), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 5, 16, 9, 1, 444, DateTimeKind.Unspecified).AddTicks(3598), new TimeSpan(0, 0, 0, 0, 0)),
                             CreatedBy = 0,
                             NationalCurrencyCode = "EUR",
                             Sale = 32f,
@@ -471,7 +471,7 @@ namespace Deed.Infrastructure.Persistence.Migrations
                         {
                             Id = 10,
                             Buy = 20f,
-                            CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 3, 12, 19, 51, 344, DateTimeKind.Unspecified).AddTicks(2938), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 5, 16, 9, 1, 444, DateTimeKind.Unspecified).AddTicks(3598), new TimeSpan(0, 0, 0, 0, 0)),
                             CreatedBy = 0,
                             NationalCurrencyCode = "PLN",
                             Sale = 10f,
@@ -481,7 +481,7 @@ namespace Deed.Infrastructure.Persistence.Migrations
                         {
                             Id = 11,
                             Buy = 7f,
-                            CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 3, 12, 19, 51, 344, DateTimeKind.Unspecified).AddTicks(2938), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 5, 16, 9, 1, 444, DateTimeKind.Unspecified).AddTicks(3598), new TimeSpan(0, 0, 0, 0, 0)),
                             CreatedBy = 0,
                             NationalCurrencyCode = "PLN",
                             Sale = 6f,
@@ -491,7 +491,7 @@ namespace Deed.Infrastructure.Persistence.Migrations
                         {
                             Id = 12,
                             Buy = 3f,
-                            CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 3, 12, 19, 51, 344, DateTimeKind.Unspecified).AddTicks(2938), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 5, 16, 9, 1, 444, DateTimeKind.Unspecified).AddTicks(3598), new TimeSpan(0, 0, 0, 0, 0)),
                             CreatedBy = 0,
                             NationalCurrencyCode = "PLN",
                             Sale = 20f,
@@ -643,6 +643,210 @@ namespace Deed.Infrastructure.Persistence.Migrations
                     b.ToTable("Transfers", (string)null);
                 });
 
+            modelBuilder.Entity("Deed.Infrastructure.Persistence.ApplicationUser", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("AccessFailedCount")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ConcurrencyStamp")
+                        .IsConcurrencyToken()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Email")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<bool>("EmailConfirmed")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("LockoutEnabled")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTimeOffset?>("LockoutEnd")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("MainCurrency")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("nvarchar(max)")
+                        .HasDefaultValue("True");
+
+                    b.Property<string>("NormalizedEmail")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("NormalizedUserName")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("PasswordHash")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PhoneNumber")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("PhoneNumberConfirmed")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("SecurityStamp")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("TwoFactorEnabled")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("UserName")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NormalizedEmail")
+                        .HasDatabaseName("EmailIndex");
+
+                    b.HasIndex("NormalizedUserName")
+                        .IsUnique()
+                        .HasDatabaseName("UserNameIndex")
+                        .HasFilter("[NormalizedUserName] IS NOT NULL");
+
+                    b.ToTable("AspNetUsers", (string)null);
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("ConcurrencyStamp")
+                        .IsConcurrencyToken()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("NormalizedName")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NormalizedName")
+                        .IsUnique()
+                        .HasDatabaseName("RoleNameIndex")
+                        .HasFilter("[NormalizedName] IS NOT NULL");
+
+                    b.ToTable("AspNetRoles", (string)null);
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ClaimType")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ClaimValue")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RoleId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RoleId");
+
+                    b.ToTable("AspNetRoleClaims", (string)null);
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ClaimType")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ClaimValue")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("AspNetUserClaims", (string)null);
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
+                {
+                    b.Property<string>("LoginProvider")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("ProviderKey")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("ProviderDisplayName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("LoginProvider", "ProviderKey");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("AspNetUserLogins", (string)null);
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<string>", b =>
+                {
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("RoleId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("UserId", "RoleId");
+
+                    b.HasIndex("RoleId");
+
+                    b.ToTable("AspNetUserRoles", (string)null);
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
+                {
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("LoginProvider")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Value")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("UserId", "LoginProvider", "Name");
+
+                    b.ToTable("AspNetUserTokens", (string)null);
+                });
+
             modelBuilder.Entity("Deed.Domain.Entities.Expense", b =>
                 {
                     b.HasOne("Deed.Domain.Entities.Capital", "Capital")
@@ -696,6 +900,57 @@ namespace Deed.Infrastructure.Persistence.Migrations
                     b.Navigation("DestinationCapital");
 
                     b.Navigation("SourceCapital");
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
+                {
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
+                        .WithMany()
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
+                {
+                    b.HasOne("Deed.Infrastructure.Persistence.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
+                {
+                    b.HasOne("Deed.Infrastructure.Persistence.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<string>", b =>
+                {
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
+                        .WithMany()
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Deed.Infrastructure.Persistence.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
+                {
+                    b.HasOne("Deed.Infrastructure.Persistence.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Deed.Domain.Entities.Capital", b =>

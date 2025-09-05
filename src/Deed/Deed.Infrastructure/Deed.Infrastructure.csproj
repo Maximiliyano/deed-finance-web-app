@@ -11,6 +11,7 @@
 
     <ItemGroup>
       <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.3.0" />
+      <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.8" />
       <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.6" />
       <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.6">
         <PrivateAssets>all</PrivateAssets>
@@ -29,6 +30,10 @@
       <None Update="Persistence\DataSeed\*.json">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Persistence\Migrations\" />
     </ItemGroup>
 
 </Project>

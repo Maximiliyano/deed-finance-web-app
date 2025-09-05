@@ -14,6 +14,46 @@ namespace Deed.Infrastructure.Persistence.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
+                name: "AspNetRoles",
+                columns: table => new
+                {
+                    Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
+                    NormalizedName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
+                    ConcurrencyStamp = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AspNetRoles", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "AspNetUsers",
+                columns: table => new
+                {
+                    Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    MainCurrency = table.Column<string>(type: "nvarchar(max)", nullable: false, defaultValue: "True"),
+                    UserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
+                    NormalizedUserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
+                    Email = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
+                    NormalizedEmail = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
+                    EmailConfirmed = table.Column<bool>(type: "bit", nullable: false),
+                    PasswordHash = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    SecurityStamp = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ConcurrencyStamp = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    PhoneNumber = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    PhoneNumberConfirmed = table.Column<bool>(type: "bit", nullable: false),
+                    TwoFactorEnabled = table.Column<bool>(type: "bit", nullable: false),
+                    LockoutEnd = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
+                    LockoutEnabled = table.Column<bool>(type: "bit", nullable: false),
+                    AccessFailedCount = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AspNetUsers", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Capitals",
                 columns: table => new
                 {
@@ -79,6 +119,112 @@ namespace Deed.Infrastructure.Persistence.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Exchanges", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "AspNetRoleClaims",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    RoleId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    ClaimType = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ClaimValue = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AspNetRoleClaims", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_AspNetRoleClaims_AspNetRoles_RoleId",
+                        column: x => x.RoleId,
+                        principalTable: "AspNetRoles",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "AspNetUserClaims",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    ClaimType = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ClaimValue = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AspNetUserClaims", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_AspNetUserClaims_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "AspNetUserLogins",
+                columns: table => new
+                {
+                    LoginProvider = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    ProviderKey = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    ProviderDisplayName = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AspNetUserLogins", x => new { x.LoginProvider, x.ProviderKey });
+                    table.ForeignKey(
+                        name: "FK_AspNetUserLogins_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "AspNetUserRoles",
+                columns: table => new
+                {
+                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    RoleId = table.Column<string>(type: "nvarchar(450)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AspNetUserRoles", x => new { x.UserId, x.RoleId });
+                    table.ForeignKey(
+                        name: "FK_AspNetUserRoles_AspNetRoles_RoleId",
+                        column: x => x.RoleId,
+                        principalTable: "AspNetRoles",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_AspNetUserRoles_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "AspNetUserTokens",
+                columns: table => new
+                {
+                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    LoginProvider = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    Value = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AspNetUserTokens", x => new { x.UserId, x.LoginProvider, x.Name });
+                    table.ForeignKey(
+                        name: "FK_AspNetUserTokens_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -189,10 +335,10 @@ namespace Deed.Infrastructure.Persistence.Migrations
                 columns: new[] { "Id", "Balance", "CreatedAt", "CreatedBy", "Currency", "DeletedAt", "IncludeInTotal", "IsDeleted", "Name", "OrderIndex", "UpdatedAt", "UpdatedBy" },
                 values: new object[,]
                 {
-                    { 1, 1000f, new DateTimeOffset(new DateTime(2025, 9, 2, 12, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)), 0, "UAH", null, false, null, "Cash", 0, null, null },
-                    { 2, 1000f, new DateTimeOffset(new DateTime(2025, 9, 2, 12, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)), 0, "UAH", null, false, null, "Bank", 1, null, null },
-                    { 3, 1000f, new DateTimeOffset(new DateTime(2025, 9, 2, 12, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)), 0, "USD", null, false, null, "Investments", 2, null, null },
-                    { 4, 1000f, new DateTimeOffset(new DateTime(2025, 9, 2, 12, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)), 0, "USD", null, false, null, "Savings", 3, null, null }
+                    { 1, 1000f, new DateTimeOffset(new DateTime(2025, 9, 2, 12, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)), 0, "UAH", null, true, null, "Cash", 0, null, null },
+                    { 2, 1000f, new DateTimeOffset(new DateTime(2025, 9, 2, 12, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)), 0, "UAH", null, true, null, "Bank", 1, null, null },
+                    { 3, 1000f, new DateTimeOffset(new DateTime(2025, 9, 2, 12, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)), 0, "USD", null, true, null, "Investments", 2, null, null },
+                    { 4, 1000f, new DateTimeOffset(new DateTime(2025, 9, 2, 12, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)), 0, "USD", null, true, null, "Savings", 3, null, null }
                 });
 
             migrationBuilder.InsertData(
@@ -223,19 +369,58 @@ namespace Deed.Infrastructure.Persistence.Migrations
                 columns: new[] { "Id", "Buy", "CreatedAt", "CreatedBy", "DeletedAt", "IsDeleted", "NationalCurrencyCode", "Sale", "TargetCurrencyCode", "UpdatedAt", "UpdatedBy" },
                 values: new object[,]
                 {
-                    { 1, 44.63f, new DateTimeOffset(new DateTime(2025, 9, 3, 12, 19, 51, 344, DateTimeKind.Unspecified).AddTicks(2938), new TimeSpan(0, 0, 0, 0, 0)), 0, null, null, "UAH", 45.45455f, "EUR", null, null },
-                    { 2, 41.2f, new DateTimeOffset(new DateTime(2025, 9, 3, 12, 19, 51, 344, DateTimeKind.Unspecified).AddTicks(2938), new TimeSpan(0, 0, 0, 0, 0)), 0, null, null, "UAH", 34f, "USD", null, null },
-                    { 3, 43f, new DateTimeOffset(new DateTime(2025, 9, 3, 12, 19, 51, 344, DateTimeKind.Unspecified).AddTicks(2938), new TimeSpan(0, 0, 0, 0, 0)), 0, null, null, "UAH", 43f, "PLN", null, null },
-                    { 4, 43f, new DateTimeOffset(new DateTime(2025, 9, 3, 12, 19, 51, 344, DateTimeKind.Unspecified).AddTicks(2938), new TimeSpan(0, 0, 0, 0, 0)), 0, null, null, "USD", 43f, "UAH", null, null },
-                    { 5, 32f, new DateTimeOffset(new DateTime(2025, 9, 3, 12, 19, 51, 344, DateTimeKind.Unspecified).AddTicks(2938), new TimeSpan(0, 0, 0, 0, 0)), 0, null, null, "USD", 32f, "EUR", null, null },
-                    { 6, 41f, new DateTimeOffset(new DateTime(2025, 9, 3, 12, 19, 51, 344, DateTimeKind.Unspecified).AddTicks(2938), new TimeSpan(0, 0, 0, 0, 0)), 0, null, null, "USD", 43f, "PLN", null, null },
-                    { 7, 41f, new DateTimeOffset(new DateTime(2025, 9, 3, 12, 19, 51, 344, DateTimeKind.Unspecified).AddTicks(2938), new TimeSpan(0, 0, 0, 0, 0)), 0, null, null, "EUR", 40f, "USD", null, null },
-                    { 8, 39f, new DateTimeOffset(new DateTime(2025, 9, 3, 12, 19, 51, 344, DateTimeKind.Unspecified).AddTicks(2938), new TimeSpan(0, 0, 0, 0, 0)), 0, null, null, "EUR", 38f, "UAH", null, null },
-                    { 9, 30f, new DateTimeOffset(new DateTime(2025, 9, 3, 12, 19, 51, 344, DateTimeKind.Unspecified).AddTicks(2938), new TimeSpan(0, 0, 0, 0, 0)), 0, null, null, "EUR", 32f, "PLN", null, null },
-                    { 10, 20f, new DateTimeOffset(new DateTime(2025, 9, 3, 12, 19, 51, 344, DateTimeKind.Unspecified).AddTicks(2938), new TimeSpan(0, 0, 0, 0, 0)), 0, null, null, "PLN", 10f, "UAH", null, null },
-                    { 11, 7f, new DateTimeOffset(new DateTime(2025, 9, 3, 12, 19, 51, 344, DateTimeKind.Unspecified).AddTicks(2938), new TimeSpan(0, 0, 0, 0, 0)), 0, null, null, "PLN", 6f, "USD", null, null },
-                    { 12, 3f, new DateTimeOffset(new DateTime(2025, 9, 3, 12, 19, 51, 344, DateTimeKind.Unspecified).AddTicks(2938), new TimeSpan(0, 0, 0, 0, 0)), 0, null, null, "PLN", 20f, "EUR", null, null }
+                    { 1, 44.63f, new DateTimeOffset(new DateTime(2025, 9, 5, 16, 9, 1, 444, DateTimeKind.Unspecified).AddTicks(3598), new TimeSpan(0, 0, 0, 0, 0)), 0, null, null, "UAH", 45.45455f, "EUR", null, null },
+                    { 2, 41.2f, new DateTimeOffset(new DateTime(2025, 9, 5, 16, 9, 1, 444, DateTimeKind.Unspecified).AddTicks(3598), new TimeSpan(0, 0, 0, 0, 0)), 0, null, null, "UAH", 34f, "USD", null, null },
+                    { 3, 43f, new DateTimeOffset(new DateTime(2025, 9, 5, 16, 9, 1, 444, DateTimeKind.Unspecified).AddTicks(3598), new TimeSpan(0, 0, 0, 0, 0)), 0, null, null, "UAH", 43f, "PLN", null, null },
+                    { 4, 43f, new DateTimeOffset(new DateTime(2025, 9, 5, 16, 9, 1, 444, DateTimeKind.Unspecified).AddTicks(3598), new TimeSpan(0, 0, 0, 0, 0)), 0, null, null, "USD", 43f, "UAH", null, null },
+                    { 5, 32f, new DateTimeOffset(new DateTime(2025, 9, 5, 16, 9, 1, 444, DateTimeKind.Unspecified).AddTicks(3598), new TimeSpan(0, 0, 0, 0, 0)), 0, null, null, "USD", 32f, "EUR", null, null },
+                    { 6, 41f, new DateTimeOffset(new DateTime(2025, 9, 5, 16, 9, 1, 444, DateTimeKind.Unspecified).AddTicks(3598), new TimeSpan(0, 0, 0, 0, 0)), 0, null, null, "USD", 43f, "PLN", null, null },
+                    { 7, 41f, new DateTimeOffset(new DateTime(2025, 9, 5, 16, 9, 1, 444, DateTimeKind.Unspecified).AddTicks(3598), new TimeSpan(0, 0, 0, 0, 0)), 0, null, null, "EUR", 40f, "USD", null, null },
+                    { 8, 39f, new DateTimeOffset(new DateTime(2025, 9, 5, 16, 9, 1, 444, DateTimeKind.Unspecified).AddTicks(3598), new TimeSpan(0, 0, 0, 0, 0)), 0, null, null, "EUR", 38f, "UAH", null, null },
+                    { 9, 30f, new DateTimeOffset(new DateTime(2025, 9, 5, 16, 9, 1, 444, DateTimeKind.Unspecified).AddTicks(3598), new TimeSpan(0, 0, 0, 0, 0)), 0, null, null, "EUR", 32f, "PLN", null, null },
+                    { 10, 20f, new DateTimeOffset(new DateTime(2025, 9, 5, 16, 9, 1, 444, DateTimeKind.Unspecified).AddTicks(3598), new TimeSpan(0, 0, 0, 0, 0)), 0, null, null, "PLN", 10f, "UAH", null, null },
+                    { 11, 7f, new DateTimeOffset(new DateTime(2025, 9, 5, 16, 9, 1, 444, DateTimeKind.Unspecified).AddTicks(3598), new TimeSpan(0, 0, 0, 0, 0)), 0, null, null, "PLN", 6f, "USD", null, null },
+                    { 12, 3f, new DateTimeOffset(new DateTime(2025, 9, 5, 16, 9, 1, 444, DateTimeKind.Unspecified).AddTicks(3598), new TimeSpan(0, 0, 0, 0, 0)), 0, null, null, "PLN", 20f, "EUR", null, null }
                 });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_AspNetRoleClaims_RoleId",
+                table: "AspNetRoleClaims",
+                column: "RoleId");
+
+            migrationBuilder.CreateIndex(
+                name: "RoleNameIndex",
+                table: "AspNetRoles",
+                column: "NormalizedName",
+                unique: true,
+                filter: "[NormalizedName] IS NOT NULL");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_AspNetUserClaims_UserId",
+                table: "AspNetUserClaims",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_AspNetUserLogins_UserId",
+                table: "AspNetUserLogins",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_AspNetUserRoles_RoleId",
+                table: "AspNetUserRoles",
+                column: "RoleId");
+
+            migrationBuilder.CreateIndex(
+                name: "EmailIndex",
+                table: "AspNetUsers",
+                column: "NormalizedEmail");
+
+            migrationBuilder.CreateIndex(
+                name: "UserNameIndex",
+                table: "AspNetUsers",
+                column: "NormalizedUserName",
+                unique: true,
+                filter: "[NormalizedUserName] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Capitals_Name",
@@ -278,6 +463,21 @@ namespace Deed.Infrastructure.Persistence.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
+                name: "AspNetRoleClaims");
+
+            migrationBuilder.DropTable(
+                name: "AspNetUserClaims");
+
+            migrationBuilder.DropTable(
+                name: "AspNetUserLogins");
+
+            migrationBuilder.DropTable(
+                name: "AspNetUserRoles");
+
+            migrationBuilder.DropTable(
+                name: "AspNetUserTokens");
+
+            migrationBuilder.DropTable(
                 name: "Exchanges");
 
             migrationBuilder.DropTable(
@@ -288,6 +488,12 @@ namespace Deed.Infrastructure.Persistence.Migrations
 
             migrationBuilder.DropTable(
                 name: "Transfers");
+
+            migrationBuilder.DropTable(
+                name: "AspNetRoles");
+
+            migrationBuilder.DropTable(
+                name: "AspNetUsers");
 
             migrationBuilder.DropTable(
                 name: "Categories");
