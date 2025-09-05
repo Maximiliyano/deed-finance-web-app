@@ -1,5 +1,7 @@
 using Deed.Domain.Entities;
+using Deed.Domain.Enums;
 using Deed.Infrastructure.Persistence.Constants;
+using Deed.Infrastructure.Persistence.DataSeed;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -11,13 +13,19 @@ internal sealed class CapitalConfiguration : IEntityTypeConfiguration<Capital>
     {
         builder.HasKey(c => c.Id);
 
+        builder.HasData(Seeder.Parse<Capital>(SeederConstants.Capitals));
+
         builder
             .HasIndex(c => c.Name)
             .IsUnique();
 
         builder
+            .Property(p => p.RowVersion)
+            .IsRowVersion();
+
+        builder
             .Property(c => c.Currency)
-            .HasConversion<string>(); // TODO add pre-configured entities
+            .HasConversion<string>();
 
         builder
             .HasMany(c => c.Incomes)

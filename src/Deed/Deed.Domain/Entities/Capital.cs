@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using Deed.Domain.Enums;
 
 namespace Deed.Domain.Entities;
@@ -51,4 +52,7 @@ public sealed class Capital
     public IEnumerable<Transfer>? TransfersIn { get; init; }
 
     public IEnumerable<Transfer>? TransfersOut { get; init; }
+
+    [Timestamp]
+    public byte[]? RowVersion { get; set; }
 }

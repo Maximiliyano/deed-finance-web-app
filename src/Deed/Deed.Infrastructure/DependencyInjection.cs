@@ -3,12 +3,14 @@ using Deed.Domain.Repositories;
 using Deed.Infrastructure.BackgroundJobs.SaveLatestExchange;
 using Deed.Infrastructure.Persistence;
 using Deed.Infrastructure.Persistence.Constants;
+using Deed.Infrastructure.Persistence.DataSeed;
 using Deed.Infrastructure.Persistence.Interceptors;
 using Deed.Infrastructure.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Quartz;
 
 namespace Deed.Infrastructure;
@@ -59,7 +61,7 @@ public static class DependencyInjection
 
         services.AddDbContext<DeedDbContext>((sp, options) =>
         {
-            var databaseSettings = sp.GetRequiredService<IConfiguration>().GetValue<string>("DatabaseConnection");
+            var databaseSettings = sp.GetRequiredService<IConfiguration>().GetValue<string>(TableConfigurationConstants.DatabaseConnection);
             var auditableInterceptor = sp.GetRequiredService<UpdateAuditableEntitiesInterceptor>();
 
             options.UseSqlServer(databaseSettings)

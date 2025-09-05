@@ -11,8 +11,6 @@ internal static class ExpenseExtensions
     internal static ExpenseResponse ToResponse(this Expense expense)
         => new(
             expense.Id,
-            expense.CapitalId,
-            expense.Category?.ToResponse(),
             expense.Amount,
             expense.PaymentDate,
             expense.Purpose);

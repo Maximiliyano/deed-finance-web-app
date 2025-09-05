@@ -20,7 +20,7 @@
       </div>
 
       <div class="exchanges">
-        <ng-container *ngFor="let exchange of exchanges">
+        <ng-container *ngFor="let exchange of exchanges | slice:0:3">
           <div class="exchange">
             <div class="prices">
               <span>{{ exchange?.buy || '0' | number: '1.2-2' }}</span>

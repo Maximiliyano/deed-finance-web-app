@@ -1,0 +1,98 @@
+[
+  {
+    "id": 1,
+    "name": "Groceries",
+    "type": 1,
+    "createdAt": "2025-09-02T12:00:00Z"
+  },
+  {
+    "id": 2,
+    "name": "Utilities",
+    "type": 1,
+    "createdAt": "2025-09-02T12:00:00Z"
+  },
+  {
+    "id": 3,
+    "name": "Rent",
+    "type": 1,
+    "createdAt": "2025-09-02T12:00:00Z"
+  },
+  {
+    "id": 4,
+    "name": "Transportation",
+    "type": 1,
+    "createdAt": "2025-09-02T12:00:00Z"
+  },
+  {
+    "id": 5,
+    "name": "Healthcare",
+    "type": 1,
+    "createdAt": "2025-09-02T12:00:00Z"
+  },
+  {
+    "id": 6,
+    "name": "Entertainment",
+    "type": 1,
+    "createdAt": "2025-09-02T12:00:00Z"
+  },
+  {
+    "id": 7,
+    "name": "Education",
+    "type": 1,
+    "createdAt": "2025-09-02T12:00:00Z"
+  },
+  {
+    "id": 8,
+    "name": "Clothing",
+    "type": 1,
+    "createdAt": "2025-09-02T12:00:00Z"
+  },
+  {
+    "id": 9,
+    "name": "Subscriptions",
+    "type": 1,
+    "createdAt": "2025-09-02T12:00:00Z"
+  },
+  {
+    "id": 10,
+    "name": "Travel",
+    "type": 1,
+    "createdAt": "2025-09-02T12:00:00Z"
+  },
+  {
+    "id": 11,
+    "name": "Gifts",
+    "type": 1,
+    "createdAt": "2025-09-02T12:00:00Z"
+  },
+  {
+    "id": 12,
+    "name": "Donations",
+    "type": 1,
+    "createdAt": "2025-09-02T12:00:00Z"
+  },
+  {
+    "id": 13,
+    "name": "Salary",
+    "type": 2,
+    "createdAt": "2025-09-02T12:00:00Z"
+  },
+  {
+    "id": 14,
+    "name": "Gifts",
+    "type": 2,
+    "createdAt": "2025-09-02T12:00:00Z"
+  },
+  {
+    "id": 15,
+    "name": "Grants",
+    "type": 2,
+    "createdAt": "2025-09-02T12:00:00Z"
+  },
+  {
+    "id": 16,
+    "name": "Sales",
+    "type": 2,
+    "createdAt": "2025-09-02T12:00:00Z"
+  }
+]

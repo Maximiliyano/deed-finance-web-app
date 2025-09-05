@@ -1,9 +1,7 @@
-<div class="w-full max-w-sm">
-  <label *ngIf="label" class="block mb-2 text-sm font-medium text-gray-700">{{ label }}</label>
-  <input
-    type="date"
-    class="block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
-    [value]="value"
-    (change)="handleChange($event)"
-  />
-</div>
+<input
+  type="date"
+  [attr.max]="restrictFuture ? today : null"
+  class="block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
+  [value]="value"
+  (change)="handleChange($event)"
+/>

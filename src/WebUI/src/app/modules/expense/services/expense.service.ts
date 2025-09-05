@@ -3,7 +3,8 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../../environments/environment.development';
 import { ExpenseResponse } from '../models/expense-response';
-import { AddExpenseRequest } from '../models/add-expense-request';
+import { CreateExpenseRequest } from '../models/create-expense-request';
+import { ExpenseCategoryResponse } from '../models/expense-category-response';
 
 @Injectable({
   providedIn: 'root'
@@ -13,17 +14,17 @@ export class ExpenseService {
 
   constructor(private readonly http: HttpClient) { }
 
-  getAll(capitalId?: number): Observable<ExpenseResponse[]> {
+  getAllByCategories(capitalId?: number): Observable<ExpenseCategoryResponse[]> {
     let params = new HttpParams();
 
     if (capitalId != null) {
       params = params.set("capitalId", capitalId);
     }
 
-    return this.http.get<ExpenseResponse[]>(this.baseUrl, { params });
+    return this.http.get<ExpenseCategoryResponse[]>(this.baseUrl, { params });
   }
 
-  add(request: AddExpenseRequest): Observable<number> {
+  create(request: CreateExpenseRequest): Observable<number> {
     return this.http.post<number>(this.baseUrl, request);
   }
 }

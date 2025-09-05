@@ -1,6 +1,8 @@
+using Microsoft.EntityFrameworkCore.Storage;
+
 namespace Deed.Domain.Repositories;
 
-public interface IUnitOfWork
+public interface IUnitOfWork : IDisposable
 {
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

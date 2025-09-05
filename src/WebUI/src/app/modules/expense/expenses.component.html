@@ -1,3 +1,62 @@
-<app-layout title="Expense Management">
-  <router-outlet></router-outlet>
+<app-layout title="Expenses">
+  <div class="flex justify-center gap-3"> <!-- actions -->
+    <button (click)="toggleCreateDialog()" class="border rounded p-1 bg-blue-100">
+      <app-icon name="fa-circle-plus"></app-icon>
+      New
+    </button>
+
+    <button (click)="toggleCategories()" class="border rounded p-1 bg-blue-100">
+      <app-icon name="fa-layer-group"></app-icon>
+      Categories
+    </button>
+  </div>
+
+  <div class="flex flex-col"> <!-- control bar: select capital, total balance, date -->
+    <app-date-tab-picker></app-date-tab-picker>
+
+    <div>
+      <app-icon [name]="'fa-wallet'"></app-icon>
+      <select [ngModel]="selectedCapital" (ngModelChange)="onCapitalChange($event)">
+        <option [value]="null">All</option>
+        <option *ngFor="let capital of capitals" [ngValue]="capital">
+          {{capital.name}}
+        </option>
+      </select>
+    </div>
+
+    <div>
+      <span>Balance: {{ capitalBalance | currencySymbol: capitalCurrency }} </span>
+    </div>
+
+    <div>
+      <span>Total expenses: {{ capitalTotalExpenses | currencySymbol: capitalCurrency }}</span>
+    </div>
+  </div>
+
+  <div class="flex gap-5">
+    <div *ngFor="let expenseCategory of expenseCategories" class="border rounded mb-2 overflow-hidden">
+      <div
+        class="flex justify-between items-center gap-2 p-3 bg-red-100 cursor-pointer hover:bg-red-200"
+        (click)="toggleExpensesList(expenseCategory.categoryId)"
+      >
+        <span class="font-semibold">{{ expenseCategory.name }}</span>
+        <span>{{ expenseCategory.categorySum | currencySymbol: capitalCurrency }}</span>
+        <span>{{ expenseCategory.percentage + '%' }}</span>
+        <ng-component *ngIf="isPlannedPeriodShown(expenseCategory)">
+          <span [class]="expenseCategory.plannedPeriodAmount - expenseCategory.categorySum > 0 ? 'text-green-500' : 'text-red-500'">
+            {{ expenseCategory.plannedPeriodAmount | number: '1.2-2' }}
+          </span>
+          <span>{{ expenseCategory.periodType }}</span>
+        </ng-component>
+      </div>
+
+      <div *ngIf="openedExpensesCategoryId === expenseCategory.categoryId" class="bg-red-50 p-3">
+        <div *ngFor="let e of expenseCategory.expenses" class="flex justify-between mb-1">
+          <span>{{ e.purpose }}</span>
+          <span>{{ e.amount | currencySymbol: capitalCurrency }}</span>
+          <span>{{ e.paymentDate | date: 'shortDate' }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
 </app-layout>

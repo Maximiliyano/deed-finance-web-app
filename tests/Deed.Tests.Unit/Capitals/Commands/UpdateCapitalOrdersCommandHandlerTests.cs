@@ -7,7 +7,6 @@ using Deed.Application.Capitals.Commands.Update;
 using Deed.Application.Capitals.Commands.UpdateOrders;
 using Deed.Application.Capitals.Requests;
 using Deed.Domain.Repositories;
-using Deed.Tests.Common.Models;
 using FluentAssertions;
 using NSubstitute;
 

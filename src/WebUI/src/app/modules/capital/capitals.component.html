@@ -38,7 +38,7 @@
     <div *ngFor="let capital of capitals"
       cdkDrag
       [@slideRemove]
-      [ngClass]="capital.includeInTotal ? 'cp bg-[#e6e6e6]' : 'cp'"
+      [ngClass]="capital.includeInTotal ? 'cp' : 'cp bg-[#e6e6e6]'"
     >
       <div class="cp-name-balance">
         <div class="cp-name" (click)="toggleEditDialog(capital)">
@@ -50,16 +50,17 @@
       </div>
 
       <div class="cp-stats">
-        <div *ngFor="let propsItem of capitalStatItems"
+        <a *ngFor="let propsItem of capitalStatItems"
           class="cp-stats-item"
           [title]="propsItem.title + ' ' + capital[propsItem.key]"
           [ngClass]="propsItem.style"
+          [href]="propsItem.url ? propsItem.url + '?capitalId=' + capital.id : 'capitals'"
         >
           <app-icon [name]="propsItem.icon"></app-icon>
           <span class="cp-stats-value">
             {{ capital[propsItem.key] }}
           </span>
-        </div>
+        </a>
       </div>
 
       <div class="cp-actions-compact">

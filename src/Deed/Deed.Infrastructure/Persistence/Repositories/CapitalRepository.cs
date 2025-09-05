@@ -4,6 +4,8 @@ using Deed.Application.Capitals.Requests;
 using Deed.Domain.Constants;
 using Deed.Domain.Entities;
 using Deed.Domain.Repositories;
+using Deed.Infrastructure.Persistence.Constants;
+using Deed.Infrastructure.Persistence.DataSeed;
 using Microsoft.EntityFrameworkCore;
 
 namespace Deed.Infrastructure.Persistence.Repositories;
@@ -15,7 +17,6 @@ internal sealed class CapitalRepository(
     public async Task<IEnumerable<Capital>> GetAllAsync(string? searchTerm = null, string? sortBy = null, string? sortDirection = null)
     {
         var query = DbContext.Capitals
-            .Where(c => !(c.IsDeleted ?? false))
             .AsSplitQuery()
             .AsQueryable();
 

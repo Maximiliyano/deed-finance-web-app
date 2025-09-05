@@ -12,7 +12,7 @@ internal static class CategoryExtensions
                     category.Id,
                     category.Name,
                     category.Type,
-                    category.Period,
+                    category.Period.ToString(),
                     category.PlannedPeriodAmount);
     }
 

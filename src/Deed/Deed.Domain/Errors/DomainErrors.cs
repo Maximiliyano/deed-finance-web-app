@@ -6,8 +6,8 @@ public static class DomainErrors
 {
     public static class General
     {
-        public static Error Exception(string message)
-            => Error.Failure(nameof(Exception), $"The exception occured with message: {message}");
+        public static Error Exception
+            => Error.Failure(nameof(Exception), "An unexcepted error occured.");
 
         public static Error NotFound(string name)
             => Error.NotFound(nameof(NotFound), $"The specific {name} was not found.");

@@ -8,18 +8,18 @@ internal sealed class IncomeRepository(
     IDeedDbContext context)
     : GeneralRepository<Income>(context), IIncomeRepository
 {
-    public new async Task<Income?> GetAsync(ISpecification<Income> specification)
+    public async Task<Income?> GetAsync(ISpecification<Income> specification)
         => await base.GetAsync(specification);
 
-    public new async Task<IEnumerable<Income>> GetAllAsync()
+    public async Task<IEnumerable<Income>> GetAllAsync()
         => await base.GetAllAsync();
 
-    public new void Create(Income income)
+    public void Create(Income income)
         => base.Create(income);
 
-    public new void Update(Income income)
+    public void Update(Income income)
         => base.Update(income);
 
-    public new void Delete(Income income)
+    public void Delete(Income income)
         => base.Delete(income);
 }

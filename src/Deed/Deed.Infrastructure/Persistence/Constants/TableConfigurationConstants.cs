@@ -13,4 +13,6 @@ internal static class TableConfigurationConstants
     public const string Transfers = nameof(Transfers);
 
     public const string Categories = nameof(Categories);
+
+    public const string DatabaseConnection = nameof(DatabaseConnection);
 }

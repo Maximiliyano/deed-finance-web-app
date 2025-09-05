@@ -1,7 +1,7 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Exchange } from '../../models/exchange-model';
 import { ExchangeService } from '../../../shared/services/exchange.service';
-import { Subject, takeUntil } from 'rxjs';
+import { Observable, Subject, takeUntil } from 'rxjs';
 import { ExchangeDialogComponent } from '../../../shared/components/dialogs/exchange-dialog/exchange-dialog.component';
 import { DialogService } from '../../../shared/services/dialog.service';
 
@@ -33,7 +33,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
       .pipe(
         takeUntil(this.unsubscribe))
       .subscribe({
-        next: (exchanges) => this.exchanges = exchanges.slice(0, 3)
+        next: (exchanges) => this.exchanges = exchanges
       });
   }
 

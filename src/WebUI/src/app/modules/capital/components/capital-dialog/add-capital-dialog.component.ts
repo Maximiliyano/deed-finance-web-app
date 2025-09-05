@@ -5,6 +5,7 @@ import { PopupMessageService } from '../../../../shared/services/popup-message.s
 import { CurrencyType } from '../../../../core/types/currency-type';
 import { AddCapitalRequest } from '../../models/add-capital-request';
 import { FormField } from '../../../../shared/components/forms/models/form-field';
+import { SelectOptionModel } from '../../../../shared/components/forms/models/select-option-model';
 
 @Component({
   selector: 'app-add-capital-dialog',
@@ -13,7 +14,7 @@ import { FormField } from '../../../../shared/components/forms/models/form-field
 export class AddCapitalDialogComponent implements OnInit, OnDestroy {
   @Output() submitted = new EventEmitter<AddCapitalRequest | null>();
 
-  currencyOptions: { key: string, value: CurrencyType }[] = [];
+  currencyOptions: SelectOptionModel[] = [];
 
   form: FormGroup;
   fields: FormField[] = [];
@@ -70,7 +71,7 @@ export class AddCapitalDialogComponent implements OnInit, OnDestroy {
 
   handleSubmit(): void {
     if (this.form.invalid) {
-      this.popupMessageService.error('The capital form is invalid.');
+      this.popupMessageService.error('Invalid form data cannot be saved.');
       return;
     }
 

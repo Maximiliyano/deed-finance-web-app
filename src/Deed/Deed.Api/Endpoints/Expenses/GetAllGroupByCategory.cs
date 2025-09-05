@@ -4,13 +4,13 @@ using MediatR;
 
 namespace Deed.Api.Endpoints.Expenses;
 
-internal sealed class GetAll : IEndpoint
+internal sealed class GetAllGroupByCategory : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("api/expenses", async (ISender sender) =>
+        app.MapGet("api/expenses", async (ISender sender, int? capitalId) =>
             (await sender
-                .Send(new GetAllExpensesQuery()))
+                .Send(new GetExpensesByCategoryQuery(capitalId)))
                 .Process())
             .WithTags(nameof(Expenses));
     }

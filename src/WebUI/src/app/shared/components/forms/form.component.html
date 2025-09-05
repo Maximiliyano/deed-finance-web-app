@@ -49,7 +49,9 @@
 
       <app-date-picker
         *ngIf="field.dateTimePicker"
-        [formControlName]="field.controlName">
+        [formControlName]="field.controlName"
+        [restrictFuture]="field.dateTimePicker.restrictFuture ?? false"
+      >
       </app-date-picker>
 
       <textarea
