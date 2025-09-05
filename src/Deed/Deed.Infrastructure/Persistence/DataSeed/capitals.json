@@ -1,0 +1,38 @@
+[
+  {
+    "id": 1,
+    "name": "Cash",
+    "currency": 1,
+    "balance": 1000.0,
+    "orderIndex": 0,
+    "includeInTotal": true,
+    "createdAt": "2025-09-02T12:00:00Z"
+  },
+  {
+    "id": 2,
+    "name": "Bank",
+    "currency": 1,
+    "balance": 1000.0,
+    "orderIndex": 1,
+    "includeInTotal": true,
+    "createdAt": "2025-09-02T12:00:00Z"
+  },
+  {
+    "id": 3,
+    "name": "Investments",
+    "currency": 2,
+    "balance": 1000.0,
+    "orderIndex": 2,
+    "includeInTotal": true,
+    "createdAt": "2025-09-02T12:00:00Z"
+  },
+  {
+    "id": 4,
+    "name": "Savings",
+    "currency": 2,
+    "balance": 1000.0,
+    "orderIndex": 3,
+    "includeInTotal": true,
+    "createdAt": "2025-09-02T12:00:00Z"
+  }
+]

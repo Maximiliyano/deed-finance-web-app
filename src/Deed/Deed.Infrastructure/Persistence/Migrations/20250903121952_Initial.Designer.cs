@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Deed.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(DeedDbContext))]
-    [Migration("20250823084835_Initial")]
+    [Migration("20250903121952_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -62,6 +62,11 @@ namespace Deed.Infrastructure.Persistence.Migrations
                     b.Property<int>("OrderIndex")
                         .HasColumnType("int");
 
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
                     b.Property<DateTimeOffset?>("UpdatedAt")
                         .HasColumnType("datetimeoffset");
 
@@ -74,6 +79,52 @@ namespace Deed.Infrastructure.Persistence.Migrations
                         .IsUnique();
 
                     b.ToTable("Capitals", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Balance = 1000f,
+                            CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 2, 12, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedBy = 0,
+                            Currency = "UAH",
+                            IncludeInTotal = false,
+                            Name = "Cash",
+                            OrderIndex = 0
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Balance = 1000f,
+                            CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 2, 12, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedBy = 0,
+                            Currency = "UAH",
+                            IncludeInTotal = false,
+                            Name = "Bank",
+                            OrderIndex = 1
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Balance = 1000f,
+                            CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 2, 12, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedBy = 0,
+                            Currency = "USD",
+                            IncludeInTotal = false,
+                            Name = "Investments",
+                            OrderIndex = 2
+                        },
+                        new
+                        {
+                            Id = 4,
+                            Balance = 1000f,
+                            CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 2, 12, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedBy = 0,
+                            Currency = "USD",
+                            IncludeInTotal = false,
+                            Name = "Savings",
+                            OrderIndex = 3
+                        });
                 });
 
             modelBuilder.Entity("Deed.Domain.Entities.Category", b =>
@@ -123,7 +174,7 @@ namespace Deed.Infrastructure.Persistence.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTimeOffset(new DateTime(2025, 8, 23, 8, 48, 34, 565, DateTimeKind.Unspecified).AddTicks(7283), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 2, 12, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             CreatedBy = 0,
                             Name = "Groceries",
                             Period = 0,
@@ -133,7 +184,7 @@ namespace Deed.Infrastructure.Persistence.Migrations
                         new
                         {
                             Id = 2,
-                            CreatedAt = new DateTimeOffset(new DateTime(2025, 8, 23, 8, 48, 34, 565, DateTimeKind.Unspecified).AddTicks(7283), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 2, 12, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             CreatedBy = 0,
                             Name = "Utilities",
                             Period = 0,
@@ -143,7 +194,7 @@ namespace Deed.Infrastructure.Persistence.Migrations
                         new
                         {
                             Id = 3,
-                            CreatedAt = new DateTimeOffset(new DateTime(2025, 8, 23, 8, 48, 34, 565, DateTimeKind.Unspecified).AddTicks(7283), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 2, 12, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             CreatedBy = 0,
                             Name = "Rent",
                             Period = 0,
@@ -153,7 +204,7 @@ namespace Deed.Infrastructure.Persistence.Migrations
                         new
                         {
                             Id = 4,
-                            CreatedAt = new DateTimeOffset(new DateTime(2025, 8, 23, 8, 48, 34, 565, DateTimeKind.Unspecified).AddTicks(7283), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 2, 12, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             CreatedBy = 0,
                             Name = "Transportation",
                             Period = 0,
@@ -163,7 +214,7 @@ namespace Deed.Infrastructure.Persistence.Migrations
                         new
                         {
                             Id = 5,
-                            CreatedAt = new DateTimeOffset(new DateTime(2025, 8, 23, 8, 48, 34, 565, DateTimeKind.Unspecified).AddTicks(7283), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 2, 12, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             CreatedBy = 0,
                             Name = "Healthcare",
                             Period = 0,
@@ -173,7 +224,7 @@ namespace Deed.Infrastructure.Persistence.Migrations
                         new
                         {
                             Id = 6,
-                            CreatedAt = new DateTimeOffset(new DateTime(2025, 8, 23, 8, 48, 34, 565, DateTimeKind.Unspecified).AddTicks(7283), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 2, 12, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             CreatedBy = 0,
                             Name = "Entertainment",
                             Period = 0,
@@ -183,7 +234,7 @@ namespace Deed.Infrastructure.Persistence.Migrations
                         new
                         {
                             Id = 7,
-                            CreatedAt = new DateTimeOffset(new DateTime(2025, 8, 23, 8, 48, 34, 565, DateTimeKind.Unspecified).AddTicks(7283), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 2, 12, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             CreatedBy = 0,
                             Name = "Education",
                             Period = 0,
@@ -193,7 +244,7 @@ namespace Deed.Infrastructure.Persistence.Migrations
                         new
                         {
                             Id = 8,
-                            CreatedAt = new DateTimeOffset(new DateTime(2025, 8, 23, 8, 48, 34, 565, DateTimeKind.Unspecified).AddTicks(7283), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 2, 12, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             CreatedBy = 0,
                             Name = "Clothing",
                             Period = 0,
@@ -203,7 +254,7 @@ namespace Deed.Infrastructure.Persistence.Migrations
                         new
                         {
                             Id = 9,
-                            CreatedAt = new DateTimeOffset(new DateTime(2025, 8, 23, 8, 48, 34, 565, DateTimeKind.Unspecified).AddTicks(7283), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 2, 12, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             CreatedBy = 0,
                             Name = "Subscriptions",
                             Period = 0,
@@ -213,7 +264,7 @@ namespace Deed.Infrastructure.Persistence.Migrations
                         new
                         {
                             Id = 10,
-                            CreatedAt = new DateTimeOffset(new DateTime(2025, 8, 23, 8, 48, 34, 565, DateTimeKind.Unspecified).AddTicks(7283), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 2, 12, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             CreatedBy = 0,
                             Name = "Travel",
                             Period = 0,
@@ -223,7 +274,7 @@ namespace Deed.Infrastructure.Persistence.Migrations
                         new
                         {
                             Id = 11,
-                            CreatedAt = new DateTimeOffset(new DateTime(2025, 8, 23, 8, 48, 34, 565, DateTimeKind.Unspecified).AddTicks(7283), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 2, 12, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             CreatedBy = 0,
                             Name = "Gifts",
                             Period = 0,
@@ -233,7 +284,7 @@ namespace Deed.Infrastructure.Persistence.Migrations
                         new
                         {
                             Id = 12,
-                            CreatedAt = new DateTimeOffset(new DateTime(2025, 8, 23, 8, 48, 34, 565, DateTimeKind.Unspecified).AddTicks(7283), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 2, 12, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             CreatedBy = 0,
                             Name = "Donations",
                             Period = 0,
@@ -243,7 +294,7 @@ namespace Deed.Infrastructure.Persistence.Migrations
                         new
                         {
                             Id = 13,
-                            CreatedAt = new DateTimeOffset(new DateTime(2025, 8, 23, 8, 48, 34, 565, DateTimeKind.Unspecified).AddTicks(7283), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 2, 12, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             CreatedBy = 0,
                             Name = "Salary",
                             Period = 0,
@@ -253,7 +304,7 @@ namespace Deed.Infrastructure.Persistence.Migrations
                         new
                         {
                             Id = 14,
-                            CreatedAt = new DateTimeOffset(new DateTime(2025, 8, 23, 8, 48, 34, 565, DateTimeKind.Unspecified).AddTicks(7283), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 2, 12, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             CreatedBy = 0,
                             Name = "Gifts",
                             Period = 0,
@@ -263,7 +314,7 @@ namespace Deed.Infrastructure.Persistence.Migrations
                         new
                         {
                             Id = 15,
-                            CreatedAt = new DateTimeOffset(new DateTime(2025, 8, 23, 8, 48, 34, 565, DateTimeKind.Unspecified).AddTicks(7283), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 2, 12, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             CreatedBy = 0,
                             Name = "Grants",
                             Period = 0,
@@ -273,7 +324,7 @@ namespace Deed.Infrastructure.Persistence.Migrations
                         new
                         {
                             Id = 16,
-                            CreatedAt = new DateTimeOffset(new DateTime(2025, 8, 23, 8, 48, 34, 565, DateTimeKind.Unspecified).AddTicks(7283), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 2, 12, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             CreatedBy = 0,
                             Name = "Sales",
                             Period = 0,
@@ -333,7 +384,7 @@ namespace Deed.Infrastructure.Persistence.Migrations
                         {
                             Id = 1,
                             Buy = 44.63f,
-                            CreatedAt = new DateTimeOffset(new DateTime(2025, 8, 23, 8, 48, 34, 568, DateTimeKind.Unspecified).AddTicks(4744), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 3, 12, 19, 51, 344, DateTimeKind.Unspecified).AddTicks(2938), new TimeSpan(0, 0, 0, 0, 0)),
                             CreatedBy = 0,
                             NationalCurrencyCode = "UAH",
                             Sale = 45.45455f,
@@ -343,7 +394,7 @@ namespace Deed.Infrastructure.Persistence.Migrations
                         {
                             Id = 2,
                             Buy = 41.2f,
-                            CreatedAt = new DateTimeOffset(new DateTime(2025, 8, 23, 8, 48, 34, 568, DateTimeKind.Unspecified).AddTicks(4744), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 3, 12, 19, 51, 344, DateTimeKind.Unspecified).AddTicks(2938), new TimeSpan(0, 0, 0, 0, 0)),
                             CreatedBy = 0,
                             NationalCurrencyCode = "UAH",
                             Sale = 34f,
@@ -353,7 +404,7 @@ namespace Deed.Infrastructure.Persistence.Migrations
                         {
                             Id = 3,
                             Buy = 43f,
-                            CreatedAt = new DateTimeOffset(new DateTime(2025, 8, 23, 8, 48, 34, 568, DateTimeKind.Unspecified).AddTicks(4744), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 3, 12, 19, 51, 344, DateTimeKind.Unspecified).AddTicks(2938), new TimeSpan(0, 0, 0, 0, 0)),
                             CreatedBy = 0,
                             NationalCurrencyCode = "UAH",
                             Sale = 43f,
@@ -363,7 +414,7 @@ namespace Deed.Infrastructure.Persistence.Migrations
                         {
                             Id = 4,
                             Buy = 43f,
-                            CreatedAt = new DateTimeOffset(new DateTime(2025, 8, 23, 8, 48, 34, 568, DateTimeKind.Unspecified).AddTicks(4744), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 3, 12, 19, 51, 344, DateTimeKind.Unspecified).AddTicks(2938), new TimeSpan(0, 0, 0, 0, 0)),
                             CreatedBy = 0,
                             NationalCurrencyCode = "USD",
                             Sale = 43f,
@@ -373,7 +424,7 @@ namespace Deed.Infrastructure.Persistence.Migrations
                         {
                             Id = 5,
                             Buy = 32f,
-                            CreatedAt = new DateTimeOffset(new DateTime(2025, 8, 23, 8, 48, 34, 568, DateTimeKind.Unspecified).AddTicks(4744), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 3, 12, 19, 51, 344, DateTimeKind.Unspecified).AddTicks(2938), new TimeSpan(0, 0, 0, 0, 0)),
                             CreatedBy = 0,
                             NationalCurrencyCode = "USD",
                             Sale = 32f,
@@ -383,7 +434,7 @@ namespace Deed.Infrastructure.Persistence.Migrations
                         {
                             Id = 6,
                             Buy = 41f,
-                            CreatedAt = new DateTimeOffset(new DateTime(2025, 8, 23, 8, 48, 34, 568, DateTimeKind.Unspecified).AddTicks(4744), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 3, 12, 19, 51, 344, DateTimeKind.Unspecified).AddTicks(2938), new TimeSpan(0, 0, 0, 0, 0)),
                             CreatedBy = 0,
                             NationalCurrencyCode = "USD",
                             Sale = 43f,
@@ -393,7 +444,7 @@ namespace Deed.Infrastructure.Persistence.Migrations
                         {
                             Id = 7,
                             Buy = 41f,
-                            CreatedAt = new DateTimeOffset(new DateTime(2025, 8, 23, 8, 48, 34, 568, DateTimeKind.Unspecified).AddTicks(4744), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 3, 12, 19, 51, 344, DateTimeKind.Unspecified).AddTicks(2938), new TimeSpan(0, 0, 0, 0, 0)),
                             CreatedBy = 0,
                             NationalCurrencyCode = "EUR",
                             Sale = 40f,
@@ -403,7 +454,7 @@ namespace Deed.Infrastructure.Persistence.Migrations
                         {
                             Id = 8,
                             Buy = 39f,
-                            CreatedAt = new DateTimeOffset(new DateTime(2025, 8, 23, 8, 48, 34, 568, DateTimeKind.Unspecified).AddTicks(4744), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 3, 12, 19, 51, 344, DateTimeKind.Unspecified).AddTicks(2938), new TimeSpan(0, 0, 0, 0, 0)),
                             CreatedBy = 0,
                             NationalCurrencyCode = "EUR",
                             Sale = 38f,
@@ -413,7 +464,7 @@ namespace Deed.Infrastructure.Persistence.Migrations
                         {
                             Id = 9,
                             Buy = 30f,
-                            CreatedAt = new DateTimeOffset(new DateTime(2025, 8, 23, 8, 48, 34, 568, DateTimeKind.Unspecified).AddTicks(4744), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 3, 12, 19, 51, 344, DateTimeKind.Unspecified).AddTicks(2938), new TimeSpan(0, 0, 0, 0, 0)),
                             CreatedBy = 0,
                             NationalCurrencyCode = "EUR",
                             Sale = 32f,
@@ -423,7 +474,7 @@ namespace Deed.Infrastructure.Persistence.Migrations
                         {
                             Id = 10,
                             Buy = 20f,
-                            CreatedAt = new DateTimeOffset(new DateTime(2025, 8, 23, 8, 48, 34, 568, DateTimeKind.Unspecified).AddTicks(4744), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 3, 12, 19, 51, 344, DateTimeKind.Unspecified).AddTicks(2938), new TimeSpan(0, 0, 0, 0, 0)),
                             CreatedBy = 0,
                             NationalCurrencyCode = "PLN",
                             Sale = 10f,
@@ -433,7 +484,7 @@ namespace Deed.Infrastructure.Persistence.Migrations
                         {
                             Id = 11,
                             Buy = 7f,
-                            CreatedAt = new DateTimeOffset(new DateTime(2025, 8, 23, 8, 48, 34, 568, DateTimeKind.Unspecified).AddTicks(4744), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 3, 12, 19, 51, 344, DateTimeKind.Unspecified).AddTicks(2938), new TimeSpan(0, 0, 0, 0, 0)),
                             CreatedBy = 0,
                             NationalCurrencyCode = "PLN",
                             Sale = 6f,
@@ -443,7 +494,7 @@ namespace Deed.Infrastructure.Persistence.Migrations
                         {
                             Id = 12,
                             Buy = 3f,
-                            CreatedAt = new DateTimeOffset(new DateTime(2025, 8, 23, 8, 48, 34, 568, DateTimeKind.Unspecified).AddTicks(4744), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 3, 12, 19, 51, 344, DateTimeKind.Unspecified).AddTicks(2938), new TimeSpan(0, 0, 0, 0, 0)),
                             CreatedBy = 0,
                             NationalCurrencyCode = "PLN",
                             Sale = 20f,

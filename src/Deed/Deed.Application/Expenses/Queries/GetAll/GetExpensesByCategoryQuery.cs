@@ -3,5 +3,6 @@ using Deed.Application.Expenses.Responses;
 
 namespace Deed.Application.Expenses.Queries.GetAll;
 
-public sealed record GetAllExpensesQuery
-    : IQuery<IEnumerable<ExpenseResponse>>;
+public sealed record GetExpensesByCategoryQuery(
+    int? CategoryId)
+    : IQuery<IEnumerable<CategoryExpenseResponse>>;

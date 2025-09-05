@@ -1,3 +1,4 @@
+using Deed.Application.Abstractions.Settings;
 using Deed.Application.Exchanges;
 using Deed.Application.Exchanges.Queries.GetLatest;
 using Deed.Application.Exchanges.Responses;
@@ -10,6 +11,7 @@ using Deed.Domain.Repositories;
 using Deed.Domain.Results;
 using FluentAssertions;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Options;
 using NSubstitute;
 
 namespace Deed.Tests.Unit.Exchanges.Queries;
@@ -18,12 +20,17 @@ public sealed class GetLatestExchangesHandlerTests
 {
     private readonly IExchangeRepository _repositoryMock = Substitute.For<IExchangeRepository>();
     private readonly IMemoryCache _memoryCacheMock = Substitute.For<IMemoryCache>();
+    private readonly IOptions<MemoryCacheSettings> _settings;
 
     private readonly GetLatestExchangeQueryHandler _handler;
 
     public GetLatestExchangesHandlerTests()
     {
-        _handler = new GetLatestExchangeQueryHandler(_repositoryMock, _memoryCacheMock);
+        _settings = Options.Create(new MemoryCacheSettings
+        {
+            ExchangesTimespanInHours = 1
+        });
+        _handler = new GetLatestExchangeQueryHandler(_settings, _repositoryMock, _memoryCacheMock);
     }
 
     [Fact]

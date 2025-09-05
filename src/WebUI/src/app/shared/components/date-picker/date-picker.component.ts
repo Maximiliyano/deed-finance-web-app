@@ -16,7 +16,9 @@ import {
   ]
 })
 export class DatePickerComponent implements ControlValueAccessor {
-  @Input() label: string | null = null;
+  @Input() restrictFuture: boolean;
+
+  today = new Date().toISOString().split('T')[0]; // TODO move into function
 
   value: string | null = null;
   disabled = false;

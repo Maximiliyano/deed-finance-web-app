@@ -26,6 +26,7 @@ internal sealed class CreateExpenseCommandValidator : AbstractValidator<CreateEx
 
         RuleFor(i => i.PaymentDate)
             .Must(paymentDate => paymentDate.UtcDateTime != DateTime.MinValue)
+            .LessThanOrEqualTo(DateTime.UtcNow)
             .WithError(ValidationErrors.Expense.InvalidPaymentDate);
 
         RuleFor(i => i.Purpose)

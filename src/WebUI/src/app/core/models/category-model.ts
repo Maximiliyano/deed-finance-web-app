@@ -4,7 +4,6 @@ export interface CategoryResponse {
   id: number;
   name: string;
   type: CategoryType;
-
-  totalExpenses: number;
-  totalExpensesPercent: string;
+  periodAmount: number;
+  periodType: string;
 }

@@ -1,4 +1,4 @@
-export interface AddExpenseRequest {
+export interface CreateExpenseRequest {
   capitalId: number;
   categoryId: number;
   amount: number;

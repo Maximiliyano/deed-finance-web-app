@@ -10,9 +10,10 @@ internal abstract class GeneralRepository<TEntity>(IDeedDbContext context)
     where TEntity : Entity, ISoftDeletableEntity
 {
     protected IDeedDbContext DbContext { get; } = context;
+    protected readonly DbSet<TEntity> DbSet = context.Set<TEntity>();
 
     protected async Task<IEnumerable<TEntity>> GetAllAsync() =>
-        await DbContext.Set<TEntity>()
+        await DbSet
             .AsNoTracking()
             .ToListAsync();
 
@@ -21,29 +22,27 @@ internal abstract class GeneralRepository<TEntity>(IDeedDbContext context)
             .SingleOrDefaultAsync();
 
     protected void Create(TEntity entity) =>
-        DbContext.Set<TEntity>().Add(entity);
+        DbSet.Add(entity);
 
     protected void CreateRange(IEnumerable<TEntity> entities) =>
-        DbContext.Set<TEntity>().AddRange(entities);
-
+        DbSet.AddRange(entities);
 
     protected void Update(TEntity entity) =>
-        DbContext.Set<TEntity>().Update(entity);
+        DbSet.Update(entity);
 
     protected void UpdateRange(IEnumerable<TEntity> entities) =>
-        DbContext.Set<TEntity>().UpdateRange(entities);
+        DbSet.UpdateRange(entities);
 
     protected void Delete(TEntity entity) =>
-        DbContext.Set<TEntity>().Remove(entity);
+        DbSet.Remove(entity);
 
     protected void DeleteRange(IEnumerable<TEntity> entities) =>
-        DbContext.Set<TEntity>().RemoveRange(entities);
+        DbSet.RemoveRange(entities);
 
     protected async Task<bool> AnyAsync(ISpecification<TEntity> specification) =>
         await ApplySpecification(specification)
             .AnyAsync();
 
     private IQueryable<TEntity> ApplySpecification(ISpecification<TEntity>? specification)
-        => SpecificationEvaluator.GetQuery(
-                DbContext.Set<TEntity>(), specification);
+        => SpecificationEvaluator.GetQuery(DbSet, specification);
 }

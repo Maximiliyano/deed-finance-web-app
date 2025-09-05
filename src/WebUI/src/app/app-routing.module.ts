@@ -18,11 +18,6 @@ const routes: Routes = [
       import('./modules/expense/expense.module').then((x) => x.ExpenseModule)
   },
   {
-    path: 'categories',
-    loadChildren: () =>
-      import('./modules/category/category.module').then((x) => x.CategoryModule)
-  },
-  {
     path: '404',
     pathMatch: 'full',
     loadComponent: () =>

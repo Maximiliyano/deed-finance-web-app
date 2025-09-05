@@ -38,7 +38,7 @@ export class CapitalsComponent implements OnInit, OnDestroy {
   capitals: CapitalResponse[] = [];
   capitalStatItems: CapitalItem[] = [
     { key: 'totalIncome', title: 'Incomes', icon: 'fa-dollar-sign', style: 'cp-incomes' },
-    { key: 'totalExpense', title: 'Expenses', icon: 'fa-money-bill-wave', style: 'cp-expenses' },
+    { key: 'totalExpense', title: 'Expenses', icon: 'fa-money-bill-wave', style: 'cp-expenses', url: '/expenses' },
     { key: 'totalTransferOut', title: 'Transfer Out', icon: 'fa-arrow-up', style: 'text-blue-400' },
     { key: 'totalTransferIn', title: 'Transfer In', icon: 'fa-arrow-down', style: 'text-pink-400' },
   ];
@@ -48,8 +48,8 @@ export class CapitalsComponent implements OnInit, OnDestroy {
   selectedSortOption: string = '';
   sortDirection: 'asc' | 'desc' = 'asc';
 
-  mainCurrency: string = 'UAH';
-  mainCurrencyVal: CurrencyType = stringToCurrencyEnum(this.mainCurrency) ?? CurrencyType.None;
+  mainCurrency: string;
+  mainCurrencyVal: CurrencyType;
 
   sortOptions: {label: string; key: string}[] = [
     { label: 'user order', key: '' },
@@ -76,7 +76,8 @@ export class CapitalsComponent implements OnInit, OnDestroy {
     private readonly popupMessageService: PopupMessageService,
     private readonly exchangeService: ExchangeService,
     private readonly dialogService: DialogService
-  ) { }
+  ) {
+  }
 
   @HostListener('document:click', ['$event.target'])
   onClickOutside(targetElement: HTMLElement): void {
@@ -88,6 +89,12 @@ export class CapitalsComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    document.title = "Deed - Capitals";
+
+    const mainCurrency = this.capitalService.getMainCurrency();
+    this.mainCurrency = mainCurrency.str;
+    this.mainCurrencyVal = mainCurrency.val;
+
     this.queryParams$
       .pipe(
         debounceTime(300),

@@ -25,4 +25,10 @@
       <ProjectReference Include="..\Deed.Application\Deed.Application.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <None Update="Persistence\DataSeed\*.json">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
+
 </Project>

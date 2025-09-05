@@ -1,0 +1,32 @@
+<div class="flex flex-col gap-4 h-96 border rounded p-2">
+  <div *ngIf="categories.length > 0; else noCategories">
+    <div class="overflow-y-auto h-80">
+      <div *ngFor="let category of categories" class="flex justify-between p-2 border-b hover:bg-gray-100">
+        <span>{{ category.name }}</span>
+        <span>{{ category.periodAmount }}</span>
+        <span>{{ category.periodType }}</span>
+      </div>
+    </div>
+
+    <div class="flex justify-between">
+      <button class="ml-2 text-blue-500 hover:text-blue-700">
+        New
+        <app-icon name="fa-circle-plus"></app-icon>
+      </button>
+
+      <button class="ml-2 text-blue-500 hover:text-blue-700">
+        Edit all
+        <app-icon name="fa-pen"></app-icon>
+      </button>
+    </div>
+  </div>
+
+  <ng-template #noCategories>
+    <div class="text-gray-500">
+      No categories found. Create one...
+      <button class="ml-2 text-blue-500 hover:text-blue-700">
+        <app-icon name="fa-circle-plus"></app-icon>
+      </button>
+    </div>
+  </ng-template>
+</div>

@@ -6,6 +6,8 @@ import { AddCapitalRequest } from '../models/add-capital-request';
 import { UpdateCapitalRequest } from '../models/update-capital-request';
 import { CapitalResponse } from '../models/capital-response';
 import { UpdateCapitalOrderRequest } from '../models/update-capital-order-request';
+import { CurrencyType } from '../../../core/types/currency-type';
+import { stringToCurrencyEnum } from '../../../shared/components/currency/functions/string-to-currency-enum';
 
 @Injectable({
   providedIn: 'root'
@@ -14,6 +16,13 @@ export class CapitalService {
   private baseApiUrl = environment.apiUrl + '/api/capitals';
 
   constructor(private readonly httpClient: HttpClient) { }
+
+  getMainCurrency(): { str: string, val: CurrencyType } {
+    return {
+      str: 'UAH',
+      val: stringToCurrencyEnum('UAH') ?? CurrencyType.None
+    }
+  }
 
   getAll(searchTerm?: string, sortBy?: string, sortDirection?: string): Observable<CapitalResponse[]> {
     let params = new HttpParams();

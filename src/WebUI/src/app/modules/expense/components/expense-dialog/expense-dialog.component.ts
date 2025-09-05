@@ -1,11 +1,10 @@
 import {Component, EventEmitter, OnInit, Output} from '@angular/core';
 import {FormControl, FormGroup, Validators} from "@angular/forms";
-import {CapitalResponse} from "../../../capital/models/capital-response";
-import {CategoryResponse} from "../../../../core/models/category-model";
-import { AddExpenseRequest } from '../../models/add-expense-request';
+import { CreateExpenseRequest } from '../../models/create-expense-request';
 import { FormField } from '../../../../shared/components/forms/models/form-field';
 import { PopupMessageService } from '../../../../shared/services/popup-message.service';
 import { SelectOptionModel } from '../../../../shared/components/forms/models/select-option-model';
+import { noFutureDate } from '../../../../shared/components/forms/validators/noFutureDate';
 
 @Component({
   selector: 'app-expense-dialog',
@@ -13,10 +12,7 @@ import { SelectOptionModel } from '../../../../shared/components/forms/models/se
   styleUrl: './expense-dialog.component.scss'
 })
 export class ExpenseDialogComponent implements OnInit {
-  @Output() submitted = new EventEmitter<AddExpenseRequest | null>();
-
-  capitals: CapitalResponse[] = [];
-  categories: CategoryResponse[] = [];
+  @Output() submitted = new EventEmitter<CreateExpenseRequest | null>();
 
   categoryOptions: SelectOptionModel[] = [];
   capitalsOptions: SelectOptionModel[] = [];
@@ -57,7 +53,9 @@ export class ExpenseDialogComponent implements OnInit {
       {
         label: 'Payment date',
         controlName: 'PaymentDate',
-        dateTimePicker: {}
+        dateTimePicker: {
+          restrictFuture: true
+        }
       },
       {
         label: 'Purpose',
@@ -68,28 +66,26 @@ export class ExpenseDialogComponent implements OnInit {
   }
 
   private initForm(): void {
-    this.categoryOptions = this.categories.map(x => { return { key: x.name, value: x.id } });
-    this.capitalsOptions = this.capitals.map(x => { return { key: x.name, value: x.id } });
-
     this.form = new FormGroup({
-      Amount: new FormControl('', [Validators.required]),
-      CapitalId: new FormControl({ value: '', disabled: this.capitalsOptions.length === 0 }, Validators.required),
-      CategoryId: new FormControl({ value: '', disabled: this.categoryOptions.length === 0 }, Validators.required),
-      PaymentDate: new FormControl(new Date(), [Validators.required]),
-      Purpose: new FormControl(null)
+      Amount: new FormControl(0, [Validators.required, Validators.min(1)]),
+      CapitalId: new FormControl({ value: '', disabled: this.capitalsOptions.length === 0 }, [Validators.required]),
+      CategoryId: new FormControl({ value: '', disabled: this.categoryOptions.length === 0 }, [Validators.required]),
+      PaymentDate: new FormControl(new Date().toISOString().split('T')[0], [Validators.required, noFutureDate]), // TODO move into function
+      Purpose: new FormControl(null, [Validators.minLength(1)])
     });
   }
 
   handleSubmit(): void {
-    if (!this.capitals.length || !this.categories.length) {
-      this.popupMessageService.error(`The capitals or categories was not found.`);
+    if (this.form.invalid) {
+      this.popupMessageService.error(`Invalid form data cannot be saved.`);
       return;
     }
 
-    const request: AddExpenseRequest = {
-      capitalId: this.form.value.CapitalId,
-      categoryId: this.form.value.CategoryId,
-      amount: this.form.value.Amount,
+    const capitalId = Number(this.form.value.CapitalId);
+    const request: CreateExpenseRequest = {
+      capitalId: capitalId,
+      categoryId: Number(this.form.value.CategoryId),
+      amount: Number(this.form.value.Amount),
       paymentDate: this.form.value.PaymentDate,
       purpose: this.form.value.Purpose
     };
