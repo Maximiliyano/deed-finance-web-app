@@ -17,7 +17,7 @@ internal sealed class UpdateCapitalOrdersCommandHandler(
 {
     public async Task<Result> Handle(UpdateCapitalOrdersCommand request, CancellationToken cancellationToken)
     {
-        await repository.UpdateOrderIndexes(request.Capitals.Select(c => (c.Id, c.OrderIndex)));
+        await repository.UpdateOrderIndexesAsync(request.Capitals.Select(c => (c.Id, c.OrderIndex)).ToList(), cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
         return Result.Success();

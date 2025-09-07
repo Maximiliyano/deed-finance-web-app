@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Deed.Domain.Enums;
+using Deed.Infrastructure.Persistence.Constants;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -13,6 +15,8 @@ internal sealed class ApplicationUserConfiguration : IEntityTypeConfiguration<Ap
     public void Configure(EntityTypeBuilder<ApplicationUser> builder)
     {
         builder.Property(u => u.MainCurrency)
-            .HasDefaultValue(true);
+            .HasDefaultValue(CurrencyType.UAH.ToString());
+
+        builder.ToTable(TableConfigurationConstants.Users);
     }
 }

@@ -9,14 +9,14 @@ internal sealed class Create : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPost("api/expenses", async (CreateExpenseRequest request, ISender sender) =>
+        app.MapPost("api/expenses", async (CreateExpenseRequest request, ISender sender, CancellationToken ct) =>
             (await sender
                 .Send(new CreateExpenseCommand(
                     request.CapitalId,
                     request.CategoryId,
                     request.Amount,
                     request.PaymentDate,
-                    request.Purpose)))
+                    request.Purpose), ct))
                 .Process())
             .WithTags(nameof(Expenses));
     }

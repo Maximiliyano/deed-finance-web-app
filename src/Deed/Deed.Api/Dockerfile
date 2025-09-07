@@ -5,7 +5,6 @@ EXPOSE 8000 8080
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY --from=clevercloud/clever-tools /bin/clever /usr/local/bin/clever
 COPY ["src/Deed/Deed.Api/Deed.Api.csproj", "Deed.Api/"]
 COPY ["src/Deed/Deed.Domain/Deed.Domain.csproj", "Deed.Domain/"]
 COPY ["src/Deed/Deed.Application/Deed.Application.csproj", "Deed.Application/"]

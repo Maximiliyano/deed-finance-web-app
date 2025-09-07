@@ -1,6 +1,8 @@
 using Deed.Application.Abstractions.Messaging;
 using Deed.Domain.Repositories;
 using Deed.Domain.Results;
+using Microsoft.Extensions.Logging;
+using Serilog;
 
 namespace Deed.Application.Capitals.Commands.Create;
 
@@ -17,6 +19,7 @@ internal sealed class CreateCapitalCommandHandler(
 
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
+        Log.Information("Capital - {0}, was successfully created", capital.Id);
         return Result.Success(capital.Id);
     }
 }

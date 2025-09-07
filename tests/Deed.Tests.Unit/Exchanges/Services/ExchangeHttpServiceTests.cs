@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Text;
@@ -16,17 +17,16 @@ using NSubstitute;
 
 namespace Deed.Tests.Unit.Exchanges.Services;
 
-public sealed class ExchangeHttpServiceTests // TODO refactor
+public sealed class ExchangeHttpServiceTests
 {
     private readonly IDateTimeProvider _dateTimeProvider = Substitute.For<IDateTimeProvider>();
-    private readonly ILogger<ExchangeHttpService> _logger = Substitute.For<ILogger<ExchangeHttpService>>();
     private readonly IOptions<WebUrlSettings> _options = Options.Create(new WebUrlSettings
     {
         UIUrl = "https://ui.ex.com",
         ExchangeRatesPrivatAPIUrl = "https://api.ex.com/rates?date={0}"
     });
 
-    private readonly DateTime _fixedNow = new(2024, 12, 1);
+    private readonly DateTime _fixedNow = new(2024, 12, 1, 0, 0, 0, DateTimeKind.Utc);
 
     public ExchangeHttpServiceTests()
     {
@@ -36,7 +36,9 @@ public sealed class ExchangeHttpServiceTests // TODO refactor
     private HttpClient CreateHttpClient(HttpResponseMessage response)
     {
         var handler = new MockHttpMessageHandler((_, _) => Task.FromResult(response));
-        return new HttpClient(handler);
+        var client = new HttpClient(handler);
+        handler.Dispose();
+        return client;
     }
 
     [Fact]
@@ -61,7 +63,8 @@ public sealed class ExchangeHttpServiceTests // TODO refactor
             Content = new StringContent(json, Encoding.UTF8, "application/json")
         };
 
-        var service = new ExchangeHttpService(_dateTimeProvider, _logger, _options, CreateHttpClient(response));
+        var client = CreateHttpClient(response);
+        var service = new ExchangeHttpService(_dateTimeProvider, _options, client);
 
         // Act
         var result = await service.GetCurrencyAsync();
@@ -70,6 +73,9 @@ public sealed class ExchangeHttpServiceTests // TODO refactor
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().ContainSingle();
         result.Value.First().TargetCurrencyCode.Should().Be("USD");
+
+        client.Dispose();
+        response.Dispose();
     }
 
     [Fact]
@@ -94,7 +100,8 @@ public sealed class ExchangeHttpServiceTests // TODO refactor
             Content = new StringContent(json, Encoding.UTF8, "application/json")
         };
 
-        var service = new ExchangeHttpService(_dateTimeProvider, _logger, _options, CreateHttpClient(response));
+        var client = CreateHttpClient(response);
+        var service = new ExchangeHttpService(_dateTimeProvider, _options, client);
 
         // Act
         var result = await service.GetCurrencyAsync();
@@ -103,18 +110,25 @@ public sealed class ExchangeHttpServiceTests // TODO refactor
         result.IsSuccess.Should().BeTrue();
         result.Value.First().Buy.Should().Be(39.1f);
         result.Value.First().Sale.Should().Be(39.5f);
+
+        client.Dispose();
+        response.Dispose();
     }
 
     [Fact]
     public async Task GetCurrencyAsync_ReturnsFailure_WhenResponseFails()
     {
         var response = new HttpResponseMessage(HttpStatusCode.InternalServerError);
-        var service = new ExchangeHttpService(_dateTimeProvider, _logger, _options, CreateHttpClient(response));
+        var client = CreateHttpClient(response);
+        var service = new ExchangeHttpService(_dateTimeProvider, _options, client);
 
         var result = await service.GetCurrencyAsync();
 
         result.IsSuccess.Should().BeFalse();
         result.Errors.Should().OnlyContain(x => x == DomainErrors.Exchange.HttpExecution);
+
+        client.Dispose();
+        response.Dispose();
     }
 
     [Fact]
@@ -126,12 +140,16 @@ public sealed class ExchangeHttpServiceTests // TODO refactor
             Content = new StringContent(invalidJson)
         };
 
-        var service = new ExchangeHttpService(_dateTimeProvider, _logger, _options, CreateHttpClient(response));
+        var client = CreateHttpClient(response);
+        var service = new ExchangeHttpService(_dateTimeProvider, _options, client);
 
         var result = await service.GetCurrencyAsync();
 
         result.IsSuccess.Should().BeFalse();
-        result.Errors.Should().OnlyContain(x => x == DomainErrors.Exchange.HttpExecution); // because it throws in deserialization
+        result.Errors.Should().OnlyContain(x => x == DomainErrors.Exchange.HttpExecution);
+
+        client.Dispose();
+        response.Dispose();
     }
 
     [Fact]
@@ -143,12 +161,16 @@ public sealed class ExchangeHttpServiceTests // TODO refactor
             Content = new StringContent(nullResponse)
         };
 
-        var service = new ExchangeHttpService(_dateTimeProvider, _logger, _options, CreateHttpClient(response));
+        var client = CreateHttpClient(response);
+        var service = new ExchangeHttpService(_dateTimeProvider, _options, client);
 
         var result = await service.GetCurrencyAsync();
 
         result.IsSuccess.Should().BeFalse();
         result.Errors.Should().OnlyContain(x => x == DomainErrors.Exchange.Serialization);
+
+        client.Dispose();
+        response.Dispose();
     }
 
     [Fact]
@@ -157,12 +179,15 @@ public sealed class ExchangeHttpServiceTests // TODO refactor
         var handler = new MockHttpMessageHandler((_, _) => throw new HttpRequestException("fail!"));
         var client = new HttpClient(handler);
 
-        var service = new ExchangeHttpService(_dateTimeProvider, _logger, _options, client);
+        var service = new ExchangeHttpService(_dateTimeProvider, _options, client);
 
         var result = await service.GetCurrencyAsync();
 
         result.IsSuccess.Should().BeFalse();
         result.Errors.Should().OnlyContain(x => x == DomainErrors.Exchange.HttpExecution);
+
+        client.Dispose();
+        handler.Dispose();
     }
 
     [Fact]
@@ -184,10 +209,13 @@ public sealed class ExchangeHttpServiceTests // TODO refactor
         });
 
         var client = new HttpClient(handler);
-        var service = new ExchangeHttpService(_dateTimeProvider, _logger, _options, client);
+        var service = new ExchangeHttpService(_dateTimeProvider, _options, client);
 
         await service.GetCurrencyAsync();
 
         requestedUrl.Should().Be("https://api.ex.com/rates?date=01.12.2024");
+
+        client.Dispose();
+        handler.Dispose();
     }
 }

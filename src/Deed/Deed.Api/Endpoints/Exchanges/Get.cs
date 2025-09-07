@@ -8,9 +8,9 @@ internal sealed class Get : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("api/exchanges", async (ISender sender) =>
+        app.MapGet("api/exchanges", async (ISender sender, CancellationToken ct) =>
             (await sender
-                .Send(new GetLatestExchangeQuery()))
+                .Send(new GetLatestExchangeQuery(), ct))
                 .Process())
             .WithTags(nameof(Exchanges));
     }

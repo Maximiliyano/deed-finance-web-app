@@ -23,7 +23,7 @@ public sealed class Capital
 
     public bool IncludeInTotal { get; set; }
     
-    public int OrderIndex { get; init; }
+    public int OrderIndex { get; set; }
 
     public float TotalIncome => Incomes?.Sum(i => i.Amount) ?? 0;
 

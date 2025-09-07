@@ -41,9 +41,9 @@ public sealed class UpdateCapitalOrdersCommandHandlerTests
         result.IsSuccess.Should().BeTrue();
 
         await _repositoryMock.Received(1)
-            .UpdateOrderIndexes(Arg.Is<IEnumerable<(int, int)>>(x =>
+            .UpdateOrderIndexesAsync(Arg.Is<IList<(int, int)>>(x =>
                 x.Any(c => c.Item2 == 0) &&
-                x.Any(c => c.Item2 == 1)));
+                x.Any(c => c.Item2 == 1)), CancellationToken.None);
 
         await _unitOfWorkMock.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
     }
@@ -58,7 +58,7 @@ public sealed class UpdateCapitalOrdersCommandHandlerTests
         var result = await _handler.Handle(command, CancellationToken.None);
 
         // Assert
-        await _repositoryMock.Received(1).UpdateOrderIndexes(Arg.Any<IEnumerable<(int, int)>>());
+        await _repositoryMock.Received(1).UpdateOrderIndexesAsync(Arg.Any<IList<(int, int)>>(), CancellationToken.None);
         await _unitOfWorkMock.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
 
         result.IsSuccess.Should().BeTrue();
