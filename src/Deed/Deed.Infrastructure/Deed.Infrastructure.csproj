@@ -12,13 +12,13 @@
     <ItemGroup>
       <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.3.0" />
       <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.8" />
-      <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.6" />
-      <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.6">
+      <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.8" />
+      <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.8">
         <PrivateAssets>all</PrivateAssets>
         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       </PackageReference>
-      <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="9.0.6" />
-      <PackageReference Include="Quartz.Extensions.Hosting" Version="3.14.0" />
+      <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="9.0.8" />
+      <PackageReference Include="Quartz.Extensions.Hosting" Version="3.15.0" />
       <PackageReference Include="Serilog.AspNetCore" Version="9.0.0" />
     </ItemGroup>
 
@@ -30,10 +30,6 @@
       <None Update="Persistence\DataSeed\*.json">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>
-    </ItemGroup>
-
-    <ItemGroup>
-      <Folder Include="Persistence\Migrations\" />
     </ItemGroup>
 
 </Project>

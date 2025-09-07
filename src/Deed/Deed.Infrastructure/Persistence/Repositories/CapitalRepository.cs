@@ -10,8 +10,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Deed.Infrastructure.Persistence.Repositories;
 
-internal sealed class CapitalRepository(
-    IDeedDbContext context)
+internal sealed class CapitalRepository(IDeedDbContext context)
     : GeneralRepository<Capital>(context), ICapitalRepository
 {
     public async Task<IEnumerable<Capital>> GetAllAsync(string? searchTerm = null, string? sortBy = null, string? sortDirection = null)
@@ -22,7 +21,7 @@ internal sealed class CapitalRepository(
 
         if (!string.IsNullOrWhiteSpace(searchTerm))
         {
-            query = query.Where(c => c.Name.ToLower().Contains(searchTerm.ToLower()));
+            query = query.Where(c => c.Name.Contains(searchTerm, StringComparison.InvariantCultureIgnoreCase));
         }
 
         query = ApplySorting(query, sortBy, sortDirection);
@@ -30,44 +29,28 @@ internal sealed class CapitalRepository(
         return await query.ToListAsync();
     }
 
-    public new async Task<Capital?> GetAsync(ISpecification<Capital> specification)
-        => await base.GetAsync(specification);
-
-    public new void Create(Capital capital)
-        => base.Create(capital);
-
-    public new void Update(Capital capital)
-        => base.Update(capital);
-
-    public async Task UpdateOrderIndexes(IEnumerable<(int Id, int OrderIndex)> capitals)
+    public async Task UpdateOrderIndexesAsync(IList<(int Id, int OrderIndex)> capitals, CancellationToken cancellationToken)
     {
-        using var transaction = await DbContext.BeginTransactionAsync();
+        var ids = capitals.Select(c => c.Id).ToArray();
+        var entries = await DbContext.Capitals
+            .IgnoreAutoIncludes()
+            .Where(c => ids.Contains(c.Id))
+            .ToListAsync(cancellationToken);
 
-        foreach (var (Id, OrderIndex) in capitals)
+        foreach (var entity in entries)
         {
-            await DbContext.Capitals
-                .Where(c => c.Id == Id)
-                .ExecuteUpdateAsync(setters =>
-                    setters.SetProperty(c => c.OrderIndex, OrderIndex));
+            entity.OrderIndex = capitals.First(c => c.Id == entity.Id).OrderIndex;
         }
-
-        await transaction.CommitAsync();
     }
-
-    public new void Delete(Capital capital)
-        => base.Delete(capital);
-
-    public new async Task<bool> AnyAsync(ISpecification<Capital> specification)
-        => await base.AnyAsync(specification);
 
     private static IQueryable<Capital> ApplySorting(
         IQueryable<Capital> query,
         string? sortBy,
         string? sortDirection)
     {
-        bool asc = sortDirection?.ToLower() == "asc";
+        bool asc = sortDirection?.ToLower(CultureInfo.CurrentCulture) == "asc";
 
-        return sortBy?.ToLower() switch
+        return sortBy?.ToLower(CultureInfo.CurrentCulture) switch
         {
             SortKeysConstants.Name => asc ? query.OrderBy(c => c.Name) : query.OrderByDescending(c => c.Name),
             SortKeysConstants.Balance => asc ? query.OrderBy(c => c.Balance) : query.OrderByDescending(c => c.Balance),

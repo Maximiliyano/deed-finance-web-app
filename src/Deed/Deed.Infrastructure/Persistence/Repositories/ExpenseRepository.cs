@@ -6,13 +6,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Deed.Infrastructure.Persistence.Repositories;
 
-internal sealed class ExpenseRepository(
-    IDeedDbContext context)
+internal sealed class ExpenseRepository(IDeedDbContext context)
     : GeneralRepository<Expense>(context), IExpenseRepository
 {
-    public async Task<Expense?> GetAsync(ISpecification<Expense> specification)
-        => await base.GetAsync(specification);
-
     public async Task<IEnumerable<Expense>> GetAllAsync(int? capitalId)
     {
         var queries = DbContext.Expenses
@@ -53,16 +49,4 @@ internal sealed class ExpenseRepository(
             })
             .ToListAsync();
     }
-
-    public void Create(Expense expense)
-        => base.Create(expense);
-
-    public void Update(Expense expense)
-        => base.Update(expense);
-
-    public void Delete(Expense expense)
-        => base.Delete(expense);
-
-    public async Task<bool> AnyAsync(ISpecification<Expense> specification)
-        => await base.AnyAsync(specification);
 }

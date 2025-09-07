@@ -29,11 +29,3 @@ services:
       - MSSQL_SA_PASSWORD=Passw0rd.
     ports:
       - "8002:1433"
-  
-  deed.seq:
-    image: datalust/seq:latest
-    container_name: seq
-    environment:
-      - ACCEPT_EULA=Y
-    ports:
-      - "8081:80"

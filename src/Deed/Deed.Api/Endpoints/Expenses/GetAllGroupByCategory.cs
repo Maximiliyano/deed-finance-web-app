@@ -8,9 +8,9 @@ internal sealed class GetAllGroupByCategory : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("api/expenses", async (ISender sender, int? capitalId) =>
+        app.MapGet("api/expenses", async (ISender sender, int? capitalId, CancellationToken ct) =>
             (await sender
-                .Send(new GetExpensesByCategoryQuery(capitalId)))
+                .Send(new GetExpensesByCategoryQuery(capitalId), ct))
                 .Process())
             .WithTags(nameof(Expenses));
     }

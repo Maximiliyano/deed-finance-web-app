@@ -9,9 +9,9 @@ internal sealed class GetAll : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("api/capitals", async (ISender sender, string? searchTerm, string? sortBy, string? sortDirection) =>
+        app.MapGet("api/capitals", async (ISender sender, string? searchTerm, string? sortBy, string? sortDirection, CancellationToken ct) =>
             (await sender
-                .Send(new GetAllCapitalsQuery(searchTerm, sortBy, sortDirection)))
+                .Send(new GetAllCapitalsQuery(searchTerm, sortBy, sortDirection), ct))
                 .Process())
             .WithTags(nameof(Capitals));
     }

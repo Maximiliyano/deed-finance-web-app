@@ -9,14 +9,14 @@ internal sealed class Update : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPut("api/expenses", async (UpdateExpenseRequest request, ISender sender) =>
+        app.MapPut("api/expenses", async (UpdateExpenseRequest request, ISender sender, CancellationToken ct) =>
             (await sender
                 .Send(new UpdateExpenseCommand(
                     request.Id,
                     request.CategoryId,
                     request.Amount,
                     request.Purpose,
-                    request.Date)))
+                    request.Date), ct))
                 .Process())
             .WithTags(nameof(Expenses));
     }

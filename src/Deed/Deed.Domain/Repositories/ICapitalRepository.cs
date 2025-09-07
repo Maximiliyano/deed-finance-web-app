@@ -12,7 +12,7 @@ public interface ICapitalRepository
 
     void Update(Capital capital);
 
-    Task UpdateOrderIndexes(IEnumerable<(int Id, int OrderIndex)> capitals);
+    Task UpdateOrderIndexesAsync(IList<(int Id, int OrderIndex)> capitals, CancellationToken cancellationToken);
 
     void Delete(Capital capital);
 

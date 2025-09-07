@@ -1,30 +1,37 @@
+using Deed.Api.Extensions;
 using Deed.Domain.Errors;
 using Deed.Domain.Results;
-using Deed.Api.Extensions;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
+using Serilog;
 
 namespace Deed.Api.Infrastructure;
 
-internal sealed class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger)
-    : IExceptionHandler
+internal sealed class GlobalExceptionHandler : IExceptionHandler
 {
     public async ValueTask<bool> TryHandleAsync(
         HttpContext httpContext,
         Exception exception,
         CancellationToken cancellationToken)
     {
-        logger.LogError(exception, "Unhandled exception occured");
+        if (cancellationToken.IsCancellationRequested)
+        {
+            httpContext.Response.StatusCode = StatusCodes.Status499ClientClosedRequest;
+        }
+        else
+        {
+            Log.Error(exception, "Unhandled exception occured");
 
-        var errors = ParseException(exception);
+            var errors = ParseException(exception);
         
-        var error = errors[0];
-        var statusCode = error.Type.GetStatusCode();
-        var problemDetails = BuildProblemDetails(statusCode, error.Message, errors);
+            var error = errors[0];
+            var statusCode = error.Type.GetStatusCode();
+            var problemDetails = BuildProblemDetails(statusCode, error.Message, errors);
 
-        httpContext.Response.StatusCode = problemDetails.Status!.Value;
+            httpContext.Response.StatusCode = problemDetails.Status!.Value;
 
-        await httpContext.Response.WriteAsJsonAsync(problemDetails, cancellationToken);
+            await httpContext.Response.WriteAsJsonAsync(problemDetails, cancellationToken);
+        }
 
         return true;
     }

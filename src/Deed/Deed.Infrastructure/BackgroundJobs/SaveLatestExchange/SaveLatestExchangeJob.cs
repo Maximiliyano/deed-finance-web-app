@@ -3,6 +3,7 @@ using Deed.Domain.Entities;
 using Deed.Domain.Repositories;
 using Microsoft.Extensions.Logging;
 using Quartz;
+using Serilog;
 
 namespace Deed.Infrastructure.BackgroundJobs.SaveLatestExchange;
 
@@ -10,26 +11,25 @@ namespace Deed.Infrastructure.BackgroundJobs.SaveLatestExchange;
 public sealed class SaveLatestExchangeJob(
     IExchangeRepository repository,
     IUnitOfWork unitOfWork,
-    IExchangeHttpService service,
-    ILogger<SaveLatestExchangeJob> logger)
+    IExchangeHttpService service)
     : IJob
 {
     public async Task Execute(IJobExecutionContext context) // TODO tests
     {
-        logger.LogInformation("Save latest exchange background job has been started.");
+        Log.Information("Save latest exchange background job has been started.");
 
-        logger.LogInformation("Executing exchange from API...");
+        Log.Information("Executing exchange from API...");
 
         var latestExchangesResult = await service.GetCurrencyAsync();
 
         if (!latestExchangesResult.IsSuccess)
         {
-            logger.LogError("Error occured during executing exchange from API.");
+            Log.Error("Error occured during executing exchange from API.");
             return;
         }
 
-        logger.LogInformation("Executed exchange from API successfully.");
-        logger.LogInformation("Adding / Updating current exchange...");
+        Log.Information("Executed exchange from API successfully.");
+        Log.Information("Adding / Updating current exchange...");
 
         var exchanges = (await repository.GetAllAsync()).ToList();
         var entitiesToUpdate = new HashSet<Exchange>();
@@ -55,7 +55,7 @@ public sealed class SaveLatestExchangeJob(
 
         await unitOfWork.SaveChangesAsync(context.CancellationToken);
 
-        logger.LogInformation("Current exchange has added.");
-        logger.LogInformation("Save latest exchange background job has been finished successfully.");
+        Log.Information("Current exchange has added.");
+        Log.Information("Save latest exchange background job has been finished successfully.");
     }
 }

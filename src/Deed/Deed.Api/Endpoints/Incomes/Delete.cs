@@ -8,9 +8,9 @@ internal sealed class Delete : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapDelete("api/incomes/{id:int}", async (int id, ISender sender) =>
+        app.MapDelete("api/incomes/{id:int}", async (int id, ISender sender, CancellationToken ct) =>
             (await sender
-                .Send(new DeleteIncomeCommand(id)))
+                .Send(new DeleteIncomeCommand(id), ct))
                 .Process())
             .WithTags(nameof(Incomes));
     }

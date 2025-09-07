@@ -2,8 +2,7 @@ using Deed.Domain.Enums;
 
 namespace Deed.Domain.Entities;
 
-public sealed class Category
-    : Entity, IAuditableEntity, ISoftDeletableEntity
+public sealed class Category : Entity, IAuditableEntity, ISoftDeletableEntity
 {
     public Category(int id)
          : base(id)
@@ -21,10 +20,6 @@ public sealed class Category
     public float PlannedPeriodAmount { get; set; }
 
     public PerPeriodType Period { get; set; }
-
-    public float TotalExpenses => Expenses?.Sum(x => x.Amount) ?? 0;
-
-    public float TotalIncomes => Incomes?.Sum(x => x.Amount) ?? 0;
 
     public IEnumerable<Expense>? Expenses { get; init; }
 

@@ -4,6 +4,7 @@ using Deed.Domain.Enums;
 using Deed.Domain.Errors;
 using Deed.Domain.Repositories;
 using Deed.Domain.Results;
+using Microsoft.EntityFrameworkCore;
 
 namespace Deed.Application.Capitals.Commands.Update;
 
