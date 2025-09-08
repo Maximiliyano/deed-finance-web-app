@@ -13,7 +13,7 @@ internal sealed class GetExpensesByCategoryHandler(
 {
     public async Task<Result<IEnumerable<CategoryExpenseResponse>>> Handle(GetExpensesByCategoryQuery query, CancellationToken cancellationToken)
     {
-        var expenses = await repository.GetAllAsync(query.CategoryId);
+        var expenses = await repository.GetAllAsync(query.CategoryId).ConfigureAwait(false);
 
         if (!expenses.Any())
         {

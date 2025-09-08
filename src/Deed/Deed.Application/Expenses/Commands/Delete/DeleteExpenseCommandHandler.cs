@@ -14,20 +14,20 @@ internal sealed class DeleteExpenseCommandHandler(
 {
     public async Task<Result> Handle(DeleteExpenseCommand command, CancellationToken cancellationToken)
     {
-        var expense = await expenseRepository.GetAsync(new ExpenseByIdSpecification(command.Id));
+        var expense = await expenseRepository.GetAsync(new ExpenseByIdSpecification(command.Id)).ConfigureAwait(false);
 
-        if (expense is null)
+        if (expense?.Capital is null)
         {
             return Result.Failure(DomainErrors.General.NotFound(nameof(expense)));
         }
 
-        expense.Capital!.Balance += expense.Amount; // TODO !
+        expense.Capital.Balance += expense.Amount;
 
         capitalRepository.Update(expense.Capital);
 
         expenseRepository.Delete(expense);
 
-        await unitOfWork.SaveChangesAsync(cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         return Result.Success();
     }

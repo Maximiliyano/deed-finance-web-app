@@ -17,7 +17,8 @@ internal static class CapitalExtensions
             capital.TotalIncome,
             capital.TotalExpense,
             capital.TotalTransferIn,
-            capital.TotalTransferOut);
+            capital.TotalTransferOut
+    );
 
     internal static IEnumerable<CapitalResponse> ToResponses(this IEnumerable<Capital> capitals)
         => capitals.Select(e => e.ToResponse());

@@ -3,6 +3,7 @@ using Deed.Application.Capitals.Specifications;
 using Deed.Domain.Errors;
 using Deed.Domain.Repositories;
 using Deed.Domain.Results;
+using Serilog;
 
 namespace Deed.Application.Expenses.Commands.Create;
 
@@ -14,7 +15,7 @@ internal sealed class CreateExpenseCommandHandler(
 {
     public async Task<Result<int>> Handle(CreateExpenseCommand command, CancellationToken cancellationToken)
     {
-        var capital = await capitalRepository.GetAsync(new CapitalByIdSpecification(command.CapitalId));
+        var capital = await capitalRepository.GetAsync(new CapitalByIdSpecification(command.CapitalId)).ConfigureAwait(false);
 
         if (capital is null)
         {
@@ -29,7 +30,9 @@ internal sealed class CreateExpenseCommandHandler(
 
         expenseRepository.Create(expense);
 
-        await unitOfWork.SaveChangesAsync(cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+
+        Log.Information("Expense {Id} successfully created", expense.Id);
 
         return Result.Success(expense.Id);
     }

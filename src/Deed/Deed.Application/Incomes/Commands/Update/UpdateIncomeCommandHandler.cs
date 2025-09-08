@@ -15,9 +15,9 @@ internal sealed class UpdateIncomeCommandHandler(
 {
     public async Task<Result> Handle(UpdateIncomeCommand command, CancellationToken cancellationToken)
     {
-        var income = await incomeRepository.GetAsync(new IncomeByIdSpecification(command.Id));
+        var income = await incomeRepository.GetAsync(new IncomeByIdSpecification(command.Id)).ConfigureAwait(false);
 
-        if (income is null)
+        if (income?.Capital is null || income?.Category is null)
         {
             return Result.Failure(DomainErrors.General.NotFound(nameof(income)));
         }
@@ -26,11 +26,11 @@ internal sealed class UpdateIncomeCommandHandler(
         {
             var difference = (float)(command.Amount - income.Amount);
 
-            income.Capital!.Balance += difference;
+            income.Capital.Balance += difference;
 
             income.Amount = command.Amount.Value;
 
-            capitalRepository.Update(income.Capital!);
+            capitalRepository.Update(income.Capital);
         }
 
         income.Purpose = command.Purpose ?? income.Purpose;
@@ -40,12 +40,12 @@ internal sealed class UpdateIncomeCommandHandler(
         {
             income.CategoryId = command.CategoryId.Value;
 
-            categoryRepository.Update(income.Category!); // TODO !
+            categoryRepository.Update(income.Category);
         }
 
         incomeRepository.Update(income);
 
-        await unitOfWork.SaveChangesAsync(cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         return Result.Success();
     }

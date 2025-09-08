@@ -13,7 +13,7 @@ internal sealed class GetByIdCategoryQueryHandler(
 {
     public async Task<Result<CategoryResponse>> Handle(GetByIdCategoryQuery query, CancellationToken cancellationToken)
     {
-        var category = await repository.GetAsync(new CategoryByIdSpecification(query.Id));
+        var category = await repository.GetAsync(new CategoryByIdSpecification(query.Id)).ConfigureAwait(false);
 
         if (category is null)
         {

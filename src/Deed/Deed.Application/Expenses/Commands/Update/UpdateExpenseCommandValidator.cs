@@ -14,10 +14,10 @@ internal sealed class UpdateExpenseCommandValidator : AbstractValidator<UpdateEx
     {
         RuleFor(e => e.CategoryId)
             .MustAsync(async (categoryId, _) => !await expenseRepository
-                .AnyAsync(new ExpenseByIdSpecification(categoryId!.Value)))
+                .AnyAsync(new ExpenseByIdSpecification(categoryId!.Value)).ConfigureAwait(false))
             .WithError(ValidationErrors.General.NotFound("category"))
             .MustAsync(async (categoryId, _) => (await categoryRepository
-                .GetAsync(new CategoryByIdSpecification(categoryId!.Value)))?.Type == CategoryType.Expenses)
+                .GetAsync(new CategoryByIdSpecification(categoryId!.Value)).ConfigureAwait(false))?.Type == CategoryType.Expenses)
             .WithError(ValidationErrors.Category.InvalidType)
             .When(e => e.CategoryId.HasValue);
     }

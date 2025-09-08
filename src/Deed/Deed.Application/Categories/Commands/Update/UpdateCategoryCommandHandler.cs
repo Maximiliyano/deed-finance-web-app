@@ -13,7 +13,7 @@ internal sealed class UpdateCategoryCommandHandler(
 {
     public async Task<Result> Handle(UpdateCategoryCommand command, CancellationToken cancellationToken)
     {
-        var category = await repository.GetAsync(new CategoryByIdSpecification(command.Id));
+        var category = await repository.GetAsync(new CategoryByIdSpecification(command.Id)).ConfigureAwait(false);
 
         if (category is null)
         {
@@ -27,7 +27,7 @@ internal sealed class UpdateCategoryCommandHandler(
 
         repository.Update(category);
 
-        await unitOfWork.SaveChangesAsync(cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         return Result.Success();
     }

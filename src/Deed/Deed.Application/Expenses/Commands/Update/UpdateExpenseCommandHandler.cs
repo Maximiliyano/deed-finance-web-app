@@ -17,9 +17,9 @@ internal sealed class UpdateExpenseCommandHandler(
 {
     public async Task<Result> Handle(UpdateExpenseCommand command, CancellationToken cancellationToken)
     {
-        var expense = await expenseRepository.GetAsync(new ExpenseByIdSpecification(command.Id));
+        var expense = await expenseRepository.GetAsync(new ExpenseByIdSpecification(command.Id)).ConfigureAwait(false);
 
-        if (expense is null)
+        if (expense?.Capital is null || expense?.Category is null)
         {
             return Result.Failure(DomainErrors.General.NotFound(nameof(expense)));
         }
@@ -28,7 +28,7 @@ internal sealed class UpdateExpenseCommandHandler(
         {
             var difference = expense.Amount - command.Amount.Value;
 
-            expense.Capital!.Balance += difference; // TODO !
+            expense.Capital.Balance += difference;
 
             expense.Amount = command.Amount.Value;
 
@@ -42,12 +42,12 @@ internal sealed class UpdateExpenseCommandHandler(
         {
             expense.CategoryId = command.CategoryId.Value;
 
-            categoryRepository.Update(expense.Category!); // TODO !
+            categoryRepository.Update(expense.Category);
         }
 
         expenseRepository.Update(expense);
 
-        await unitOfWork.SaveChangesAsync(cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         return Result.Success();
     }

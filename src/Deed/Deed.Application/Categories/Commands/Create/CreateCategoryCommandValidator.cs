@@ -14,7 +14,7 @@ internal sealed class CreateCategoryCommandValidator : AbstractValidator<CreateC
     {
         RuleFor(c => c.Name)
             .MustAsync(async (name, _) => !await repository
-                .AnyAsync(new CategoryByNameSpecification(name)))
+                .AnyAsync(new CategoryByNameSpecification(name)).ConfigureAwait(false))
             .WithError(ValidationErrors.Category.AlreadyExists)
             .NotEmpty()
             .MaximumLength(ValidationConstants.MaxLenghtName);
