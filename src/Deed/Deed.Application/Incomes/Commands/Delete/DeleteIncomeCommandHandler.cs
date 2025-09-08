@@ -3,6 +3,7 @@ using Deed.Application.Incomes.Specifications;
 using Deed.Domain.Errors;
 using Deed.Domain.Repositories;
 using Deed.Domain.Results;
+using Serilog;
 
 namespace Deed.Application.Incomes.Commands.Delete;
 
@@ -14,7 +15,7 @@ internal sealed class DeleteIncomeCommandHandler(
 {
     public async Task<Result> Handle(DeleteIncomeCommand command, CancellationToken cancellationToken)
     {
-        var income = await incomeRepository.GetAsync(new IncomeByIdSpecification(command.Id));
+        var income = await incomeRepository.GetAsync(new IncomeByIdSpecification(command.Id)).ConfigureAwait(false);
 
         if (income is null)
         {
@@ -27,7 +28,9 @@ internal sealed class DeleteIncomeCommandHandler(
 
         incomeRepository.Delete(income);
 
-        await unitOfWork.SaveChangesAsync(cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+
+        Log.Information("Income {Id} deleted", income.Id);
 
         return Result.Success();
     }

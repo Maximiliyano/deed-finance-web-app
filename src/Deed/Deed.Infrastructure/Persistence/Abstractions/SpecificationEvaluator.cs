@@ -1,6 +1,9 @@
+using System.Globalization;
+using Deed.Domain.Constants;
 using Deed.Domain.Entities;
 using Deed.Domain.Repositories;
 using Microsoft.EntityFrameworkCore;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace Deed.Infrastructure.Persistence.Abstractions;
 
@@ -21,7 +24,7 @@ public static class SpecificationEvaluator
             queryable = queryable.Where(specification.Criteria);
         }
 
-        if (specification.Includes is not null)
+        if (specification.Includes is not null && !specification.IgnoreAutoIncludes)
         {
             queryable = specification.Includes
                 .Aggregate(
@@ -29,6 +32,21 @@ public static class SpecificationEvaluator
                     (currect, includeExpression) =>
                         currect.Include(includeExpression))
                 .AsSplitQuery();
+        }
+
+        if (specification.IgnoreAutoIncludes)
+        {
+            queryable = queryable.IgnoreAutoIncludes();
+        }
+
+        if (specification.OrderBy is not null)
+        {
+            queryable = queryable.OrderBy(specification.OrderBy);
+        }
+
+        if (specification.OrderByDescending is not null)
+        {
+            queryable = queryable.OrderByDescending(specification.OrderByDescending);
         }
 
         return queryable;

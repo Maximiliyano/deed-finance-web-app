@@ -17,6 +17,11 @@ internal abstract class GeneralRepository<TEntity>(IDeedDbContext context)
             .AsNoTracking()
             .ToListAsync();
 
+    public async Task<IEnumerable<TEntity>> GetAllAsync(ISpecification<TEntity> specification) =>
+        await ApplySpecification(specification)
+            .AsNoTracking()
+            .ToListAsync();
+
     public async Task<TEntity?> GetAsync(ISpecification<TEntity> specification) =>
         await ApplySpecification(specification)
             .SingleOrDefaultAsync();

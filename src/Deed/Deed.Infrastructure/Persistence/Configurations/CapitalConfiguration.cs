@@ -15,9 +15,12 @@ internal sealed class CapitalConfiguration : IEntityTypeConfiguration<Capital>
 
         builder.HasData(Seeder.Parse<Capital>(SeederConstants.Capitals));
 
+
         builder
             .HasIndex(c => c.Name)
             .IsUnique();
+
+        builder.HasIndex(c => c.Balance);
 
         builder
             .Property(p => p.RowVersion)

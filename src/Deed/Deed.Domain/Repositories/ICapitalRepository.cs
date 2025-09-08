@@ -4,7 +4,7 @@ namespace Deed.Domain.Repositories;
 
 public interface ICapitalRepository
 {
-    Task<IEnumerable<Capital>> GetAllAsync(string? searchTerm = null, string? sortBy = null, string? sortDirection = null);
+    Task<IEnumerable<Capital>> GetAllAsync(ISpecification<Capital> specification);
 
     Task<Capital?> GetAsync(ISpecification<Capital> specification);
 

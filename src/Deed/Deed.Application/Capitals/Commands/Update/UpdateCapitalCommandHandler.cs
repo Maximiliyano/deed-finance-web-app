@@ -13,7 +13,7 @@ internal sealed class UpdateCapitalCommandHandler(ICapitalRepository repository,
 {
     public async Task<Result> Handle(UpdateCapitalCommand command, CancellationToken cancellationToken)
     {
-        var capital = await repository.GetAsync(new CapitalByIdSpecification(command.Id));
+        var capital = await repository.GetAsync(new CapitalByIdSpecification(command.Id)).ConfigureAwait(false);
 
         if (capital is null)
         {
@@ -27,7 +27,7 @@ internal sealed class UpdateCapitalCommandHandler(ICapitalRepository repository,
 
         repository.Update(capital);
 
-        await unitOfWork.SaveChangesAsync(cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         return Result.Success();
     }

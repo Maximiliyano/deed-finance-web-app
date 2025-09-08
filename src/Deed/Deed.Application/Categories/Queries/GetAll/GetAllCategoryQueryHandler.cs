@@ -18,7 +18,7 @@ internal sealed class GetAllCategoryQueryHandler(
     {
         if (!memoryCache.TryGetValue(nameof(Categories), out IEnumerable<CategoryResponse> cachedCategories))
         {
-            var categories = (await repository.GetAllAsync(query.Type)).ToResponses();
+            var categories = (await repository.GetAllAsync(query.Type).ConfigureAwait(false)).ToResponses();
 
             memoryCache.Set<IEnumerable<CategoryResponse>>(nameof(Categories), categories, TimeSpan.FromHours(settings.Value.CategoriesTimespanInHours));
 

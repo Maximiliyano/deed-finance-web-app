@@ -17,9 +17,10 @@ internal sealed class CreateCapitalCommandHandler(
 
         repository.Create(capital);
 
-        await unitOfWork.SaveChangesAsync(cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
-        Log.Information("Capital - {0}, was successfully created", capital.Id);
+        Log.Information("Capital - {0} created", capital.Id);
+
         return Result.Success(capital.Id);
     }
 }

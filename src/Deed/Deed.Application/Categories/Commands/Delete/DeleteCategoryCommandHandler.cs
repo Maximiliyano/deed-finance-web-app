@@ -13,7 +13,7 @@ internal sealed class DeleteCategoryCommandHandler(
 {
     public async Task<Result> Handle(DeleteCategoryCommand command, CancellationToken cancellationToken)
     {
-        var category = await repository.GetAsync(new CategoryByIdSpecification(command.Id));
+        var category = await repository.GetAsync(new CategoryByIdSpecification(command.Id)).ConfigureAwait(false);
 
         if (category is null)
         {
@@ -22,7 +22,7 @@ internal sealed class DeleteCategoryCommandHandler(
 
         repository.Delete(category);
 
-        await unitOfWork.SaveChangesAsync(cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         return Result.Success();
     }
