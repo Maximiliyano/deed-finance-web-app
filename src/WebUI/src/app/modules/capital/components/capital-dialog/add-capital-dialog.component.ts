@@ -41,6 +41,7 @@ export class AddCapitalDialogComponent implements OnInit, OnDestroy {
       Balance: new FormControl(0, [Validators.required, Validators.min(0)]),
       Currency: new FormControl(CurrencyType.UAH, [Validators.required]),
       IncludeInTotal: new FormControl(true, [Validators.required]),
+      OnlyForSavings: new FormControl(false)
     });
   }
 
@@ -65,7 +66,12 @@ export class AddCapitalDialogComponent implements OnInit, OnDestroy {
         label: 'Include in Total balance',
         controlName: 'IncludeInTotal',
         input: { type: 'checkbox' }
-      }
+      },
+      {
+        label: 'Only for savings',
+        controlName: 'OnlyForSavings',
+        input: { type: 'checkbox' }
+      },
     ];
   }
 
@@ -79,7 +85,8 @@ export class AddCapitalDialogComponent implements OnInit, OnDestroy {
       name: this.form.value.Name,
       balance: Number(this.form.value.Balance),
       currency: Number(this.form.value.Currency),
-      includeInTotal: this.form.value.IncludeInTotal
+      includeInTotal: this.form.value.IncludeInTotal,
+      onlyForSavings: this.form.value.OnlyForSavings
     };
 
     this.submitted.emit(request);

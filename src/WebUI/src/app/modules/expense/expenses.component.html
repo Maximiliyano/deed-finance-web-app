@@ -1,6 +1,6 @@
 <app-layout title="Expenses">
   <div class="flex justify-center gap-3"> <!-- actions -->
-    <button (click)="toggleCreateDialog()" class="border rounded p-1 bg-blue-100">
+    <button (click)="toggleCreateDialog()" class="border rounded px-2 py-1 bg-blue-100">
       <app-icon name="fa-circle-plus"></app-icon>
       New
     </button>
@@ -55,6 +55,9 @@
           <span>{{ e.purpose }}</span>
           <span>{{ e.amount | currencySymbol: capitalCurrency }}</span>
           <span>{{ e.paymentDate | date: 'shortDate' }}</span>
+          <button (click)="deleteExpense(e.id, expenseCategory.categoryId)">
+            Remove
+          </button>
         </div>
       </div>
     </div>

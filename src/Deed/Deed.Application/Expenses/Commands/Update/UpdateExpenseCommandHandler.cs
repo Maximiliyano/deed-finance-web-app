@@ -24,6 +24,11 @@ internal sealed class UpdateExpenseCommandHandler(
             return Result.Failure(DomainErrors.General.NotFound(nameof(expense)));
         }
 
+        if (expense.Capital.OnlyForSavings)
+        {
+            return Result.Failure(DomainErrors.Capital.ForSavingsOnly);
+        }
+
         if (command.Amount is not null)
         {
             var difference = expense.Amount - command.Amount.Value;

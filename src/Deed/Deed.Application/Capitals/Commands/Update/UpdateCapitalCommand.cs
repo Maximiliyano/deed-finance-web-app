@@ -8,5 +8,6 @@ public sealed record UpdateCapitalCommand(
     string? Name = null,
     float? Balance = null,
     CurrencyType? Currency = null,
-    bool? IncludeInTotal = null)
-    : ICommand;
+    bool? IncludeInTotal = null,
+    bool? OnlyForSavings = null
+) : ICommand;

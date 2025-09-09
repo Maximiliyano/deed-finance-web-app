@@ -14,6 +14,7 @@ internal static class CapitalExtensions
             capital.Balance,
             capital.Currency.ToString(),
             capital.IncludeInTotal,
+            capital.OnlyForSavings,
             capital.TotalIncome,
             capital.TotalExpense,
             capital.TotalTransferIn,
@@ -29,6 +30,7 @@ internal static class CapitalExtensions
             Name = command.Name.Trim(),
             Balance = command.Balance,
             Currency = command.Currency,
-            IncludeInTotal = command.IncludeInTotal
+            IncludeInTotal = command.IncludeInTotal,
+            OnlyForSavings = command.OnlyForSavings,
         };
 }

@@ -15,8 +15,8 @@ namespace Deed.Application.Capitals.Specifications;
 
 internal sealed class CapitalsByQueryParamsSpecification : BaseSpecification<Capital>
 {
-    public CapitalsByQueryParamsSpecification(string? searchTerm, string? sortBy, string? sortDirection)
-        : base(!string.IsNullOrEmpty(searchTerm) ? c => EF.Functions.Like(c.Name, $"%{searchTerm}%") : null)
+    public CapitalsByQueryParamsSpecification(string? searchTerm, string? sortBy, string? sortDirection, string? filterBy)
+        : base(GetFilterProperties(filterBy, searchTerm))
     {
         var keySelector = GetSortProperties(sortBy);
 
@@ -31,9 +31,23 @@ internal sealed class CapitalsByQueryParamsSpecification : BaseSpecification<Cap
         }
     }
 
+    private static Expression<Func<Capital, bool>>? GetFilterProperties(string? filterBy, string? searchTerm)
+    {
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            return c => EF.Functions.Like(c.Name, $"%{searchTerm}%");
+        }
+
+        return filterBy switch
+        {
+            FilterKeysConstants.OnlyForSavings => c => !c.OnlyForSavings,
+            _ => null
+        };
+    }
+
     private static Expression<Func<Capital, object>> GetSortProperties(string? sortBy)
     {
-        return sortBy?.ToLower(CultureInfo.CurrentCulture) switch
+        return sortBy switch
         {
             SortKeysConstants.Name => c => c.Name,
             SortKeysConstants.Balance => c => c.Balance,

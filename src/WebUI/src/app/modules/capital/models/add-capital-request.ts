@@ -4,5 +4,6 @@ export interface AddCapitalRequest {
     name: string,
     balance: number,
     currency: CurrencyType,
-    includeInTotal: boolean
+    includeInTotal: boolean,
+    onlyForSavings: boolean,
 }

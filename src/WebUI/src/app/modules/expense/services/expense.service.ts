@@ -2,7 +2,6 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../../environments/environment.development';
-import { ExpenseResponse } from '../models/expense-response';
 import { CreateExpenseRequest } from '../models/create-expense-request';
 import { ExpenseCategoryResponse } from '../models/expense-category-response';
 
@@ -26,5 +25,9 @@ export class ExpenseService {
 
   create(request: CreateExpenseRequest): Observable<number> {
     return this.http.post<number>(this.baseUrl, request);
+  }
+
+  delete(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/${id}`);
   }
 }

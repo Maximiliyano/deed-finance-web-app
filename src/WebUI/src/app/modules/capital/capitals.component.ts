@@ -15,7 +15,6 @@ import { animate, style, transition, trigger } from '@angular/animations';
 import { CurrencyType } from '../../core/types/currency-type';
 import { getCurrencies } from '../../shared/components/currency/functions/get-currencies.component';
 import { UpdateCapitalRequest } from './models/update-capital-request';
-import { stringToCurrencyEnum } from '../../shared/components/currency/functions/string-to-currency-enum';
 import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 
 @Component({
@@ -187,6 +186,7 @@ export class CapitalsComponent implements OnInit, OnDestroy {
       capital.balance = request.balance ?? capital.balance;
       capital.currency = request.currency ? CurrencyType[request.currency] : capital.currency;
       capital.includeInTotal = request.includeInTotal ?? capital.includeInTotal;
+      capital.onlyForSavings = request.onlyForSavings ?? capital.onlyForSavings;
 
       this.popupMessageService.success(`${capital.name} was successfully updated.`);
     } else {
@@ -207,10 +207,15 @@ export class CapitalsComponent implements OnInit, OnDestroy {
           this.capitalService.create(request)
             .pipe(takeUntil(this.unsubcribe$))
             .subscribe({
-              next: (id) => this.addCapitalToTheList(id, request)
+              next: (id) => {
+                this.addCapitalToTheList(id, request);
+                this.dialogService.close();
+              }
             });
         }
-        this.dialogService.close();
+        else {
+          this.dialogService.close();
+        }
       }
     });
   }
@@ -222,6 +227,7 @@ export class CapitalsComponent implements OnInit, OnDestroy {
       balance: Number(request.balance),
       currency: CurrencyType[request.currency],
       includeInTotal: request.includeInTotal,
+      onlyForSavings: request.onlyForSavings,
       totalIncome: 0,
       totalExpense: 0,
       totalTransferIn: 0,
@@ -232,7 +238,7 @@ export class CapitalsComponent implements OnInit, OnDestroy {
     this.popupMessageService.success(`${request.name} successfully added.`);
   };
 
-  totalCapitalAmount(): number {
+  get totalCapitalBalance(): number {
     return this.capitals?.reduce((accumulator, capital) => {
       if (!capital.includeInTotal) return accumulator;
 
@@ -272,6 +278,7 @@ export class CapitalsComponent implements OnInit, OnDestroy {
         balance: null,
         currency: null,
         includeInTotal: !capital.includeInTotal,
+        onlyForSavings: null
       };
 
       this.capitalService
@@ -301,9 +308,11 @@ export class CapitalsComponent implements OnInit, OnDestroy {
               next: () => {
                 this.capitals = this.capitals.filter(x => x.id !== id);
                 this.popupMessageService.success("The capital was successful removed.");
+                this.dialogService.close();
               }});
+        } else {
+          this.dialogService.close();
         }
-        this.dialogService.close();
       }
     })
   }

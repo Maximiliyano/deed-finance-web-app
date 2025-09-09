@@ -47,7 +47,9 @@ namespace Deed.Infrastructure.Persistence.Migrations
                         .HasColumnType("datetimeoffset");
 
                     b.Property<bool>("IncludeInTotal")
-                        .HasColumnType("bit");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
 
                     b.Property<bool?>("IsDeleted")
                         .HasColumnType("bit");
@@ -55,6 +57,11 @@ namespace Deed.Infrastructure.Persistence.Migrations
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
+
+                    b.Property<bool>("OnlyForSavings")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
 
                     b.Property<int>("OrderIndex")
                         .HasColumnType("int");
@@ -89,6 +96,7 @@ namespace Deed.Infrastructure.Persistence.Migrations
                             Currency = "UAH",
                             IncludeInTotal = true,
                             Name = "Cash",
+                            OnlyForSavings = false,
                             OrderIndex = 0
                         },
                         new
@@ -100,6 +108,7 @@ namespace Deed.Infrastructure.Persistence.Migrations
                             Currency = "UAH",
                             IncludeInTotal = true,
                             Name = "Bank",
+                            OnlyForSavings = false,
                             OrderIndex = 1
                         },
                         new
@@ -111,6 +120,7 @@ namespace Deed.Infrastructure.Persistence.Migrations
                             Currency = "USD",
                             IncludeInTotal = true,
                             Name = "Investments",
+                            OnlyForSavings = false,
                             OrderIndex = 2
                         },
                         new
@@ -122,6 +132,7 @@ namespace Deed.Infrastructure.Persistence.Migrations
                             Currency = "USD",
                             IncludeInTotal = true,
                             Name = "Savings",
+                            OnlyForSavings = false,
                             OrderIndex = 3
                         });
                 });
@@ -383,7 +394,7 @@ namespace Deed.Infrastructure.Persistence.Migrations
                         {
                             Id = 1,
                             Buy = 44.63f,
-                            CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 8, 16, 30, 35, 833, DateTimeKind.Unspecified).AddTicks(2601), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 9, 8, 40, 32, 225, DateTimeKind.Unspecified).AddTicks(167), new TimeSpan(0, 0, 0, 0, 0)),
                             CreatedBy = 0,
                             NationalCurrencyCode = "UAH",
                             Sale = 45.45455f,
@@ -393,7 +404,7 @@ namespace Deed.Infrastructure.Persistence.Migrations
                         {
                             Id = 2,
                             Buy = 41.2f,
-                            CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 8, 16, 30, 35, 833, DateTimeKind.Unspecified).AddTicks(2601), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 9, 8, 40, 32, 225, DateTimeKind.Unspecified).AddTicks(167), new TimeSpan(0, 0, 0, 0, 0)),
                             CreatedBy = 0,
                             NationalCurrencyCode = "UAH",
                             Sale = 34f,
@@ -403,7 +414,7 @@ namespace Deed.Infrastructure.Persistence.Migrations
                         {
                             Id = 3,
                             Buy = 43f,
-                            CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 8, 16, 30, 35, 833, DateTimeKind.Unspecified).AddTicks(2601), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 9, 8, 40, 32, 225, DateTimeKind.Unspecified).AddTicks(167), new TimeSpan(0, 0, 0, 0, 0)),
                             CreatedBy = 0,
                             NationalCurrencyCode = "UAH",
                             Sale = 43f,
@@ -413,7 +424,7 @@ namespace Deed.Infrastructure.Persistence.Migrations
                         {
                             Id = 4,
                             Buy = 43f,
-                            CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 8, 16, 30, 35, 833, DateTimeKind.Unspecified).AddTicks(2601), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 9, 8, 40, 32, 225, DateTimeKind.Unspecified).AddTicks(167), new TimeSpan(0, 0, 0, 0, 0)),
                             CreatedBy = 0,
                             NationalCurrencyCode = "USD",
                             Sale = 43f,
@@ -423,7 +434,7 @@ namespace Deed.Infrastructure.Persistence.Migrations
                         {
                             Id = 5,
                             Buy = 32f,
-                            CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 8, 16, 30, 35, 833, DateTimeKind.Unspecified).AddTicks(2601), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 9, 8, 40, 32, 225, DateTimeKind.Unspecified).AddTicks(167), new TimeSpan(0, 0, 0, 0, 0)),
                             CreatedBy = 0,
                             NationalCurrencyCode = "USD",
                             Sale = 32f,
@@ -433,7 +444,7 @@ namespace Deed.Infrastructure.Persistence.Migrations
                         {
                             Id = 6,
                             Buy = 41f,
-                            CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 8, 16, 30, 35, 833, DateTimeKind.Unspecified).AddTicks(2601), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 9, 8, 40, 32, 225, DateTimeKind.Unspecified).AddTicks(167), new TimeSpan(0, 0, 0, 0, 0)),
                             CreatedBy = 0,
                             NationalCurrencyCode = "USD",
                             Sale = 43f,
@@ -443,7 +454,7 @@ namespace Deed.Infrastructure.Persistence.Migrations
                         {
                             Id = 7,
                             Buy = 41f,
-                            CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 8, 16, 30, 35, 833, DateTimeKind.Unspecified).AddTicks(2601), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 9, 8, 40, 32, 225, DateTimeKind.Unspecified).AddTicks(167), new TimeSpan(0, 0, 0, 0, 0)),
                             CreatedBy = 0,
                             NationalCurrencyCode = "EUR",
                             Sale = 40f,
@@ -453,7 +464,7 @@ namespace Deed.Infrastructure.Persistence.Migrations
                         {
                             Id = 8,
                             Buy = 39f,
-                            CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 8, 16, 30, 35, 833, DateTimeKind.Unspecified).AddTicks(2601), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 9, 8, 40, 32, 225, DateTimeKind.Unspecified).AddTicks(167), new TimeSpan(0, 0, 0, 0, 0)),
                             CreatedBy = 0,
                             NationalCurrencyCode = "EUR",
                             Sale = 38f,
@@ -463,7 +474,7 @@ namespace Deed.Infrastructure.Persistence.Migrations
                         {
                             Id = 9,
                             Buy = 30f,
-                            CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 8, 16, 30, 35, 833, DateTimeKind.Unspecified).AddTicks(2601), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 9, 8, 40, 32, 225, DateTimeKind.Unspecified).AddTicks(167), new TimeSpan(0, 0, 0, 0, 0)),
                             CreatedBy = 0,
                             NationalCurrencyCode = "EUR",
                             Sale = 32f,
@@ -473,7 +484,7 @@ namespace Deed.Infrastructure.Persistence.Migrations
                         {
                             Id = 10,
                             Buy = 20f,
-                            CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 8, 16, 30, 35, 833, DateTimeKind.Unspecified).AddTicks(2601), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 9, 8, 40, 32, 225, DateTimeKind.Unspecified).AddTicks(167), new TimeSpan(0, 0, 0, 0, 0)),
                             CreatedBy = 0,
                             NationalCurrencyCode = "PLN",
                             Sale = 10f,
@@ -483,7 +494,7 @@ namespace Deed.Infrastructure.Persistence.Migrations
                         {
                             Id = 11,
                             Buy = 7f,
-                            CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 8, 16, 30, 35, 833, DateTimeKind.Unspecified).AddTicks(2601), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 9, 8, 40, 32, 225, DateTimeKind.Unspecified).AddTicks(167), new TimeSpan(0, 0, 0, 0, 0)),
                             CreatedBy = 0,
                             NationalCurrencyCode = "PLN",
                             Sale = 6f,
@@ -493,7 +504,7 @@ namespace Deed.Infrastructure.Persistence.Migrations
                         {
                             Id = 12,
                             Buy = 3f,
-                            CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 8, 16, 30, 35, 833, DateTimeKind.Unspecified).AddTicks(2601), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 9, 8, 40, 32, 225, DateTimeKind.Unspecified).AddTicks(167), new TimeSpan(0, 0, 0, 0, 0)),
                             CreatedBy = 0,
                             NationalCurrencyCode = "PLN",
                             Sale = 20f,

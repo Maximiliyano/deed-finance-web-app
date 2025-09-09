@@ -25,6 +25,7 @@ public sealed class UpdateExpenseCommandHandlerTests
         _handler = new UpdateExpenseCommandHandler(_dateTimeProvider, _capitalRepository, _categoryRepository, _expenseRepository, _unitOfWork);
     }
 
+    // TODO add test failure createExpenseWithCapitalForSavingsOnly
     [Theory]
     [InlineData(null, null, null)]
     [InlineData(4, null, null)]

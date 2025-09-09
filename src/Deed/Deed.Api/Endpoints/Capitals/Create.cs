@@ -13,7 +13,7 @@ internal sealed class Create : IEndpoint
     {
         app.MapPost("api/capitals", async (CreateCapitalRequest request, ISender sender, CancellationToken ct) =>
             (await sender
-                .Send(new CreateCapitalCommand(request.Name, request.Balance, request.Currency, request.IncludeInTotal), ct))
+                .Send(new CreateCapitalCommand(request.Name, request.Balance, request.Currency, request.IncludeInTotal, request.OnlyForSavings), ct))
                 .Process())
             .WithTags(nameof(Capitals));
     }

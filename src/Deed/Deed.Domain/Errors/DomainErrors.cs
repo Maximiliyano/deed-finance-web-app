@@ -17,6 +17,9 @@ public static class DomainErrors
     {
         public static Error InvalidCurrency
             => Error.BadRequest(nameof(InvalidCurrency), "The currency is invalid.");
+
+        public static Error ForSavingsOnly
+            => Error.BadRequest(nameof(ForSavingsOnly), "Capital is only for savings.");
     }
 
     public static class Exchange
