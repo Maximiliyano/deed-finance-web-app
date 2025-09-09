@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 namespace Deed.Infrastructure.Persistence;
 
 public sealed class DeedDbContext(DbContextOptions<DeedDbContext> options)
-    : IdentityDbContext<ApplicationUser>(options),
+    : DbContext(options),
         IDeedDbContext,
         IUnitOfWork
 {
