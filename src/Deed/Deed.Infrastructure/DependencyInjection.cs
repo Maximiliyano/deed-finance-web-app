@@ -22,19 +22,9 @@ public static class DependencyInjection
     {
         services.AddDbDependencies();
 
-        services.AddIdentityDependencies();
-
         services.AddRepositories();
 
         services.AddBackgroundJobs();
-
-        return services;
-    }
-
-    private static IServiceCollection AddIdentityDependencies(this IServiceCollection services)
-    {
-        services.AddIdentity<ApplicationUser, IdentityRole>()
-            .AddEntityFrameworkStores<DeedDbContext>();
 
         return services;
     }
