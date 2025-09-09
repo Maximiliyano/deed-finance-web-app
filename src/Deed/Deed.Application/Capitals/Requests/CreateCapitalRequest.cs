@@ -6,4 +6,6 @@ public sealed record CreateCapitalRequest(
     string Name,
     float Balance,
     CurrencyType Currency,
-    bool IncludeInTotal);
+    bool IncludeInTotal,
+    bool OnlyForSavings
+);

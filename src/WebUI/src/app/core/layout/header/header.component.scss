@@ -90,11 +90,10 @@
         }
 
         .more-btn {
-          background-color: #ccccccb0;
-          transition: 0.3s background-color ease-in;
+          transition: 0.3s background-color ease-out;
 
           &:hover {
-            background-color: #ccc;
+            background-color: #ccccccb0;
           }
         }
       }

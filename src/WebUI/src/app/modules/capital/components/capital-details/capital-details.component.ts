@@ -49,7 +49,8 @@ export class CapitalDetailsComponent implements OnInit, OnDestroy {
       Name: new FormControl(this.capital.name, [Validators.required, Validators.maxLength(32)]),
       Balance: new FormControl(this.capital.balance, Validators.required),
       Currency: new FormControl(stringToCurrencyEnum(this.capital.currency), Validators.required),
-      IncludeInTotal: new FormControl(this.capital.includeInTotal, Validators.required)
+      IncludeInTotal: new FormControl(this.capital.includeInTotal, Validators.required),
+      OnlyForSavings: new FormControl(this.capital.onlyForSavings)
     });
   }
 
@@ -65,7 +66,8 @@ export class CapitalDetailsComponent implements OnInit, OnDestroy {
             formValue.Name == this.capital.name &&
             formValue.Balance == capitalBalance &&
             formValue.Currency == capitalCurrency &&
-            formValue.IncludeInTotal == this.capital.includeInTotal
+            formValue.IncludeInTotal == this.capital.includeInTotal &&
+            formValue.OnlyForSavings == this.capital.onlyForSavings
           );
 
           this.isFormModified = !isFormEqualToModel;
@@ -101,6 +103,13 @@ export class CapitalDetailsComponent implements OnInit, OnDestroy {
       {
         label: 'Include in total',
         controlName: 'IncludeInTotal',
+        input: {
+          type: 'checkbox'
+        }
+      },
+      {
+        label: 'Only For Savings',
+        controlName: 'OnlyForSavings',
         input: {
           type: 'checkbox'
         }
@@ -144,6 +153,7 @@ export class CapitalDetailsComponent implements OnInit, OnDestroy {
       balance: this.capital.balance === updatedCapital.Balance ? null : updatedCapital.Balance,
       currency: capitalCurrency === updatedCurrency ? null : updatedCurrency,
       includeInTotal: this.capital.includeInTotal === updatedCapital.IncludeInTotal ? null : updatedCapital.IncludeInTotal,
+      onlyForSavings: this.capital.onlyForSavings === updatedCapital.OnlyForSavings ? null : updatedCapital.OnlyForSavings
     };
 
     this.submitted.emit(request);

@@ -22,6 +22,11 @@ internal sealed class CreateExpenseCommandHandler(
             return Result.Failure<int>(DomainErrors.General.NotFound(nameof(capital)));
         }
 
+        if (capital.OnlyForSavings)
+        {
+            return Result.Failure<int>(DomainErrors.Capital.ForSavingsOnly);
+        }
+
         var expense = command.ToEntity();
 
         capital.Balance -= expense.Amount;

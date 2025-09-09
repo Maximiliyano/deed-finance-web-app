@@ -22,6 +22,7 @@ public sealed class CreateExpenseCommandHandlerTests
         _handler = new CreateExpenseCommandHandler(_capitalRepositoryMock, _expenseRepositoryMock, _unitOfWorkMock);
     }
 
+    // TODO add test failure createExpenseWithCapitalForSavingsOnly
     [Fact]
     public async Task Handle_CreateExpense_ShouldReturnsId()
     {

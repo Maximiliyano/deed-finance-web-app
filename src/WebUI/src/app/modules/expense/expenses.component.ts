@@ -12,6 +12,9 @@ import { CategoryType } from '../../core/types/category-type';
 import { CreateExpenseRequest } from './models/create-expense-request';
 import { ExpenseResponse } from './models/expense-response';
 import { CategoriesDialogComponent } from './components/categories-dialog-component/categories-dialog-component';
+import { ConfirmDialogComponent } from '../../shared/components/dialogs/confirm-dialog/confirm-dialog.component';
+import { PopupMessageService } from '../../shared/services/popup-message.service';
+import { ActivatedRoute, Router } from '@angular/router';
 
 @Component({
   selector: 'app-expenses',
@@ -31,10 +34,13 @@ export class ExpensesComponent implements OnInit, OnDestroy {
   private $unsubscribe = new Subject<void>();
 
   constructor(
+    private readonly router: Router,
+    private readonly route: ActivatedRoute,
     private readonly expenseService: ExpenseService,
     private readonly categoryService: CategoryService,
     private readonly capitalService: CapitalService,
-    private readonly dialogService: DialogService
+    private readonly dialogService: DialogService,
+    private readonly popupMessageService: PopupMessageService
   ) {}
 
   get capitalBalance(): number {
@@ -88,14 +94,38 @@ export class ExpensesComponent implements OnInit, OnDestroy {
 
   fetchCapitals(): void {
     this.capitalService
-      .getAll()
+      .getAll(undefined, undefined, undefined, 'onlyForSavings')
       .pipe(takeUntil(this.$unsubscribe))
       .subscribe({
-        next: (responses) => this.capitals = responses
+        next: (responses) => {
+          this.capitals = responses;
+          this.handleQueryParams();
+        }
       });
   }
 
+  handleQueryParams(): void {
+    this.route.queryParamMap.subscribe({
+      next: (params) => {
+        const queryCapitalId = params.get('capitalId');
+        const capital = this.capitals.find(c => c.id === Number(queryCapitalId));
+        if (capital) {
+          this.selectedCapital = capital;
+        } else {
+          this.selectedCapital = null;
+        }
+      }
+    })
+  }
+
   onCapitalChange(capital: CapitalResponse | null): void {
+    if (capital) {
+      this.router.navigate([], {
+        relativeTo: this.route,
+        queryParams: { capitalId: capital.id },
+        queryParamsHandling: 'merge'
+      })
+    }
     this.selectedCapital = capital;
     this.fetchExpenses();
   }
@@ -129,10 +159,14 @@ export class ExpensesComponent implements OnInit, OnDestroy {
           this.expenseService.create(request)
             .pipe(takeUntil(this.$unsubscribe))
             .subscribe({
-              next: (id) => this.addExpenseToList(id, request)
-            });;
+              next: (id) => {
+                this.addExpenseToList(id, request)
+                this.dialogService.close();
+              }
+            });
+        } else {
+          this.dialogService.close();
         }
-        this.dialogService.close();
       }
     });
   }
@@ -140,42 +174,96 @@ export class ExpensesComponent implements OnInit, OnDestroy {
   addExpenseToList(expenseId: number, request: CreateExpenseRequest): void {
     const existingCategoryExpense = this.expenseCategories.find(c => c.categoryId === request.categoryId);
 
+    const newExpense: ExpenseResponse = {
+      id: expenseId,
+      capitalId: request.capitalId,
+      amount: request.amount,
+      paymentDate: request.paymentDate,
+      purpose: request.purpose
+    };
+
     if (existingCategoryExpense) {
-      const newExpense: ExpenseResponse = {
-        id: expenseId,
-        amount: request.amount,
-        paymentDate: request.paymentDate,
-        purpose: request.purpose
-      };
-
       existingCategoryExpense.categorySum = existingCategoryExpense.categorySum + request.amount;
-      existingCategoryExpense.percentage = existingCategoryExpense.percentage; // TODO perform calculation
       existingCategoryExpense.expenses.push(newExpense);
-      return;
-    }
-    else {
+    } else {
       const category = this.categories.find(c => c.id === request.categoryId);
-
-      if (!category) {
-        return;
-      }
+      if (!category) return;
 
       this.expenseCategories.push({
         categoryId: request.categoryId,
         name: category.name,
         categorySum: request.amount,
-        percentage: 0, // TODO perform calculation
+        percentage: 0,
         plannedPeriodAmount: category.periodAmount,
         periodType: category.periodType,
-        expenses: [
-          {
-            id: expenseId,
-            amount: request.amount,
-            paymentDate: request.paymentDate,
-            purpose: request.purpose
-          }
-        ]
+        expenses: [newExpense]
       });
     }
+
+    const capital = this.capitals.find(c => c.id === request.capitalId);
+    if (!capital) return;
+
+    capital.balance -= newExpense.amount;
+
+    const totalSum = this.expenseCategories.reduce((sum, c) => sum + c.categorySum, 0);
+    this.expenseCategories.forEach(c => {
+        c.percentage = totalSum === 0
+            ? 0
+            : parseFloat(((c.categorySum / totalSum) * 100).toFixed(2));
+    });
+
+    this.popupMessageService.success(`Expense added`);
+  }
+
+  deleteExpense(id: number, categoryId: number): void {
+    this.dialogService.open({
+      component: ConfirmDialogComponent,
+      data: {
+        title: 'capital',
+        action: 'remove'
+      },
+      onSubmit: (result) => {
+        if (result) {
+          this.expenseService
+            .delete(id)
+            .pipe(takeUntil(this.$unsubscribe))
+            .subscribe({
+              next: () => {
+                this.removeExpenseFromList(id, categoryId);
+                this.dialogService.close();
+              }
+            });
+        } else {
+          this.dialogService.close();
+        }
+      }
+    })
+  }
+
+  removeExpenseFromList(id: number, categoryId: number): void {
+    const response = this.expenseCategories.find(e => e.categoryId === categoryId);
+
+    if (!response) {
+      return;
+    }
+
+    const expense = response.expenses.find(e => e.id === id);
+
+    if (!expense) {
+      return
+    }
+
+    const capital = this.capitals.find(c => c.id === expense.capitalId);
+    if (!capital) return;
+
+    capital.balance += expense.amount;
+    response.categorySum -= expense.amount;
+    response.expenses = response.expenses.filter(e => e.id !== id);
+
+    if (response.categorySum === 0) {
+      this.expenseCategories = this.expenseCategories.filter(e => e.categoryId !== response.categoryId);
+    }
+
+    this.popupMessageService.success('Expense deleted');
   }
 }

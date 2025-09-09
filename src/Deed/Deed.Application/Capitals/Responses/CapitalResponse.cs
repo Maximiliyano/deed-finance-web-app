@@ -6,6 +6,7 @@ public sealed record CapitalResponse(
     float Balance,
     string Currency,
     bool IncludeInTotal,
+    bool OnlyForSavings,
     float TotalIncome,
     float TotalExpense,
     float TotalTransferIn,

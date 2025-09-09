@@ -6,4 +6,5 @@ export interface UpdateCapitalRequest {
   balance: number | null;
   currency: CurrencyType | null;
   includeInTotal: boolean | null;
+  onlyForSavings: boolean | null;
 }

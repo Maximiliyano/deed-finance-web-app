@@ -11,7 +11,7 @@ internal sealed class Update : IEndpoint
     {
         app.MapPut("api/capitals/{id:int}", async (int id, UpdateCapitalRequest request, ISender sender, CancellationToken ct) =>
             (await sender
-                .Send(new UpdateCapitalCommand(id, request.Name, request.Balance, request.Currency, request.IncludeInTotal), ct))
+                .Send(new UpdateCapitalCommand(id, request.Name, request.Balance, request.Currency, request.IncludeInTotal, request.OnlyForSavings), ct))
                 .Process())
             .WithTags(nameof(Capitals));
     }

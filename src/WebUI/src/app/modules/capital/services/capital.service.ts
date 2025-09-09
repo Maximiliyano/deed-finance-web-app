@@ -24,7 +24,7 @@ export class CapitalService {
     }
   }
 
-  getAll(searchTerm?: string, sortBy?: string, sortDirection?: string): Observable<CapitalResponse[]> {
+  getAll(searchTerm?: string, sortBy?: string, sortDirection?: string, filterBy?: 'onlyForSavings'): Observable<CapitalResponse[]> {
     let params = new HttpParams();
     if (searchTerm) {
       params = params.set("searchTerm", searchTerm);
@@ -34,6 +34,9 @@ export class CapitalService {
     }
     if (sortDirection) {
       params = params.set("sortDirection", sortDirection);
+    }
+    if (filterBy) {
+      params = params.set("filterBy", filterBy);
     }
 
     return this.httpClient.get<CapitalResponse[]>(this.baseApiUrl, { params });

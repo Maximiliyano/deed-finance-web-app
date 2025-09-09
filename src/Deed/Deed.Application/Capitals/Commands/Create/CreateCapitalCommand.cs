@@ -7,5 +7,6 @@ public sealed record CreateCapitalCommand(
     string Name,
     float Balance,
     CurrencyType Currency,
-    bool IncludeInTotal)
+    bool IncludeInTotal,
+    bool OnlyForSavings)
     : ICommand<int>;

@@ -15,7 +15,6 @@ internal sealed class CapitalConfiguration : IEntityTypeConfiguration<Capital>
 
         builder.HasData(Seeder.Parse<Capital>(SeederConstants.Capitals));
 
-
         builder
             .HasIndex(c => c.Name)
             .IsUnique();
@@ -29,6 +28,14 @@ internal sealed class CapitalConfiguration : IEntityTypeConfiguration<Capital>
         builder
             .Property(c => c.Currency)
             .HasConversion<string>();
+
+        builder
+            .Property(c => c.IncludeInTotal)
+            .HasDefaultValue(true);
+
+        builder
+            .Property(c => c.OnlyForSavings)
+            .HasDefaultValue(false);
 
         builder
             .HasMany(c => c.Incomes)
@@ -45,6 +52,7 @@ internal sealed class CapitalConfiguration : IEntityTypeConfiguration<Capital>
             .WithOne(e => e.Capital)
             .HasForeignKey(e => e.CapitalId)
             .OnDelete(DeleteBehavior.Cascade);
+
 
         builder
             .Navigation(c => c.Expenses)

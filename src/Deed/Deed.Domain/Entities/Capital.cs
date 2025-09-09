@@ -23,6 +23,8 @@ public sealed class Capital
 
     public bool IncludeInTotal { get; set; }
 
+    public bool OnlyForSavings { get; set; }
+
     public int OrderIndex { get; set; }
 
     public DateTimeOffset CreatedAt { get; init; }
