@@ -32,6 +32,11 @@
             </div>
           </div>
         </ng-container>
+        <div *ngIf="exchanges.length > 3" class="exchange more-btn">
+          <button (click)="openExchangeDialog()">
+            >
+          </button>
+        </div>
       </div>
 
       <nav class="navigation">

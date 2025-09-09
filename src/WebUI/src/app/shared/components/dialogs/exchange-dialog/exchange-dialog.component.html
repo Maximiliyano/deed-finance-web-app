@@ -1,13 +1,33 @@
-<div class="exchanges">
-  <div class="exchange" *ngFor="let exchange of exchanges">
-      <div class="prices">
-          <span>{{ exchange?.buy | number: '1.2-2' }}</span>
-          <span>{{ exchange?.sale | number: '1.2-2' }}</span>
-      </div>
-      <div class="currencies">
-          <span>{{ exchange?.targetCurrency ?? 'None' }}</span>
-          <span>{{ exchange?.nationalCurrency ?? 'None' }}</span>
-      </div>
-  </div>
-  <div *ngIf="exchanges.length === 0">Nothing there.</div>
+<div class="overflow-x-auto">
+  <table class="min-w-full border border-gray-200 rounded-lg">
+    <thead class="bg-gray-100 text-gray-700 text-sm">
+      <tr>
+        <th class="px-4 py-2 text-left">Target Currency</th>
+        <th class="px-4 py-2 text-left">Buy</th>
+        <th class="px-4 py-2 text-left">National Currency</th>
+        <th class="px-4 py-2 text-left">Sale</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let exchange of exchanges" class="border-t hover:bg-gray-50">
+        <td class="px-4 py-2 font-semibold">
+          {{ exchange?.targetCurrency ?? 'None' }}
+        </td>
+        <td class="px-4 py-2 font-semibold">
+          {{ exchange?.buy | number: '1.2-2' }}
+        </td>
+        <td class="px-4 py-2 text-gray-500">
+          {{ exchange?.nationalCurrency ?? 'None' }}
+        </td>
+        <td class="px-4 py-2 text-gray-500">
+          {{ exchange?.sale | number: '1.2-2' }}
+        </td>
+      </tr>
+      <tr *ngIf="exchanges.length === 0">
+        <td colspan="4" class="px-4 py-3 text-center text-gray-500">
+          Nothing there.
+        </td>
+      </tr>
+    </tbody>
+  </table>
 </div>
