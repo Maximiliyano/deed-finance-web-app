@@ -1,4 +1,4 @@
-using Deed.Api.Infrastructure;
+using Deed.Api.Middlewares;
 using Deed.Domain.Providers;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
@@ -17,7 +17,7 @@ internal static class DependencyInjection
 
         services.AddCors();
 
-        services.AddExceptionHandler<GlobalExceptionHandler>();
+        services.AddExceptionHandler<GlobalExceptionHandlerMiiddleware>();
         services.AddProblemDetails();
 
         services.AddMemoryCache();

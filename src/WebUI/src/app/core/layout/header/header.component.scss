@@ -4,7 +4,8 @@
 .header {
   background-color: $header-background;
   border-bottom: 2px solid $header-border-color;
-  width: 100%;
+  min-width: 100%;
+  min-height: 90px;
 
   .header-container {
     .header-inner {
@@ -87,6 +88,15 @@
             color: $exchange-border-color;
           }
         }
+
+        .more-btn {
+          background-color: #ccccccb0;
+          transition: 0.3s background-color ease-in;
+
+          &:hover {
+            background-color: #ccc;
+          }
+        }
       }
 
       .navigation {
@@ -102,7 +112,7 @@
             color: rgb(34, 34, 34);
             font-weight: 500;
             font-size: 16px;
-            padding: 3px;
+            padding: 5px;
             gap: 5px;
             border-radius: 5px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);

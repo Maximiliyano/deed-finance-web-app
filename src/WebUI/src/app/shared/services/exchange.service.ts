@@ -14,30 +14,6 @@ export class ExchangeService {
   constructor(private readonly http: HttpClient) { }
 
   getAll(): Observable<Exchange[]> {
-    const cacheKey = 'exchanges';
-    const cacheTimeKey = 'exchanges_time';
-    const cacheDuration = 12 * 60 * 60 * 1000;
-
-    const cachedData = localStorage.getItem(cacheKey);
-    const cacheTime = localStorage.getItem(cacheTimeKey);
-
-    if (cachedData && cacheTime) {
-      const isExpired = (Date.now() - +cacheTime) > cacheDuration;
-
-      if (isExpired) {
-        localStorage.removeItem(cacheKey);
-        localStorage.removeItem(cacheTimeKey);
-      } else {
-        return of(JSON.parse(cachedData));
-      }
-    }
-
-  return this.http.get<Exchange[]>(this.baseApiUrl).pipe(
-    tap(exchanges => {
-      localStorage.setItem(cacheKey, JSON.stringify(exchanges));
-      localStorage.setItem(cacheTimeKey, Date.now().toString());
-    }),
-    shareReplay({ bufferSize: 1, refCount: true })
-  );
+    return this.http.get<Exchange[]>(this.baseApiUrl);
   }
 }
