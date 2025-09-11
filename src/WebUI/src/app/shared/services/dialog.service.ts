@@ -1,5 +1,4 @@
 import { Injectable, Type } from '@angular/core';
-import { FormGroup } from '@angular/forms';
 import { BehaviorSubject } from 'rxjs';
 
 export interface DialogData<T = any, R = any> {
@@ -10,14 +9,21 @@ export interface DialogData<T = any, R = any> {
 
 @Injectable({ providedIn: 'root' })
 export class DialogService {
-  private _dialogState = new BehaviorSubject<DialogData | null>(null);
-  dialogState$ = this._dialogState.asObservable();
+  private _dialogStack = new BehaviorSubject<DialogData[]>([]);
+  dialogStack$ = this._dialogStack.asObservable();
 
   open<T>(dialogData: DialogData<T>): void {
-    this._dialogState.next(dialogData);
+    const stack = [...this._dialogStack.value, dialogData];
+    this._dialogStack.next(stack);
   }
 
   close(): void {
-    this._dialogState.next(null);
+    const stack = [...this._dialogStack.value];
+    stack.pop();
+    this._dialogStack.next(stack);
+  }
+
+  closeAll(): void {
+    this._dialogStack.next([]);
   }
 }
