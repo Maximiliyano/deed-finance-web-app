@@ -1,31 +1,29 @@
 app = 'deed-api'
-primary_region = 'waw'
+primary_region = 'cdg'
 
 [build]
-  dockerfile = "src/Deed/Deed.Api/Dockerfile"
-  build_target = "final"
-  ignorefile = ".dockerignore"
-
-
-
+  dockerfile = 'src/Deed/Deed.Api/Dockerfile'
+  ignorefile = '.dockerignore'
+  build-target = 'final'
 
 [http_service]
   internal_port = 8080
   force_https = true
-  auto_stop_machines = false
+  auto_stop_machines = true
   auto_start_machines = true
   min_machines_running = 1
   processes = ['app']
 
 [checks]
   [checks.health_check]
-    type = "http"
     port = 8080
-    interval = "120s"
-    timeout = "5s"
-    method = "GET"
-    path = "/health"
+    type = 'http'
+    interval = '2m0s'
+    timeout = '5s'
+    method = 'GET'
+    path = '/health'
 
 [[vm]]
   memory = '1gb'
   cpu_kind = 'shared'
+  cpus = 1
