@@ -1,34 +1,31 @@
-# fly.toml app configuration file generated for deed-api on 2025-10-10T13:10:35+03:00
-#
-# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
-#
-
 app = 'deed-api'
 primary_region = 'waw'
 
 [build]
-  dockerfile = 'src/Deed/Deed.Api/Dockerfile'
-  ignorefile = '.dockerignore'
-  build-target = 'final'
+  dockerfile = "src/Deed/Deed.Api/Dockerfile"
+  build_target = "final"
+  ignorefile = ".dockerignore"
+
+
+
 
 [http_service]
   internal_port = 8080
   force_https = true
-  auto_stop_machines = 'stop'
+  auto_stop_machines = false
   auto_start_machines = true
   min_machines_running = 1
   processes = ['app']
 
 [checks]
   [checks.health_check]
+    type = "http"
     port = 8080
-    type = 'http'
-    interval = '2m0s'
-    timeout = '5s'
-    method = 'GET'
-    path = '/health'
+    interval = "120s"
+    timeout = "5s"
+    method = "GET"
+    path = "/health"
 
 [[vm]]
   memory = '1gb'
   cpu_kind = 'shared'
-  cpus = 1
