@@ -14,5 +14,7 @@ export interface FormField {
   dateTimePicker?: {
     restrictFuture?: boolean
   },
-  textArea?: {}
+  textArea?: {
+    placeholder?: string;
+  }
 }

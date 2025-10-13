@@ -1,11 +1,14 @@
+@use "sass:map";
+@use './variables.scss' as vars;
+
 @mixin respond-to($breakpoint) {
-    @if map-has-key($breakpoints, $breakpoint) {
-        @media (min-width: map-get($breakpoints, $breakpoint)) {
+    @if map.has-key(vars.$breakpoints, $breakpoint) {
+        @media (min-width: map.get(vars.$breakpoints, $breakpoint)) {
             @content;
         }
     }
 
     @else {
-        @warn "Unfortunately, no value could be retrieved from `#{$breakpoint}`. Please, check your breakpoints map.";
+        @warn "No breakpoint named `#{$breakpoint}` found.";
     }
 }

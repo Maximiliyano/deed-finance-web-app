@@ -249,7 +249,7 @@ export class CapitalsComponent implements OnInit, OnDestroy {
 
     this.capitals.push(response);
     this.popupMessageService.success(`${request.name} successfully added.`);
-  };
+  }
 
   get totalCapitalBalance(): number {
     return this.capitals?.reduce((accumulator, capital) => {

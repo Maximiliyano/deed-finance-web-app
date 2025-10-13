@@ -145,8 +145,8 @@ export class CapitalDetailsComponent implements OnInit, OnDestroy {
 
     const updatedCapital = this.form.value;
 
-    let capitalCurrency = stringToCurrencyEnum(this.capital.currency);
-    let updatedCurrency = !isNaN(updatedCapital.Currency) ? Number(updatedCapital.Currency) : capitalCurrency;
+    const capitalCurrency = stringToCurrencyEnum(this.capital.currency);
+    const updatedCurrency = !isNaN(updatedCapital.Currency) ? Number(updatedCapital.Currency) : capitalCurrency;
 
     const request: UpdateCapitalRequest = {
       id: this.capital.id,
