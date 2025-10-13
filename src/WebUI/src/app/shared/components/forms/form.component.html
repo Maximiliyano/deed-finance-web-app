@@ -39,7 +39,7 @@
       <select
         *ngIf="field.select"
         [formControlName]="field.controlName"
-        class="w-full border rounded px-3 py-2 {{ field.select.options.length === 0 ? 'cursor-not-allowed text-gray-300' : '' }}"
+        class="w-full cursor-pointer border rounded px-3 py-2 {{ field.select.options.length === 0 ? 'cursor-not-allowed text-gray-300' : '' }}"
       >
         <option *ngIf="field.select.optionCaption" value="">{{ field.select.optionCaption }}</option>
         <option *ngFor="let option of field.select.options" [value]="option.value">

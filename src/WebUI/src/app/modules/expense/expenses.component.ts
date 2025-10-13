@@ -15,6 +15,9 @@ import { CategoriesDialogComponent } from './components/categories-dialog-compon
 import { ConfirmDialogComponent } from '../../shared/components/dialogs/confirm-dialog/confirm-dialog.component';
 import { PopupMessageService } from '../../shared/services/popup-message.service';
 import { ActivatedRoute, Router } from '@angular/router';
+import { DialogState } from '../../shared/components/dialogs/dialog.state';
+import { AddCategoryDialog } from './components/add-category-dialog/add-category-dialog';
+import { SelectOptionModel } from '../../shared/components/forms/models/select-option-model';
 
 @Component({
   selector: 'app-expenses',
@@ -42,6 +45,14 @@ export class ExpensesComponent implements OnInit, OnDestroy {
     private readonly dialogService: DialogService,
     private readonly popupMessageService: PopupMessageService
   ) {}
+
+  get capitalOptions(): SelectOptionModel[] {
+    return this.capitals.map(x => { return { key: x.name, value: x.id } })
+  }
+
+  get categoryOptions(): SelectOptionModel[] {
+    return this.categories.map(x => { return { key: x.name, value: x.id } });
+  }
 
   get capitalBalance(): number {
     return this.selectedCapital?.balance ?? this.capitals.reduce((sum, capital) => sum + capital.balance, 0);
@@ -72,6 +83,10 @@ export class ExpensesComponent implements OnInit, OnDestroy {
 
   isPlannedPeriodShown(expenseCategory: ExpenseCategoryResponse): boolean {
     return expenseCategory.plannedPeriodAmount === 0.0 || expenseCategory.periodType === 'None';
+  }
+
+  isCategorySumGreaterPlannedPeriod(expenseCategory: ExpenseCategoryResponse): boolean {
+    return expenseCategory.plannedPeriodAmount - expenseCategory.categorySum > 0;
   }
 
   fetchCategories(): void {
@@ -143,16 +158,69 @@ export class ExpensesComponent implements OnInit, OnDestroy {
       component: CategoriesDialogComponent,
       data: {
         categories: this.categories
+      },
+      onSubmit: (state: DialogState) => {
+        switch(state.action) {
+          case 'create':
+            this.dialogService.open({
+              component: AddCategoryDialog,
+              onSubmit: () => {
+                this.dialogService.close();
+              }
+            });
+            break;
+          case 'update':
+            this.categoryService.updateRange(state.data)
+              .pipe(takeUntil(this.$unsubscribe))
+              .subscribe({
+                next: () => {
+                  this.popupMessageService.success('Categories successfully updated.');
+                  this.dialogService.close();
+                }
+              });
+            break;
+          case 'delete':
+            this.dialogService.open({
+              component: ConfirmDialogComponent,
+              data: {
+                title: 'category',
+                action: 'delete'
+              },
+              onSubmit: (confirmed: boolean) => {
+                if (confirmed) {
+                  this.categoryService
+                    .delete(state.data)
+                    .pipe(takeUntil(this.$unsubscribe))
+                    .subscribe({
+                      next: () => this.removeCategoryFromList(state.data)
+                    });
+                }
+                else {
+                  this.dialogService.close();
+                }
+              }
+            });
+            break;
+          default: this.dialogService.close();
+        }
       }
     });
+  }
+
+  removeCategoryFromList(id: number): void {
+    this.categories = this.categories.filter(c => c.id !== id);
+    this.popupMessageService.success('Category removed');
+    this.dialogService.close();
+    this.dialogService.close();
+    this.toggleCategories();
   }
 
   toggleCreateDialog(): void {
     this.dialogService.open({
       component: ExpenseDialogComponent,
       data: {
-        capitalsOptions: this.capitals.map(x => { return { key: x.name, value: x.id } }),
-        categoryOptions: this.categories.map(x => { return { key: x.name, value: x.id } })
+        capitalsOptions: this.capitalOptions,
+        categoryOptions: this.categoryOptions,
       },
       onSubmit: (request: CreateExpenseRequest) => {
         if (request) {
@@ -265,5 +333,13 @@ export class ExpensesComponent implements OnInit, OnDestroy {
     }
 
     this.popupMessageService.success('Expense deleted');
+  }
+
+  trackByCategory(index: number, category: any) {
+    return category.categoryId; // stable key
+  }
+
+  trackByExpense(index: number, expense: any) {
+    return expense.id; // stable key
   }
 }

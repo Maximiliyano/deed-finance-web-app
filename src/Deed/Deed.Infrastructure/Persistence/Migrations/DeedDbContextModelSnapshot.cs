@@ -120,7 +120,7 @@ namespace Deed.Infrastructure.Persistence.Migrations
                             Currency = "USD",
                             IncludeInTotal = true,
                             Name = "Investments",
-                            OnlyForSavings = false,
+                            OnlyForSavings = true,
                             OrderIndex = 2
                         },
                         new
@@ -132,7 +132,7 @@ namespace Deed.Infrastructure.Persistence.Migrations
                             Currency = "USD",
                             IncludeInTotal = true,
                             Name = "Savings",
-                            OnlyForSavings = false,
+                            OnlyForSavings = true,
                             OrderIndex = 3
                         });
                 });
@@ -388,128 +388,6 @@ namespace Deed.Infrastructure.Persistence.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Exchanges", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Buy = 44.63f,
-                            CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 9, 8, 40, 32, 225, DateTimeKind.Unspecified).AddTicks(167), new TimeSpan(0, 0, 0, 0, 0)),
-                            CreatedBy = 0,
-                            NationalCurrencyCode = "UAH",
-                            Sale = 45.45455f,
-                            TargetCurrencyCode = "EUR"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Buy = 41.2f,
-                            CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 9, 8, 40, 32, 225, DateTimeKind.Unspecified).AddTicks(167), new TimeSpan(0, 0, 0, 0, 0)),
-                            CreatedBy = 0,
-                            NationalCurrencyCode = "UAH",
-                            Sale = 34f,
-                            TargetCurrencyCode = "USD"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            Buy = 43f,
-                            CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 9, 8, 40, 32, 225, DateTimeKind.Unspecified).AddTicks(167), new TimeSpan(0, 0, 0, 0, 0)),
-                            CreatedBy = 0,
-                            NationalCurrencyCode = "UAH",
-                            Sale = 43f,
-                            TargetCurrencyCode = "PLN"
-                        },
-                        new
-                        {
-                            Id = 4,
-                            Buy = 43f,
-                            CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 9, 8, 40, 32, 225, DateTimeKind.Unspecified).AddTicks(167), new TimeSpan(0, 0, 0, 0, 0)),
-                            CreatedBy = 0,
-                            NationalCurrencyCode = "USD",
-                            Sale = 43f,
-                            TargetCurrencyCode = "UAH"
-                        },
-                        new
-                        {
-                            Id = 5,
-                            Buy = 32f,
-                            CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 9, 8, 40, 32, 225, DateTimeKind.Unspecified).AddTicks(167), new TimeSpan(0, 0, 0, 0, 0)),
-                            CreatedBy = 0,
-                            NationalCurrencyCode = "USD",
-                            Sale = 32f,
-                            TargetCurrencyCode = "EUR"
-                        },
-                        new
-                        {
-                            Id = 6,
-                            Buy = 41f,
-                            CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 9, 8, 40, 32, 225, DateTimeKind.Unspecified).AddTicks(167), new TimeSpan(0, 0, 0, 0, 0)),
-                            CreatedBy = 0,
-                            NationalCurrencyCode = "USD",
-                            Sale = 43f,
-                            TargetCurrencyCode = "PLN"
-                        },
-                        new
-                        {
-                            Id = 7,
-                            Buy = 41f,
-                            CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 9, 8, 40, 32, 225, DateTimeKind.Unspecified).AddTicks(167), new TimeSpan(0, 0, 0, 0, 0)),
-                            CreatedBy = 0,
-                            NationalCurrencyCode = "EUR",
-                            Sale = 40f,
-                            TargetCurrencyCode = "USD"
-                        },
-                        new
-                        {
-                            Id = 8,
-                            Buy = 39f,
-                            CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 9, 8, 40, 32, 225, DateTimeKind.Unspecified).AddTicks(167), new TimeSpan(0, 0, 0, 0, 0)),
-                            CreatedBy = 0,
-                            NationalCurrencyCode = "EUR",
-                            Sale = 38f,
-                            TargetCurrencyCode = "UAH"
-                        },
-                        new
-                        {
-                            Id = 9,
-                            Buy = 30f,
-                            CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 9, 8, 40, 32, 225, DateTimeKind.Unspecified).AddTicks(167), new TimeSpan(0, 0, 0, 0, 0)),
-                            CreatedBy = 0,
-                            NationalCurrencyCode = "EUR",
-                            Sale = 32f,
-                            TargetCurrencyCode = "PLN"
-                        },
-                        new
-                        {
-                            Id = 10,
-                            Buy = 20f,
-                            CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 9, 8, 40, 32, 225, DateTimeKind.Unspecified).AddTicks(167), new TimeSpan(0, 0, 0, 0, 0)),
-                            CreatedBy = 0,
-                            NationalCurrencyCode = "PLN",
-                            Sale = 10f,
-                            TargetCurrencyCode = "UAH"
-                        },
-                        new
-                        {
-                            Id = 11,
-                            Buy = 7f,
-                            CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 9, 8, 40, 32, 225, DateTimeKind.Unspecified).AddTicks(167), new TimeSpan(0, 0, 0, 0, 0)),
-                            CreatedBy = 0,
-                            NationalCurrencyCode = "PLN",
-                            Sale = 6f,
-                            TargetCurrencyCode = "USD"
-                        },
-                        new
-                        {
-                            Id = 12,
-                            Buy = 3f,
-                            CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 9, 8, 40, 32, 225, DateTimeKind.Unspecified).AddTicks(167), new TimeSpan(0, 0, 0, 0, 0)),
-                            CreatedBy = 0,
-                            NationalCurrencyCode = "PLN",
-                            Sale = 20f,
-                            TargetCurrencyCode = "EUR"
-                        });
                 });
 
             modelBuilder.Entity("Deed.Domain.Entities.Expense", b =>

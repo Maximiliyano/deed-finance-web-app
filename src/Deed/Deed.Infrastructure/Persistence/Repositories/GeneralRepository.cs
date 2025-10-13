@@ -15,11 +15,13 @@ internal abstract class GeneralRepository<TEntity>(IDeedDbContext context)
     public async Task<IEnumerable<TEntity>> GetAllAsync() =>
         await DbSet
             .AsNoTracking()
+            .AsSplitQuery()
             .ToListAsync();
 
     public async Task<IEnumerable<TEntity>> GetAllAsync(ISpecification<TEntity> specification) =>
         await ApplySpecification(specification)
             .AsNoTracking()
+            .AsSplitQuery()
             .ToListAsync();
 
     public async Task<TEntity?> GetAsync(ISpecification<TEntity> specification) =>
@@ -35,7 +37,7 @@ internal abstract class GeneralRepository<TEntity>(IDeedDbContext context)
     public void Update(TEntity entity) =>
         DbSet.Update(entity);
 
-    protected void UpdateRange(IEnumerable<TEntity> entities) =>
+    public void UpdateRange(IEnumerable<TEntity> entities) =>
         DbSet.UpdateRange(entities);
 
     public void Delete(TEntity entity) =>

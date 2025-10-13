@@ -65,7 +65,7 @@ public sealed class UpsertLatestExchangeJob(
             await unitOfWork.SaveChangesAsync(context.CancellationToken);
         }
 
-        Log.Information("{Count} exchanges created.\n{Count2} exchanges updated.", entitiesToCreate.Count, entitiesToUpdate.Count);
+        Log.Information("{Count} exchanges created. {Count2} exchanges updated.", entitiesToCreate.Count, entitiesToUpdate.Count);
 
         Log.Information("Save latest exchange background job finished.");
         

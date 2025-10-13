@@ -21,9 +21,9 @@ public sealed class Category : Entity, IAuditableEntity, ISoftDeletableEntity
 
     public PerPeriodType Period { get; set; }
 
-    public IEnumerable<Expense>? Expenses { get; init; }
+    public ICollection<Expense> Expenses { get; init; } = [];
 
-    public IEnumerable<Income>? Incomes { get; init; }
+    public ICollection<Income> Incomes { get; init; } = [];
 
     public DateTimeOffset CreatedAt { get; init; }
 

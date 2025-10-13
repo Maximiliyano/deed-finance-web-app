@@ -25,7 +25,13 @@ public sealed class ExchangeHttpService(
 
     private const string LogMessage = "Error getting currencies with reason: {Message}";
 
-    public async Task<Result<IEnumerable<Exchange>>> GetCurrencyAsync()
+    private readonly HashSet<string> AllowedCurrencies = [
+        "USD",
+        "EUR",
+        "PLN"
+    ];
+
+    public async Task<Result<IEnumerable<Exchange>>> GetCurrenciesAsync()
     {
         try
         {
@@ -51,8 +57,8 @@ public sealed class ExchangeHttpService(
                 Log.Warning(LogMessage, DomainErrors.Exchange.Serialization);
                 return Result.Failure<IEnumerable<Exchange>>(DomainErrors.Exchange.Serialization);
             }
-
             var newExchanges = exchanges.ExchangeRates
+                .Where(e => AllowedCurrencies.Contains(e.Currency))
                 .Select(x => new Exchange
                 {
                     NationalCurrencyCode = x.BaseCurrency,

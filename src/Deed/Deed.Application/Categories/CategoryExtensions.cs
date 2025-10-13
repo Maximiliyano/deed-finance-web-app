@@ -1,4 +1,6 @@
 using Deed.Application.Categories.Commands.Create;
+using Deed.Application.Categories.Commands.UpdateRange;
+using Deed.Application.Categories.Requests;
 using Deed.Application.Categories.Response;
 using Deed.Domain.Entities;
 
@@ -29,6 +31,17 @@ internal static class CategoryExtensions
             Type = command.Type,
             Period = command.Period,
             PlannedPeriodAmount = command.PlannedPeriodAmount
+        };
+    }
+
+    internal static Category ToEntity(this UpdateCategoryRequest request)
+    {
+        return new Category(request.Id)
+        {
+            Name = request.Name,
+            Type = request.Type,
+            Period = request.PeriodType,
+            PlannedPeriodAmount = request.PeriodAmount
         };
     }
 }

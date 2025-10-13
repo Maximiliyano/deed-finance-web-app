@@ -1,30 +1,21 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, EventEmitter, OnDestroy, Output } from '@angular/core';
 import { CategoryResponse } from '../../../../core/models/category-model';
-import { CategoryApiService } from '../../services/category.api.service';
-import { DialogService } from '../../../../shared/services/dialog.service';
-import { ConfirmDialogComponent } from '../../../../shared/components/dialogs/confirm-dialog/confirm-dialog.component';
-import { Subject, takeUntil } from 'rxjs';
-import { PopupMessageService } from '../../../../shared/services/popup-message.service';
+import { Subject } from 'rxjs';
+import { DialogState } from '../../../../shared/components/dialogs/dialog.state';
 
 @Component({
   selector: 'app-categories-dialog-component',
   templateUrl: './categories-dialog-component.html',
   styleUrl: './categories-dialog-component.scss'
 })
-export class CategoriesDialogComponent implements OnInit, OnDestroy {
+export class CategoriesDialogComponent implements OnDestroy {
   categories: CategoryResponse[] = [];
+
+  @Output() submitted = new EventEmitter<DialogState>();
 
   isEditModeEnabled: boolean = false;
 
   private $unsubscribe = new Subject<void>;
-
-  constructor(
-    private readonly popupMessageService: PopupMessageService,
-    private readonly dialogService: DialogService,
-    private readonly categoryApiService: CategoryApiService) {}
-
-  ngOnInit(): void {
-  }
 
   ngOnDestroy(): void {
     this.$unsubscribe.next();
@@ -32,39 +23,23 @@ export class CategoriesDialogComponent implements OnInit, OnDestroy {
   }
 
   addNewCategory(): void {
-
-  }
-
-  editAllCategories(): void {
-    this.isEditModeEnabled = !this.isEditModeEnabled;
-  }
-
-  removeCategory(id: number): void {
-    this.dialogService.open({
-      component: ConfirmDialogComponent,
-      data: {
-        title: 'category',
-        action: 'delete'
-      },
-      onSubmit: (result: boolean) => {
-        if (result) {
-          this.categoryApiService
-            .delete(id)
-            .pipe(takeUntil(this.$unsubscribe))
-            .subscribe({
-              next: () => this.removeCategoryFromList(id)
-            });
-        }
-        else {
-          this.dialogService.close();
-        }
-      }
+    this.submitted.emit({
+      action: 'create'
     })
   }
 
-  removeCategoryFromList(id: number): void {
-    this.categories = this.categories.filter(c => c.id !== id);
-    this.popupMessageService.success('Category removed');
-    this.dialogService.close();
+  editAllCategories(): void {
+    // TODO here is a check if values are changed
+    this.submitted.emit({
+      data: this.categories,
+      action: 'update'
+    });
+  }
+
+  removeCategory(id: number): void {
+    this.submitted.emit({
+      data: id,
+      action: 'delete'
+    });
   }
 }
