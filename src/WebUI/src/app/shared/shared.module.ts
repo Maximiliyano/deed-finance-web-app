@@ -24,7 +24,6 @@ import { DragDropModule } from '@angular/cdk/drag-drop';
     FormComponent,
     FormErrorComponent,
     DatePickerComponent,
-
     CurrencySymbolPipe,
   ],
   imports: [

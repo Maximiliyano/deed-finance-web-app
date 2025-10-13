@@ -27,9 +27,11 @@
           (ngModelChange)="onCapitalChange($event)"
         >
           <option [value]="null">All</option>
-          <option *ngFor="let capital of capitals" [ngValue]="capital">
-            {{capital.name}}
-          </option>
+          @for (capital of capitals; track capital.id) {
+            <option [ngValue]="capital">
+              {{capital.name}}
+            </option>
+          }
         </select>
       </div>
       <span class="text-lg">Balance: {{ capitalBalance | currencySymbol: capitalCurrency }} </span>
@@ -40,51 +42,49 @@
   </div>
 
   <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6 bg-white border rounded-lg min-h-96">
-    <div
-      *ngFor="let expenseCategory of expenseCategories; trackBy: trackByCategory"
-      class="rounded-lg border border-gray-200 bg-white shadow-sm hover:shadow-md transition-shadow overflow-hidden"
-    >
-      <div
-        class="flex justify-between items-center gap-2 p-4 bg-gradient-to-r from-red-100 to-red-200 cursor-pointer select-none"
-        (click)="toggleExpensesList(expenseCategory.categoryId)"
-      >
-        <div class="flex flex-col">
-          <span class="font-semibold text-gray-800">{{ expenseCategory.name }}</span>
-          <span class="text-sm text-gray-600">{{ expenseCategory.percentage }}%</span>
-        </div>
-
-        <div class="flex flex-col text-right">
-          <span class="font-bold text-gray-900">{{ expenseCategory.categorySum | currencySymbol: capitalCurrency }}</span>
-        </div>
-
-        <ng-container *ngIf="isPlannedPeriodShown(expenseCategory)">
-          <span [class]="isCategorySumGreaterPlannedPeriod(expenseCategory) ? 'text-green-600 font-semibold text-sm' : 'text-red-600 font-semibold text-sm'">
-            {{ expenseCategory.plannedPeriodAmount | number: '1.2-2' }}
-          </span>
-          <span class="text-xs uppercase text-gray-500">{{ expenseCategory.periodType }}</span>
-        </ng-container>
-      </div>
-
-      <div
-        *ngIf="openedExpensesCategoryId === expenseCategory.categoryId"
-        class="bg-gray-50 border-t border-gray-200 animate-fadeIn p-3"
-      >
+    @for (expenseCategory of expenseCategories; track expenseCategory.categoryId) {
+      <div class="rounded-lg border border-gray-200 bg-white shadow-sm hover:shadow-md transition-shadow overflow-hidden">
         <div
-          *ngFor="let e of expenseCategory.expenses; trackBy: trackByExpense"
-          class="flex justify-between items-center py-2 border-b border-gray-100 last:border-0"
+          class="flex justify-between items-center gap-2 p-4 bg-gradient-to-r from-red-100 to-red-200 cursor-pointer select-none"
+          (click)="toggleExpensesList(expenseCategory.categoryId)"
         >
-          <span class="text-gray-700 truncate">{{ e.purpose }}</span>
-          <span class="font-medium text-gray-800">{{ e.amount | currencySymbol: capitalCurrency }}</span>
-          <span class="text-sm text-gray-500">{{ e.paymentDate | date: 'shortDate' }}</span>
-          <button
-            (click)="deleteExpense(e.id, expenseCategory.categoryId)"
-            class="ml-3 text-red-500 hover:text-red-700 transition-colors text-sm"
-          >
-            Remove
-          </button>
+          <div class="flex flex-col">
+            <span class="font-semibold text-gray-800">{{ expenseCategory.name }}</span>
+            <span class="text-sm text-gray-600">{{ expenseCategory.percentage }}%</span>
+          </div>
+  
+          <div class="flex flex-col text-right">
+            <span class="font-bold text-gray-900">{{ expenseCategory.categorySum | currencySymbol: capitalCurrency }}</span>
+          </div>
+  
+          @if (isPlannedPeriodShown(expenseCategory)) {
+            <span [class]="isCategorySumGreaterPlannedPeriod(expenseCategory) ? 'text-green-600 font-semibold text-sm' : 'text-red-600 font-semibold text-sm'">
+              {{ expenseCategory.plannedPeriodAmount | number: '1.2-2' }}
+            </span>
+            <span class="text-xs uppercase text-gray-500">{{ expenseCategory.periodType }}</span>
+          }
         </div>
+  
+        @if (openedExpensesCategoryId === expenseCategory.categoryId) {
+          <div class="bg-gray-50 border-t border-gray-200 animate-fadeIn p-3">
+            @for (e of expenseCategory.expenses; track e.id) {
+              <div
+                class="flex justify-between items-center py-2 border-b border-gray-100 last:border-0"
+              >
+                <span class="text-gray-700 truncate">{{ e.purpose }}</span>
+                <span class="font-medium text-gray-800">{{ e.amount | currencySymbol: capitalCurrency }}</span>
+                <span class="text-sm text-gray-500">{{ e.paymentDate | date: 'shortDate' }}</span>
+                <button
+                  (click)="deleteExpense(e.id, expenseCategory.categoryId)"
+                  class="ml-3 text-red-500 hover:text-red-700 transition-colors text-sm"
+                >
+                  Remove
+                </button>
+              </div>
+            }
+          </div>
+        }
       </div>
-
-    </div>
+    }
   </div>
 </app-layout>

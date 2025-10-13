@@ -15,87 +15,110 @@
           <app-icon [name]="sortDirection === 'asc' ? 'fa-arrow-up' : 'fa-arrow-down'"></app-icon>
         </button>
 
-        <label>Sort by:</label>
+        <span>Sort by:</span>
         <select [(ngModel)]="selectedSortOption" (change)="onSortChange()">
-          <option *ngFor="let option of sortOptions" [value]="option.key">{{ option.label }}</option>
+          @for (option of sortOptions; track option.key) {
+            <option [value]="option.key">{{ option.label }}</option>
+          }
         </select>
       </div>
 
       <div class="cp-currency">
         <span>Default:</span>
         <select [(ngModel)]="mainCurrencyVal" (change)="onCurrencyChange($event)">
-          <option *ngFor="let option of currencyOptions" [value]="option.value">{{ option.key }}</option>
+           @for (option of currencyOptions; track option.key) {
+            <option [value]="option.key">{{ option.value }}</option>
+          }
         </select>
       </div>
 
-      <button *ngIf="capitals && capitals.length > 0" (click)="openToCreateCapitalDialog()" title="Create new">
-        <app-icon class="btn-create-icon" [name]="'fa-circle-plus'"></app-icon>
-      </button>
+      @if (capitals.length > 0) {
+        <button (click)="openToCreateCapitalDialog()" title="Create new">
+          <app-icon class="btn-create-icon" [name]="'fa-circle-plus'"></app-icon>
+        </button>
+      }
     </div>
   </div>
 
-  <div cdkDropList (cdkDropListDropped)="drop($event)" class="cp-list" *ngIf="capitals?.length; else noCapitals">
-    <div *ngFor="let capital of capitals"
-      cdkDrag
-      [@slideRemove]
-      [ngClass]="capitalBackgroundClass(capital.includeInTotal, capital.onlyForSavings)"
-    >
-      <div class="cp-name-balance">
-        <div (click)="toggleEditDialog(capital)">
-          {{ capital.name }}
-        </div>
-        <div class="cp-balance" title="Balance">
-          {{ capital.balance | currencySymbol: capital.currency }}
-        </div>
-      </div>
-
-      <div [class]="capital.includeInTotal ? 'cp-stats bg-white border-slate-300 border-2 rounded-xl py-1' : 'cp-stats bg-white rounded-xl py-1'" *ngIf="!capital.onlyForSavings">
-        <a *ngFor="let propsItem of capitalStatItems"
-          class="cp-stats-item"
-          [title]="propsItem.title + ' ' + capital[propsItem.key]"
-          [ngClass]="propsItem.style"
-          [href]="propsItem.url ? propsItem.url + '?capitalId=' + capital.id : 'capitals'"
+  @if (capitals.length > 0) {
+    <div cdkDropList (cdkDropListDropped)="drop($event)" class="cp-list">
+      @for (capital of capitals; track capital.id) {
+        <div
+          cdkDrag
+          [@slideRemove]
+          [ngClass]="capitalBackgroundClass(capital.includeInTotal, capital.onlyForSavings)"
         >
-          <app-icon [name]="propsItem.icon"></app-icon>
-          <span class="cp-stats-value">
-            {{ capital[propsItem.key] }}
-          </span>
-        </a>
-      </div>
-
-      <div class="cp-actions-compact">
-        <button class="menu" (click)="toggleMenu(capital.id)">
-          <app-icon [name]="isCapitalActionsOpen && openMenuId === capital.id ? 'fa-solid fa-caret-left' : 'fa-solid fa-caret-down'"></app-icon>
-        </button>
-
-        <ul class="actions" [ngClass]="{'open': isCapitalActionsOpen && openMenuId === capital.id}">
-          <li title="Include capital into total balance" class="cp-d-act cp-visible" (click)="includeInTotalCapital(capital.id)"><app-icon [name]="capital.includeInTotal ? 'fa-eye' : 'fa-eye-slash'"></app-icon></li>
-          <li title="Remove capital" class="cp-d-act cp-delete" (click)="removeCapital(capital.id)"><app-icon [name]="'fa-trash'"></app-icon></li>
-        </ul>
-      </div>
-
-      <div class="cp-actions">
-        <button title="Include capital into total balance" class="cp-visible" (click)="includeInTotalCapital(capital.id)">
-          <app-icon [name]="capital.includeInTotal ? 'fa-eye' : 'fa-eye-slash'"></app-icon>
-        </button>
-
-        <button title="Remove capital" class="cp-delete" (click)="removeCapital(capital.id)">
-          <app-icon [name]="'fa-trash'"></app-icon>
-        </button>
-      </div>
+          <div class="cp-name-balance">
+            <button
+              (click)="toggleEditDialog(capital)"
+              (keydown.enter)="toggleEditDialog(capital)"
+              (keydown.space)="toggleEditDialog(capital)"
+            >
+              {{ capital.name }}
+            </button>
+            <div class="cp-balance" title="Balance">
+              {{ capital.balance | currencySymbol: capital.currency }}
+            </div>
+          </div>
+    
+          @if (!capital.onlyForSavings) {
+            <div [class]="capital.includeInTotal ? 'cp-stats bg-white border-slate-300 border-2 rounded-xl py-1' : 'cp-stats bg-white rounded-xl py-1'">
+              @for (propsItem of capitalStatItems; track propsItem.key) {
+                <a
+                  class="cp-stats-item"
+                  [title]="propsItem.title + ' ' + capital[propsItem.key]"
+                  [ngClass]="propsItem.style"
+                  [href]="propsItem.url ? propsItem.url + '?capitalId=' + capital.id : 'capitals'"
+                >
+                  <app-icon [name]="propsItem.icon"></app-icon>
+                  <span class="cp-stats-value">
+                    {{ capital[propsItem.key] }}
+                  </span>
+                </a>
+          
+                <div class="cp-actions-compact">
+                  <button class="menu" (click)="toggleMenu(capital.id)">
+                    <app-icon [name]="isCapitalActionsOpen && openMenuId === capital.id ? 'fa-solid fa-caret-left' : 'fa-solid fa-caret-down'"></app-icon>
+                  </button>
+          
+                  <ul class="actions" [ngClass]="{'open': isCapitalActionsOpen && openMenuId === capital.id}">
+                    <li title="Include capital into total balance" class="cp-d-act cp-visible" (click)="includeInTotalCapital(capital.id)">
+                      <app-icon [name]="capital.includeInTotal ? 'fa-eye' : 'fa-eye-slash'"></app-icon>
+                    </li>
+                    <li title="Remove capital" class="cp-d-act cp-delete" (click)="removeCapital(capital.id)">
+                      <app-icon [name]="'fa-trash'"></app-icon>
+                    </li>
+                  </ul>
+                </div>
+          
+              }
+            </div>
+            <div class="cp-actions">
+              <button title="Include capital into total balance" class="cp-visible" (click)="includeInTotalCapital(capital.id)">
+                <app-icon [name]="capital.includeInTotal ? 'fa-eye' : 'fa-eye-slash'"></app-icon>
+              </button>
+      
+              <button title="Remove capital" class="cp-delete" (click)="removeCapital(capital.id)">
+                <app-icon [name]="'fa-trash'"></app-icon>
+              </button>
+            </div>
+          }
+        </div>
+      }
     </div>
-  </div>
 
-  <ng-template #noCapitals>
+    <span class="text-sm text-gray-400 flex justify-center">In total {{ capitals.length }} capitals</span>
+  }
+  @else {
     <button
     class="no-capitals"
     (click)="openToCreateCapitalDialog()"
+    (keydown.enter)="openToCreateCapitalDialog()"
+    (keydown.space)="openToCreateCapitalDialog()"
     >
       Create your first capital...
       <app-icon class="btn-create-icon" [name]="'fa-circle-plus'"></app-icon>
     </button>
-  </ng-template>
-
-  <span *ngIf="capitals.length > 0" class="text-sm text-gray-400 flex justify-center">In total {{ capitals.length }} capitals</span>
+  }
 </app-layout>
 

@@ -1,76 +1,87 @@
 <form [formGroup]="form" (ngSubmit)="onSubmit()">
     <h2 class="text-xl font-semibold mb-4">{{ headerText }}</h2>
 
-    <div class="mb-4" *ngFor="let field of fields">
-      <ng-container *ngIf="field.input?.type !== 'checkbox'; else inputLabelInline">
-        <label [for]="field.controlName" class="block mb-1 text-sm font-medium">{{ field.label }}</label>
-
-        <input
-          *ngIf="field.input"
-          [type]="field.input.type"
-          class="w-full border rounded px-3 py-2"
-          [id]="field.controlName"
-          [formControlName]="field.controlName"
-          [placeholder]="field.input.placeholder ?? 'Enter the value'"
-          autocomplete="off"
-        />
-      </ng-container>
-
-      <ng-template #inputLabelInline>
-        <div class="flex items-center justify-between mb-4">
-          <div class="flex items-center">
+    @for (field of fields; track field.controlName) {
+      <div class="mb-4">
+        @if (field.input?.type !== 'checkbox') {
+          <label [for]="field.controlName" class="block mb-1 text-sm font-medium">{{ field.label }}</label>
+    
+          @if (field.input) {
             <input
-              type="checkbox"
+              [type]="field.input.type"
+              class="w-full border rounded px-3 py-2"
               [id]="field.controlName"
               [formControlName]="field.controlName"
-              class="h-4 w-4 text-blue-600 border-gray-300 rounded"
+              [placeholder]="field.input.placeholder ?? 'Enter the value'"
               autocomplete="off"
-            >
-            <label
-              [for]="field.controlName"
-              class="ml-2 text-sm font-medium"
-            >
-              {{ field.label }}
-            </label>
+            />
+          }
+        }
+        @else {
+          <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center">
+              <input
+                type="checkbox"
+                [id]="field.controlName"
+                [formControlName]="field.controlName"
+                class="h-4 w-4 text-blue-600 border-gray-300 rounded"
+                autocomplete="off"
+              >
+              <label
+                [for]="field.controlName"
+                class="ml-2 text-sm font-medium"
+              >
+                {{ field.label }}
+              </label>
+            </div>
           </div>
-        </div>
-      </ng-template>
-
-      <select
-        *ngIf="field.select"
-        [formControlName]="field.controlName"
-        class="w-full cursor-pointer border rounded px-3 py-2 {{ field.select.options.length === 0 ? 'cursor-not-allowed text-gray-300' : '' }}"
-      >
-        <option *ngIf="field.select.optionCaption" value="">{{ field.select.optionCaption }}</option>
-        <option *ngFor="let option of field.select.options" [value]="option.value">
-          {{ option.key }}
-        </option>
-      </select>
-
-      <app-date-picker
-        *ngIf="field.dateTimePicker"
-        [formControlName]="field.controlName"
-        [restrictFuture]="field.dateTimePicker.restrictFuture ?? false"
-      >
-      </app-date-picker>
-
-      <textarea
-        *ngIf="field.textArea"
-        [formControlName]="field.controlName"
-        class="w-full h-32 border border-black rounded px-3 py-2 resize-none"
-      ></textarea>
-
-      <app-form-error [form]="form" [controlName]="field.controlName"></app-form-error>
-    </div>
+        }
+  
+        @if (field.select) {
+          <select
+            [formControlName]="field.controlName"
+            class="w-full cursor-pointer border rounded px-3 py-2 {{ field.select.options.length === 0 ? 'cursor-not-allowed text-gray-300' : '' }}"
+          >
+            @if (field.select.optionCaption) {
+              <option value="">{{ field.select.optionCaption }}</option>
+            }
+            @for (option of field.select.options; track `${option.key}:${option.value}`) {
+              <option [value]="option.value">
+                {{ option.key }}
+              </option>
+            }
+          </select>
+        }
+  
+        @if (field.dateTimePicker) {
+          <app-date-picker
+            [formControlName]="field.controlName"
+            [restrictFuture]="field.dateTimePicker.restrictFuture ?? false"
+          >
+          </app-date-picker>
+        }
+  
+        @if (field.textArea) {
+          <textarea
+            [formControlName]="field.controlName"
+            class="w-full h-32 border border-black rounded px-3 py-2 resize-none"
+          ></textarea>
+        }
+  
+        <app-form-error [form]="form" [controlName]="field.controlName"></app-form-error>
+      </div>
+    }
 
     <div class="flex justify-center space-x-2 mt-6">
-      <button *ngFor="let button of buttons"
-        [type]="button.type"
-        [disabled]="button.disabled"
-        (click)="button.onClick?.()"
-        class="{{button.styles}} px-4 py-2 rounded disabled:opacity-50"
-      >
-        {{ button.text }}
-      </button>
+      @for (button of buttons; track button.text) {
+        <button
+          [type]="button.type"
+          [disabled]="button.disabled"
+          (click)="button.onClick?.()"
+          class="{{button.styles}} px-4 py-2 rounded disabled:opacity-50"
+        >
+          {{ button.text }}
+        </button>
+      }
     </div>
   </form>
