@@ -26,8 +26,8 @@
       <div class="cp-currency">
         <span>Default:</span>
         <select [(ngModel)]="mainCurrencyVal" (change)="onCurrencyChange($event)">
-           @for (option of currencyOptions; track option.key) {
-            <option [value]="option.key">{{ option.value }}</option>
+           @for (option of currencyOptions; track `${option.key}:${option.value}`) {
+            <option [value]="option.value">{{ option.key }}</option>
           }
         </select>
       </div>
