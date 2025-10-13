@@ -14,18 +14,12 @@ namespace Deed.Tests.Unit.Categories.Queries;
 public sealed class GetAllCategoryQueryHandlerTests
 {
     private readonly ICategoryRepository _repositoryMock = Substitute.For<ICategoryRepository>();
-    private readonly IMemoryCache _memoryCacheMock = Substitute.For<IMemoryCache>();
-    private readonly IOptions<MemoryCacheSettings> _settings;
 
     private readonly GetAllCategoryQueryHandler _handler;
 
     public GetAllCategoryQueryHandlerTests()
     {
-        _settings = Options.Create(new MemoryCacheSettings
-        {
-            CategoriesTimespanInHours = 1
-        });
-        _handler = new GetAllCategoryQueryHandler(_settings, _memoryCacheMock, _repositoryMock);
+        _handler = new GetAllCategoryQueryHandler(_repositoryMock);
     }
 
     [InlineData(CategoryType.Expenses)]
@@ -46,7 +40,6 @@ public sealed class GetAllCategoryQueryHandlerTests
         };
         var responses = categories.Select(x =>
             new CategoryResponse(x.Id, x.Name, x.Type, x.Period.ToString(), x.PlannedPeriodAmount));
-
 
         _repositoryMock.GetAllAsync(type).Returns(categories);
 

@@ -1,5 +1,5 @@
 <app-layout title="Capitals">
-  <div class="cp-lh">
+  <div class="cp-lh ">
     <div class="ta">
       <span class="ta-text">Total balance:</span>
       <span class="ta-sum">
@@ -38,10 +38,10 @@
     <div *ngFor="let capital of capitals"
       cdkDrag
       [@slideRemove]
-      [ngClass]="capital.includeInTotal ? 'cp' : 'cp bg-[#e6e6e6]'"
+      [ngClass]="capitalBackgroundClass(capital.includeInTotal, capital.onlyForSavings)"
     >
       <div class="cp-name-balance">
-        <div class="cp-name" (click)="toggleEditDialog(capital)">
+        <div (click)="toggleEditDialog(capital)">
           {{ capital.name }}
         </div>
         <div class="cp-balance" title="Balance">
@@ -49,7 +49,7 @@
         </div>
       </div>
 
-      <div class="cp-stats">
+      <div [class]="capital.includeInTotal ? 'cp-stats bg-white border-slate-300 border-2 rounded-xl py-1' : 'cp-stats bg-white rounded-xl py-1'" *ngIf="!capital.onlyForSavings">
         <a *ngFor="let propsItem of capitalStatItems"
           class="cp-stats-item"
           [title]="propsItem.title + ' ' + capital[propsItem.key]"

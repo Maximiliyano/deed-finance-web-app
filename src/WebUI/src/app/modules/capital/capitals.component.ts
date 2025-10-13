@@ -1,5 +1,5 @@
 import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
-import { debounceTime, distinctUntilChanged, Subject, takeUntil } from 'rxjs';
+import { debounceTime, Subject, takeUntil } from 'rxjs';
 import { Exchange } from '../../core/models/exchange-model';
 import { ConfirmDialogComponent } from '../../shared/components/dialogs/confirm-dialog/confirm-dialog.component';
 import { DialogService } from '../../shared/services/dialog.service';
@@ -24,11 +24,11 @@ import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
   animations: [
     trigger('slideRemove', [
       transition(':leave', [
-        animate('300ms ease', style({ transform: 'traslateX(100%)', opacity: 0 }))
+        animate('350ms ease', style({ transform: 'traslateY(100%)', opacity: 0 }))
       ]),
       transition(':enter', [
-        style({ transform: 'translateX(-100%)', opacity: 0 }),
-        animate('300ms ease', style({ transform: 'translateX(0)', opacity: 1 }))
+        style({ transform: 'translateY(-100%)', opacity: 0 }),
+        animate('350ms ease', style({ transform: 'translateY(0)', opacity: 1 }))
       ])
     ])
   ]
@@ -43,7 +43,7 @@ export class CapitalsComponent implements OnInit, OnDestroy {
   ];
   exchanges: Exchange[] = [];
 
-  searchTerm: string = '';
+  searchTerm = '';
   selectedSortOption: string = '';
   sortDirection: 'asc' | 'desc' = 'asc';
 
@@ -76,6 +76,18 @@ export class CapitalsComponent implements OnInit, OnDestroy {
     private readonly exchangeService: ExchangeService,
     private readonly dialogService: DialogService
   ) {
+  }
+
+  capitalBackgroundClass(includeInTotal: boolean, onlyForSavings: boolean) {
+    if (onlyForSavings) {
+      return 'cp bg-gradient-to-r from-white to-yellow-600';
+    }
+    if (!includeInTotal) {
+      return 'cp bg-gradient-to-r from-white to-blue-950';
+    }
+    else {
+      return 'cp bg-gradient-to-r from-white to-gray-100';
+    }
   }
 
   @HostListener('document:click', ['$event.target'])
@@ -296,7 +308,7 @@ export class CapitalsComponent implements OnInit, OnDestroy {
     this.dialogService.open({
       component: ConfirmDialogComponent,
       data: {
-        title: 'removal capital',
+        title: 'removal of the capital',
         action: 'remove'
       },
       onSubmit: (confirmed: boolean) => {

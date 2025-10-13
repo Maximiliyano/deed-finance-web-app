@@ -36,7 +36,7 @@ public static class DependencyInjection
         services.AddQuartzHostedService(options
             => options.WaitForJobsToComplete = true);
 
-        services.ConfigureOptions<SaveLatestExchangeJobSetup>();
+        services.ConfigureOptions<UpsertLatestExchangeJobSetup>();
 
         return services;
     }

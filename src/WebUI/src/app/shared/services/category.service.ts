@@ -26,4 +26,12 @@ export class CategoryService {
   getById(id: number): Observable<CategoryResponse> {
     return this.http.get<CategoryResponse>(`${this.baseApiUrl}/${id}`);
   }
+
+  updateRange(categories: CategoryResponse[]): Observable<void> {
+    return this.http.put<void>(`${this.baseApiUrl}/updateRange`, categories);
+  }
+
+  delete(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.baseApiUrl}/${id}`);
+  }
 }

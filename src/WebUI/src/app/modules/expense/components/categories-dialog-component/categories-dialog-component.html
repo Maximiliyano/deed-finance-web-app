@@ -23,15 +23,22 @@
     </div>
 
     <div class="flex justify-between">
-      <button class="ml-2 text-blue-500 hover:text-blue-700" (click)="addNewCategory()">
-        New
-        <app-icon name="fa-circle-plus"></app-icon>
-      </button>
+      <ng-container *ngIf="!isEditModeEnabled; else editModeEnabled">
+        <button class="ml-2 text-blue-500 hover:text-blue-700" (click)="addNewCategory()">
+          New
+          <app-icon name="fa-circle-plus"></app-icon>
+        </button>
 
-      <button class="ml-2 text-blue-500 hover:text-blue-700" (click)="editAllCategories()">
-        Edit all
-        <app-icon name="fa-pen"></app-icon>
-      </button>
+        <button class="ml-2 text-blue-500 hover:text-blue-700" (click)="isEditModeEnabled = true">
+          Edit all
+          <app-icon name="fa-pen"></app-icon>
+        </button>
+      </ng-container>
+
+      <ng-template #editModeEnabled>
+        <button class="ml-2 text-green-500 hover:text-green-700" (click)="editAllCategories()">Save</button>
+        <button class="ml-2 text-red-500 hover:text-red-500" (click)="isEditModeEnabled = false">Cancel</button>
+      </ng-template>
     </div>
   </div>
 

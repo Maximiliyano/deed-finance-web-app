@@ -6,8 +6,8 @@ import { FormGroup } from '@angular/forms';
   templateUrl: './form-error.component.html'
 })
 export class FormErrorComponent {
-  @Input() form: FormGroup;
-  @Input() controlName: string;
+  @Input({ required: true }) form: FormGroup;
+  @Input({ required: true }) controlName: string;
 
   get errorMessage(): string | null {
     const control = this.form?.get(this.controlName);

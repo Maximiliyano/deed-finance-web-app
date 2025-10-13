@@ -67,7 +67,7 @@ public sealed class ExchangeHttpServiceTests
         var service = new ExchangeHttpService(_dateTimeProvider, _options, client);
 
         // Act
-        var result = await service.GetCurrencyAsync();
+        var result = await service.GetCurrenciesAsync();
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -104,7 +104,7 @@ public sealed class ExchangeHttpServiceTests
         var service = new ExchangeHttpService(_dateTimeProvider, _options, client);
 
         // Act
-        var result = await service.GetCurrencyAsync();
+        var result = await service.GetCurrenciesAsync();
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -122,7 +122,7 @@ public sealed class ExchangeHttpServiceTests
         var client = CreateHttpClient(response);
         var service = new ExchangeHttpService(_dateTimeProvider, _options, client);
 
-        var result = await service.GetCurrencyAsync();
+        var result = await service.GetCurrenciesAsync();
 
         result.IsSuccess.Should().BeFalse();
         result.Errors.Should().OnlyContain(x => x == DomainErrors.Exchange.HttpExecution);
@@ -143,7 +143,7 @@ public sealed class ExchangeHttpServiceTests
         var client = CreateHttpClient(response);
         var service = new ExchangeHttpService(_dateTimeProvider, _options, client);
 
-        var result = await service.GetCurrencyAsync();
+        var result = await service.GetCurrenciesAsync();
 
         result.IsSuccess.Should().BeFalse();
         result.Errors.Should().OnlyContain(x => x == DomainErrors.Exchange.HttpExecution);
@@ -164,7 +164,7 @@ public sealed class ExchangeHttpServiceTests
         var client = CreateHttpClient(response);
         var service = new ExchangeHttpService(_dateTimeProvider, _options, client);
 
-        var result = await service.GetCurrencyAsync();
+        var result = await service.GetCurrenciesAsync();
 
         result.IsSuccess.Should().BeFalse();
         result.Errors.Should().OnlyContain(x => x == DomainErrors.Exchange.Serialization);
@@ -181,7 +181,7 @@ public sealed class ExchangeHttpServiceTests
 
         var service = new ExchangeHttpService(_dateTimeProvider, _options, client);
 
-        var result = await service.GetCurrencyAsync();
+        var result = await service.GetCurrenciesAsync();
 
         result.IsSuccess.Should().BeFalse();
         result.Errors.Should().OnlyContain(x => x == DomainErrors.Exchange.HttpExecution);
@@ -211,7 +211,7 @@ public sealed class ExchangeHttpServiceTests
         var client = new HttpClient(handler);
         var service = new ExchangeHttpService(_dateTimeProvider, _options, client);
 
-        await service.GetCurrencyAsync();
+        await service.GetCurrenciesAsync();
 
         requestedUrl.Should().Be("https://api.ex.com/rates?date=01.12.2024");
 

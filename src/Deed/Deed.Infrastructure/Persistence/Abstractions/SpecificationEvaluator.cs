@@ -24,7 +24,7 @@ public static class SpecificationEvaluator
             queryable = queryable.Where(specification.Criteria);
         }
 
-        if (specification.Includes is not null && !specification.IgnoreAutoIncludes)
+        if (specification.Includes.Any() && !specification.IgnoreAutoIncludes)
         {
             queryable = specification.Includes
                 .Aggregate(

@@ -1,5 +1,5 @@
 {
-  "name": "finance-tracker-app",
+  "name": "deed",
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
@@ -30,7 +30,7 @@
     "zone.js": "~0.14.3"
   },
   "devDependencies": {
-    "@angular-devkit/build-angular": "^17.3.8",
+    "@angular-devkit/build-angular": "^20.3.5",
     "@angular-eslint/builder": "17.5.2",
     "@angular-eslint/eslint-plugin": "17.5.2",
     "@angular-eslint/eslint-plugin-template": "17.5.2",
@@ -49,7 +49,7 @@
     "karma-coverage": "~2.2.0",
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.1.0",
-    "netlify-cli": "^1.2.3",
+    "netlify-cli": "^23.9.1",
     "postcss": "^8.5.6",
     "tailwindcss": "^3.4.17",
     "typescript": "~5.4.2"

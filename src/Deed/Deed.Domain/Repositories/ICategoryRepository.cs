@@ -13,6 +13,8 @@ public interface ICategoryRepository
 
     void Update(Category category);
 
+    void UpdateRange(IEnumerable<Category> categories);
+
     void Delete(Category category);
 
     Task<bool> AnyAsync(ISpecification<Category> specification);
