@@ -18,20 +18,21 @@ import { UpdateCapitalRequest } from './models/update-capital-request';
 import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 
 @Component({
-  selector: 'app-capitals',
-  templateUrl: './capitals.component.html',
-  styleUrl: './capitals.component.scss',
-  animations: [
-    trigger('slideRemove', [
-      transition(':leave', [
-        animate('350ms ease', style({ transform: 'traslateY(100%)', opacity: 0 }))
-      ]),
-      transition(':enter', [
-        style({ transform: 'translateY(-100%)', opacity: 0 }),
-        animate('350ms ease', style({ transform: 'translateY(0)', opacity: 1 }))
-      ])
-    ])
-  ]
+    selector: 'app-capitals',
+    templateUrl: './capitals.component.html',
+    styleUrl: './capitals.component.scss',
+    animations: [
+        trigger('slideRemove', [
+            transition(':leave', [
+                animate('350ms ease', style({ transform: 'traslateY(100%)', opacity: 0 }))
+            ]),
+            transition(':enter', [
+                style({ transform: 'translateY(-100%)', opacity: 0 }),
+                animate('350ms ease', style({ transform: 'translateY(0)', opacity: 1 }))
+            ])
+        ])
+    ],
+    standalone: false
 })
 export class CapitalsComponent implements OnInit, OnDestroy {
   capitals: CapitalResponse[] = [];

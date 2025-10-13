@@ -20,9 +20,10 @@ import { AddCategoryDialog } from './components/add-category-dialog/add-category
 import { SelectOptionModel } from '../../shared/components/forms/models/select-option-model';
 
 @Component({
-  selector: 'app-expenses',
-  templateUrl: './expenses.component.html',
-  styleUrl: './expenses.component.scss'
+    selector: 'app-expenses',
+    templateUrl: './expenses.component.html',
+    styleUrl: './expenses.component.scss',
+    standalone: false
 })
 export class ExpensesComponent implements OnInit, OnDestroy {
   expenseCategories: ExpenseCategoryResponse[] = [];

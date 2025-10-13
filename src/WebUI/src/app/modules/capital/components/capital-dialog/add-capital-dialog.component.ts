@@ -8,8 +8,9 @@ import { FormField } from '../../../../shared/components/forms/models/form-field
 import { SelectOptionModel } from '../../../../shared/components/forms/models/select-option-model';
 
 @Component({
-  selector: 'app-add-capital-dialog',
-  templateUrl: './add-capital-dialog.component.html'
+    selector: 'app-add-capital-dialog',
+    templateUrl: './add-capital-dialog.component.html',
+    standalone: false
 })
 export class AddCapitalDialogComponent implements OnInit, OnDestroy {
   @Output() submitted = new EventEmitter<AddCapitalRequest | null>();

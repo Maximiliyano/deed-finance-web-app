@@ -5,8 +5,9 @@ import { FormButton } from './models/form-button';
 import { Subject, takeUntil } from 'rxjs';
 
 @Component({
-  selector: 'app-form',
-  templateUrl: './form.component.html'
+    selector: 'app-form',
+    templateUrl: './form.component.html',
+    standalone: false
 })
 export class FormComponent implements OnInit, OnDestroy {
   @Input() headerText: string = 'Default form';

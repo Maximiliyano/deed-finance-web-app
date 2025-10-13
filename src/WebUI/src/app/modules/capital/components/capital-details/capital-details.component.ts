@@ -11,9 +11,10 @@ import { FormButton } from '../../../../shared/components/forms/models/form-butt
 import { Subject, takeUntil } from 'rxjs';
 
 @Component({
-  selector: 'app-capital-details',
-  templateUrl: './capital-details.component.html',
-  styleUrl: './capital-details.component.scss'
+    selector: 'app-capital-details',
+    templateUrl: './capital-details.component.html',
+    styleUrl: './capital-details.component.scss',
+    standalone: false
 })
 export class CapitalDetailsComponent implements OnInit, OnDestroy {
   @Output() submitted = new EventEmitter<UpdateCapitalRequest | null>();

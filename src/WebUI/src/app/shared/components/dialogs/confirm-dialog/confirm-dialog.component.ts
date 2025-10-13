@@ -2,9 +2,10 @@ import { Component, Output } from '@angular/core';
 import { Subject } from 'rxjs';
 
 @Component({
-  selector: 'app-confirm-dialog',
-  templateUrl: './confirm-dialog.component.html',
-  styleUrl: './confirm-dialog.component.scss'
+    selector: 'app-confirm-dialog',
+    templateUrl: './confirm-dialog.component.html',
+    styleUrl: './confirm-dialog.component.scss',
+    standalone: false
 })
 export class ConfirmDialogComponent {
   @Output() submitted = new Subject<boolean>();
