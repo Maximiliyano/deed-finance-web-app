@@ -3,9 +3,10 @@ import { Subscription } from 'rxjs';
 import { DialogData, DialogService } from '../../services/dialog.service';
 
 @Component({
-  selector: 'app-dialog',
-  templateUrl: './dialog.component.html',
-  styleUrl: './dialog.component.scss',
+    selector: 'app-dialog',
+    templateUrl: './dialog.component.html',
+    styleUrl: './dialog.component.scss',
+    standalone: false
 })
 export class DialogComponent implements OnInit, OnDestroy {
   dialogStack: DialogData[] = [];

@@ -7,9 +7,10 @@ import { SelectOptionModel } from '../../../../shared/components/forms/models/se
 import { noFutureDate } from '../../../../shared/components/forms/validators/noFutureDate';
 
 @Component({
-  selector: 'app-expense-dialog',
-  templateUrl: './expense-dialog.component.html',
-  styleUrl: './expense-dialog.component.scss'
+    selector: 'app-expense-dialog',
+    templateUrl: './expense-dialog.component.html',
+    styleUrl: './expense-dialog.component.scss',
+    standalone: false
 })
 export class ExpenseDialogComponent implements OnInit {
   @Output() submitted = new EventEmitter<CreateExpenseRequest | null>();

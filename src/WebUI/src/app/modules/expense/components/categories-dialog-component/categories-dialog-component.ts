@@ -4,9 +4,10 @@ import { Subject } from 'rxjs';
 import { DialogState } from '../../../../shared/components/dialogs/dialog.state';
 
 @Component({
-  selector: 'app-categories-dialog-component',
-  templateUrl: './categories-dialog-component.html',
-  styleUrl: './categories-dialog-component.scss'
+    selector: 'app-categories-dialog-component',
+    templateUrl: './categories-dialog-component.html',
+    styleUrl: './categories-dialog-component.scss',
+    standalone: false
 })
 export class CategoriesDialogComponent implements OnDestroy {
   categories: CategoryResponse[] = [];

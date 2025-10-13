@@ -1,9 +1,10 @@
 import { Component } from '@angular/core';
 
 @Component({
-  selector: 'app-date-tab-picker',
-  templateUrl: './date-tab-picker.html',
-  styleUrl: './date-tab-picker.scss'
+    selector: 'app-date-tab-picker',
+    templateUrl: './date-tab-picker.html',
+    styleUrl: './date-tab-picker.scss',
+    standalone: false
 })
 export class DateTabPicker {
   tabs = [
