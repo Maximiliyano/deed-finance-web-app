@@ -288,7 +288,7 @@ export class ExpensesComponent implements OnInit, OnDestroy {
     this.dialogService.open({
       component: ConfirmDialogComponent,
       data: {
-        title: 'capital',
+        title: 'expense',
         action: 'remove'
       },
       onSubmit: (result) => {

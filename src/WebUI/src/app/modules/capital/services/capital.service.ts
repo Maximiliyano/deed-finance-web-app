@@ -58,6 +58,14 @@ export class CapitalService {
     return this.httpClient.put<void>(`${this.baseApiUrl}/orders`, request);
   }
 
+  patchSavingsOnly(id: number, value: boolean): Observable<void> {
+    return this.httpClient.patch<void>(`${this.baseApiUrl}/${id}/savings-only`, value);
+  }
+
+  patchIncludeTotal(id: number, value: boolean): Observable<void> {
+    return this.httpClient.patch<void>(`${this.baseApiUrl}/${id}/include-in-total`, value);
+  }
+
   delete(id: number): Observable<void> {
     return this.httpClient.delete<void>(`${this.baseApiUrl}/${id}`);
   }

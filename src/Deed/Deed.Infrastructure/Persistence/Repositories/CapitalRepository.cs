@@ -1,18 +1,37 @@
 using System.Globalization;
+using System.Linq.Expressions;
 using Deed.Application.Abstractions.Data;
 using Deed.Application.Capitals.Requests;
 using Deed.Domain.Constants;
 using Deed.Domain.Entities;
+using Deed.Domain.Enums;
 using Deed.Domain.Repositories;
 using Deed.Infrastructure.Persistence.Constants;
 using Deed.Infrastructure.Persistence.DataSeed;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Query;
 
 namespace Deed.Infrastructure.Persistence.Repositories;
 
 internal sealed class CapitalRepository(IDeedDbContext context)
     : GeneralRepository<Capital>(context), ICapitalRepository
 {
+    public async Task<bool> PatchIncludeInTotalAsync(int id, bool includeInTotal, CancellationToken cancellationToken)
+    {
+        return await DbContext.Capitals
+            .IgnoreAutoIncludes()
+            .Where(c => c.Id.Equals(id))
+            .ExecuteUpdateAsync(p => p.SetProperty(c => c.IncludeInTotal, includeInTotal), cancellationToken) > 0;
+    }
+
+    public async Task<bool> PatchSavingsOnlyAsync(int id, bool onlyForSavings, CancellationToken cancellationToken)
+    {
+        return await DbContext.Capitals
+            .IgnoreAutoIncludes()
+            .Where(c => c.Id.Equals(id))
+            .ExecuteUpdateAsync(p => p.SetProperty(c => c.OnlyForSavings, onlyForSavings), cancellationToken) > 0;
+    }
+
     public async Task UpdateOrderIndexesAsync(IList<(int Id, int OrderIndex)> capitals, CancellationToken cancellationToken)
     {
         var ids = capitals.Select(c => c.Id).ToArray();
