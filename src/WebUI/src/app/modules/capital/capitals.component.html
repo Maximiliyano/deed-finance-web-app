@@ -41,7 +41,7 @@
   </div>
 
   @if (capitals.length > 0) {
-    <div cdkDropList (cdkDropListDropped)="drop($event)" class="cp-list">
+    <div cdkDropList (cdkDropListDropped)="drop($event)" class="cp-list p-2">
       @for (capital of capitals; track capital.id) {
         <div
           cdkDrag

@@ -34,6 +34,11 @@ public class Result
     {
         throw new NotImplementedException();
     }
+
+    public static Result Failure(object patchFailed)
+    {
+        throw new NotImplementedException();
+    }
 }
 
 public class Result<TValue> : Result

@@ -5,12 +5,13 @@ using Deed.Domain.Enums;
 using Deed.Domain.Errors;
 using Deed.Domain.Repositories;
 using FluentValidation;
+using Deed.Domain.Providers;
 
 namespace Deed.Application.Expenses.Commands.Create;
 
 internal sealed class CreateExpenseCommandValidator : AbstractValidator<CreateExpenseCommand>
 {
-    public CreateExpenseCommandValidator(ICategoryRepository categoryRepository)
+    public CreateExpenseCommandValidator(ICategoryRepository categoryRepository, IDateTimeProvider provider)
     {
         RuleFor(e => e.CategoryId)
             .MustAsync(async (categoryId, _) => await categoryRepository
@@ -25,8 +26,8 @@ internal sealed class CreateExpenseCommandValidator : AbstractValidator<CreateEx
             .WithError(ValidationErrors.General.AmountMustBeGreaterThanZero);
 
         RuleFor(i => i.PaymentDate)
-            .Must(paymentDate => paymentDate.UtcDateTime != DateTime.MinValue)
-            .LessThanOrEqualTo(DateTime.UtcNow)
+            .Must(paymentDate => paymentDate.UtcDateTime != provider.MinValue)
+            .LessThanOrEqualTo(provider.UtcNow)
             .WithError(ValidationErrors.Expense.InvalidPaymentDate);
 
         RuleFor(i => i.Purpose)

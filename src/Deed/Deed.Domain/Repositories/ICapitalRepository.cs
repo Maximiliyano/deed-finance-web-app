@@ -1,4 +1,5 @@
 using Deed.Domain.Entities;
+using Deed.Domain.Enums;
 
 namespace Deed.Domain.Repositories;
 
@@ -11,6 +12,16 @@ public interface ICapitalRepository
     void Create(Capital capital);
 
     void Update(Capital capital);
+
+    Task<bool> PatchIncludeInTotalAsync(
+        int id,
+        bool includeInTotal,
+        CancellationToken cancellationToken);
+
+    Task<bool> PatchSavingsOnlyAsync(
+        int id,
+        bool onlyForSavings,
+        CancellationToken cancellationToken);
 
     Task UpdateOrderIndexesAsync(IList<(int Id, int OrderIndex)> capitals, CancellationToken cancellationToken);
 

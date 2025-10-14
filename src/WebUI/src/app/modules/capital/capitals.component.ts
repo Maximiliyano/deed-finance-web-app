@@ -285,17 +285,8 @@ export class CapitalsComponent implements OnInit, OnDestroy {
     const capital = this.capitals.find(c => c.id === id);
 
     if (capital) {
-      const request: UpdateCapitalRequest = {
-        id: id,
-        name: null,
-        balance: null,
-        currency: null,
-        includeInTotal: !capital.includeInTotal,
-        onlyForSavings: null
-      };
-
       this.capitalService
-        .update(request.id, request)
+        .patchIncludeTotal(id, !capital.includeInTotal)
         .pipe(takeUntil(this.unsubcribe$))
         .subscribe({
           next: () => {
@@ -310,17 +301,8 @@ export class CapitalsComponent implements OnInit, OnDestroy {
     const capital = this.capitals.find(c => c.id === id);
 
     if (capital) {
-      const request: UpdateCapitalRequest = {
-        id: id,
-        name: null,
-        balance: null,
-        currency: null,
-        includeInTotal: null,
-        onlyForSavings: !capital.onlyForSavings
-      };
-
       this.capitalService
-        .update(request.id, request)
+        .patchSavingsOnly(id, !capital.onlyForSavings)
         .pipe(takeUntil(this.unsubcribe$))
         .subscribe({
           next: () => {

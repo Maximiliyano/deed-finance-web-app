@@ -11,6 +11,9 @@ public static class DomainErrors
 
         public static Error NotFound(string name)
             => Error.NotFound(nameof(NotFound), $"The specific {name} was not found.");
+
+        public static Error UpdateFailed
+            => Error.Failure(nameof(UpdateFailed), "Update entity failed.");
     }
 
     public static class Capital
