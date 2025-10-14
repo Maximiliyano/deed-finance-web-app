@@ -281,7 +281,7 @@ export class CapitalsComponent implements OnInit, OnDestroy {
     }
   }
 
-  includeInTotalCapital(id: number): void {
+  toggleIncludeInTotal(id: number): void {
     const capital = this.capitals.find(c => c.id === id);
 
     if (capital) {
@@ -298,19 +298,47 @@ export class CapitalsComponent implements OnInit, OnDestroy {
         .update(request.id, request)
         .pipe(takeUntil(this.unsubcribe$))
         .subscribe({
-          next: () => capital.includeInTotal = !capital.includeInTotal
+          next: () => {
+            capital.includeInTotal = !capital.includeInTotal;
+            this.popupMessageService.success(`${capital.name} ${capital.includeInTotal ? 'included into' : 'excluded from'} total balance`);
+          }
         });
     }
   }
 
-  removeCapital(id: number): void {
+  toggleSavingsOnly(id: number): void {
+    const capital = this.capitals.find(c => c.id === id);
+
+    if (capital) {
+      const request: UpdateCapitalRequest = {
+        id: id,
+        name: null,
+        balance: null,
+        currency: null,
+        includeInTotal: null,
+        onlyForSavings: !capital.onlyForSavings
+      };
+
+      this.capitalService
+        .update(request.id, request)
+        .pipe(takeUntil(this.unsubcribe$))
+        .subscribe({
+          next: () => {
+            capital.onlyForSavings = !capital.onlyForSavings;
+            this.popupMessageService.success(`${capital.name} set to ${capital.onlyForSavings ? 'only for savings' : 'regular'} capital`);
+          }
+        });
+    }
+  }
+
+  deleteCapital(id: number): void {
     this.onMenuItemClick();
 
     this.dialogService.open({
       component: ConfirmDialogComponent,
       data: {
-        title: 'removal of the capital',
-        action: 'remove'
+        title: 'deletion of the capital',
+        action: 'delete'
       },
       onSubmit: (confirmed: boolean) => {
         if (confirmed) {
@@ -320,7 +348,7 @@ export class CapitalsComponent implements OnInit, OnDestroy {
             .subscribe({
               next: () => {
                 this.capitals = this.capitals.filter(x => x.id !== id);
-                this.popupMessageService.success("The capital was successful removed.");
+                this.popupMessageService.success("The capital was successful deleted.");
                 this.dialogService.close();
               }});
         } else {

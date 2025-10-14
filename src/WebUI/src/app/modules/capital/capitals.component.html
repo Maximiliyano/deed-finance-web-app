@@ -76,33 +76,41 @@
                   </span>
                 </a>
           
-                <div class="cp-actions-compact">
-                  <button class="menu" (click)="toggleMenu(capital.id)">
-                    <app-icon [name]="isCapitalActionsOpen && openMenuId === capital.id ? 'fa-solid fa-caret-left' : 'fa-solid fa-caret-down'"></app-icon>
-                  </button>
-          
-                  <ul class="actions" [ngClass]="{'open': isCapitalActionsOpen && openMenuId === capital.id}">
-                    <li title="Include capital into total balance" class="cp-d-act cp-visible" (click)="includeInTotalCapital(capital.id)">
-                      <app-icon [name]="capital.includeInTotal ? 'fa-eye' : 'fa-eye-slash'"></app-icon>
-                    </li>
-                    <li title="Remove capital" class="cp-d-act cp-delete" (click)="removeCapital(capital.id)">
-                      <app-icon [name]="'fa-trash'"></app-icon>
-                    </li>
-                  </ul>
-                </div>
-          
               }
             </div>
-            <div class="cp-actions">
-              <button title="Include capital into total balance" class="cp-visible" (click)="includeInTotalCapital(capital.id)">
-                <app-icon [name]="capital.includeInTotal ? 'fa-eye' : 'fa-eye-slash'"></app-icon>
-              </button>
-      
-              <button title="Remove capital" class="cp-delete" (click)="removeCapital(capital.id)">
-                <app-icon [name]="'fa-trash'"></app-icon>
-              </button>
-            </div>
           }
+
+          <div class="cp-actions-compact">
+            <button class="menu" (click)="toggleMenu(capital.id)">
+              <app-icon [name]="isCapitalActionsOpen && openMenuId === capital.id ? 'fa-solid fa-caret-left' : 'fa-solid fa-caret-down'"></app-icon>
+            </button>
+    
+            <ul class="actions" [ngClass]="{'open': isCapitalActionsOpen && openMenuId === capital.id}">
+              <li title="Include into total" [class]="'cp-d-act cp-visible ' + (capital.includeInTotal ? 'text-blue-500' : 'opacity-55')" (click)="toggleIncludeInTotal(capital.id)">
+                <app-icon [name]="capital.includeInTotal ? 'fa-eye' : 'fa-eye-slash'"></app-icon>
+              </li>
+              <li title="Toggle savings only" [class]="capital.onlyForSavings ? 'text-green-600 hover:text-green-500' : 'opacity-55'" (click)="toggleSavingsOnly(capital.id)">
+                <app-icon name="fa-piggy-bank"></app-icon>
+              </li>
+              <li title="Remove" class="cp-d-act cp-delete" (click)="deleteCapital(capital.id)">
+                <app-icon name="fa-trash"></app-icon>
+              </li>
+            </ul>
+          </div>
+
+          <div class="cp-actions">
+            <button title="Include in total" [class]="'cp-visible ' + (capital.includeInTotal ? 'text-blue-500' : 'opacity-55')" (click)="toggleIncludeInTotal(capital.id)">
+              <app-icon [name]="capital.includeInTotal ? 'fa-eye' : 'fa-eye-slash'"></app-icon>
+            </button>
+
+            <button title="Toggle savings only" [class]="capital.onlyForSavings ? 'text-green-600 hover:text-green-500' : 'opacity-55'" (click)="toggleSavingsOnly(capital.id)">
+              <app-icon name="fa-piggy-bank"></app-icon>
+            </button>
+    
+            <button title="Remove" class="cp-delete text-red-600 hover:text-red-500" (click)="deleteCapital(capital.id)">
+              <app-icon name='fa-trash'></app-icon>
+            </button>
+          </div>
         </div>
       }
     </div>
