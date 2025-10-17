@@ -10,4 +10,7 @@ public sealed record CapitalResponse(
     float TotalIncome,
     float TotalExpense,
     float TotalTransferIn,
-    float TotalTransferOut);
+    float TotalTransferOut,
+    DateTimeOffset CreatedAt,
+    int CreatedBy
+);

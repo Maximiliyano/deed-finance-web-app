@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Net.Http.Json;
 using System.Text.Json;
 using Deed.Application.Abstractions.Settings;
 using Deed.Application.Exchanges.Responses;
@@ -23,7 +24,7 @@ public sealed class ExchangeHttpService(
         PropertyNameCaseInsensitive = true
     };
 
-    private const string LogMessage = "Error getting currencies with reason: {Message}";
+    private const string LogMessage = "Exception occured while execution.";
 
     private readonly HashSet<string> AllowedCurrencies = [
         "USD",
@@ -35,10 +36,12 @@ public sealed class ExchangeHttpService(
     {
         try
         {
-            Log.Information("Start getting currencies");
-            using var request = new HttpRequestMessage(HttpMethod.Get, string.Format(CultureInfo.CurrentCulture, options.Value.ExchangeRatesPrivatAPIUrl, $"{dateTimeProvider.UtcNow.Day:D2}.{dateTimeProvider.UtcNow.Month:D2}.{dateTimeProvider.UtcNow.Year}"));
-
-            Log.Information("Sending request to Privat24API");
+            Log.Information("Sending request to get currencies...");
+            
+            var date = dateTimeProvider.UtcNow.ToString("dd.MM.yyyy", CultureInfo.InvariantCulture);
+            var url = string.Format(CultureInfo.CurrentCulture, options.Value.ExchangeRatesPrivatAPIUrl, date);
+            
+            using var request = new HttpRequestMessage(HttpMethod.Get, url);
             using var response = await client.SendAsync(request);
 
             if (!response.IsSuccessStatusCode)
@@ -47,10 +50,8 @@ public sealed class ExchangeHttpService(
                 return Result.Failure<IEnumerable<Exchange>>(DomainErrors.Exchange.HttpExecution);
             }
 
-            var content = await response.Content.ReadAsStringAsync();
-
-            Log.Information("Deserializing a response from the content: {Content}", content);
-            var exchanges = JsonSerializer.Deserialize<ExchangeRateData>(content, CaseInsensitive);
+            Log.Information("Deserializing a response...");
+            var exchanges = await response.Content.ReadFromJsonAsync<ExchangeRateData>(CaseInsensitive);
 
             if (exchanges is null)
             {
