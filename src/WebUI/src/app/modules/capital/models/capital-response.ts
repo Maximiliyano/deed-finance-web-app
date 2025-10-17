@@ -9,4 +9,6 @@ export interface CapitalResponse {
   totalExpense: number;
   totalTransferIn: number;
   totalTransferOut: number;
+  createdAt: Date;
+  createdBy: number;
 }

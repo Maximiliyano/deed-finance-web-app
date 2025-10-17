@@ -1,6 +1,7 @@
 using Deed.Application.Abstractions.Data;
 using Deed.Domain.Entities;
 using Deed.Domain.Repositories;
+using EFCore.BulkExtensions;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
@@ -30,6 +31,10 @@ public sealed class DeedDbContext(DbContextOptions<DeedDbContext> options)
         where TEntity : Entity
             => base.Set<TEntity>();
 
+    public async Task UpsertAsync<TEntity>(IEnumerable<TEntity> entities, CancellationToken cancellationToken = default)
+        where TEntity : Entity
+            => await this.BulkInsertOrUpdateAsync(entities, cancellationToken: cancellationToken);
+
     public async Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken cancellationToken = default)
         => await Database.BeginTransactionAsync(cancellationToken);
 
@@ -39,4 +44,5 @@ public sealed class DeedDbContext(DbContextOptions<DeedDbContext> options)
 
         builder.ApplyConfigurationsFromAssembly(AssemblyReference.Assembly);
     }
+
 }

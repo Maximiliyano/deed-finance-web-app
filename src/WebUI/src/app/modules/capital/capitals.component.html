@@ -49,13 +49,24 @@
           [ngClass]="capitalBackgroundClass(capital.includeInTotal, capital.onlyForSavings)"
         >
           <div class="cp-name-balance">
-            <button
-              (click)="toggleEditDialog(capital)"
-              (keydown.enter)="toggleEditDialog(capital)"
-              (keydown.space)="toggleEditDialog(capital)"
-            >
-              {{ capital.name }}
-            </button>
+            <div class="relative">
+              <button
+                class="cp-name"
+                (click)="toggleEditDialog(capital)"
+                (keydown.enter)="toggleEditDialog(capital)"
+                (keydown.space)="toggleEditDialog(capital)"
+              >
+                {{ capital.name }}
+              </button>
+
+              <div class="absolute sm:static right-2 top-2 hidden sm:block sm:right-auto sm:top-auto text-xs text-gray-500 dark:text-gray-400 italic">
+                Created {{capital.createdAt | date }} by
+                <span class="font-semibold text-gray-700 dark:text-gray-300">
+                  {{ capital.createdBy }}
+                </span>
+              </div>
+            </div>
+
             <div class="cp-balance" title="Balance">
               {{ capital.balance | currencySymbol: capital.currency }}
             </div>

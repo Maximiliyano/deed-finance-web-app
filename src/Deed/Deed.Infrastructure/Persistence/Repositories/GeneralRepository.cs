@@ -40,6 +40,9 @@ internal abstract class GeneralRepository<TEntity>(IDeedDbContext context)
     public void UpdateRange(IEnumerable<TEntity> entities) =>
         DbSet.UpdateRange(entities);
 
+    public async Task UpsertAsync(IEnumerable<TEntity> entities, CancellationToken cancellationToken = default) =>
+        await DbContext.UpsertAsync(entities, cancellationToken);
+
     public void Delete(TEntity entity) =>
         DbSet.Remove(entity);
 
