@@ -11,6 +11,7 @@ namespace Deed.Infrastructure.BackgroundJobs.SaveLatestExchange;
 
 [DisallowConcurrentExecution]
 public sealed class UpsertLatestExchangeJob(
+    IUnitOfWork unitOfWork,
     IExchangeRepository repository,
     IExchangeHttpService service)
     : IJob
@@ -38,13 +39,14 @@ public sealed class UpsertLatestExchangeJob(
                 e => e,
                 StringComparer.OrdinalIgnoreCase);
 
-        var entities = new HashSet<Exchange>();
+        var entitiesToAdd = new HashSet<Exchange>();
+        var entitiesToUpdate = new HashSet<Exchange>();
 
         foreach (var latestExchange in latestExchangesResult.Value)
         {
             if (!lookup.TryGetValue(key(latestExchange.NationalCurrencyCode, latestExchange.TargetCurrencyCode), out var existing))
             {
-                entities.Add(latestExchange);
+                entitiesToAdd.Add(latestExchange);
                 continue;
             }
 
@@ -57,10 +59,22 @@ public sealed class UpsertLatestExchangeJob(
             existing.Buy = latestExchange.Buy;
             existing.Sale = latestExchange.Sale;
 
-            entities.Add(existing);
+            entitiesToUpdate.Add(existing);
         }
 
-        await repository.UpsertAsync(entities, context.CancellationToken);
+        if (entitiesToAdd.Count > 0)
+        {
+            repository.AddRange(entitiesToAdd);
+        }
+        else if (entitiesToUpdate.Count > 0)
+        {
+            repository.UpdateRange(entitiesToUpdate);
+        }
+
+        if (entitiesToAdd.Count > 0 || entitiesToUpdate.Count > 0)
+        {
+            await unitOfWork.SaveChangesAsync(context.CancellationToken);
+        }
 
         Log.Information("Job finished: {Name}", nameof(UpsertLatestExchangeJob));
 

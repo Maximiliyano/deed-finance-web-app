@@ -5,4 +5,5 @@ public sealed record ExchangeResponse(
     string NationalCurrency,
     float Buy,
     float Sale,
-    DateTimeOffset? UpdatedAt);
+    DateTimeOffset? UpdatedAt
+);

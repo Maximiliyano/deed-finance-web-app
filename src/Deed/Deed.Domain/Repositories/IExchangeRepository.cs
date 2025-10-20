@@ -4,7 +4,9 @@ namespace Deed.Domain.Repositories;
 
 public interface IExchangeRepository
 {
-    Task UpsertAsync(IEnumerable<Exchange> updatedExchanges, CancellationToken cancellationToken = default);
+    void AddRange(IEnumerable<Exchange> entities);
+
+    void UpdateRange(IEnumerable<Exchange> entities);
 
     Task<IEnumerable<Exchange>> GetAllAsync();
 }

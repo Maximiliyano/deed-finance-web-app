@@ -1,5 +1,4 @@
 using Deed.Domain.Entities;
-using EFCore.BulkExtensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -21,9 +20,6 @@ public interface IDeedDbContext
     DbSet<Exchange> Exchanges { get; }
 
     DbSet<TEntity> Set<TEntity>()
-        where TEntity : Entity;
-
-    Task UpsertAsync<TEntity>(IEnumerable<TEntity> entities, CancellationToken cancellationToken = default)
         where TEntity : Entity;
 
     Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken cancellationToken = default);

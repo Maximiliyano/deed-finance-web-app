@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, TrackByFunction } from '@angular/core';
 import { Exchange } from '../../models/exchange-model';
 import { ExchangeService } from '../../../shared/services/exchange.service';
 import { Subject, takeUntil } from 'rxjs';
@@ -13,6 +13,7 @@ import { DialogService } from '../../../shared/services/dialog.service';
 })
 export class HeaderComponent implements OnInit, OnDestroy {
   exchanges: Exchange[] = [];
+  exchangeUpdatedAt: Date | null = null;
   isSidebarExpanded: boolean;
   navItems = [
     { label: 'Capitals', icon: 'fa-wallet', link: '/capitals' },
@@ -23,6 +24,9 @@ export class HeaderComponent implements OnInit, OnDestroy {
   ];
 
   private unsubscribe = new Subject<void>();
+  
+  trackByLabel: TrackByFunction<{ label: string; icon: string; link: string; }>;
+  trackBySale: TrackByFunction<Exchange>;
 
   constructor(
     private readonly dialogService: DialogService,
@@ -34,7 +38,12 @@ export class HeaderComponent implements OnInit, OnDestroy {
       .pipe(
         takeUntil(this.unsubscribe))
       .subscribe({
-        next: (exchanges) => this.exchanges = exchanges
+        next: (exchanges) => {
+          this.exchanges = exchanges;
+          if (exchanges.length > 0) {
+            this.exchangeUpdatedAt = exchanges[0].updatedAt;
+          }
+        }
       });
   }
 

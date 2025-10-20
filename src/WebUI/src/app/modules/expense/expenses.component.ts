@@ -125,11 +125,8 @@ export class ExpensesComponent implements OnInit, OnDestroy {
       next: (params) => {
         const queryCapitalId = params.get('capitalId');
         const capital = this.capitals.find(c => c.id === Number(queryCapitalId));
-        if (capital) {
-          this.selectedCapital = capital;
-        } else {
-          this.selectedCapital = null;
-        }
+        
+        this.selectedCapital = capital ?? null;
       }
     })
   }
@@ -166,6 +163,7 @@ export class ExpensesComponent implements OnInit, OnDestroy {
             this.dialogService.open({
               component: AddCategoryDialog,
               onSubmit: () => {
+                this.popupMessageService.success('Category successfully added.');
                 this.dialogService.close();
               }
             });

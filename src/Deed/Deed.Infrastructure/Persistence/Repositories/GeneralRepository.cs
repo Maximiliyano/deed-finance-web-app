@@ -31,7 +31,7 @@ internal abstract class GeneralRepository<TEntity>(IDeedDbContext context)
     public void Create(TEntity entity) =>
         DbSet.Add(entity);
 
-    protected void CreateRange(IEnumerable<TEntity> entities) =>
+    public void AddRange(IEnumerable<TEntity> entities) =>
         DbSet.AddRange(entities);
 
     public void Update(TEntity entity) =>
@@ -39,9 +39,6 @@ internal abstract class GeneralRepository<TEntity>(IDeedDbContext context)
 
     public void UpdateRange(IEnumerable<TEntity> entities) =>
         DbSet.UpdateRange(entities);
-
-    public async Task UpsertAsync(IEnumerable<TEntity> entities, CancellationToken cancellationToken = default) =>
-        await DbContext.UpsertAsync(entities, cancellationToken);
 
     public void Delete(TEntity entity) =>
         DbSet.Remove(entity);

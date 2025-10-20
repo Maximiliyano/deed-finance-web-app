@@ -8,6 +8,24 @@
       <span>New</span>
     </button>
 
+    <div
+      class="flex items-center gap-2 border rounded-lg px-3 py-2 shadow-md transition"
+    >
+      <app-icon name="fa-wallet"></app-icon>
+      <select
+        class="rounded-lg px-4 py-1 focus:outline-zinc-200"
+        [ngModel]="selectedCapital"
+        (ngModelChange)="onCapitalChange($event)"
+      >
+        <option [value]="null">All</option>
+        @for (capital of capitals; track capital.id) {
+          <option class="border-t border-black" [ngValue]="capital">
+            {{capital.name}}
+          </option>
+        }
+      </select>
+    </div>
+
     <button
       (click)="toggleCategories()"
       class="flex items-center gap-2 border rounded-lg px-3 py-2 shadow-md transition"
@@ -17,31 +35,12 @@
     </button>
   </div>
 
-  <div class="flex flex-col gap-4 mb-6">
-    <div class="flex flex-col border rounded-lg bg-white p-2 gap-2">
-      <div class="flex gap-2 items-center border-b">
-        <app-icon name="fa-wallet"></app-icon>
-        <select
-          class="border-r rounded-lg px-4 py-1 shadow-sm"
-          [ngModel]="selectedCapital"
-          (ngModelChange)="onCapitalChange($event)"
-        >
-          <option [value]="null">All</option>
-          @for (capital of capitals; track capital.id) {
-            <option [ngValue]="capital">
-              {{capital.name}}
-            </option>
-          }
-        </select>
-      </div>
-      <span class="text-lg">Balance: {{ capitalBalance | currencySymbol: capitalCurrency }} </span>
-      <span class="text-lg">Expenses:
-        <span class="text-red-600">{{ capitalTotalExpenses | currencySymbol: capitalCurrency }}</span>
-      </span>
-    </div>
+  <div class="flex justify-center items-center border rounded-lg bg-white p-2 gap-2 relative">
+    <span class="text-lg font-medium" title="Balance">{{ capitalBalance | currencySymbol: capitalCurrency }} </span>
+    <span class="text-sm text-red-600" title="Expenses">- {{ capitalTotalExpenses | currencySymbol: capitalCurrency }}</span>
   </div>
 
-  <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6 bg-white border rounded-lg min-h-96">
+  <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6 bg-white border rounded-lg min-h-96 mt-2">
     @for (expenseCategory of expenseCategories; track expenseCategory.categoryId) {
       <div class="rounded-lg border border-gray-200 bg-white shadow-sm hover:shadow-md transition-shadow overflow-hidden">
         <div
