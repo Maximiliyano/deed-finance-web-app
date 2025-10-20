@@ -14,39 +14,13 @@ internal sealed class ExpenseRepository(IDeedDbContext context)
         var queries = DbContext.Expenses
             .Include(e => e.Capital)
             .Include(e => e.Category)
-            .AsNoTracking()
             .AsSplitQuery();
 
-        if (capitalId is not null)
+        if (capitalId.HasValue)
         {
-            queries = queries.Where(e => e.CapitalId == capitalId);
+            queries = queries.Where(e => e.CapitalId == capitalId.Value);
         }
 
-        return await queries
-            .Select(e => new Expense(e.Id)
-            {
-                Amount = e.Amount,
-                PaymentDate = e.PaymentDate,
-                CapitalId = e.CapitalId,
-                Capital = new Capital(e.Capital!.Id)
-                {
-                    Name = e.Capital.Name,
-                    Currency = e.Capital.Currency,
-                    Balance = e.Capital.Balance
-                },
-                CategoryId = e.CategoryId,
-                Category = new Category(e.Category!.Id)
-                {
-                    Name = e.Category.Name,
-                    Type = e.Category.Type,
-                    PlannedPeriodAmount = e.Category.PlannedPeriodAmount
-                },
-                Purpose = e.Purpose,
-                CreatedAt = e.CreatedAt,
-                CreatedBy = e.CreatedBy,
-                UpdatedAt = e.UpdatedAt,
-                UpdatedBy = e.UpdatedBy
-            })
-            .ToListAsync();
+        return await queries.ToListAsync().ConfigureAwait(false);
     }
 }

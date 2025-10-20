@@ -34,9 +34,10 @@
         }
         @if (exchanges.length > 3) {
           <div class="exchange more-btn">
-              <button (click)="openExchangeDialog()"></button>
+            <button (click)="openExchangeDialog()"></button>
           </div>
         }
+        <span class="text-sm opacity-50 font-thin italic">Last sync: {{exchangeUpdatedAt | date }}</span>
       </div>
 
       <nav class="navigation">
