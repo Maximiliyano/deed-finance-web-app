@@ -1,4 +1,4 @@
 export const environment = {
   production: true,
-  apiUrl: 'https://deed-api.fly.dev'
+  apiUrl: import.meta.env['NG_API_URL']
 };

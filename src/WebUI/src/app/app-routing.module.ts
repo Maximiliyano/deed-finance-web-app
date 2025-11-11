@@ -18,19 +18,20 @@ const routes: Routes = [
       import('./modules/expense/expense.module').then((x) => x.ExpenseModule)
   },
   {
-    path: '404',
-    pathMatch: 'full',
+    path: 'error',
     loadComponent: () =>
-      import('./core/layout/not-found/not-found.component').then((x) => x.NotFoundComponent)
+      import('./core/layout/error/error.component').then((x) => x.ErrorComponent)
   },
   {
     path: '**',
-    redirectTo: '404'
+    redirectTo: '/error',
+    pathMatch: 'full',
+    data: { status: 404 } 
   },
 ];
 
 @NgModule({
-  imports: [RouterModule.forRoot(routes)],
+  imports: [RouterModule.forRoot(routes, { scrollPositionRestoration: 'enabled' })],
   exports: [RouterModule]
 })
 export class AppRoutingModule { }

@@ -49,7 +49,10 @@ public sealed class GetAllCapitalQueryHandlerTests
                 x.TotalIncome,
                 x.TotalExpense,
                 x.TotalTransferIn,
-                x.TotalTransferOut));
+                x.TotalTransferOut,
+                x.CreatedAt,
+                x.CreatedBy
+            ));
 
         _repositoryMock.GetAllAsync(Arg.Any<CapitalsByQueryParamsSpecification>()).Returns(capitals);
 
@@ -82,7 +85,9 @@ public sealed class GetAllCapitalQueryHandlerTests
             0f,
             0f,
             0f,
-            0f));
+            0f,
+            DateTimeOffset.Now,
+            0));
 
         _repositoryMock.GetAllAsync(Arg.Any<ISpecification<Capital>>()).Returns(capitals);
 

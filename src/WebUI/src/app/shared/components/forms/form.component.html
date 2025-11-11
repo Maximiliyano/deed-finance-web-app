@@ -1,5 +1,5 @@
 <form [formGroup]="form" (ngSubmit)="onSubmit()">
-    <h2 class="text-xl font-semibold mb-4">{{ headerText }}</h2>
+    <h2 class="text-xl font-semibold mb-4 text-center">{{ headerText }}</h2>
 
     @for (field of fields; track field.controlName) {
       <div class="mb-4">
