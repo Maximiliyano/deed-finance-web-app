@@ -6,6 +6,6 @@ namespace Deed.Application.Categories.Commands.Create;
 public sealed record CreateCategoryCommand(
     string Name,
     CategoryType Type,
-    float PlannedPeriodAmount,
+    decimal PlannedPeriodAmount,
     PerPeriodType Period)
     : ICommand<int>;

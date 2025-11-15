@@ -3,6 +3,6 @@ namespace Deed.Application.Incomes.Requests;
 public sealed record UpdateIncomeRequest(
     int Id,
     int? CategoryId,
-    float? Amount,
+    decimal? Amount,
     string? Purpose,
     DateTimeOffset? PaymentDate);

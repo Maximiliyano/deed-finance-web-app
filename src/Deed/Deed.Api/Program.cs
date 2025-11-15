@@ -28,20 +28,22 @@ if (app.Environment.IsDevelopment())
     app.ApplyMigrations();
 }
 
-app.MapHealthChecks("health", new HealthCheckOptions
-{
-    ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
-});
+app.UseExceptionHandler();
+
+app.UseHsts();
+
+app.UseHttpsRedirection();
+
+app.UseCorsPolicy();
 
 app.UseRequestContextLogging();
 
 app.UseSerilogRequestLogging();
 
-app.UseExceptionHandler();
-
-app.UseCorsPolicy();
-
-app.UseHttpsRedirection();
+app.MapHealthChecks("health", new HealthCheckOptions
+{
+    ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+});
 
 app.MapEndpoints();
 

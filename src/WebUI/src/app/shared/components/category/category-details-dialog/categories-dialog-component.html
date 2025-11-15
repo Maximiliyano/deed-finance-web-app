@@ -1,0 +1,61 @@
+<h1 class="font-bold text-lg text-center mb-2">{{data.type ? `${data.type} categories` : 'Categories'}}</h1>
+
+@if (data.type) {
+  <div class="text-sm">
+    Type: 
+    <span class="font-bold">{{ data.type }}</span>
+  </div>
+}
+
+<div class="flex flex-col gap-4 h-96 border rounded p-2 bg-slate-50">
+
+  @if (data.categories.length > 0) {
+    <div class="overflow-y-auto flex-1">
+      @for (category of data.categories; track category.id) {
+        <div class="grid {{isEditModeEnabled ? 'grid-cols-[2fr_1fr_1.4fr_40px]' : 'grid-cols-3'}} items-center gap-3 p-2 border-b hover:bg-gray-50">
+          @if (!isEditModeEnabled) {
+            <span class="truncate" [title]="category.name">{{ category.name }}</span>
+            <span class="text-center">{{ category.periodAmount | currencySymbol: data.currency }}</span>
+            <span class="text-center">{{ category.periodType | enumText: PerPeriodType }}</span>
+          }
+          @else {
+            <input type="text" [(ngModel)]="category.name" class="border rounded p-1 w-full" />
+            <input type="number" [(ngModel)]="category.periodAmount" class="border rounded p-1 w-full" />
+            <select [(ngModel)]="category.periodType" class="border rounded p-1 w-full">
+              @for (item of periodTypeOptions; track item) {
+                <option [value]="item.value">{{item.key}}</option>
+              }
+            </select>
+            <button (click)="deleteCategory(category.id)" class="text-2xl text-red-500 hover:text-red-700">&times;</button>
+          }
+        </div>
+      }
+    </div>
+  
+    <div class="flex justify-between pt-2 border-t">
+      @if (!isEditModeEnabled) {
+        <button class="flex items-center gap-1 border px-2 py-1 rounded text-white bg-green-600 hover:bg-green-700" (click)="addCategory()">
+          New
+          <app-icon name="fa-circle-plus"></app-icon>
+        </button>
+  
+        <button class="flex items-center gap-1 border px-2 py-1 rounded text-white bg-blue-500 hover:bg-blue-600" (click)="isEditModeEnabled = true">
+          Edit all
+          <app-icon name="fa-pen"></app-icon>
+        </button>
+      }
+      @else {
+        <button class="bg-green-600 border rounded text-white px-6 py-1 disabled:opacity-50 {{ hasChanges() ? 'hover:bg-green-800' : 'cursor-not-allowed' }}" [disabled]="!hasChanges()" (click)="editCategories()">Save</button>
+        <button class="bg-red-500 hover:bg-red-700 border rounded text-white px-4 py-1" (click)="isEditModeEnabled = false">Cancel</button>
+      }
+    </div>
+  }
+  @else {
+    <div class="text-gray-500">
+      No categories found. Create one...
+      <button class="ml-2 text-blue-500 hover:text-blue-700">
+        <app-icon name="fa-circle-plus"></app-icon>
+      </button>
+    </div>
+  }
+</div>

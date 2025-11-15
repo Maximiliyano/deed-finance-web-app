@@ -66,25 +66,26 @@ public sealed class UpdateCapitalCommandHandlerTests
     }
 
     [Theory]
-    [InlineData("New Name", 200f, CurrencyType.EUR, false)]
-    [InlineData("Modified Name", 150f, null, null)]
+    [InlineData("New Name", 200.0, CurrencyType.EUR, false)]
+    [InlineData("Modified Name", 150.0, null, null)]
     [InlineData("Refreshed Name", null, null, null)]
-    [InlineData(null, 150f, null, null)]
+    [InlineData(null, 150.0, null, null)]
     [InlineData(null, null, CurrencyType.UAH, null)]
     [InlineData(null, null, null, false)]
     [InlineData("Updated Name", null, CurrencyType.USD, null)]
-    public async Task Handle_ShouldUpdateCapitalSuccessfully(string? name, float? balance, CurrencyType? currency, bool? includeInTotal)
+    public async Task Handle_ShouldUpdateCapitalSuccessfully(string? name, double? balance, CurrencyType? currency, bool? includeInTotal)
     {
         // Arrange
         const string oldName = "Old Name";
-        const float oldBalance = 100f;
+        const decimal oldBalance = 100m;
         const bool oldIncludeInTotal = true;
 
+        decimal? currentBalance = balance is null ? null : (decimal)balance;
         var capital = new Capital(1) { Name = oldName, Balance = oldBalance, Currency = CurrencyType.USD, IncludeInTotal = oldIncludeInTotal };
         var command = new UpdateCapitalCommand(
             1,
             name,
-            balance,
+            currentBalance,
             currency,
             includeInTotal);
 
@@ -97,7 +98,7 @@ public sealed class UpdateCapitalCommandHandlerTests
         result.IsSuccess.Should().BeTrue();
 
         capital.Name.Should().Be(name ?? oldName);
-        capital.Balance.Should().Be(balance ?? oldBalance);
+        capital.Balance.Should().Be(currentBalance ?? oldBalance);
         capital.Currency.Should().Be(currency is not null
             ? currency
             : CurrencyType.USD);

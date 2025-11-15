@@ -5,7 +5,7 @@ namespace Deed.Application.Incomes.Commands.Update;
 public sealed record UpdateIncomeCommand(
     int Id,
     int? CategoryId = null,
-    float? Amount = null,
+    decimal? Amount = null,
     string? Purpose = null,
     DateTimeOffset? PaymentDate = null)
     : ICommand;

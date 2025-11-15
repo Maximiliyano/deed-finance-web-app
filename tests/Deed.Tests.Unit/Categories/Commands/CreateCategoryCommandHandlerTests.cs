@@ -26,7 +26,7 @@ public sealed class CreateCategoryCommandHandlerTests
         var command = new CreateCategoryCommand(
             "New Category",
             CategoryType.Expenses,
-            100.0f,
+            100.0m,
             PerPeriodType.Daily);
 
         // Act

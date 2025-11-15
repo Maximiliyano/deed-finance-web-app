@@ -1,27 +1,32 @@
-import {Component, EventEmitter, OnInit, Output} from '@angular/core';
+import {Component, Inject, OnInit} from '@angular/core';
 import {FormControl, FormGroup, Validators} from "@angular/forms";
 import { CreateExpenseRequest } from '../../models/create-expense-request';
 import { FormField } from '../../../../shared/components/forms/models/form-field';
 import { PopupMessageService } from '../../../../shared/services/popup-message.service';
 import { SelectOptionModel } from '../../../../shared/components/forms/models/select-option-model';
 import { noFutureDate } from '../../../../shared/components/forms/validators/noFutureDate';
+import { SharedModule } from "../../../../shared/shared.module";
+import { DIALOG_DATA } from '../../../../shared/components/dialogs/models/dialog-consts';
+import { DialogRef } from '../../../../shared/components/dialogs/models/dialog-ref';
 
 @Component({
     selector: 'app-expense-dialog',
     templateUrl: './expense-dialog.component.html',
     styleUrl: './expense-dialog.component.scss',
-    standalone: false
+    standalone: true,
+    imports: [SharedModule]
 })
 export class ExpenseDialogComponent implements OnInit {
-  @Output() submitted = new EventEmitter<CreateExpenseRequest | null>();
-
-  categoryOptions: SelectOptionModel[] = [];
-  capitalsOptions: SelectOptionModel[] = [];
-
   form: FormGroup;
   fields: FormField[] = [];
 
-  constructor(private readonly popupMessageService: PopupMessageService) {}
+  constructor(
+    @Inject(DIALOG_DATA) public data: {
+      categoryOptions: SelectOptionModel[];
+      capitalsOptions: SelectOptionModel[];
+    },
+    private readonly dialogRef: DialogRef<CreateExpenseRequest | null>,
+    private readonly popupMessageService: PopupMessageService) {}
 
   ngOnInit(): void {
     this.initForm();
@@ -39,7 +44,7 @@ export class ExpenseDialogComponent implements OnInit {
         label: 'Capital',
         controlName: 'CapitalId',
         select: {
-          options: this.capitalsOptions,
+          options: this.data.capitalsOptions,
           optionCaption: 'Select a capital...'
         }
       },
@@ -47,7 +52,7 @@ export class ExpenseDialogComponent implements OnInit {
         label: 'Category',
         controlName: 'CategoryId',
         select: {
-          options: this.categoryOptions,
+          options: this.data.categoryOptions,
           optionCaption: 'Select a category...'
         }
       },
@@ -69,8 +74,8 @@ export class ExpenseDialogComponent implements OnInit {
   private initForm(): void {
     this.form = new FormGroup({
       Amount: new FormControl(0, [Validators.required, Validators.min(1)]),
-      CapitalId: new FormControl({ value: '', disabled: this.capitalsOptions.length === 0 }, [Validators.required]),
-      CategoryId: new FormControl({ value: '', disabled: this.categoryOptions.length === 0 }, [Validators.required]),
+      CapitalId: new FormControl({ value: '', disabled: this.data.capitalsOptions.length === 0 }, [Validators.required]),
+      CategoryId: new FormControl({ value: '', disabled: this.data.categoryOptions.length === 0 }, [Validators.required]),
       PaymentDate: new FormControl(new Date().toISOString().split('T')[0], [Validators.required, noFutureDate]), // TODO move into function
       Purpose: new FormControl(null, [Validators.minLength(1)])
     });
@@ -91,10 +96,10 @@ export class ExpenseDialogComponent implements OnInit {
       purpose: this.form.value.Purpose
     };
 
-    this.submitted.next(request);
+    this.dialogRef.close(request);
   }
 
   handleCancel(): void {
-    this.submitted.next(null);
+    this.dialogRef.close(null);
   }
 }

@@ -20,7 +20,7 @@ public sealed class UpsertLatestExchangeJob(
     {
         Log.Information("Job started: {Name}", nameof(UpsertLatestExchangeJob));
 
-        var latestExchangesResult = await service.GetCurrenciesAsync();
+        var latestExchangesResult = await service.GetCurrenciesAsync().ConfigureAwait(false);
 
         if (!latestExchangesResult.IsSuccess)
         {
@@ -28,12 +28,8 @@ public sealed class UpsertLatestExchangeJob(
             return;
         }
 
-        Log.Information("Executed exchange from API successfully.");
-        Log.Information("Adding / Updating current exchange...");
-
-        var exchanges = await repository.GetAllAsync();
+        var exchanges = await repository.GetAllAsync().ConfigureAwait(false);
         var lookup = exchanges
-            .AsParallel()
             .ToDictionary(
                 e => key(e.NationalCurrencyCode, e.TargetCurrencyCode),
                 e => e,
@@ -66,14 +62,15 @@ public sealed class UpsertLatestExchangeJob(
         {
             repository.AddRange(entitiesToAdd);
         }
-        else if (entitiesToUpdate.Count > 0)
+
+        if (entitiesToUpdate.Count > 0)
         {
             repository.UpdateRange(entitiesToUpdate);
         }
 
         if (entitiesToAdd.Count > 0 || entitiesToUpdate.Count > 0)
         {
-            await unitOfWork.SaveChangesAsync(context.CancellationToken);
+            await unitOfWork.SaveChangesAsync(context.CancellationToken).ConfigureAwait(false);
         }
 
         Log.Information("Job finished: {Name}", nameof(UpsertLatestExchangeJob));

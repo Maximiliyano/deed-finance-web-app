@@ -1,4 +1,4 @@
-import { Component, EventEmitter, OnDestroy, OnInit, Output } from '@angular/core';
+import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { FormGroup, FormControl, Validators } from '@angular/forms';
 import { Subject } from 'rxjs';
 import { PopupMessageService } from '../../../../shared/services/popup-message.service';
@@ -6,23 +6,25 @@ import { CurrencyType } from '../../../../core/types/currency-type';
 import { AddCapitalRequest } from '../../models/add-capital-request';
 import { FormField } from '../../../../shared/components/forms/models/form-field';
 import { SelectOptionModel } from '../../../../shared/components/forms/models/select-option-model';
+import { DIALOG_DATA } from '../../../../shared/components/dialogs/models/dialog-consts';
+import { DialogRef } from '../../../../shared/components/dialogs/models/dialog-ref';
+import { SharedModule } from "../../../../shared/shared.module";
 
 @Component({
     selector: 'app-add-capital-dialog',
     templateUrl: './add-capital-dialog.component.html',
-    standalone: false
+    standalone: true,
+    imports: [SharedModule]
 })
 export class AddCapitalDialogComponent implements OnInit, OnDestroy {
-  @Output() submitted = new EventEmitter<AddCapitalRequest | null>();
-
-  currencyOptions: SelectOptionModel[] = [];
-
   form: FormGroup;
   fields: FormField[] = [];
 
   private readonly unsubscribe$ = new Subject<void>();
 
   constructor(
+    @Inject(DIALOG_DATA) public currencyOptions: SelectOptionModel[],
+    private readonly dialogRef: DialogRef<AddCapitalRequest | null>,
     private readonly popupMessageService: PopupMessageService
   ) {}
 
@@ -90,10 +92,10 @@ export class AddCapitalDialogComponent implements OnInit, OnDestroy {
       onlyForSavings: this.form.value.OnlyForSavings
     };
 
-    this.submitted.emit(request);
+    this.dialogRef.close(request);
   }
 
   handleCancel(): void {
-    this.submitted.emit(null);
+    this.dialogRef.close(null);
   }
 }

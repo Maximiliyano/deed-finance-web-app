@@ -19,7 +19,6 @@ internal sealed class CapitalRepository(IDeedDbContext context)
     public async Task<bool> PatchIncludeInTotalAsync(int id, bool includeInTotal, CancellationToken cancellationToken)
     {
         return await DbContext.Capitals
-            .IgnoreAutoIncludes()
             .Where(c => c.Id.Equals(id))
             .ExecuteUpdateAsync(p => p.SetProperty(c => c.IncludeInTotal, includeInTotal), cancellationToken) > 0;
     }
@@ -27,7 +26,6 @@ internal sealed class CapitalRepository(IDeedDbContext context)
     public async Task<bool> PatchSavingsOnlyAsync(int id, bool onlyForSavings, CancellationToken cancellationToken)
     {
         return await DbContext.Capitals
-            .IgnoreAutoIncludes()
             .Where(c => c.Id.Equals(id))
             .ExecuteUpdateAsync(p => p.SetProperty(c => c.OnlyForSavings, onlyForSavings), cancellationToken) > 0;
     }
@@ -36,7 +34,6 @@ internal sealed class CapitalRepository(IDeedDbContext context)
     {
         var ids = capitals.Select(c => c.Id).ToArray();
         var entries = await DbContext.Capitals
-            .IgnoreAutoIncludes()
             .Where(c => ids.Contains(c.Id))
             .ToListAsync(cancellationToken);
 

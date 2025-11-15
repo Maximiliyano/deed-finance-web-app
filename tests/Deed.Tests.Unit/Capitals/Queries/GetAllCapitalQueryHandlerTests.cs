@@ -78,14 +78,14 @@ public sealed class GetAllCapitalQueryHandlerTests
         var capitalResponses = capitals.Select(_ => new CapitalResponse(
             0,
             string.Empty,
-            0f,
+            0m,
             string.Empty,
             false,
             false,
-            0f,
-            0f,
-            0f,
-            0f,
+            0m,
+            0m,
+            0m,
+            0m,
             DateTimeOffset.Now,
             0));
 

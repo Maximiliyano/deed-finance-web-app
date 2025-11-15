@@ -4,7 +4,7 @@ using System.Text.Json.Serialization;
 
 namespace Deed.Domain.Converters;
 
-public sealed class StringToFloatConverter : JsonConverter<float>
+public sealed class StringTofloatConverter : JsonConverter<float>
 {
     public override float Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {

@@ -14,6 +14,9 @@ public static class DomainErrors
 
         public static Error UpdateFailed
             => Error.Failure(nameof(UpdateFailed), "Update entity failed.");
+
+        public static Error EmptyCollection
+            => Error.BadRequest(nameof(EmptyCollection), "The collection of entities is empty.");
     }
 
     public static class Capital
@@ -44,5 +47,8 @@ public static class DomainErrors
     {
         public static Error InvalidPerPeriod
             => Error.BadRequest(nameof(InvalidPerPeriod), "Category per period is invalid.");
+
+        public static Error PeriodAmountGreaterEqualZero
+            => Error.BadRequest(nameof(PeriodAmountGreaterEqualZero), "Period amount should be greater or equal zero.");
     }
 }

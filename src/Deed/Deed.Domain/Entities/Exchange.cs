@@ -21,11 +21,11 @@ public sealed class Exchange
     [JsonPropertyName("ccy")]
     public required string TargetCurrencyCode { get; init; }
 
-    [JsonConverter(typeof(StringToFloatConverter))]
-    public required float Buy { get; set; }
+    [JsonConverter(typeof(StringTofloatConverter))]
+    public required decimal Buy { get; set; }
 
-    [JsonConverter(typeof(StringToFloatConverter))]
-    public required float Sale { get; set; }
+    [JsonConverter(typeof(StringTofloatConverter))]
+    public required decimal Sale { get; set; }
 
     public DateTimeOffset CreatedAt { get; init; }
 

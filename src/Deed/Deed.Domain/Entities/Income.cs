@@ -11,7 +11,7 @@ public sealed class Income : Entity, IAuditableEntity, ISoftDeletableEntity
     {
     }
 
-    public required float Amount { get; set; }
+    public required decimal Amount { get; set; }
 
     public required DateTimeOffset PaymentDate { get; set; }
 

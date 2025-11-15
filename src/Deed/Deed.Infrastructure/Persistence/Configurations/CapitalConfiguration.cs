@@ -1,3 +1,4 @@
+using Deed.Domain.Constants;
 using Deed.Domain.Entities;
 using Deed.Domain.Enums;
 using Deed.Infrastructure.Persistence.Constants;
@@ -11,52 +12,38 @@ internal sealed class CapitalConfiguration : IEntityTypeConfiguration<Capital>
 {
     public void Configure(EntityTypeBuilder<Capital> builder)
     {
+        builder.ToTable(TableConfigurationConstants.Capitals);
+
         builder.HasKey(c => c.Id);
 
-        builder.HasData(Seeder.Parse<Capital>(SeederConstants.Capitals));
+        builder.Property(c => c.Name)
+            .IsRequired()
+            .HasMaxLength(ValidationConstants.MaxLenghtName);
 
-        builder
-            .HasIndex(c => c.Name)
-            .IsUnique();
+        builder.Property(c => c.Balance)
+            .IsRequired()
+            .HasPrecision(18, 2);
 
-        builder.HasIndex(c => c.Balance);
+        builder.Property(c => c.Currency)
+            .IsRequired()
+            .HasConversion<int>();
 
-        builder
-            .Property(p => p.RowVersion)
+        builder.Property(x => x.IncludeInTotal).HasDefaultValue(true);
+        builder.Property(x => x.OnlyForSavings).HasDefaultValue(false);
+        builder.Property(x => x.OrderIndex).HasDefaultValue(0);
+
+        builder.Property(p => p.RowVersion)
             .IsRowVersion();
 
-        builder
-            .Property(c => c.Currency)
-            .HasConversion<string>();
-
-        builder
-            .Property(c => c.IncludeInTotal)
-            .HasDefaultValue(true);
-
-        builder
-            .Property(c => c.OnlyForSavings)
-            .HasDefaultValue(false);
-
-        builder
-            .HasMany(c => c.Incomes)
+        builder.HasMany(c => c.Incomes)
             .WithOne(i => i.Capital)
             .HasForeignKey(i => i.CapitalId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.Restrict);
 
-        builder
-            .Navigation(c => c.Incomes)
-            .AutoInclude();
-
-        builder
-            .HasMany(c => c.Expenses)
+        builder.HasMany(c => c.Expenses)
             .WithOne(e => e.Capital)
             .HasForeignKey(e => e.CapitalId)
-            .OnDelete(DeleteBehavior.Cascade);
-
-
-        builder
-            .Navigation(c => c.Expenses)
-            .AutoInclude();
+            .OnDelete(DeleteBehavior.Restrict);
 
         builder
             .HasMany(c => c.TransfersIn)
@@ -65,19 +52,11 @@ internal sealed class CapitalConfiguration : IEntityTypeConfiguration<Capital>
             .OnDelete(DeleteBehavior.Restrict);
 
         builder
-            .Navigation(c => c.TransfersIn)
-            .AutoInclude();
-
-        builder
             .HasMany(c => c.TransfersOut)
             .WithOne(t => t.SourceCapital)
             .HasForeignKey(t => t.SourceCapitalId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        builder
-            .Navigation(c => c.TransfersOut)
-            .AutoInclude();
-
-        builder.ToTable(TableConfigurationConstants.Capitals);
+        builder.HasData(Seeder.Parse<Capital>(SeederConstants.Capitals));
     }
 }

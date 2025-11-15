@@ -38,7 +38,7 @@ public sealed class CreateIncomeCommandHandlerTests
             Type = CategoryType.Expenses
         };
 
-        var command = new CreateIncomeCommand(capital.Id, category.Id, 100f, DateTimeOffset.UtcNow);
+        var command = new CreateIncomeCommand(capital.Id, category.Id, 100m, DateTimeOffset.UtcNow);
 
         _capitalRepositoryMock.GetAsync(Arg.Any<CapitalByIdSpecification>())
             .Returns(capital);
@@ -49,7 +49,7 @@ public sealed class CreateIncomeCommandHandlerTests
         // Assert
         result.IsSuccess.Should().BeTrue();
 
-        capital.Balance.Should().Be(200f);
+        capital.Balance.Should().Be(200m);
 
         _capitalRepositoryMock.Received(1).Update(capital);
         _incomeRepositoryMock.Received(1).Create(Arg.Is<Income>(i => i.Amount.Equals(command.Amount)));
@@ -62,7 +62,7 @@ public sealed class CreateIncomeCommandHandlerTests
     public async Task Handle_ShouldReturnFailure_WhenIncomeNotFound()
     {
         // Arrange
-        var command = new CreateIncomeCommand(1, 1, 100f, DateTimeOffset.UtcNow);
+        var command = new CreateIncomeCommand(1, 1, 100m, DateTimeOffset.UtcNow);
 
         _capitalRepositoryMock.GetAsync(Arg.Any<CapitalByIdSpecification>())
             .Returns((Capital)null);

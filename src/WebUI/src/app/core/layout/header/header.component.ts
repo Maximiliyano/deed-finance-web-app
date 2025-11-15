@@ -3,7 +3,7 @@ import { Exchange } from '../../models/exchange-model';
 import { ExchangeService } from '../../../shared/services/exchange.service';
 import { Subject, takeUntil } from 'rxjs';
 import { ExchangeDialogComponent } from '../../../shared/components/dialogs/exchange-dialog/exchange-dialog.component';
-import { DialogService } from '../../../shared/services/dialog.service';
+import { DialogService } from '../../../shared/components/dialogs/services/dialog.service';
 
 @Component({
     selector: 'app-header',
@@ -35,8 +35,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.exchangeService
       .getAll()
-      .pipe(
-        takeUntil(this.unsubscribe))
+      .pipe(takeUntil(this.unsubscribe))
       .subscribe({
         next: (exchanges) => {
           this.exchanges = exchanges;
@@ -53,11 +52,8 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   openExchangeDialog(): void {
-    this.dialogService.open({
-      component: ExchangeDialogComponent,
-      data: {
-        exchanges: this.exchanges
-      }
+    this.dialogService.open(ExchangeDialogComponent, {
+      data: this.exchanges
     });
   }
 }

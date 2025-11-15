@@ -9,9 +9,25 @@ namespace Deed.Infrastructure.Persistence.Repositories;
 internal sealed class CategoryRepository(IDeedDbContext context)
     : GeneralRepository<Category>(context), ICategoryRepository
 {
-    public async Task<IEnumerable<Category>> GetAllAsync(CategoryType? type)
-        => await DbContext.Categories
-            .Where(c => !type.HasValue || c.Type == type.Value)
-            .AsNoTracking()
-            .ToListAsync();
+    public async Task<IEnumerable<Category>> GetAllAsync(CategoryType? type = null, IEnumerable<int>? ids = null, bool tracking = false)
+    {
+        var queryable = DbContext.Categories.AsQueryable();
+
+        if (type.HasValue)
+        {
+            queryable = queryable.Where(c => c.Type == type.Value);
+        }
+
+        if (ids != null)
+        {
+            queryable = queryable.Where(c => ids.Contains(c.Id));
+        }
+        
+        if (!tracking)
+        {
+            queryable = queryable.AsNoTracking();
+        }
+
+        return await queryable.ToListAsync();
+    }
 }

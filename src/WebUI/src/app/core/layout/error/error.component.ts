@@ -32,5 +32,7 @@ export class ErrorComponent implements OnInit {
             this.statusCode = 404;
             this.message = 'The requested page could not be found.';
         }
+
+        document.title = `Deed - ${this.statusCode} error`;
     }
 }
