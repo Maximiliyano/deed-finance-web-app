@@ -6,7 +6,7 @@ namespace Deed.Application.Capitals.Commands.Update;
 public sealed record UpdateCapitalCommand(
     int Id,
     string? Name = null,
-    float? Balance = null,
+    decimal? Balance = null,
     CurrencyType? Currency = null,
     bool? IncludeInTotal = null,
     bool? OnlyForSavings = null

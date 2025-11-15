@@ -66,28 +66,28 @@ public sealed class UpdateCategoryQueryHandlerTests
     }
 
     [Theory]
-    [InlineData("New Category", CategoryType.Expenses, 1.0f, PerPeriodType.Daily)]
-    [InlineData(null, CategoryType.Incomes, 1.0f, PerPeriodType.Weekly)]
-    [InlineData("New Category", null, 1.0f, PerPeriodType.Daily)]
+    [InlineData("New Category", CategoryType.Expenses, 1.0, PerPeriodType.Daily)]
+    [InlineData(null, CategoryType.Incomes, 1.0, PerPeriodType.Weekly)]
+    [InlineData("New Category", null, 1.0, PerPeriodType.Daily)]
     [InlineData("New Category", CategoryType.Expenses, null, PerPeriodType.Monthly)]
     [InlineData("New Category", CategoryType.Expenses, null, PerPeriodType.Yearly)]
-    [InlineData("New Category", CategoryType.Incomes, 1.0f, null)]
+    [InlineData("New Category", CategoryType.Incomes, 1.0, null)]
     [InlineData(null, null, null, null)]
-    [InlineData("", CategoryType.Incomes, 0f, PerPeriodType.Weekly)]
-    [InlineData("New Category", CategoryType.Expenses, -10.0f, PerPeriodType.Monthly)]
-    [InlineData("New Category", CategoryType.Expenses, -10.0f, PerPeriodType.Yearly)]
+    [InlineData("", CategoryType.Incomes, 0.0, PerPeriodType.Weekly)]
+    [InlineData("New Category", CategoryType.Expenses, -10.0, PerPeriodType.Monthly)]
+    [InlineData("New Category", CategoryType.Expenses, -10.0, PerPeriodType.Yearly)]
 
     public async Task Handle_ShouldUpdateCategorySuccessfully(
         string? name,
         CategoryType? type,
-        float? plannedPeriodAmount,
+        double? plannedPeriodAmount,
         PerPeriodType? perPeriodType)
     {
         // Arrange
         const int id = 1;
         const string oldName = "Old Category";
         const CategoryType oldType = CategoryType.Expenses;
-        const float oldPlannedPeriodAmount = 1.2f;
+        const decimal oldPlannedPeriodAmount = 1.2m;
         const PerPeriodType oldPerPeriodType = PerPeriodType.Daily;
 
         var category = new Category(id)
@@ -98,7 +98,8 @@ public sealed class UpdateCategoryQueryHandlerTests
             Period = oldPerPeriodType
         };
 
-        var command = new UpdateCategoryCommand(id, name, plannedPeriodAmount, perPeriodType, type);
+        decimal? newPlannedPeriodAmount = plannedPeriodAmount is null ? null : (decimal)plannedPeriodAmount;
+        var command = new UpdateCategoryCommand(id, name, newPlannedPeriodAmount, perPeriodType, type);
 
         _repositoryMock.GetAsync(Arg.Any<CategoryByIdSpecification>()).Returns(category);
 
@@ -111,7 +112,7 @@ public sealed class UpdateCategoryQueryHandlerTests
         category.Name.Should().Be(name ?? oldName);
         category.Type.Should().Be(type ?? oldType);
         category.Period.Should().Be(perPeriodType ?? oldPerPeriodType);
-        category.PlannedPeriodAmount.Should().Be(plannedPeriodAmount ?? oldPlannedPeriodAmount);
+        category.PlannedPeriodAmount.Should().Be(newPlannedPeriodAmount ?? oldPlannedPeriodAmount);
 
         await _repositoryMock.Received(1).GetAsync(Arg.Any<CategoryByIdSpecification>());
         await _unitOfWorkMock.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());

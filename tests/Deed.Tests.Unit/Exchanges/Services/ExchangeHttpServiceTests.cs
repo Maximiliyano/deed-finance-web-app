@@ -108,8 +108,8 @@ public sealed class ExchangeHttpServiceTests
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        result.Value.First().Buy.Should().Be(39.1f);
-        result.Value.First().Sale.Should().Be(39.5f);
+        result.Value.First().Buy.Should().Be(39.1m);
+        result.Value.First().Sale.Should().Be(39.5m);
 
         client.Dispose();
         response.Dispose();

@@ -29,24 +29,24 @@ public sealed class UpdateExpenseCommandHandlerTests
     [Theory]
     [InlineData(null, null, null)]
     [InlineData(4, null, null)]
-    [InlineData(3, 100f, null)]
+    [InlineData(3, 100.0, null)]
     [InlineData(3, null, "Hi")]
-    [InlineData(null, 200f, null)]
-    [InlineData(null, 200f, "Well")]
-    [InlineData(1, 200f, null)]
+    [InlineData(null, 200.0, null)]
+    [InlineData(null, 200.0, "Well")]
+    [InlineData(1, 200.0, null)]
     [InlineData(null, null, "Purspo")]
-    [InlineData(null, 12f, "Purspo")]
+    [InlineData(null, 12.0, "Purspo")]
     [InlineData(4, null, "Purspo")]
-    [InlineData(1, 150f, "Test")]
+    [InlineData(1, 150.0, "Test")]
     public async Task Handle_UpdateExpense_ShouldReturnUpdated(
         int? categoryId,
-        float? amount,
+        double? amount,
         string? purpose)
     {
         // Arrange
         const int id = 1;
         const int oldCategoryId = 2;
-        const float oldAmount = 100f;
+        const decimal oldAmount = 100m;
         const string oldPurpose = "Hello";
 
         var utcNow = DateTimeOffset.UtcNow;
@@ -69,15 +69,16 @@ public sealed class UpdateExpenseCommandHandlerTests
             },
             Purpose = oldPurpose
         };
-        var command = new UpdateExpenseCommand(id, categoryId, amount, purpose, utcNow);
+        decimal? newAmount = amount is null ? null : (decimal)amount;
+        var command = new UpdateExpenseCommand(id, categoryId, newAmount, purpose, utcNow);
 
         _expenseRepository.GetAsync(Arg.Any<ExpenseByIdSpecification>())
             .Returns(expense);
 
         _dateTimeProvider.UtcNow.Returns(utcNow);
 
-        var expectedCapitalBalance = amount.HasValue
-            ? expense.Capital.Balance + expense.Amount - amount.Value
+        var expectedCapitalBalance = newAmount.HasValue
+            ? expense.Capital.Balance + expense.Amount - newAmount.Value
             : expense.Capital.Balance;
 
         // Act
@@ -87,7 +88,7 @@ public sealed class UpdateExpenseCommandHandlerTests
         result.IsSuccess.Should().BeTrue();
 
         expense.Id.Should().Be(id);
-        expense.Amount.Should().Be(amount ?? oldAmount);
+        expense.Amount.Should().Be(newAmount ?? oldAmount);
         expense.Capital.Balance.Should().Be(expectedCapitalBalance);
         expense.Purpose.Should().Be(purpose ?? oldPurpose);
         expense.PaymentDate.Should().Be(utcNow);

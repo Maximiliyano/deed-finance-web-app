@@ -33,19 +33,15 @@ public class Result
 
 public class Result<TValue> : Result
 {
-    private readonly TValue _value;
-
     protected internal Result(TValue value, bool isSuccess, IList<Error> errors)
         : base(isSuccess, errors)
     {
-        _value = value;
+        Value = value;
     }
 
     public static implicit operator Result<TValue>(TValue value) => Success(value);
 
     public static new Result<TValue> Failure(IList<Error> errors) => new(default!, false, errors);
 
-    public TValue Value => IsSuccess
-        ? _value
-        : throw new InvalidOperationException(ResultConstants.CannotAccessedValue);
+    public TValue Value { get; }
 }

@@ -1,6 +1,6 @@
-<h1 class="dialog-title">Confirm {{ title }}</h1>
+<h1 class="dialog-title">Confirm {{ data.title }}</h1>
 <div class="dialog-content">
-  <p>Are you sure you want to {{ action }} this item?</p>
+  <p>Are you sure you want to {{ data.action }} this item?</p>
 </div>
 <div class="dialog-actions">
   <button class="cursor-pointer border rounded bg-green-700 text-white py-1 w-full" (click)="handleConfirm()">Confirm</button>

@@ -17,7 +17,7 @@ public sealed class Category : Entity, IAuditableEntity, ISoftDeletableEntity
 
     public required CategoryType Type { get; set; }
 
-    public float PlannedPeriodAmount { get; set; }
+    public decimal PlannedPeriodAmount { get; set; }
 
     public PerPeriodType Period { get; set; }
 

@@ -1,3 +1,4 @@
+import { PerPeriodType } from "../../../core/types/per-period-type";
 import { ExpenseResponse } from "./expense-response";
 
 export interface ExpenseCategoryResponse {
@@ -6,6 +7,6 @@ export interface ExpenseCategoryResponse {
   categorySum: number;
   percentage: number;
   plannedPeriodAmount: number;
-  periodType: string;
+  periodType: PerPeriodType;
   expenses: ExpenseResponse[];
 }

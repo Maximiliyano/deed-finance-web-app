@@ -9,8 +9,8 @@ namespace Deed.Application.Categories.Requests;
 
 public sealed record UpdateCategoryRequest(
     int Id,
-    string Name,
-    CategoryType Type,
-    float PeriodAmount,
-    PerPeriodType PeriodType
+    string? Name,
+    CategoryType? Type,
+    decimal? PeriodAmount,
+    PerPeriodType? PeriodType
 );

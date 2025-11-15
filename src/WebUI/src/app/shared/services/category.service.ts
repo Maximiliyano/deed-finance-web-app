@@ -4,6 +4,7 @@ import { HttpClient, HttpParams } from "@angular/common/http";
 import {Observable} from "rxjs";
 import {CategoryResponse} from "../../core/models/category-model";
 import { CategoryType } from "../../core/types/category-type";
+import { CreateCategoryRequest } from "../components/category/models/create-category-request";
 
 @Injectable({
   providedIn: 'root'
@@ -25,6 +26,10 @@ export class CategoryService {
 
   getById(id: number): Observable<CategoryResponse> {
     return this.http.get<CategoryResponse>(`${this.baseApiUrl}/${id}`);
+  }
+
+  create(request: CreateCategoryRequest): Observable<number> {
+    return this.http.post<number>(`${this.baseApiUrl}`, request);
   }
 
   updateRange(categories: CategoryResponse[]): Observable<void> {

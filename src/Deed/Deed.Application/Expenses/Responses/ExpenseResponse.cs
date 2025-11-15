@@ -5,6 +5,6 @@ namespace Deed.Application.Expenses.Responses;
 public sealed record ExpenseResponse(
     int Id,
     int CapitalId,
-    float Amount,
+    decimal Amount,
     DateTimeOffset PaymentDate,
     string? Purpose);

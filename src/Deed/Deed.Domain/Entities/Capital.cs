@@ -17,7 +17,7 @@ public sealed class Capital
 
     public required string Name { get; set; }
 
-    public required float Balance { get; set; }
+    public required decimal Balance { get; set; }
 
     public required CurrencyType Currency { get; set; }
 
@@ -39,13 +39,13 @@ public sealed class Capital
 
     public bool? IsDeleted { get; init; }
 
-    public float TotalIncome => Incomes.Sum(i => i.Amount);
+    public decimal TotalIncome => Incomes.Sum(i => i.Amount);
 
-    public float TotalExpense => Expenses.Sum(e => e.Amount);
+    public decimal TotalExpense => Expenses.Sum(e => e.Amount);
 
-    public float TotalTransferIn => TransfersIn.Sum(t => t.Amount);
+    public decimal TotalTransferIn => TransfersIn.Sum(t => t.Amount);
 
-    public float TotalTransferOut => TransfersOut.Sum(t => t.Amount);
+    public decimal TotalTransferOut => TransfersOut.Sum(t => t.Amount);
 
     public ICollection<Income> Incomes { get; } = [];
 

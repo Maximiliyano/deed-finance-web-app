@@ -44,8 +44,8 @@ public sealed class GetLatestExchangesHandlerTests
             {
                 NationalCurrencyCode = "UAH",
                 TargetCurrencyCode = "EUR",
-                Buy = 39.1f,
-                Sale = 39.8f,
+                Buy = 39.1m,
+                Sale = 39.8m,
                 CreatedAt = DateTimeOffset.UtcNow
             }
         };
@@ -60,8 +60,8 @@ public sealed class GetLatestExchangesHandlerTests
         result.Value.Should().OnlyContain(c =>
             c.NationalCurrency == "UAH" &&
             c.TargetCurrency == "EUR" &&
-            c.Buy.Equals(39.1f) &&
-            c.Sale.Equals(39.8f));
+            c.Buy.Equals(39.1m) &&
+            c.Sale.Equals(39.8m));
     }
 
     [Fact]
@@ -75,16 +75,16 @@ public sealed class GetLatestExchangesHandlerTests
             {
                 NationalCurrencyCode = "USD",
                 TargetCurrencyCode = "UAH",
-                Buy = 32.1f,
-                Sale = 31.9f,
+                Buy = 32.1m,
+                Sale = 31.9m,
                 CreatedAt = utcNow
             },
             new()
             {
                 NationalCurrencyCode = "EUR",
                 TargetCurrencyCode = "UAH",
-                Buy = 29.6f,
-                Sale = 28.2f,
+                Buy = 29.6m,
+                Sale = 28.2m,
                 CreatedAt = utcNow
             }
         };

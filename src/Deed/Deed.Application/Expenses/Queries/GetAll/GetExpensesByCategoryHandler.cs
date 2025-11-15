@@ -22,7 +22,7 @@ internal sealed class GetExpensesByCategoryHandler(
 
         var totalSum = expenses.Sum(e => e.Amount);
         
-        const float Epsilon = 0.0001f;
+        const decimal Epsilon = 0.0001m;
 
         var grouped = expenses
             .GroupBy(e => e.CategoryId)
@@ -32,15 +32,15 @@ internal sealed class GetExpensesByCategoryHandler(
                 var category = g.First().Category;
 
                 var percentage = Math.Abs(totalSum) < Epsilon
-                    ? 0f
-                    : (float)Math.Round(categorySum / totalSum * 100, 2);
+                    ? 0m
+                    : Math.Round(categorySum / totalSum * 100, 2);
 
                 return new CategoryExpenseResponse(
                     g.Key,
                     category?.Name ?? "Undefined",
                     categorySum,
                     percentage,
-                    category?.PlannedPeriodAmount ?? 0f,
+                    category?.PlannedPeriodAmount ?? 0m,
                     category?.Period.ToString() ?? nameof(PerPeriodType.None),
                     g.ToResponses()
                 );

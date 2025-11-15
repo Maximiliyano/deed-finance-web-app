@@ -9,18 +9,28 @@ internal sealed class IncomeConfiguration : IEntityTypeConfiguration<Income>
 {
     public void Configure(EntityTypeBuilder<Income> builder)
     {
+        builder.ToTable(TableConfigurationConstants.Incomes);
+
         builder.HasKey(i => i.Id);
 
-        builder
-            .HasOne(i => i.Category)
-            .WithMany(c => c.Incomes)
-            .HasForeignKey(i => i.CategoryId);
+        builder.Property(e => e.PaymentDate)
+            .IsRequired();
 
-        builder
-            .HasOne(i => i.Capital)
-            .WithMany(c => c.Incomes)
-            .HasForeignKey(i => i.CapitalId);
+        builder.Property(x => x.Amount)
+            .IsRequired()
+            .HasPrecision(18, 2);
 
-        builder.ToTable(TableConfigurationConstants.Incomes);
+        builder.Property(x => x.Purpose)
+            .HasMaxLength(255);
+
+        builder.HasOne(i => i.Category)
+            .WithMany(c => c.Incomes)
+            .HasForeignKey(i => i.CategoryId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne(i => i.Capital)
+            .WithMany(c => c.Incomes)
+            .HasForeignKey(i => i.CapitalId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

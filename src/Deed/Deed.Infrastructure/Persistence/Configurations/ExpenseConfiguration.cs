@@ -9,20 +9,28 @@ internal sealed class ExpenseConfiguration : IEntityTypeConfiguration<Expense>
 {
     public void Configure(EntityTypeBuilder<Expense> builder)
     {
+        builder.ToTable(TableConfigurationConstants.Expenses);
+        
         builder.HasKey(e => e.Id);
 
-        builder.HasIndex(e => e.CapitalId);
+        builder.Property(e => e.PaymentDate)
+            .IsRequired();
 
-        builder
-            .HasOne(e => e.Category)
+        builder.Property(e => e.Amount)
+            .IsRequired()
+            .HasPrecision(18,2);
+
+        builder.Property(e => e.Purpose)
+            .HasMaxLength(255);
+
+        builder.HasOne(e => e.Category)
             .WithMany(c => c.Expenses)
-            .HasForeignKey(e => e.CategoryId);
+            .HasForeignKey(e => e.CategoryId)
+            .OnDelete(DeleteBehavior.Restrict);
 
-        builder
-            .HasOne(e => e.Capital)
+        builder.HasOne(e => e.Capital)
             .WithMany(c => c.Expenses)
-            .HasForeignKey(e => e.CapitalId);
-
-        builder.ToTable(TableConfigurationConstants.Expenses);
+            .HasForeignKey(e => e.CapitalId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

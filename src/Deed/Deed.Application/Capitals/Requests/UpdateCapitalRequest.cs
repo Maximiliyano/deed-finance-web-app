@@ -4,7 +4,7 @@ namespace Deed.Application.Capitals.Requests;
 
 public sealed record UpdateCapitalRequest(
     string? Name,
-    float? Balance,
+    decimal? Balance,
     CurrencyType? Currency,
     bool? IncludeInTotal,
     bool? OnlyForSavings

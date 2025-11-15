@@ -6,5 +6,5 @@ public sealed record CategoryResponse(
     int Id,
     string Name,
     CategoryType Type,
-    string PeriodType,
-    float PeriodAmount);
+    PerPeriodType PeriodType,
+    decimal PeriodAmount);

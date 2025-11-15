@@ -1,21 +1,20 @@
 import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
 import { debounceTime, Subject, takeUntil } from 'rxjs';
 import { Exchange } from '../../core/models/exchange-model';
-import { ConfirmDialogComponent } from '../../shared/components/dialogs/confirm-dialog/confirm-dialog.component';
-import { DialogService } from '../../shared/services/dialog.service';
+import { DialogService } from '../../shared/components/dialogs/services/dialog.service';
 import { ExchangeService } from '../../shared/services/exchange.service';
 import { PopupMessageService } from '../../shared/services/popup-message.service';
-import { AddCapitalDialogComponent } from './components/capital-dialog/add-capital-dialog.component';
 import { AddCapitalRequest } from './models/add-capital-request';
 import { CapitalItem } from './models/capital-item';
 import { CapitalResponse } from './models/capital-response';
 import { CapitalService } from './services/capital.service';
-import { CapitalDetailsComponent } from './components/capital-details/capital-details.component';
 import { animate, style, transition, trigger } from '@angular/animations';
 import { CurrencyType } from '../../core/types/currency-type';
 import { getCurrencies } from '../../shared/components/currency/functions/get-currencies.component';
 import { UpdateCapitalRequest } from './models/update-capital-request';
 import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
+import { AddCapitalDialogComponent } from './components/capital-dialog/add-capital-dialog.component';
+import { CapitalDetailsComponent } from './components/capital-details/capital-details.component';
 
 @Component({
     selector: 'app-capitals',
@@ -68,8 +67,8 @@ export class CapitalsComponent implements OnInit, OnDestroy {
 
   currencyOptions = getCurrencies({ excludeNone: true });
 
-  private queryParams$ = new Subject<void>;
-  private unsubcribe$ = new Subject<void>;
+  private queryParams$ = new Subject<void>();
+  private unsubcribe$ = new Subject<void>();
 
   constructor(
     private readonly capitalService: CapitalService,
@@ -170,25 +169,29 @@ export class CapitalsComponent implements OnInit, OnDestroy {
   toggleEditDialog(capital: CapitalResponse) {
     this.onMenuItemClick();
 
-    this.dialogService.open({
-      component: CapitalDetailsComponent,
-      data: {
-        capital: capital,
-        currencyOptions: this.currencyOptions,
-        exchanges: this.exchanges
-      },
-      onSubmit: (request: UpdateCapitalRequest | null) => {
-        if (request) {
-          this.capitalService
-            .update(request.id, request)
-            .pipe(takeUntil(this.unsubcribe$))
-            .subscribe({
-              next: () => this.capitalUpdated(request)
-            });
+    const ref = this.dialogService.open(CapitalDetailsComponent, {
+        data: {
+          capital: capital,
+          currencyOptions: this.currencyOptions,
+          exchanges: this.exchanges
         }
-        this.dialogService.close();
-      }
-    })
+    });
+
+    ref
+      .afterClosed$
+      .pipe(takeUntil(this.unsubcribe$))
+      .subscribe({
+        next: (request: UpdateCapitalRequest | null) => {
+          if (request) {
+            this.capitalService
+              .update(request.id, request)
+              .pipe(takeUntil(this.unsubcribe$))
+              .subscribe({
+                next: () => this.capitalUpdated(request)
+              });
+          }
+        }
+      });
   }
 
   capitalUpdated(request: UpdateCapitalRequest): void {
@@ -210,27 +213,26 @@ export class CapitalsComponent implements OnInit, OnDestroy {
   openToCreateCapitalDialog(): void {
     this.onMenuItemClick();
 
-    this.dialogService.open({
-      component: AddCapitalDialogComponent,
-      data: {
-        currencyOptions: this.currencyOptions
-      },
-      onSubmit: (request: AddCapitalRequest | null) => {
-        if (request) {
-          this.capitalService.create(request)
-            .pipe(takeUntil(this.unsubcribe$))
-            .subscribe({
-              next: (id) => {
-                this.addCapitalToTheList(id, request);
-                this.dialogService.close();
-              }
-            });
-        }
-        else {
-          this.dialogService.close();
+    const dialogRef = this.dialogService.open(AddCapitalDialogComponent, {
+      data: this.currencyOptions
+    });
+
+    dialogRef
+      .afterClosed$
+      .subscribe({
+        next: (request: AddCapitalRequest | null) => {
+          if (request) {
+            this.capitalService.create(request)
+              .pipe(takeUntil(this.unsubcribe$))
+              .subscribe({
+                next: (id) => {
+                  this.addCapitalToTheList(id, request);
+                }
+              });
+          }
         }
       }
-    });
+    );
   }
 
   addCapitalToTheList(id: number, request: AddCapitalRequest): void {
@@ -318,28 +320,28 @@ export class CapitalsComponent implements OnInit, OnDestroy {
   deleteCapital(id: number): void {
     this.onMenuItemClick();
 
-    this.dialogService.open({
-      component: ConfirmDialogComponent,
-      data: {
-        title: 'deletion of the capital',
-        action: 'delete'
-      },
-      onSubmit: (confirmed: boolean) => {
-        if (confirmed) {
-          this.capitalService
-            .delete(id)
-            .pipe(takeUntil(this.unsubcribe$))
-            .subscribe({
-              next: () => {
-                this.capitals = this.capitals.filter(x => x.id !== id);
-                this.popupMessageService.success("The capital was successful deleted.");
-                this.dialogService.close();
-              }});
-        } else {
-          this.dialogService.close();
-        }
-      }
-    })
+    // this.dialogService.open({
+    //   component: ConfirmDialogComponent,
+    //   data: {
+    //     title: 'deletion of the capital',
+    //     action: 'delete'
+    //   },
+    //   onSubmit: (confirmed: boolean) => {
+    //     if (confirmed) {
+    //       this.capitalService
+    //         .delete(id)
+    //         .pipe(takeUntil(this.unsubcribe$))
+    //         .subscribe({
+    //           next: () => {
+    //             this.capitals = this.capitals.filter(x => x.id !== id);
+    //             this.popupMessageService.success("The capital was successful deleted.");
+    //             this.dialogService.close();
+    //           }});
+    //     } else {
+    //       this.dialogService.close();
+    //     }
+    //   }
+    // })
   }
 
   onMenuItemClick(): void {

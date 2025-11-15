@@ -33,7 +33,7 @@ public sealed class GetByIdCategoryQueryHandlerTests
             Type = CategoryType.Expenses,
             Expenses = []
         };
-        var response = new CategoryResponse(id, category.Name, category.Type, category.Period.ToString(), category.PlannedPeriodAmount);
+        var response = new CategoryResponse(id, category.Name, category.Type, category.Period, category.PlannedPeriodAmount);
         var query = new GetByIdCategoryQuery(id);
 
         _categoryRepositoryMock.GetAsync(Arg.Any<CategoryByIdSpecification>())

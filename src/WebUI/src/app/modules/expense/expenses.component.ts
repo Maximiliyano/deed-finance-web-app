@@ -1,6 +1,6 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { booleanAttribute, Component, OnDestroy, OnInit } from '@angular/core';
 import { ExpenseCategoryResponse } from './models/expense-category-response';
-import { DialogService } from '../../shared/services/dialog.service';
+import { DialogService } from '../../shared/components/dialogs/services/dialog.service';
 import { ExpenseDialogComponent } from './components/expense-dialog/expense-dialog.component';
 import { CapitalResponse } from '../capital/models/capital-response';
 import { ExpenseService } from './services/expense.service';
@@ -11,13 +11,12 @@ import { CategoryService } from '../../shared/services/category.service';
 import { CategoryType } from '../../core/types/category-type';
 import { CreateExpenseRequest } from './models/create-expense-request';
 import { ExpenseResponse } from './models/expense-response';
-import { CategoriesDialogComponent } from './components/categories-dialog-component/categories-dialog-component';
+import { CategoriesDialogComponent } from '../../shared/components/category/category-details-dialog/categories-dialog-component';
 import { ConfirmDialogComponent } from '../../shared/components/dialogs/confirm-dialog/confirm-dialog.component';
 import { PopupMessageService } from '../../shared/services/popup-message.service';
 import { ActivatedRoute, Router } from '@angular/router';
-import { DialogState } from '../../shared/components/dialogs/dialog.state';
-import { AddCategoryDialog } from './components/add-category-dialog/add-category-dialog';
 import { SelectOptionModel } from '../../shared/components/forms/models/select-option-model';
+import { PerPeriodType } from '../../core/types/per-period-type';
 
 @Component({
     selector: 'app-expenses',
@@ -83,7 +82,7 @@ export class ExpensesComponent implements OnInit, OnDestroy {
   }
 
   isPlannedPeriodShown(expenseCategory: ExpenseCategoryResponse): boolean {
-    return expenseCategory.plannedPeriodAmount === 0.0 || expenseCategory.periodType === 'None';
+    return expenseCategory.plannedPeriodAmount === 0.0 || expenseCategory.periodType === PerPeriodType.None;
   }
 
   isCategorySumGreaterPlannedPeriod(expenseCategory: ExpenseCategoryResponse): boolean {
@@ -152,90 +151,58 @@ export class ExpensesComponent implements OnInit, OnDestroy {
   }
 
   toggleCategories(): void {
-    this.dialogService.open({
-      component: CategoriesDialogComponent,
+    const categoriesDialogRef = this.dialogService.open(CategoriesDialogComponent, {
       data: {
+        type: "Expense",
+        currency: this.capitalCurrency,
         categories: this.categories
       },
-      onSubmit: (state: DialogState) => {
-        switch(state.action) {
-          case 'create':
-            this.dialogService.open({
-              component: AddCategoryDialog,
-              onSubmit: () => {
-                this.popupMessageService.success('Category successfully added.');
-                this.dialogService.close();
-              }
-            });
-            break;
-          case 'update':
-            this.categoryService.updateRange(state.data)
-              .pipe(takeUntil(this.$unsubscribe))
-              .subscribe({
-                next: () => {
-                  this.popupMessageService.success('Categories successfully updated.');
-                  this.dialogService.close();
-                }
-              });
-            break;
-          case 'delete':
-            this.dialogService.open({
-              component: ConfirmDialogComponent,
-              data: {
-                title: 'category',
-                action: 'delete'
-              },
-              onSubmit: (confirmed: boolean) => {
-                if (confirmed) {
-                  this.categoryService
-                    .delete(state.data)
-                    .pipe(takeUntil(this.$unsubscribe))
-                    .subscribe({
-                      next: () => this.removeCategoryFromList(state.data)
-                    });
-                }
-                else {
-                  this.dialogService.close();
-                }
-              }
-            });
-            break;
-          default: this.dialogService.close();
-        }
-      }
     });
-  }
+    
+    categoriesDialogRef
+      .afterClosed$
+      .subscribe({
+        next: (categories: CategoryResponse[]) => {
+          if (categories.length === 0) return;
 
-  removeCategoryFromList(id: number): void {
-    this.categories = this.categories.filter(c => c.id !== id);
-    this.popupMessageService.success('Category removed');
-    this.dialogService.close();
-    this.dialogService.close();
-    this.toggleCategories();
+          const updated = categories.map(c => {
+            c.periodType = Number(c.periodType);
+            return c;
+          })
+
+          this.categoryService.updateRange(updated)
+            .pipe(takeUntil(this.$unsubscribe))
+            .subscribe({
+              next: () => this.popupMessageService.success('Categories successfully updated.')
+            });
+          }
+        });
   }
 
   toggleCreateDialog(): void {
-    this.dialogService.open({
-      component: ExpenseDialogComponent,
-      data: {
-        capitalsOptions: this.capitalOptions,
-        categoryOptions: this.categoryOptions,
-      },
-      onSubmit: (request: CreateExpenseRequest) => {
-        if (request) {
-          this.expenseService.create(request)
-            .pipe(takeUntil(this.$unsubscribe))
-            .subscribe({
-              next: (id) => {
-                this.addExpenseToList(id, request)
-                this.dialogService.close();
-              }
-            });
-        } else {
-          this.dialogService.close();
+    const dialogRef = this.dialogService.open(ExpenseDialogComponent, {
+        data: {
+          capitalsOptions: this.capitalOptions,
+          categoryOptions: this.categoryOptions,
+        },
+    });
+
+    dialogRef
+      .afterClosed$
+      .subscribe({
+        next: (request: CreateExpenseRequest) => {
+          if (request) {
+            this.expenseService.create(request)
+              .pipe(takeUntil(this.$unsubscribe))
+              .subscribe({
+                next: (id) => {
+                  this.addExpenseToList(id, request)
+                }
+              });
+          }
         }
       }
-    });
+    );
   }
 
   addExpenseToList(expenseId: number, request: CreateExpenseRequest): void {
@@ -283,28 +250,30 @@ export class ExpensesComponent implements OnInit, OnDestroy {
   }
 
   deleteExpense(id: number, categoryId: number): void {
-    this.dialogService.open({
-      component: ConfirmDialogComponent,
+    const dialogRef = this.dialogService.open(ConfirmDialogComponent, {
       data: {
         title: 'expense',
         action: 'remove'
-      },
-      onSubmit: (result) => {
-        if (result) {
-          this.expenseService
-            .delete(id)
-            .pipe(takeUntil(this.$unsubscribe))
-            .subscribe({
-              next: () => {
-                this.removeExpenseFromList(id, categoryId);
-                this.dialogService.close();
-              }
-            });
-        } else {
-          this.dialogService.close();
+      }
+    });
+
+    dialogRef
+      .afterClosed$
+      .subscribe({
+        next: (result: boolean) => {
+          if (result) {
+            this.expenseService
+              .delete(id)
+              .pipe(takeUntil(this.$unsubscribe))
+              .subscribe({
+                next: () => {
+                  this.removeExpenseFromList(id, categoryId);
+                }
+              });
+          }
         }
       }
-    })
+    );
   }
 
   removeExpenseFromList(id: number, categoryId: number): void {
@@ -332,13 +301,5 @@ export class ExpensesComponent implements OnInit, OnDestroy {
     }
 
     this.popupMessageService.success('Expense deleted');
-  }
-
-  trackByCategory(index: number, category: any) {
-    return category.categoryId; // stable key
-  }
-
-  trackByExpense(index: number, expense: any) {
-    return expense.id; // stable key
   }
 }

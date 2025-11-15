@@ -1,23 +1,27 @@
-import { Component, Output } from '@angular/core';
-import { Subject } from 'rxjs';
+import { Component, Inject } from '@angular/core';
+import { DIALOG_DATA } from '../models/dialog-consts';
+import { DialogRef } from '../models/dialog-ref';
 
 @Component({
     selector: 'app-confirm-dialog',
     templateUrl: './confirm-dialog.component.html',
     styleUrl: './confirm-dialog.component.scss',
-    standalone: false
+    standalone: true
 })
 export class ConfirmDialogComponent {
-  @Output() submitted = new Subject<boolean>();
-
-  title: string;
-  action: string;
+  constructor(
+    @Inject(DIALOG_DATA) public data: {
+      title: string;
+      action: string;
+    },
+    private dialogRef: DialogRef<boolean>
+  ) {}
 
   handleConfirm() {
-    this.submitted.next(true);
+    this.dialogRef.close(true);
   }
 
   handleCancel() {
-    this.submitted.next(false);
+    this.dialogRef.close(false);
   }
 }

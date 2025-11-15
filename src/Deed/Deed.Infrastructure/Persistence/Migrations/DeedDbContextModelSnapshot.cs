@@ -30,8 +30,9 @@ namespace Deed.Infrastructure.Persistence.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<float>("Balance")
-                        .HasColumnType("real");
+                    b.Property<decimal>("Balance")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("datetimeoffset");
@@ -39,9 +40,8 @@ namespace Deed.Infrastructure.Persistence.Migrations
                     b.Property<int>("CreatedBy")
                         .HasColumnType("int");
 
-                    b.Property<string>("Currency")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int>("Currency")
+                        .HasColumnType("int");
 
                     b.Property<DateTimeOffset?>("DeletedAt")
                         .HasColumnType("datetimeoffset");
@@ -56,7 +56,8 @@ namespace Deed.Infrastructure.Persistence.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
 
                     b.Property<bool>("OnlyForSavings")
                         .ValueGeneratedOnAdd()
@@ -64,7 +65,9 @@ namespace Deed.Infrastructure.Persistence.Migrations
                         .HasDefaultValue(false);
 
                     b.Property<int>("OrderIndex")
-                        .HasColumnType("int");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
 
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
@@ -79,21 +82,16 @@ namespace Deed.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Balance");
-
-                    b.HasIndex("Name")
-                        .IsUnique();
-
                     b.ToTable("Capitals", (string)null);
 
                     b.HasData(
                         new
                         {
                             Id = 1,
-                            Balance = 1000f,
+                            Balance = 1000.0m,
                             CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 2, 12, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             CreatedBy = 0,
-                            Currency = "UAH",
+                            Currency = 1,
                             IncludeInTotal = true,
                             Name = "Cash",
                             OnlyForSavings = false,
@@ -102,10 +100,10 @@ namespace Deed.Infrastructure.Persistence.Migrations
                         new
                         {
                             Id = 2,
-                            Balance = 1000f,
+                            Balance = 1000.0m,
                             CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 2, 12, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             CreatedBy = 0,
-                            Currency = "UAH",
+                            Currency = 1,
                             IncludeInTotal = true,
                             Name = "Bank",
                             OnlyForSavings = false,
@@ -114,10 +112,10 @@ namespace Deed.Infrastructure.Persistence.Migrations
                         new
                         {
                             Id = 3,
-                            Balance = 1000f,
+                            Balance = 1000.0m,
                             CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 2, 12, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             CreatedBy = 0,
-                            Currency = "USD",
+                            Currency = 2,
                             IncludeInTotal = true,
                             Name = "Investments",
                             OnlyForSavings = true,
@@ -126,10 +124,10 @@ namespace Deed.Infrastructure.Persistence.Migrations
                         new
                         {
                             Id = 4,
-                            Balance = 1000f,
+                            Balance = 1000.0m,
                             CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 2, 12, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             CreatedBy = 0,
-                            Currency = "USD",
+                            Currency = 2,
                             IncludeInTotal = true,
                             Name = "Savings",
                             OnlyForSavings = true,
@@ -159,13 +157,17 @@ namespace Deed.Infrastructure.Persistence.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
 
                     b.Property<int>("Period")
                         .HasColumnType("int");
 
-                    b.Property<float>("PlannedPeriodAmount")
-                        .HasColumnType("real");
+                    b.Property<decimal>("PlannedPeriodAmount")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)")
+                        .HasDefaultValue(0m);
 
                     b.Property<int>("Type")
                         .HasColumnType("int");
@@ -188,7 +190,7 @@ namespace Deed.Infrastructure.Persistence.Migrations
                             CreatedBy = 0,
                             Name = "Groceries",
                             Period = 0,
-                            PlannedPeriodAmount = 0f,
+                            PlannedPeriodAmount = 0m,
                             Type = 1
                         },
                         new
@@ -198,7 +200,7 @@ namespace Deed.Infrastructure.Persistence.Migrations
                             CreatedBy = 0,
                             Name = "Utilities",
                             Period = 0,
-                            PlannedPeriodAmount = 0f,
+                            PlannedPeriodAmount = 0m,
                             Type = 1
                         },
                         new
@@ -208,7 +210,7 @@ namespace Deed.Infrastructure.Persistence.Migrations
                             CreatedBy = 0,
                             Name = "Rent",
                             Period = 0,
-                            PlannedPeriodAmount = 0f,
+                            PlannedPeriodAmount = 0m,
                             Type = 1
                         },
                         new
@@ -218,7 +220,7 @@ namespace Deed.Infrastructure.Persistence.Migrations
                             CreatedBy = 0,
                             Name = "Transportation",
                             Period = 0,
-                            PlannedPeriodAmount = 0f,
+                            PlannedPeriodAmount = 0m,
                             Type = 1
                         },
                         new
@@ -228,7 +230,7 @@ namespace Deed.Infrastructure.Persistence.Migrations
                             CreatedBy = 0,
                             Name = "Healthcare",
                             Period = 0,
-                            PlannedPeriodAmount = 0f,
+                            PlannedPeriodAmount = 0m,
                             Type = 1
                         },
                         new
@@ -238,7 +240,7 @@ namespace Deed.Infrastructure.Persistence.Migrations
                             CreatedBy = 0,
                             Name = "Entertainment",
                             Period = 0,
-                            PlannedPeriodAmount = 0f,
+                            PlannedPeriodAmount = 0m,
                             Type = 1
                         },
                         new
@@ -248,7 +250,7 @@ namespace Deed.Infrastructure.Persistence.Migrations
                             CreatedBy = 0,
                             Name = "Education",
                             Period = 0,
-                            PlannedPeriodAmount = 0f,
+                            PlannedPeriodAmount = 0m,
                             Type = 1
                         },
                         new
@@ -258,7 +260,7 @@ namespace Deed.Infrastructure.Persistence.Migrations
                             CreatedBy = 0,
                             Name = "Clothing",
                             Period = 0,
-                            PlannedPeriodAmount = 0f,
+                            PlannedPeriodAmount = 0m,
                             Type = 1
                         },
                         new
@@ -268,7 +270,7 @@ namespace Deed.Infrastructure.Persistence.Migrations
                             CreatedBy = 0,
                             Name = "Subscriptions",
                             Period = 0,
-                            PlannedPeriodAmount = 0f,
+                            PlannedPeriodAmount = 0m,
                             Type = 1
                         },
                         new
@@ -278,7 +280,7 @@ namespace Deed.Infrastructure.Persistence.Migrations
                             CreatedBy = 0,
                             Name = "Travel",
                             Period = 0,
-                            PlannedPeriodAmount = 0f,
+                            PlannedPeriodAmount = 0m,
                             Type = 1
                         },
                         new
@@ -288,7 +290,7 @@ namespace Deed.Infrastructure.Persistence.Migrations
                             CreatedBy = 0,
                             Name = "Gifts",
                             Period = 0,
-                            PlannedPeriodAmount = 0f,
+                            PlannedPeriodAmount = 0m,
                             Type = 1
                         },
                         new
@@ -298,7 +300,7 @@ namespace Deed.Infrastructure.Persistence.Migrations
                             CreatedBy = 0,
                             Name = "Donations",
                             Period = 0,
-                            PlannedPeriodAmount = 0f,
+                            PlannedPeriodAmount = 0m,
                             Type = 1
                         },
                         new
@@ -308,7 +310,7 @@ namespace Deed.Infrastructure.Persistence.Migrations
                             CreatedBy = 0,
                             Name = "Salary",
                             Period = 0,
-                            PlannedPeriodAmount = 0f,
+                            PlannedPeriodAmount = 0m,
                             Type = 2
                         },
                         new
@@ -318,7 +320,7 @@ namespace Deed.Infrastructure.Persistence.Migrations
                             CreatedBy = 0,
                             Name = "Gifts",
                             Period = 0,
-                            PlannedPeriodAmount = 0f,
+                            PlannedPeriodAmount = 0m,
                             Type = 2
                         },
                         new
@@ -328,7 +330,7 @@ namespace Deed.Infrastructure.Persistence.Migrations
                             CreatedBy = 0,
                             Name = "Grants",
                             Period = 0,
-                            PlannedPeriodAmount = 0f,
+                            PlannedPeriodAmount = 0m,
                             Type = 2
                         },
                         new
@@ -338,7 +340,7 @@ namespace Deed.Infrastructure.Persistence.Migrations
                             CreatedBy = 0,
                             Name = "Sales",
                             Period = 0,
-                            PlannedPeriodAmount = 0f,
+                            PlannedPeriodAmount = 0m,
                             Type = 2
                         });
                 });
@@ -351,8 +353,9 @@ namespace Deed.Infrastructure.Persistence.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<float>("Buy")
-                        .HasColumnType("real");
+                    b.Property<decimal>("Buy")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("decimal(18,4)");
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("datetimeoffset");
@@ -368,15 +371,18 @@ namespace Deed.Infrastructure.Persistence.Migrations
 
                     b.Property<string>("NationalCurrencyCode")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)")
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)")
                         .HasAnnotation("Relational:JsonPropertyName", "base_ccy");
 
-                    b.Property<float>("Sale")
-                        .HasColumnType("real");
+                    b.Property<decimal>("Sale")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("decimal(18,4)");
 
                     b.Property<string>("TargetCurrencyCode")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)")
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)")
                         .HasAnnotation("Relational:JsonPropertyName", "ccy");
 
                     b.Property<DateTimeOffset?>("UpdatedAt")
@@ -386,6 +392,9 @@ namespace Deed.Infrastructure.Persistence.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("NationalCurrencyCode", "TargetCurrencyCode")
+                        .IsUnique();
 
                     b.ToTable("Exchanges", (string)null);
                 });
@@ -398,8 +407,9 @@ namespace Deed.Infrastructure.Persistence.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<float>("Amount")
-                        .HasColumnType("real");
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("CapitalId")
                         .HasColumnType("int");
@@ -423,7 +433,8 @@ namespace Deed.Infrastructure.Persistence.Migrations
                         .HasColumnType("datetimeoffset");
 
                     b.Property<string>("Purpose")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
 
                     b.Property<DateTimeOffset?>("UpdatedAt")
                         .HasColumnType("datetimeoffset");
@@ -448,8 +459,9 @@ namespace Deed.Infrastructure.Persistence.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<float>("Amount")
-                        .HasColumnType("real");
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("CapitalId")
                         .HasColumnType("int");
@@ -473,7 +485,8 @@ namespace Deed.Infrastructure.Persistence.Migrations
                         .HasColumnType("datetimeoffset");
 
                     b.Property<string>("Purpose")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
 
                     b.Property<DateTimeOffset?>("UpdatedAt")
                         .HasColumnType("datetimeoffset");
@@ -498,8 +511,9 @@ namespace Deed.Infrastructure.Persistence.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<float>("Amount")
-                        .HasColumnType("real");
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("datetimeoffset");
@@ -539,13 +553,13 @@ namespace Deed.Infrastructure.Persistence.Migrations
                     b.HasOne("Deed.Domain.Entities.Capital", "Capital")
                         .WithMany("Expenses")
                         .HasForeignKey("CapitalId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("Deed.Domain.Entities.Category", "Category")
                         .WithMany("Expenses")
                         .HasForeignKey("CategoryId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Capital");
@@ -558,13 +572,13 @@ namespace Deed.Infrastructure.Persistence.Migrations
                     b.HasOne("Deed.Domain.Entities.Capital", "Capital")
                         .WithMany("Incomes")
                         .HasForeignKey("CapitalId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("Deed.Domain.Entities.Category", "Category")
                         .WithMany("Incomes")
                         .HasForeignKey("CategoryId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Capital");

@@ -30,7 +30,7 @@ export class FormComponent implements OnInit, OnDestroy {
   @Output() submitForm = new EventEmitter<void>();
   @Output() cancelForm = new EventEmitter<void>();
 
-  private $unsubscribe = new Subject<void>;
+  private $unsubscribe = new Subject<void>();
 
   ngOnInit(): void {
     this.form.statusChanges
@@ -38,6 +38,7 @@ export class FormComponent implements OnInit, OnDestroy {
       .subscribe({
         next: () => this.updateSubmitButtonState()
       });
+    this.updateSubmitButtonState();
   }
 
   ngOnDestroy(): void {

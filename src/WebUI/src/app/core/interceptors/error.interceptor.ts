@@ -10,6 +10,8 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
   const router = inject(Router);
   const errorService = inject(ErrorService);
   const popupMessageService = inject(PopupMessageService);
+  // TODO there exist error 0, when try to updateRange categories
+  // TODO auto redirect on previous url when error solved
 
   return next(req).pipe(
     catchError((response: HttpErrorResponse) => {
@@ -21,15 +23,15 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
         router.navigate([previousUrl]);
       }
       else if (response.status >= 400 && response.status < 500 && result) {
-        for (const error in result.errors) {
-          popupMessageService.error(error);
-        }
+        result.errors.map(e => {
+          popupMessageService.error(e.message);
+        });
       }
       else {
         errorService.setError({ status: response.status, message: 'An unexcepted error occured.' }, previousUrl);
       }
       
-      if (router.url !== '/error' && response.status !== 401) {
+      if (router.url !== '/error' && response.status === 404) {
         router.navigate(['/error']);
       }
 

@@ -14,7 +14,7 @@ internal static class CategoryExtensions
                     category.Id,
                     category.Name,
                     category.Type,
-                    category.Period.ToString(),
+                    category.Period,
                     category.PlannedPeriodAmount);
     }
 
@@ -31,17 +31,6 @@ internal static class CategoryExtensions
             Type = command.Type,
             Period = command.Period,
             PlannedPeriodAmount = command.PlannedPeriodAmount
-        };
-    }
-
-    internal static Category ToEntity(this UpdateCategoryRequest request)
-    {
-        return new Category(request.Id)
-        {
-            Name = request.Name,
-            Type = request.Type,
-            Period = request.PeriodType,
-            PlannedPeriodAmount = request.PeriodAmount
         };
     }
 }

@@ -39,7 +39,7 @@ public sealed class CreateExpenseCommandHandlerTests
             Type = CategoryType.Expenses
         };
 
-        var command = new CreateExpenseCommand(capital.Id, category.Id, 10f, DateTimeOffset.UtcNow, null);
+        var command = new CreateExpenseCommand(capital.Id, category.Id, 10m, DateTimeOffset.UtcNow, null);
 
         _capitalRepositoryMock.GetAsync(Arg.Any<CapitalByIdSpecification>())
             .Returns(capital);
@@ -50,7 +50,7 @@ public sealed class CreateExpenseCommandHandlerTests
         // Assert
         result.IsSuccess.Should().BeTrue();
 
-        capital.Balance.Should().Be(90f);
+        capital.Balance.Should().Be(90m);
 
         _capitalRepositoryMock.Received(1).Update(capital);
         _expenseRepositoryMock.Received(1).Create(Arg.Is<Expense>(e => e.Amount.Equals(command.Amount)));
@@ -63,7 +63,7 @@ public sealed class CreateExpenseCommandHandlerTests
     public async Task Handle_CreateExpenseWhenCapitalNotFound_ShouldReturnsFailure()
     {
         // Arrange
-        var command = new CreateExpenseCommand(1, 1, 10f, DateTimeOffset.UtcNow, null);
+        var command = new CreateExpenseCommand(1, 1, 10m, DateTimeOffset.UtcNow, null);
 
         _capitalRepositoryMock.GetAsync(Arg.Any<CapitalByIdSpecification>())
             .Returns((Capital)null);

@@ -24,7 +24,7 @@ internal sealed class UpdateIncomeCommandHandler(
 
         if (command.Amount.HasValue)
         {
-            var difference = (float)(command.Amount - income.Amount);
+            var difference = (decimal)(command.Amount - income.Amount);
 
             income.Capital.Balance += difference;
 
