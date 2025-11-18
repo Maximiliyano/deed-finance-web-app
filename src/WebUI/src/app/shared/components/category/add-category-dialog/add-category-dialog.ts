@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, Inject, OnInit } from '@angular/core';
 import { DialogRef } from '../../dialogs/models/dialog-ref';
 import { CategoryResponse } from '../../../../core/models/category-model';
 import { CategoryType } from '../../../../core/types/category-type';
@@ -7,6 +7,7 @@ import { SharedModule } from "../../../shared.module";
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { FormField } from '../../forms/models/form-field';
 import { enumToOptions } from '../../../../core/utils/enum';
+import { DIALOG_DATA } from '../../dialogs/models/dialog-consts';
 
 @Component({
   selector: 'app-add-category-dialog',
@@ -21,10 +22,11 @@ export class AddCategoryDialog implements OnInit {
 
   private periodTypeOptions = enumToOptions(PerPeriodType);
   private categoryTypeOptions = enumToOptions(CategoryType, {
-    exclude: ['None']
+    exclude: ['None', ...this.exclude]
   });
 
   constructor(
+    @Inject(DIALOG_DATA) public exclude: string[],
     private readonly dialogRef: DialogRef<CategoryResponse | null>
   ) {}
 
@@ -36,7 +38,7 @@ export class AddCategoryDialog implements OnInit {
   private initForm(): void {
     this.form = new FormGroup({
       Name: new FormControl('', [Validators.required, Validators.minLength(1), Validators.maxLength(32)]),
-      Type: new FormControl(CategoryType.Expenses, [Validators.required]),
+      Type: new FormControl({ value: CategoryType.Expenses, disabled: this.categoryTypeOptions.length < 2 }, [Validators.required]),
       PeriodAmount: new FormControl(0, [Validators.min(0)]),
       PeriodType: new FormControl(PerPeriodType.None)
     });
@@ -82,7 +84,7 @@ export class AddCategoryDialog implements OnInit {
       return;
     }
 
-    const updated = this.form.value;
+    const updated = this.form.getRawValue();
 
     this.dialogRef.close({
       id: -1,

@@ -26,6 +26,9 @@ public static class DomainErrors
 
         public static Error ForSavingsOnly
             => Error.BadRequest(nameof(ForSavingsOnly), "Capital is only for savings.");
+
+        public static Error ReferenceExists
+            => Error.Conflict("Capital.ReferenceExists", "Capital cannot be deleted because it has related references.");
     }
 
     public static class Exchange
@@ -50,5 +53,8 @@ public static class DomainErrors
 
         public static Error PeriodAmountGreaterEqualZero
             => Error.BadRequest(nameof(PeriodAmountGreaterEqualZero), "Period amount should be greater or equal zero.");
+
+        public static Error ReferenceExists
+            => Error.Conflict("Category.ReferenceExists", "Category cannot be deleted because it has related references.");
     }
 }

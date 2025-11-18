@@ -20,8 +20,22 @@ export function enumToOptions<T extends object>(
   standalone: false
 })
 export class EnumTextPipe implements PipeTransform {
-  transform<T extends object>(value: number, enumObj: T): string {
+  transform<T extends string | number>(
+    value: T,
+    enumObj: Record<string, string | number>
+  ): string {
     if (value === null || value === undefined) return '';
+
+    const numericValue = Number(value);
+
+    if (!isNaN(numericValue) && enumObj[numericValue] !== undefined) {
+      return String(enumObj[numericValue]);
+    }
+
+    if (typeof value === 'string' && enumObj[value] !== undefined) {
+      return value;
+    }
+
     return (enumObj as any)[value];
   }
 }

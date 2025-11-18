@@ -1,4 +1,6 @@
-using Deed.Application.Categories.Commands.Update;
+using Deed.Application.Capitals.Commands.Update;
+using Deed.Application.Categories.Commands.UpdateRange;
+using Deed.Application.Categories.Requests;
 using Deed.Application.Categories.Specifications;
 using Deed.Domain.Entities;
 using Deed.Domain.Enums;
@@ -9,23 +11,25 @@ using NSubstitute;
 
 namespace Deed.Tests.Unit.Categories.Commands;
 
-public sealed class UpdateCategoryQueryHandlerTests
+public sealed class UpdateCategoriesQueryHandlerTests
 {
     private readonly ICategoryRepository _repositoryMock = Substitute.For<ICategoryRepository>();
     private readonly IUnitOfWork _unitOfWorkMock = Substitute.For<IUnitOfWork>();
 
-    private readonly UpdateCategoryCommandHandler _handler;
+    private readonly UpdateCategoriesCommandHandler _handler;
 
-    public UpdateCategoryQueryHandlerTests()
+    public UpdateCategoriesQueryHandlerTests()
     {
-        _handler = new UpdateCategoryCommandHandler(_repositoryMock, _unitOfWorkMock);
+        _handler = new UpdateCategoriesCommandHandler(_repositoryMock, _unitOfWorkMock);
     }
 
     [Fact]
     public async Task Handle_ShouldReturnFailure_WhenCategoryNotFound()
     {
         // Arrange
-        var command = new UpdateCategoryCommand(1);
+        var command = new UpdateCategoriesCommand([
+            new(99, null, null, null, null)
+        ]);
 
         _repositoryMock.GetAsync(Arg.Any<CategoryByIdSpecification>()).Returns((Category)null);
 
@@ -49,7 +53,9 @@ public sealed class UpdateCategoryQueryHandlerTests
         const int id = 1;
 
         var category = new Category(id) { Name = "Test", Type = CategoryType.Expenses };
-        var command = new UpdateCategoryCommand(id);
+        var command = new UpdateCategoriesCommand([
+            new(category.Id, category.Name, category.Type, category.PlannedPeriodAmount, category.Period)
+        ]);
 
         _repositoryMock.GetAsync(Arg.Any<CategoryByIdSpecification>()).Returns(category);
 
@@ -99,7 +105,9 @@ public sealed class UpdateCategoryQueryHandlerTests
         };
 
         decimal? newPlannedPeriodAmount = plannedPeriodAmount is null ? null : (decimal)plannedPeriodAmount;
-        var command = new UpdateCategoryCommand(id, name, newPlannedPeriodAmount, perPeriodType, type);
+        var command = new UpdateCategoriesCommand([
+            new(id, name, type, newPlannedPeriodAmount, perPeriodType)
+        ]);
 
         _repositoryMock.GetAsync(Arg.Any<CategoryByIdSpecification>()).Returns(category);
 

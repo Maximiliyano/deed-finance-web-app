@@ -29,6 +29,11 @@ internal sealed class CapitalsByQueryParamsSpecification : BaseSpecification<Cap
                 ApplyOrderByDescending(keySelector);
                 break;
         }
+
+        AddInclude(c => c.Expenses);
+        AddInclude(c => c.Incomes);
+        AddInclude(c => c.TransfersIn);
+        AddInclude(c => c.TransfersOut);
     }
 
     private static Expression<Func<Capital, bool>>? GetFilterProperties(string? filterBy, string? searchTerm)

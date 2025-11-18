@@ -19,7 +19,7 @@ export class ExchangeService {
     private readonly http: HttpClient,
     private readonly sessionService: SessionStorageService) { }
 
-  getAll(): Observable<Exchange[]> {
+  getLatest(): Observable<Exchange[]> {
     const cached = this.sessionService.load<Exchange[]>(this.cacheKey);
     if (cached && !this.sessionService.isExpired(cached.fetchedAt, this.cacheTTL)) {
       if (!this.exchanges$) {

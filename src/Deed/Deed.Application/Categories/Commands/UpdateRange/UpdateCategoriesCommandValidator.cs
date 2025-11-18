@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Deed.Application.Abstractions;
 using Deed.Application.Categories.Specifications;
+using Deed.Domain.Constants;
 using Deed.Domain.Enums;
 using Deed.Domain.Errors;
 using Deed.Domain.Repositories;
@@ -14,14 +15,29 @@ using MediatR;
 namespace Deed.Application.Categories.Commands.UpdateRange;
 
 internal sealed class UpdateCategoriesCommandValidator : AbstractValidator<UpdateCategoriesCommand>
-
 {
-    public UpdateCategoriesCommandValidator()
+    public UpdateCategoriesCommandValidator(ICategoryRepository categoryRepository)
     {
         RuleFor(c => c.Requests)
+            .Cascade(CascadeMode.Stop)
             .Must(requests => requests.Any())
-            .WithError(DomainErrors.General.EmptyCollection)
-            .Must(requests => !requests.Any(x => x.PeriodAmount < 0))
-            .WithError(DomainErrors.Category.PeriodAmountGreaterEqualZero);
+            .WithError(DomainErrors.General.EmptyCollection);
+
+        RuleForEach(c => c.Requests)
+            .ChildRules(request =>
+            {
+                request.RuleFor(r => r.PeriodAmount)
+                    .GreaterThanOrEqualTo(ValidationConstants.ZeroValue)
+                    .WithError(DomainErrors.Category.PeriodAmountGreaterEqualZero);
+
+                request.RuleFor(r => r.Name)
+                    .NotEmpty()
+                    .WithError(ValidationErrors.Category.EmptyName)
+                    .MaximumLength(ValidationConstants.MaxLenghtName)
+                    .WithError(ValidationErrors.Category.NameTooLong)
+                    .MustAsync(async (name, _) =>
+                        !await categoryRepository.AnyAsync(new CategoryByNameSpecification(name)).ConfigureAwait(false))
+                    .WithError(ValidationErrors.Category.AlreadyExists);
+            });
     }
 }

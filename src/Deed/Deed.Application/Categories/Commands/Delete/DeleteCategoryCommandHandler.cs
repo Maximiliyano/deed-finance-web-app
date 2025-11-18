@@ -13,11 +13,16 @@ internal sealed class DeleteCategoryCommandHandler(
 {
     public async Task<Result> Handle(DeleteCategoryCommand command, CancellationToken cancellationToken)
     {
-        var category = await repository.GetAsync(new CategoryByIdSpecification(command.Id)).ConfigureAwait(false);
+        var category = await repository.GetAsync(new CategoryByIdSpecification(command.Id, true, true)).ConfigureAwait(false);
 
         if (category is null)
         {
             return Result.Failure(DomainErrors.General.NotFound(nameof(category)));
+        }
+
+        if (category.HasReferences())
+        {
+            return Result.Failure(DomainErrors.Category.ReferenceExists);
         }
 
         repository.Delete(category);
