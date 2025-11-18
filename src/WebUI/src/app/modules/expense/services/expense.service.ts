@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { CreateExpenseRequest } from '../models/create-expense-request';
 import { ExpenseCategoryResponse } from '../models/expense-category-response';
+import { UpdateExpenseRequest } from '../models/update-expense.request';
 
 @Injectable({
   providedIn: 'root'
@@ -25,6 +26,10 @@ export class ExpenseService {
 
   create(request: CreateExpenseRequest): Observable<number> {
     return this.http.post<number>(this.baseUrl, request);
+  }
+
+  update(request: UpdateExpenseRequest): Observable<void> {
+    return this.http.put<void>(this.baseUrl, request);
   }
 
   delete(id: number): Observable<void> {

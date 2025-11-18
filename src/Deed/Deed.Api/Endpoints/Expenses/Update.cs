@@ -1,6 +1,7 @@
 using Deed.Api.Extensions;
 using Deed.Application.Expenses.Commands.Update;
 using Deed.Application.Expenses.Requests;
+using Deed.Domain.Results;
 using MediatR;
 
 namespace Deed.Api.Endpoints.Expenses;
@@ -14,10 +15,11 @@ internal sealed class Update : IEndpoint
                 .Send(new UpdateExpenseCommand(
                     request.Id,
                     request.CategoryId,
+                    request.CapitalId,
                     request.Amount,
                     request.Purpose,
                     request.Date), ct))
-                .Process())
+                .Process(ResultType.NoContent))
             .WithTags(nameof(Expenses));
     }
 }

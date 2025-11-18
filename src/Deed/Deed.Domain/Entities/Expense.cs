@@ -22,7 +22,7 @@ public sealed class Expense
 
     public Capital? Capital { get; init; }
 
-    public required int CapitalId { get; init; }
+    public required int CapitalId { get; set; }
 
     public string? Purpose { get; set; }
 
