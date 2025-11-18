@@ -27,10 +27,12 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerDependencies();
     app.ApplyMigrations();
 }
+else
+{ 
+    app.UseHsts();
+}
 
 app.UseExceptionHandler();
-
-app.UseHsts();
 
 app.UseHttpsRedirection();
 

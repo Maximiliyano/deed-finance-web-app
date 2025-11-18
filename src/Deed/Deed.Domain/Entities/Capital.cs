@@ -57,4 +57,10 @@ public sealed class Capital
 
     [Timestamp]
     public byte[]? RowVersion { get; set; }
+
+    public bool HasReferences() =>
+        Expenses.Any()
+        || Incomes.Any()
+        || TransfersIn.Any()
+        || TransfersOut.Any();
 }

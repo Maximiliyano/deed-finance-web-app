@@ -1,4 +1,4 @@
-<app-layout title="Expenses">
+<app-layout text="Expenses">
   <div class="flex justify-center gap-3 mb-6">
     <button
       (click)="toggleCreateDialog()"
@@ -62,27 +62,32 @@
                 'text-green-600 font-semibold text-sm': isCategorySumGreaterPlannedPeriod(expenseCategory),
                 'text-red-600 font-semibold text-sm': !isCategorySumGreaterPlannedPeriod(expenseCategory)
                }">
-                {{ expenseCategory.plannedPeriodAmount | number: '1.2-2' }}
+                {{ expenseCategory.plannedPeriodAmount | currencySymbol: capitalCurrency }}
               </span>
-              <span class="text-xs uppercase text-gray-500">{{ expenseCategory.periodType }}</span>
+              <span class="text-xs uppercase text-gray-500">{{ expenseCategory.periodType | enumText: PerPeriodType }}</span>
             }
           </div>
     
           @if (openedExpensesCategoryId === expenseCategory.categoryId) {
-            <div class="mt-2 bg-gray-50 border-t border-gray-200 shadow-inner animate-fadeIn p-3">
+            <div class="bg-gray-50 border-t border-gray-200 shadow-inner animate-fadeIn p-3">
               @for (e of expenseCategory.expenses; track e.id) {
                 <div
-                  class="flex justify-between items-center py-2 border-b border-gray-100 last:border-0"
+                  class="flex justify-between items-center py-2 border-b border-gray-100 last:border-0 text-sm"
                 >
-                  <span class="text-gray-700 truncate">{{ e.purpose }}</span>
+                  <span class="text-gray-500">{{ e.paymentDate | date: 'shortDate' }}</span>
                   <span class="font-medium text-gray-800">{{ e.amount | currencySymbol: capitalCurrency }}</span>
-                  <span class="text-sm text-gray-500">{{ e.paymentDate | date: 'shortDate' }}</span>
-                  <button
-                    (click)="deleteExpense(e.id, expenseCategory.categoryId)"
-                    class="ml-3 text-red-500 hover:text-red-700 transition-colors text-sm"
-                  >
-                    Remove
-                  </button>
+                  <span class="text-gray-700 truncate">{{ e.purpose ?? 'No comment' }}</span>
+                  <div class="flex gap-2">
+                    <button class="text-blue-700 hover:text-blue-900 transition-colors">
+                      <app-icon name="fa-gear" />
+                    </button>
+                    <button
+                      (click)="deleteExpense(e.id, expenseCategory.categoryId)"
+                      class="text-red-500 hover:text-red-700 transition-colors"
+                    >
+                      <app-icon name="fa-circle-xmark" />
+                    </button>
+                  </div>
                 </div>
               }
             </div>

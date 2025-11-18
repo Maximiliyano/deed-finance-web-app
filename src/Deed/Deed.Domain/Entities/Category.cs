@@ -36,4 +36,8 @@ public sealed class Category : Entity, IAuditableEntity, ISoftDeletableEntity
     public DateTimeOffset? DeletedAt { get; init; }
 
     public bool? IsDeleted { get; init; }
+
+    public bool HasReferences() =>
+        Expenses.Any()
+        || Incomes.Any();
 }

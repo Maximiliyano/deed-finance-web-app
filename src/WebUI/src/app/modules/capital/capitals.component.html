@@ -1,4 +1,4 @@
-<app-layout title="Capitals">
+<app-layout text="Capitals">
   <div class="cp-lh ">
     <div class="ta">
       <span class="ta-text">Total balance:</span>
@@ -9,6 +9,17 @@
 
     <div class="cp-bar">
       <input class="cp-search" placeholder="Search for..." maxlength="24" [(ngModel)]="searchTerm" (ngModelChange)="onSearchChange()" />
+
+      <div
+        class="sm:flex hidden bg-white p-1 border border-gray-300 rounded gap-1 items-center"
+        title="Filters"
+      >
+        <app-icon name="fa-sliders" />
+        <select [(ngModel)]="filterBy" (change)="onFilterChange()">
+          <option [ngValue]="undefined">Select a filter...</option>
+          <option value="onlyForSavings">Only For Savings</option>
+        </select>
+      </div>
 
       <div class="cp-sort">
         <button class="sort-direction" (click)="onSortDirectionChange()" [title]="sortDirection === 'asc' ? 'Ascending' : 'Descending'">
@@ -130,13 +141,12 @@
   }
   @else {
     <button
-    class="no-capitals"
-    (click)="openToCreateCapitalDialog()"
-    (keydown.enter)="openToCreateCapitalDialog()"
-    (keydown.space)="openToCreateCapitalDialog()"
+      type="button"
+      class="no-capittals"
+      (click)="openToCreateCapitalDialog()"
     >
       Create your first capital...
-      <app-icon class="btn-create-icon" [name]="'fa-circle-plus'"></app-icon>
+      <app-icon class="btn-create-icon" name="fa-circle-plus" />
     </button>
   }
 </app-layout>

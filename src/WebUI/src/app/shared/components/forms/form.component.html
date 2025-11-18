@@ -40,7 +40,7 @@
         @if (field.select) {
           <select
             [formControlName]="field.controlName"
-            class="w-full cursor-pointer border rounded px-3 py-2 {{ field.select.options.length === 0 ? 'cursor-not-allowed text-gray-300' : '' }}"
+            class="w-full border rounded px-3 py-2 {{ form.get(field.controlName)?.disabled ? 'cursor-not-allowed text-gray-300' : 'cursor-pointer' }}"
           >
             @if (field.select.optionCaption) {
               <option value="">{{ field.select.optionCaption }}</option>

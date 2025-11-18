@@ -1,11 +1,11 @@
-import { booleanAttribute, Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ExpenseCategoryResponse } from './models/expense-category-response';
 import { DialogService } from '../../shared/components/dialogs/services/dialog.service';
 import { ExpenseDialogComponent } from './components/expense-dialog/expense-dialog.component';
 import { CapitalResponse } from '../capital/models/capital-response';
 import { ExpenseService } from './services/expense.service';
 import { CapitalService } from '../capital/services/capital.service';
-import { Subject, takeUntil } from 'rxjs';
+import { Subject, takeUntil, throttleTime } from 'rxjs';
 import { CategoryResponse } from '../../core/models/category-model';
 import { CategoryService } from '../../shared/services/category.service';
 import { CategoryType } from '../../core/types/category-type';
@@ -33,6 +33,7 @@ export class ExpensesComponent implements OnInit, OnDestroy {
   openedExpensesCategoryId: number | null = null;
 
   defaultCurrency: string;
+  PerPeriodType=  PerPeriodType;
 
   private $unsubscribe = new Subject<void>();
 
@@ -82,7 +83,7 @@ export class ExpensesComponent implements OnInit, OnDestroy {
   }
 
   isPlannedPeriodShown(expenseCategory: ExpenseCategoryResponse): boolean {
-    return expenseCategory.plannedPeriodAmount === 0.0 || expenseCategory.periodType === PerPeriodType.None;
+    return expenseCategory.plannedPeriodAmount > 0.0 && expenseCategory.periodType !== PerPeriodType.None;
   }
 
   isCategorySumGreaterPlannedPeriod(expenseCategory: ExpenseCategoryResponse): boolean {
@@ -155,12 +156,13 @@ export class ExpensesComponent implements OnInit, OnDestroy {
       data: {
         type: "Expense",
         currency: this.capitalCurrency,
-        categories: this.categories
+        originalCategories: this.categories
       },
     });
     
     categoriesDialogRef
       .afterClosed$
+      .pipe(throttleTime(3000))
       .subscribe({
         next: (categories: CategoryResponse[]) => {
           if (categories.length === 0) return;
@@ -246,14 +248,15 @@ export class ExpensesComponent implements OnInit, OnDestroy {
             : parseFloat(((c.categorySum / totalSum) * 100).toFixed(2));
     });
 
-    this.popupMessageService.success(`Expense added`);
+    this.popupMessageService.success(`New expense added`);
   }
 
   deleteExpense(id: number, categoryId: number): void {
     const dialogRef = this.dialogService.open(ConfirmDialogComponent, {
       data: {
-        title: 'expense',
-        action: 'remove'
+        title: 'Deletion of expense',
+        message: `Are you sure you want to perform this action?`,
+        icon: 'danger'
       }
     });
 

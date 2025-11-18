@@ -8,8 +8,6 @@ public interface ISpecification<TEntity>
 
     IList<Expression<Func<TEntity, object>>> Includes { get; }
 
-    bool IgnoreAutoIncludes { get; }
-
     Expression<Func<TEntity, object>>? OrderBy { get; }
 
     Expression<Func<TEntity, object>>? OrderByDescending { get; }

@@ -7,4 +7,5 @@ export interface CategoryResponse {
   type: CategoryType;
   periodAmount: number;
   periodType: PerPeriodType;
+  deleted?: boolean;
 }

@@ -15,6 +15,7 @@ import { UpdateCapitalRequest } from './models/update-capital-request';
 import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import { AddCapitalDialogComponent } from './components/capital-dialog/add-capital-dialog.component';
 import { CapitalDetailsComponent } from './components/capital-details/capital-details.component';
+import { ConfirmDialogComponent } from '../../shared/components/dialogs/confirm-dialog/confirm-dialog.component';
 
 @Component({
     selector: 'app-capitals',
@@ -46,6 +47,7 @@ export class CapitalsComponent implements OnInit, OnDestroy {
   searchTerm = '';
   selectedSortOption: string = '';
   sortDirection: 'asc' | 'desc' = 'asc';
+  filterBy?: 'onlyForSavings'
 
   mainCurrency: string;
   mainCurrencyVal: CurrencyType;
@@ -91,7 +93,11 @@ export class CapitalsComponent implements OnInit, OnDestroy {
   }
 
   @HostListener('document:click', ['$event.target'])
-  onClickOutside(targetElement: HTMLElement): void {
+  onClickOutside(targetElement: EventTarget | null): void {
+    if (!(targetElement instanceof HTMLElement)) {
+      return;
+    }
+
     const clickedInside = targetElement.closest('.cp-actions-compact');
 
     if (!clickedInside) {
@@ -127,7 +133,7 @@ export class CapitalsComponent implements OnInit, OnDestroy {
 
   fetchExchanges(): void {
     this.exchangeService
-      .getAll()
+      .getLatest()
       .pipe(takeUntil(this.unsubcribe$))
       .subscribe({
         next: (response) => this.exchanges = response
@@ -135,13 +141,17 @@ export class CapitalsComponent implements OnInit, OnDestroy {
   }
 
   fetchCapitals(): void {
-    this.capitalService.getAll(this.searchTerm, this.selectedSortOption, this.sortDirection)
+    this.capitalService.getAll(this.searchTerm, this.selectedSortOption, this.sortDirection, this.filterBy)
       .pipe(takeUntil(this.unsubcribe$))
       .subscribe({
         next: (response) => {
           this.capitals = response;
         }
     });
+  }
+
+  onFilterChange(): void {
+    this.queryParams$.next();
   }
 
   onSearchChange(): void {
@@ -320,28 +330,30 @@ export class CapitalsComponent implements OnInit, OnDestroy {
   deleteCapital(id: number): void {
     this.onMenuItemClick();
 
-    // this.dialogService.open({
-    //   component: ConfirmDialogComponent,
-    //   data: {
-    //     title: 'deletion of the capital',
-    //     action: 'delete'
-    //   },
-    //   onSubmit: (confirmed: boolean) => {
-    //     if (confirmed) {
-    //       this.capitalService
-    //         .delete(id)
-    //         .pipe(takeUntil(this.unsubcribe$))
-    //         .subscribe({
-    //           next: () => {
-    //             this.capitals = this.capitals.filter(x => x.id !== id);
-    //             this.popupMessageService.success("The capital was successful deleted.");
-    //             this.dialogService.close();
-    //           }});
-    //     } else {
-    //       this.dialogService.close();
-    //     }
-    //   }
-    // })
+    const ref = this.dialogService.open(ConfirmDialogComponent, {
+      data: {
+        title: 'Deletion of capital',
+        message: `
+          Are you sure you want to perform this action?<br><br>
+          <b>Note!</b> It may contain references and cannot be deleted.`,
+        icon: 'danger'
+      },
+    });
+
+    ref.afterClosed$.subscribe({
+      next: (confirmed: boolean) => {
+        if (confirmed) {
+          this.capitalService
+            .delete(id)
+            .pipe(takeUntil(this.unsubcribe$))
+            .subscribe({
+              next: () => {
+                this.capitals = this.capitals.filter(x => x.id !== id);
+                this.popupMessageService.success("The capital was successful deleted.");
+              }});
+        }
+      }
+    });
   }
 
   onMenuItemClick(): void {

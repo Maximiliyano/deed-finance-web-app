@@ -10,7 +10,7 @@ import { DialogService } from '../../dialogs/services/dialog.service';
 import { AddCategoryDialog } from '../add-category-dialog/add-category-dialog';
 import { PopupMessageService } from '../../../services/popup-message.service';
 import { CategoryService } from '../../../services/category.service';
-import { ConfirmDialogComponent } from '../../dialogs/confirm-dialog/confirm-dialog.component';
+import { CategoryType } from '../../../../core/types/category-type';
 
 @Component({
     selector: 'app-categories-dialog-component',
@@ -21,23 +21,25 @@ import { ConfirmDialogComponent } from '../../dialogs/confirm-dialog/confirm-dia
 })
 export class CategoriesDialogComponent implements OnDestroy {
   periodTypeOptions = enumToOptions(PerPeriodType);
+  PerPeriodType = PerPeriodType;
+  
+  editableCategories: CategoryResponse[] = [];
+
+  changed = new Set<number>();
+  deleted = new Set<number>();
   
   isEditModeEnabled: boolean = false;
-  
+
   private $unsubscribe = new Subject<void>();
-
-  PerPeriodType = PerPeriodType;
-
-  initCategories: CategoryResponse[];
   
   constructor(
-    @Inject(DIALOG_DATA) public data: { categories: CategoryResponse[], currency: string, type?: string },
+    @Inject(DIALOG_DATA) public data: { originalCategories: CategoryResponse[], currency: string, type?: string },
     private dialogRef: DialogRef<CategoryResponse[]>,
     private readonly dialogService: DialogService,
     private readonly popupMessageService: PopupMessageService,
     private readonly categoryService: CategoryService
   ) {
-    this.initCategories = [...this.data.categories];
+    this.editableCategories = this.data.originalCategories.map(c => ({ ...c }));
   }
 
   ngOnDestroy(): void {
@@ -45,86 +47,73 @@ export class CategoriesDialogComponent implements OnDestroy {
     this.$unsubscribe.complete();
   }
 
-  hasChanges(): boolean {
-    return this.data.categories.some((cat, index) => {
-      const original = this.initCategories[index];
-      return !this.isCategoryEqual(cat, original);
+  get hasChanges(): boolean {
+    return this.changed.size > 0 || this.deleted.size > 0;
+  }
+
+  add(): void {
+    if (this.isEditModeEnabled) return;
+
+    const ref = this.dialogService.open(AddCategoryDialog, {
+      data: [CategoryType[CategoryType.Incomes]]
     });
-  }
-
-  private isCategoryEqual(a: CategoryResponse, b: CategoryResponse): boolean {
-    return a.id === b.id &&
-          a.name === b.name &&
-          a.type === b.type &&
-          a.periodType === b.periodType &&
-          a.periodAmount === b.periodAmount;
-  }
-
-  addCategory(): void {
-    const ref = this.dialogService.open(AddCategoryDialog);
     
-    ref
-      .afterClosed$
-      .subscribe({
-        next: (response: CategoryResponse | null) => {
-          if (!response) return;
+    ref.afterClosed$.subscribe({
+      next: (response: CategoryResponse | null) => {
+        if (!response) return;
 
-          this.categoryService
-            .create({
-              name: response.name,
-              type: Number(response.type),
-              plannedPeriodAmount: response.periodAmount,
-              period: Number(response.periodType)
-            })
-            .pipe(takeUntil(this.$unsubscribe))
-            .subscribe({
-              next: (id: number) => {
-                response.id = id;
-                
-                this.data.categories.push(response);
-                this.popupMessageService.success(`Category ${response.name} successfully added.`);   
-              }
-            });
-        }
-      })
-  }
-
-  editCategories(): void {
-    // TODO disable buttons if there is not any update
-    if (!this.hasChanges()) {
-      return;
-    }
-    this.dialogRef.close(this.data.categories);
-  }
-
-  deleteCategory(id: number): void {
-    const ref = this.dialogService.open(ConfirmDialogComponent, {
-      data: {
-        title: 'category',
-        action: 'delete'
+        this.categoryService
+        .create({
+          name: response.name,
+            type: Number(response.type),
+            plannedPeriodAmount: response.periodAmount,
+            period: Number(response.periodType)
+          })
+          .pipe(takeUntil(this.$unsubscribe))
+          .subscribe({
+            next: (id: number) => {
+              response.id = id;
+              
+              this.changed.add(response.id);
+              this.editableCategories.push(response);
+              this.popupMessageService.success(`Category ${response.name} successfully added.`);   
+            }
+          });
       }
-    });
+    })
+  }
 
-    ref
-      .afterClosed$
+  onFieldChange(id: number): void {
+    this.changed.add(id);
+    this.editableCategories = [...this.editableCategories];
+  }
+
+  save(): void {
+    this.dialogRef.close(this.editableCategories);
+  }
+
+  remove(id: number): void {
+    const founded = this.editableCategories.find(c => c.id === id);
+    if (!founded) return;
+
+    this.categoryService
+      .delete(id)
       .pipe(takeUntil(this.$unsubscribe))
       .subscribe({
-        next: (result: boolean) => {
-          if (result) {
-            const founded = this.data.categories.find(c => c.id === id);
-            if (!founded) return;
-        
-            this.categoryService
-              .delete(id)
-              .pipe(takeUntil(this.$unsubscribe))
-              .subscribe({
-                next: () => {
-                  this.data.categories = this.data.categories.filter(x => x.id !== id);
-                  this.popupMessageService.success(`Category ${founded.name} removed`);
-                }
-              });
-          }
+        next: () => {
+          this.editableCategories = this.editableCategories.filter(x => x.id !== id);
+          this.isEditModeEnabled = this.editableCategories.length > 0 && this.isEditModeEnabled;
+          this.popupMessageService.success(`Category ${founded.name} removed`);
         }
       });
+  }
+
+  cancel(): void {
+    this.isEditModeEnabled = false;
+
+    this.changed.clear();
+    this.deleted.clear();
+
+    this.editableCategories = this.data.originalCategories.map(c => ({...c}));
   }
 }

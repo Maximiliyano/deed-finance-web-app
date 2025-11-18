@@ -34,7 +34,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.exchangeService
-      .getAll()
+      .getLatest()
       .pipe(takeUntil(this.unsubscribe))
       .subscribe({
         next: (exchanges) => {

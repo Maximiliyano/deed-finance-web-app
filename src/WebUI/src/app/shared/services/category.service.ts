@@ -24,10 +24,6 @@ export class CategoryService {
     return this.http.get<CategoryResponse[]>(this.baseApiUrl, { params });
   }
 
-  getById(id: number): Observable<CategoryResponse> {
-    return this.http.get<CategoryResponse>(`${this.baseApiUrl}/${id}`);
-  }
-
   create(request: CreateCategoryRequest): Observable<number> {
     return this.http.post<number>(`${this.baseApiUrl}`, request);
   }

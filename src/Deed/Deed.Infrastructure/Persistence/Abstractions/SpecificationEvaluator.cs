@@ -24,7 +24,7 @@ public static class SpecificationEvaluator
             queryable = queryable.Where(specification.Criteria);
         }
 
-        if (specification.Includes.Any() && !specification.IgnoreAutoIncludes)
+        if (specification.Includes.Any())
         {
             queryable = specification.Includes
                 .Aggregate(
@@ -32,11 +32,6 @@ public static class SpecificationEvaluator
                     (currect, includeExpression) =>
                         currect.Include(includeExpression))
                 .AsSplitQuery();
-        }
-
-        if (specification.IgnoreAutoIncludes)
-        {
-            queryable = queryable.IgnoreAutoIncludes();
         }
 
         if (specification.OrderBy is not null)
