@@ -5,10 +5,16 @@ namespace Deed.Application.Expenses.Specifications;
 
 internal sealed class ExpenseByIdSpecification : BaseSpecification<Expense>
 {
-    public ExpenseByIdSpecification(int id)
+    public ExpenseByIdSpecification(int id, bool includeCapital = false, bool includeCategory = false)
         : base(x => x.Id == id)
     {
-        AddInclude(i => i.Capital);
-        AddInclude(i => i.Category);
+        if (includeCapital)
+        {
+            AddInclude(i => i.Capital);
+        }
+        if (includeCategory)
+        {
+            AddInclude(i => i.Category);
+        }
     }
 }

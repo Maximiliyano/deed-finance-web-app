@@ -1,7 +1,7 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ExpenseCategoryResponse } from './models/expense-category-response';
 import { DialogService } from '../../shared/components/dialogs/services/dialog.service';
-import { ExpenseDialogComponent } from './components/expense-dialog/expense-dialog.component';
+import { AddExpenseDialogComponent } from './components/add-expense-dialog/add-expense-dialog.component';
 import { CapitalResponse } from '../capital/models/capital-response';
 import { ExpenseService } from './services/expense.service';
 import { CapitalService } from '../capital/services/capital.service';
@@ -17,6 +17,8 @@ import { PopupMessageService } from '../../shared/services/popup-message.service
 import { ActivatedRoute, Router } from '@angular/router';
 import { SelectOptionModel } from '../../shared/components/forms/models/select-option-model';
 import { PerPeriodType } from '../../core/types/per-period-type';
+import { EditExpenseDialogComponent } from './components/edit-expense-dialog.component/edit-expense-dialog.component';
+import { UpdateExpenseRequest } from './models/update-expense.request';
 
 @Component({
     selector: 'app-expenses',
@@ -182,7 +184,7 @@ export class ExpensesComponent implements OnInit, OnDestroy {
   }
 
   toggleCreateDialog(): void {
-    const dialogRef = this.dialogService.open(ExpenseDialogComponent, {
+    const dialogRef = this.dialogService.open(AddExpenseDialogComponent, {
         data: {
           capitalsOptions: this.capitalOptions,
           categoryOptions: this.categoryOptions,
@@ -251,6 +253,32 @@ export class ExpensesComponent implements OnInit, OnDestroy {
     this.popupMessageService.success(`New expense added`);
   }
 
+  toggleEditExpenseDialog(expense: ExpenseResponse, oldCategoryId: number): void {
+    const dialogRef = this.dialogService.open(EditExpenseDialogComponent, {
+      data: {
+        expense: expense,
+        categoryId: oldCategoryId,
+        categoryOptions: this.categoryOptions,
+        capitalOptions: this.capitalOptions
+      }
+    });
+
+    dialogRef
+      .afterClosed$
+      .subscribe({
+        next: (request: UpdateExpenseRequest | null) => {
+          if (request) {
+            this.expenseService
+              .update(request)
+              .pipe(takeUntil(this.$unsubscribe))
+              .subscribe({
+                next: () => this.updateExpense(request, oldCategoryId)
+              })
+          }
+        }
+      });
+  }
+
   deleteExpense(id: number, categoryId: number): void {
     const dialogRef = this.dialogService.open(ConfirmDialogComponent, {
       data: {
@@ -279,6 +307,13 @@ export class ExpensesComponent implements OnInit, OnDestroy {
     );
   }
 
+  updateExpense(update: UpdateExpenseRequest, oldCategoryId: number): void {
+    // TODO handle moving from old category to new, removing from old
+    // TODO handle update in old category
+    // TODO handle update from old capital to new, removing from current
+    // TODO handle update in old capital
+  }
+
   removeExpenseFromList(id: number, categoryId: number): void {
     const response = this.expenseCategories.find(e => e.categoryId === categoryId);
 
@@ -296,6 +331,7 @@ export class ExpensesComponent implements OnInit, OnDestroy {
     if (!capital) return;
 
     capital.balance += expense.amount;
+
     response.categorySum -= expense.amount;
     response.expenses = response.expenses.filter(e => e.id !== id);
 

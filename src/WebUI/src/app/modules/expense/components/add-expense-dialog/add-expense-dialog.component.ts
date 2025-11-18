@@ -10,13 +10,13 @@ import { DIALOG_DATA } from '../../../../shared/components/dialogs/models/dialog
 import { DialogRef } from '../../../../shared/components/dialogs/models/dialog-ref';
 
 @Component({
-    selector: 'app-expense-dialog',
-    templateUrl: './expense-dialog.component.html',
-    styleUrl: './expense-dialog.component.scss',
+    selector: 'app-add-expense-dialog',
+    templateUrl: './add-expense-dialog.component.html',
+    styleUrl: './add-expense-dialog.component.scss',
     standalone: true,
     imports: [SharedModule]
 })
-export class ExpenseDialogComponent implements OnInit {
+export class AddExpenseDialogComponent implements OnInit {
   form: FormGroup;
   fields: FormField[] = [];
 

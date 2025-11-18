@@ -12,7 +12,6 @@ namespace Deed.Tests.Unit.Expenses.Commands;
 
 public sealed class UpdateExpenseCommandHandlerTests
 {
-    private readonly IDateTimeProvider _dateTimeProvider = Substitute.For<IDateTimeProvider>();
     private readonly ICapitalRepository _capitalRepository = Substitute.For<ICapitalRepository>();
     private readonly ICategoryRepository _categoryRepository = Substitute.For<ICategoryRepository>();
     private readonly IExpenseRepository _expenseRepository = Substitute.For<IExpenseRepository>();
@@ -22,23 +21,24 @@ public sealed class UpdateExpenseCommandHandlerTests
 
     public UpdateExpenseCommandHandlerTests()
     {
-        _handler = new UpdateExpenseCommandHandler(_dateTimeProvider, _capitalRepository, _categoryRepository, _expenseRepository, _unitOfWork);
+        _handler = new UpdateExpenseCommandHandler(_capitalRepository, _categoryRepository, _expenseRepository, _unitOfWork);
     }
 
     // TODO add test failure createExpenseWithCapitalForSavingsOnly
     [Theory]
-    [InlineData(null, null, null)]
-    [InlineData(4, null, null)]
-    [InlineData(3, 100.0, null)]
-    [InlineData(3, null, "Hi")]
-    [InlineData(null, 200.0, null)]
-    [InlineData(null, 200.0, "Well")]
-    [InlineData(1, 200.0, null)]
-    [InlineData(null, null, "Purspo")]
-    [InlineData(null, 12.0, "Purspo")]
-    [InlineData(4, null, "Purspo")]
-    [InlineData(1, 150.0, "Test")]
+    [InlineData(null, null, null, null)]
+    [InlineData(5, 4, null, null)]
+    [InlineData(2, 3, 100.0, null)]
+    [InlineData(5, 3, null, "Hi")]
+    [InlineData(null, null, 200.0, null)]
+    [InlineData(7, null, 200.0, "Well")]
+    [InlineData(2, 1, 200.0, null)]
+    [InlineData(null, null, null, "Purspo")]
+    [InlineData(null, null, 12.0, "Purspo")]
+    [InlineData(2, 4, null, "Purspo")]
+    [InlineData(8, 1, 150.0, "Test")]
     public async Task Handle_UpdateExpense_ShouldReturnUpdated(
+        int? capitalId,
         int? categoryId,
         double? amount,
         string? purpose)
@@ -46,6 +46,7 @@ public sealed class UpdateExpenseCommandHandlerTests
         // Arrange
         const int id = 1;
         const int oldCategoryId = 2;
+        const int oldCapitalId = 1;
         const decimal oldAmount = 100m;
         const string oldPurpose = "Hello";
 
@@ -61,7 +62,7 @@ public sealed class UpdateExpenseCommandHandlerTests
                 Type = CategoryType.Expenses
             },
             CapitalId = 1,
-            Capital = new Capital(1)
+            Capital = new Capital(oldCapitalId)
             {
                 Name = "TestCapital",
                 Balance = 1000,
@@ -70,12 +71,10 @@ public sealed class UpdateExpenseCommandHandlerTests
             Purpose = oldPurpose
         };
         decimal? newAmount = amount is null ? null : (decimal)amount;
-        var command = new UpdateExpenseCommand(id, categoryId, newAmount, purpose, utcNow);
+        var command = new UpdateExpenseCommand(id, categoryId, oldCapitalId, newAmount, purpose, utcNow);
 
         _expenseRepository.GetAsync(Arg.Any<ExpenseByIdSpecification>())
             .Returns(expense);
-
-        _dateTimeProvider.UtcNow.Returns(utcNow);
 
         var expectedCapitalBalance = newAmount.HasValue
             ? expense.Capital.Balance + expense.Amount - newAmount.Value
@@ -93,6 +92,7 @@ public sealed class UpdateExpenseCommandHandlerTests
         expense.Purpose.Should().Be(purpose ?? oldPurpose);
         expense.PaymentDate.Should().Be(utcNow);
         expense.CategoryId.Should().Be(categoryId ?? oldCategoryId);
+        expense.CapitalId.Should().Be(capitalId ?? oldCapitalId);
 
         _expenseRepository.Received(1).Update(expense);
 
