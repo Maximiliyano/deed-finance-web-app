@@ -39,34 +39,34 @@ export class CapitalService {
       params = params.set("filterBy", filterBy);
     }
 
-    return this.httpClient.get<CapitalResponse[]>(this.baseApiUrl, { params });
+    return this.httpClient.get<CapitalResponse[]>(this.baseApiUrl, { params, withCredentials: true });
   }
 
   getById(id: number): Observable<CapitalResponse> {
-    return this.httpClient.get<CapitalResponse>(`${this.baseApiUrl}/${id}`);
+    return this.httpClient.get<CapitalResponse>(`${this.baseApiUrl}/${id}`, { withCredentials: true });
   }
 
   create(request: AddCapitalRequest): Observable<number> {
-    return this.httpClient.post<number>(this.baseApiUrl, request);
+    return this.httpClient.post<number>(this.baseApiUrl, request, { withCredentials: true });
   }
 
   update(id: number, request: UpdateCapitalRequest): Observable<void> {
-    return this.httpClient.put<void>(`${this.baseApiUrl}/${id}`, request);
+    return this.httpClient.put<void>(`${this.baseApiUrl}/${id}`, request, { withCredentials: true });
   }
 
   updateOrder(request: UpdateCapitalOrderRequest): Observable<void> {
-    return this.httpClient.put<void>(`${this.baseApiUrl}/orders`, request);
+    return this.httpClient.put<void>(`${this.baseApiUrl}/orders`, request, { withCredentials: true });
   }
 
   patchSavingsOnly(id: number, value: boolean): Observable<void> {
-    return this.httpClient.patch<void>(`${this.baseApiUrl}/${id}/savings-only`, value);
+    return this.httpClient.patch<void>(`${this.baseApiUrl}/${id}/savings-only`, value, { withCredentials: true });
   }
 
   patchIncludeTotal(id: number, value: boolean): Observable<void> {
-    return this.httpClient.patch<void>(`${this.baseApiUrl}/${id}/include-in-total`, value);
+    return this.httpClient.patch<void>(`${this.baseApiUrl}/${id}/include-in-total`, value, { withCredentials: true });
   }
 
   delete(id: number): Observable<void> {
-    return this.httpClient.delete<void>(`${this.baseApiUrl}/${id}`);
+    return this.httpClient.delete<void>(`${this.baseApiUrl}/${id}`, { withCredentials: true });
   }
 }

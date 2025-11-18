@@ -4,6 +4,8 @@ import { ExchangeService } from '../../../shared/services/exchange.service';
 import { Subject, takeUntil } from 'rxjs';
 import { ExchangeDialogComponent } from '../../../shared/components/dialogs/exchange-dialog/exchange-dialog.component';
 import { DialogService } from '../../../shared/components/dialogs/services/dialog.service';
+import { AuthService, User } from '../../../modules/auth/services/auth-service';
+import { Router } from '@angular/router';
 
 @Component({
     selector: 'app-header',
@@ -22,6 +24,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
     { label: 'Goals', icon: 'fa-star', link: '/goals' },
     { label: 'Transfers', icon: 'fa-exchange-alt', link: '/transfers' },
   ];
+  user: User | null = null;
 
   private unsubscribe = new Subject<void>();
   
@@ -29,10 +32,20 @@ export class HeaderComponent implements OnInit, OnDestroy {
   trackBySale: TrackByFunction<Exchange>;
 
   constructor(
+    private readonly router: Router,
+    private readonly authService: AuthService,
     private readonly dialogService: DialogService,
     private readonly exchangeService: ExchangeService) { }
 
   ngOnInit(): void {
+    this.authService.me()
+      .pipe(
+        takeUntil(this.unsubscribe))
+      .subscribe({
+        next: (user) => this.user = user, 
+        error: () => {}
+      });
+
     this.exchangeService
       .getLatest()
       .pipe(takeUntil(this.unsubscribe))
@@ -55,5 +68,17 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.dialogService.open(ExchangeDialogComponent, {
       data: this.exchanges
     });
+  }
+
+  login(): void {
+    this.authService.login();
+  }
+
+  logout(): void {
+    this.authService.logout();
+  }
+
+  profile(): void {
+    this.router.navigate(['./profile']);
   }
 }

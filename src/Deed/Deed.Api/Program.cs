@@ -38,6 +38,13 @@ app.UseHttpsRedirection();
 
 app.UseCorsPolicy();
 
+app.UseCorsPolicy();
+
+app.UseHttpsRedirection();
+
+app.UseAuthentication();
+app.UseAuthorization();
+
 app.UseRequestContextLogging();
 
 app.UseSerilogRequestLogging();

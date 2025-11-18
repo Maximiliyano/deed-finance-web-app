@@ -21,18 +21,18 @@ export class CategoryService {
       params = params.set('type', type);
     }
 
-    return this.http.get<CategoryResponse[]>(this.baseApiUrl, { params });
+    return this.http.get<CategoryResponse[]>(this.baseApiUrl, { params, withCredentials: true });
   }
 
   create(request: CreateCategoryRequest): Observable<number> {
-    return this.http.post<number>(`${this.baseApiUrl}`, request);
+    return this.http.post<number>(`${this.baseApiUrl}`, request, { withCredentials: true });
   }
 
   updateRange(categories: CategoryResponse[]): Observable<void> {
-    return this.http.put<void>(`${this.baseApiUrl}/updateRange`, categories);
+    return this.http.put<void>(`${this.baseApiUrl}/updateRange`, categories, { withCredentials: true });
   }
 
   delete(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.baseApiUrl}/${id}`);
+    return this.http.delete<void>(`${this.baseApiUrl}/${id}`, { withCredentials: true });
   }
 }
