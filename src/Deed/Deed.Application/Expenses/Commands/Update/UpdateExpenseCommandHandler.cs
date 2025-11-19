@@ -15,16 +15,16 @@ internal sealed class UpdateExpenseCommandHandler(
 {
     public async Task<Result> Handle(UpdateExpenseCommand command, CancellationToken cancellationToken) // TODO update tests
     {
-        if (HasNoChanges(command))
-        {
-            return Result.Success();
-        }
-
         var expense = await expenseRepository.GetAsync(new ExpenseByIdSpecification(command.Id, true, true)).ConfigureAwait(false);
 
         if (expense?.Capital is null || expense?.Category is null)
         {
             return Result.Failure(DomainErrors.General.NotFound(nameof(expense)));
+        }
+
+        if (HasNoChanges(command, expense.Purpose))
+        {
+            return Result.Success();
         }
 
         if (expense.Capital.OnlyForSavings)
@@ -51,7 +51,7 @@ internal sealed class UpdateExpenseCommandHandler(
             capitalRepository.Update(expense.Capital);
         }
 
-        expense.Purpose = command.Purpose ?? expense.Purpose;
+        expense.Purpose = command.Purpose;
         expense.PaymentDate = command.Date ?? expense.PaymentDate;
 
         if (command.CategoryId.HasValue)
@@ -68,10 +68,10 @@ internal sealed class UpdateExpenseCommandHandler(
         return Result.Success();
     }
 
-    private bool HasNoChanges(UpdateExpenseCommand command) =>
+    private bool HasNoChanges(UpdateExpenseCommand command, string? purpose) =>
         command.CategoryId is null &&
         command.CapitalId is null &&
         command.Amount is null &&
-        command.Purpose is null &&
-        command.Date is null;
+        command.Date is null &&
+        command.Purpose == purpose;
 }

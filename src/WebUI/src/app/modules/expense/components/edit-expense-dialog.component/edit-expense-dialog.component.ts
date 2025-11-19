@@ -140,10 +140,7 @@ export class EditExpenseDialogComponent implements OnInit { // TODO
         ? inputDateToISO(formPaymentDateStr)
         : undefined,
 
-      purpose:
-        formValue.Purpose !== this.expense.purpose
-          ? formValue.Purpose
-          : undefined
+      purpose: formValue.Purpose?.trim() === '' ? null : formValue.Purpose
     };
 
     this.dialogRef.close(request);

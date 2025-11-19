@@ -154,6 +154,7 @@ export class ExpensesComponent implements OnInit, OnDestroy {
   }
 
   toggleCategories(): void {
+    // TODO when expense added, add it in categories
     const categoriesDialogRef = this.dialogService.open(CategoriesDialogComponent, {
       data: {
         type: "Expense",
@@ -307,11 +308,81 @@ export class ExpensesComponent implements OnInit, OnDestroy {
     );
   }
 
-  updateExpense(update: UpdateExpenseRequest, oldCategoryId: number): void {
-    // TODO handle moving from old category to new, removing from old
+  updateExpense(update: UpdateExpenseRequest, currentCategoryId: number): void {
     // TODO handle update in old category
-    // TODO handle update from old capital to new, removing from current
+    const currentExpenseCategory = this.expenseCategories.find(ec => ec.categoryId === currentCategoryId);
+    if (!currentExpenseCategory) return;
+
+    const currentExpense = currentExpenseCategory.expenses.find(e => e.id === update.id);
+    if (!currentExpense) return;
+
+    const currentCapital = this.capitals.find(c => c.id === currentExpense.capitalId);
+    if (!currentCapital) return;
+    
+    currentExpense.purpose = update.purpose ?? null;
+    currentExpense.paymentDate = new Date(update.date ?? currentExpense.paymentDate);
+
     // TODO handle update in old capital
+    if (!!update.amount) {
+      const difference = update.amount - currentExpense.amount;
+      
+      currentExpense.amount = update.amount;
+
+      currentExpenseCategory.categorySum += difference;
+      currentCapital.balance -= difference;
+    }
+
+    // TODO handle moving from old category to new, removing from old
+    if (!!update.capitalId) {
+      const newCapital = this.capitals.find(c => c.id === update.capitalId);
+      if (!newCapital) return;
+
+      currentCapital.balance += currentExpense.amount;
+
+      newCapital.balance -= currentExpense.amount;
+
+      currentExpense.capitalId = update.capitalId;
+    }
+
+    // TODO handle update from old capital to new, removing from current
+    if (!!update.categoryId && update.categoryId !== currentCategoryId) {
+      const newCategory = this.expenseCategories.find(ec => ec.categoryId === update.categoryId);
+      
+      currentExpenseCategory.categorySum -= currentExpense.amount;
+      currentExpenseCategory.expenses = currentExpenseCategory.expenses.filter(e => e.id !== update.id);
+
+      if (currentExpenseCategory.categorySum === 0) {
+        this.expenseCategories = this.expenseCategories.filter(ec => ec.categoryId !== currentCategoryId);
+      }
+
+      if (newCategory) {
+        newCategory.expenses.push(currentExpense);
+        newCategory.categorySum += currentExpense.amount;
+      }
+      else {
+        const category = this.categories.find(c => c.id == update.categoryId);
+        if (!category) return;
+
+        this.expenseCategories.push({
+          categoryId: category.id,
+          name: category.name,
+          categorySum: currentExpense.amount,
+          percentage: 0, // TODO
+          plannedPeriodAmount: category.periodAmount,
+          periodType: category.periodType,
+          expenses: [currentExpense]
+        });
+
+        const totalSum = this.expenseCategories.reduce((sum, c) => sum + c.categorySum, 0);
+        this.expenseCategories.forEach(c => {
+            c.percentage = totalSum === 0
+                ? 0
+                : parseFloat(((c.categorySum / totalSum) * 100).toFixed(2));
+        });
+      }
+    }
+
+    this.popupMessageService.success('Expense updated.');
   }
 
   removeExpenseFromList(id: number, categoryId: number): void {

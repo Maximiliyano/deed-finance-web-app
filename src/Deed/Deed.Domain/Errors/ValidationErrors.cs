@@ -9,6 +9,9 @@ public static class ValidationErrors
     {
         public static Error InvalidPaymentDate
             => Error.BadRequest(nameof(InvalidPaymentDate), "The expense payment date was invalid.");
+
+        public static Error PurposeEmptyOrWhitespace
+            => Error.BadRequest("Expense.PurposeEmptyOrWhitespace", "Purpose field should not be empty or whitespace.");
     }
 
     public static class Capital

@@ -13,6 +13,8 @@ internal sealed class CreateExpenseCommandValidator : AbstractValidator<CreateEx
 {
     public CreateExpenseCommandValidator(ICategoryRepository categoryRepository, IDateTimeProvider provider)
     {
+        /// TODO CapitalId
+
         RuleFor(e => e.CategoryId)
             .MustAsync(async (categoryId, _) => await categoryRepository
                 .AnyAsync(new CategoryByIdSpecification(categoryId)).ConfigureAwait(false))
@@ -32,6 +34,7 @@ internal sealed class CreateExpenseCommandValidator : AbstractValidator<CreateEx
 
         RuleFor(i => i.Purpose)
             .Must(purpose => purpose?.Length is not 0 && !string.IsNullOrWhiteSpace(purpose))
+            .WithError(ValidationErrors.Expense.PurposeEmptyOrWhitespace)
             .When(e => e.Purpose is not null);
     }
 }
