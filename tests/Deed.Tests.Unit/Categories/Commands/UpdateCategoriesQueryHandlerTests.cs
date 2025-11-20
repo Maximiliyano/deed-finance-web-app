@@ -1,6 +1,7 @@
 using Deed.Application.Capitals.Commands.Update;
 using Deed.Application.Categories.Commands.UpdateRange;
 using Deed.Application.Categories.Requests;
+using Deed.Application.Categories.Response;
 using Deed.Application.Categories.Specifications;
 using Deed.Domain.Entities;
 using Deed.Domain.Enums;
@@ -24,26 +25,23 @@ public sealed class UpdateCategoriesQueryHandlerTests
     }
 
     [Fact]
-    public async Task Handle_ShouldReturnFailure_WhenCategoryNotFound()
+    public async Task Handle_ShouldReturnSuccess_WhenCategoriesNotFound()
     {
         // Arrange
         var command = new UpdateCategoriesCommand([
-            new(99, null, null, null, null)
+            new(1, null, null, null, null)
         ]);
 
-        _repositoryMock.GetAsync(Arg.Any<CategoryByIdSpecification>()).Returns((Category)null);
+        _repositoryMock.GetAllAsync(ids: Arg.Any<List<int>>(), tracking: true)
+            .Returns([]);
 
         // Act
         var result = await _handler.Handle(command, CancellationToken.None);
 
         // Assert
-        result.IsSuccess.Should().BeFalse();
-        result.Errors.Should().OnlyContain(e => e == DomainErrors.General.NotFound("category"));
+        result.IsSuccess.Should().BeTrue();
 
-        await _repositoryMock.Received(1).GetAsync(Arg.Any<CategoryByIdSpecification>());
         await _unitOfWorkMock.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
-
-        _repositoryMock.DidNotReceive().Update(Arg.Any<Category>());
     }
 
     [Fact]
@@ -57,7 +55,8 @@ public sealed class UpdateCategoriesQueryHandlerTests
             new(category.Id, category.Name, category.Type, category.PlannedPeriodAmount, category.Period)
         ]);
 
-        _repositoryMock.GetAsync(Arg.Any<CategoryByIdSpecification>()).Returns(category);
+        _repositoryMock.GetAllAsync(ids: Arg.Any<List<int>>(), tracking: true)
+            .Returns([category]);
 
         // Act
         var result = await _handler.Handle(command, CancellationToken.None);
@@ -65,10 +64,7 @@ public sealed class UpdateCategoriesQueryHandlerTests
         // Assert
         result.IsSuccess.Should().BeTrue();
 
-        await _repositoryMock.Received(1).GetAsync(Arg.Any<CategoryByIdSpecification>());
         await _unitOfWorkMock.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
-
-        _repositoryMock.Received(1).Update(category);
     }
 
     [Theory]
@@ -109,7 +105,8 @@ public sealed class UpdateCategoriesQueryHandlerTests
             new(id, name, type, newPlannedPeriodAmount, perPeriodType)
         ]);
 
-        _repositoryMock.GetAsync(Arg.Any<CategoryByIdSpecification>()).Returns(category);
+        _repositoryMock.GetAllAsync(ids: Arg.Any<List<int>>(), tracking: true)
+            .Returns([category]);
 
         // Act
         var result = await _handler.Handle(command, CancellationToken.None);
@@ -122,9 +119,6 @@ public sealed class UpdateCategoriesQueryHandlerTests
         category.Period.Should().Be(perPeriodType ?? oldPerPeriodType);
         category.PlannedPeriodAmount.Should().Be(newPlannedPeriodAmount ?? oldPlannedPeriodAmount);
 
-        await _repositoryMock.Received(1).GetAsync(Arg.Any<CategoryByIdSpecification>());
         await _unitOfWorkMock.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
-
-        _repositoryMock.Received(1).Update(category);
     }
 }

@@ -46,7 +46,7 @@ internal sealed class UpdateExpenseCommandHandler(
             expense.CapitalId = command.CapitalId.Value;
         }
 
-        if (command.Amount is not null || command.CapitalId.HasValue)
+        if (command.Amount.HasValue || command.CapitalId.HasValue)
         {
             capitalRepository.Update(expense.Capital);
         }

@@ -48,7 +48,6 @@ public sealed class UpdateExpenseCommandHandlerTests
         const int oldCategoryId = 2;
         const int oldCapitalId = 1;
         const decimal oldAmount = 100m;
-        const string oldPurpose = "Hello";
 
         var utcNow = DateTimeOffset.UtcNow;
         var expense = new Expense(id)
@@ -61,17 +60,17 @@ public sealed class UpdateExpenseCommandHandlerTests
                 Name = "TestCategory",
                 Type = CategoryType.Expenses
             },
-            CapitalId = 1,
+            CapitalId = oldCapitalId,
             Capital = new Capital(oldCapitalId)
             {
                 Name = "TestCapital",
                 Balance = 1000,
                 Currency = CurrencyType.UAH
             },
-            Purpose = oldPurpose
+            Purpose = purpose
         };
         decimal? newAmount = amount is null ? null : (decimal)amount;
-        var command = new UpdateExpenseCommand(id, categoryId, oldCapitalId, newAmount, purpose, utcNow);
+        var command = new UpdateExpenseCommand(id, categoryId, capitalId, newAmount, purpose, utcNow);
 
         _expenseRepository.GetAsync(Arg.Any<ExpenseByIdSpecification>())
             .Returns(expense);
@@ -89,14 +88,14 @@ public sealed class UpdateExpenseCommandHandlerTests
         expense.Id.Should().Be(id);
         expense.Amount.Should().Be(newAmount ?? oldAmount);
         expense.Capital.Balance.Should().Be(expectedCapitalBalance);
-        expense.Purpose.Should().Be(purpose ?? oldPurpose);
+        expense.Purpose.Should().Be(purpose);
         expense.PaymentDate.Should().Be(utcNow);
         expense.CategoryId.Should().Be(categoryId ?? oldCategoryId);
         expense.CapitalId.Should().Be(capitalId ?? oldCapitalId);
 
         _expenseRepository.Received(1).Update(expense);
 
-        if (amount.HasValue)
+        if (amount.HasValue || capitalId.HasValue)
         {
             _capitalRepository.Received(1).Update(expense.Capital);
         }

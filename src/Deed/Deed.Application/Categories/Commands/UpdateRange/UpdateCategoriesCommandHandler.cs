@@ -20,6 +20,10 @@ public sealed class UpdateCategoriesCommandHandler(
     {
         var ids = request.Requests.Select(r => r.Id).ToList();
         var categories = await repository.GetAllAsync(ids: ids, tracking: true).ConfigureAwait(false);
+        if (!categories.Any())
+        {
+            return Result.Success();
+        }
         foreach (var updatedCategory in request.Requests)
         {
             var selectedCategory = categories.FirstOrDefault(c => c.Id.Equals(updatedCategory.Id));
