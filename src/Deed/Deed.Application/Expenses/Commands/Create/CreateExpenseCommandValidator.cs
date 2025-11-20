@@ -6,14 +6,21 @@ using Deed.Domain.Errors;
 using Deed.Domain.Repositories;
 using FluentValidation;
 using Deed.Domain.Providers;
+using Deed.Application.Capitals.Specifications;
 
 namespace Deed.Application.Expenses.Commands.Create;
 
 internal sealed class CreateExpenseCommandValidator : AbstractValidator<CreateExpenseCommand>
 {
-    public CreateExpenseCommandValidator(ICategoryRepository categoryRepository, IDateTimeProvider provider)
+    public CreateExpenseCommandValidator(
+        ICategoryRepository categoryRepository,
+        ICapitalRepository capitalRepository,
+        IDateTimeProvider provider)
     {
-        /// TODO CapitalId
+        RuleFor(e => e.CapitalId)
+            .MustAsync(async (capitalId, _) => await capitalRepository
+                .AnyAsync(new CapitalByIdSpecification(capitalId)).ConfigureAwait(false))
+            .WithError(ValidationErrors.General.NotFound("capital"));
 
         RuleFor(e => e.CategoryId)
             .MustAsync(async (categoryId, _) => await categoryRepository

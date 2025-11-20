@@ -1,4 +1,5 @@
 ﻿using Deed.Application.Abstractions;
+using Deed.Application.Capitals.Specifications;
 using Deed.Application.Categories.Specifications;
 using Deed.Application.Expenses.Specifications;
 using Deed.Domain.Constants;
@@ -12,13 +13,21 @@ namespace Deed.Application.Expenses.Commands.Update;
 
 internal sealed class UpdateExpenseCommandValidator : AbstractValidator<UpdateExpenseCommand>
 {
-    public UpdateExpenseCommandValidator(IExpenseRepository expenseRepository, ICategoryRepository categoryRepository, IDateTimeProvider provider)
+    public UpdateExpenseCommandValidator(
+        IExpenseRepository expenseRepository,
+        ICategoryRepository categoryRepository,
+        ICapitalRepository capitalRepository,
+        IDateTimeProvider provider)
     {
         RuleFor(i => i.Amount)
             .GreaterThanOrEqualTo(ValidationConstants.ZeroValue)
             .WithError(ValidationErrors.General.AmountMustBeGreaterThanZero);
 
-        // TODO CapitalId
+        RuleFor(e => e.CapitalId)
+            .MustAsync(async (capitalId, _) => await capitalRepository
+                .AnyAsync(new CapitalByIdSpecification(capitalId!.Value)).ConfigureAwait(false))
+            .WithError(ValidationErrors.General.NotFound("capital"))
+            .When(e => e.CapitalId.HasValue);
 
         RuleFor(e => e.CategoryId)
             .MustAsync(async (categoryId, _) => !await expenseRepository
