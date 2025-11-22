@@ -4,7 +4,7 @@ namespace Deed.Domain.Repositories;
 
 public interface IExchangeRepository
 {
-    void AddRange(IEnumerable<Exchange> entities);
+    void CreateRange(IEnumerable<Exchange> entities);
 
     void UpdateRange(IEnumerable<Exchange> entities);
 

@@ -6,12 +6,10 @@ import { CapitalResponse } from '../capital/models/capital-response';
 import { ExpenseService } from './services/expense.service';
 import { CapitalService } from '../capital/services/capital.service';
 import { Subject, takeUntil, throttleTime } from 'rxjs';
-import { CategoryResponse } from '../../core/models/category-model';
-import { CategoryService } from '../../shared/services/category.service';
+import { CategoryService } from '../category/services/category.service';
 import { CategoryType } from '../../core/types/category-type';
 import { CreateExpenseRequest } from './models/create-expense-request';
 import { ExpenseResponse } from './models/expense-response';
-import { CategoriesDialogComponent } from '../../shared/components/category/category-details-dialog/categories-dialog-component';
 import { ConfirmDialogComponent } from '../../shared/components/dialogs/confirm-dialog/confirm-dialog.component';
 import { PopupMessageService } from '../../shared/services/popup-message.service';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -19,6 +17,8 @@ import { SelectOptionModel } from '../../shared/components/forms/models/select-o
 import { PerPeriodType } from '../../core/types/per-period-type';
 import { EditExpenseDialogComponent } from './components/edit-expense-dialog.component/edit-expense-dialog.component';
 import { UpdateExpenseRequest } from './models/update-expense.request';
+import { CategoriesDialogComponent } from '../category/category-details-dialog/categories-dialog-component';
+import { CategoryResponse } from '../category/models/category-model';
 
 @Component({
     selector: 'app-expenses',
@@ -29,7 +29,9 @@ import { UpdateExpenseRequest } from './models/update-expense.request';
 export class ExpensesComponent implements OnInit, OnDestroy {
   expenseCategories: ExpenseCategoryResponse[] = [];
   capitals: CapitalResponse[] = [];
-  categories: CategoryResponse[] = [];
+
+  currentCategories: CategoryResponse[] = [];
+  deletedCategories: CategoryResponse[] = [];
 
   selectedCapital: CapitalResponse | null = null;
   openedExpensesCategoryId: number | null = null;
@@ -54,7 +56,7 @@ export class ExpensesComponent implements OnInit, OnDestroy {
   }
 
   get categoryOptions(): SelectOptionModel[] {
-    return this.categories.map(x => { return { key: x.name, value: x.id } });
+    return this.currentCategories.map(x => { return { key: x.name, value: x.id } });
   }
 
   get capitalBalance(): number {
@@ -94,10 +96,13 @@ export class ExpensesComponent implements OnInit, OnDestroy {
 
   fetchCategories(): void {
     this.categoryService
-      .getAll(CategoryType.Expenses)
+      .getAll(CategoryType.Expenses, true)
       .pipe(takeUntil(this.$unsubscribe))
       .subscribe({
-        next: (responses) => this.categories = responses
+        next: (responses) => {
+          this.currentCategories = responses.filter(c => !c.isDeleted);
+          this.deletedCategories = responses.filter(c => c.isDeleted);
+        }
       });
   }
 
@@ -112,7 +117,12 @@ export class ExpensesComponent implements OnInit, OnDestroy {
 
   fetchCapitals(): void {
     this.capitalService
-      .getAll(undefined, undefined, undefined, 'onlyForSavings')
+      .getAll({
+        filterBy: 'onlyForSavings',
+        searchTerm: null,
+        sortBy: null,
+        sortDirection: null
+      })
       .pipe(takeUntil(this.$unsubscribe))
       .subscribe({
         next: (responses) => {
@@ -159,26 +169,30 @@ export class ExpensesComponent implements OnInit, OnDestroy {
       data: {
         type: "Expense",
         currency: this.capitalCurrency,
-        originalCategories: this.categories
+        originalCategories: this.currentCategories,
+        deletedCategories: this.deletedCategories
       },
     });
     
     categoriesDialogRef
       .afterClosed$
-      .pipe(throttleTime(3000))
       .subscribe({
-        next: (categories: CategoryResponse[]) => {
-          if (categories.length === 0) return;
+        next: (responses: CategoryResponse[]) => {
+          if (!responses) return;
+          
+          if (responses.length === 0) return;
 
-          const updated = categories.map(c => {
-            c.periodType = Number(c.periodType);
-            return c;
-          })
+          const normalized  = responses.map(c => ({
+            ...c,
+            periodType: Number(c.periodType)
+          }));
 
-          this.categoryService.updateRange(updated)
+          this.categoryService.updateRange(normalized)
             .pipe(takeUntil(this.$unsubscribe))
             .subscribe({
-              next: () => this.popupMessageService.success('Categories successfully updated.')
+              next: () => {
+                this.popupMessageService.success('Categories successfully updated.');
+              }
             });
           }
         });
@@ -225,7 +239,7 @@ export class ExpensesComponent implements OnInit, OnDestroy {
       existingCategoryExpense.categorySum = existingCategoryExpense.categorySum + request.amount;
       existingCategoryExpense.expenses.push(newExpense);
     } else {
-      const category = this.categories.find(c => c.id === request.categoryId);
+      const category = this.currentCategories.find(c => c.id === request.categoryId);
       if (!category) return;
 
       this.expenseCategories.push({
@@ -360,7 +374,7 @@ export class ExpensesComponent implements OnInit, OnDestroy {
         newCategory.categorySum += currentExpense.amount;
       }
       else {
-        const category = this.categories.find(c => c.id == update.categoryId);
+        const category = this.currentCategories.find(c => c.id == update.categoryId);
         if (!category) return;
 
         this.expenseCategories.push({

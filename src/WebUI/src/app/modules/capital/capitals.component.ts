@@ -47,7 +47,7 @@ export class CapitalsComponent implements OnInit, OnDestroy {
   searchTerm = '';
   selectedSortOption: string = '';
   sortDirection: 'asc' | 'desc' = 'asc';
-  filterBy?: 'onlyForSavings'
+  filterBy: 'onlyForSavings' | null = null;
 
   mainCurrency: string;
   mainCurrencyVal: CurrencyType;
@@ -141,7 +141,12 @@ export class CapitalsComponent implements OnInit, OnDestroy {
   }
 
   fetchCapitals(): void {
-    this.capitalService.getAll(this.searchTerm, this.selectedSortOption, this.sortDirection, this.filterBy)
+    this.capitalService.getAll({
+        searchTerm: this.searchTerm,
+        sortBy: this.selectedSortOption,
+        sortDirection: this.sortDirection,
+        filterBy: this.filterBy
+      })
       .pipe(takeUntil(this.unsubcribe$))
       .subscribe({
         next: (response) => {
@@ -180,11 +185,11 @@ export class CapitalsComponent implements OnInit, OnDestroy {
     this.onMenuItemClick();
 
     const ref = this.dialogService.open(CapitalDetailsComponent, {
-        data: {
-          capital: capital,
-          currencyOptions: this.currencyOptions,
-          exchanges: this.exchanges
-        }
+      data: {
+        capital: capital,
+        currencyOptions: this.currencyOptions,
+        exchanges: this.exchanges
+      }
     });
 
     ref

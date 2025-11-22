@@ -10,7 +10,14 @@ internal sealed class ExpenseConfiguration : IEntityTypeConfiguration<Expense>
     public void Configure(EntityTypeBuilder<Expense> builder)
     {
         builder.ToTable(TableConfigurationConstants.Expenses);
-        
+
+        builder.HasQueryFilter(c =>
+            !c.IsDeleted.HasValue ||
+            c.IsDeleted.HasValue && !c.IsDeleted.Value);
+
+        builder.HasIndex(t => t.IsDeleted)
+            .HasFilter("is_deleted = 0");
+
         builder.HasKey(e => e.Id);
 
         builder.Property(e => e.PaymentDate)

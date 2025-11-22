@@ -24,6 +24,7 @@ public sealed class UpdateCategoriesCommandHandler(
         {
             return Result.Success();
         }
+
         foreach (var updatedCategory in request.Requests)
         {
             var selectedCategory = categories.FirstOrDefault(c => c.Id.Equals(updatedCategory.Id));

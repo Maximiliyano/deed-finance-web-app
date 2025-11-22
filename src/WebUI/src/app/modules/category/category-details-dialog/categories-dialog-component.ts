@@ -1,16 +1,16 @@
 import { Component, Inject, OnDestroy } from '@angular/core';
-import { CategoryResponse } from '../../../../core/models/category-model';
 import { Subject, takeUntil } from 'rxjs';
-import { PerPeriodType } from '../../../../core/types/per-period-type';
-import { enumToOptions } from '../../../../core/utils/enum';
-import { DIALOG_DATA } from '../../dialogs/models/dialog-consts';
-import { DialogRef } from '../../dialogs/models/dialog-ref';
-import { SharedModule } from "../../../shared.module";
-import { DialogService } from '../../dialogs/services/dialog.service';
+import { CategoryType } from '../../../core/types/category-type';
+import { PerPeriodType } from '../../../core/types/per-period-type';
+import { enumToOptions } from '../../../core/utils/enum';
+import { DIALOG_DATA } from '../../../shared/components/dialogs/models/dialog-consts';
+import { DialogRef } from '../../../shared/components/dialogs/models/dialog-ref';
+import { DialogService } from '../../../shared/components/dialogs/services/dialog.service';
+import { PopupMessageService } from '../../../shared/services/popup-message.service';
+import { SharedModule } from '../../../shared/shared.module';
 import { AddCategoryDialog } from '../add-category-dialog/add-category-dialog';
-import { PopupMessageService } from '../../../services/popup-message.service';
-import { CategoryService } from '../../../services/category.service';
-import { CategoryType } from '../../../../core/types/category-type';
+import { CategoryResponse } from '../models/category-model';
+import { CategoryService } from '../services/category.service';
 
 @Component({
     selector: 'app-categories-dialog-component',
@@ -23,23 +23,31 @@ export class CategoriesDialogComponent implements OnDestroy {
   periodTypeOptions = enumToOptions(PerPeriodType);
   PerPeriodType = PerPeriodType;
   
+  selectedDeletedId: number | null = null;
+
   editableCategories: CategoryResponse[] = [];
+  deletedCategories: CategoryResponse[] = [];
 
   changed = new Set<number>();
-  deleted = new Set<number>();
   
   isEditModeEnabled: boolean = false;
 
   private $unsubscribe = new Subject<void>();
   
   constructor(
-    @Inject(DIALOG_DATA) public data: { originalCategories: CategoryResponse[], currency: string, type?: string },
+    @Inject(DIALOG_DATA) public data: {
+      originalCategories: CategoryResponse[],
+      deletedCategories: CategoryResponse[],
+      currency: string,
+      type?: string
+    },
     private dialogRef: DialogRef<CategoryResponse[]>,
     private readonly dialogService: DialogService,
     private readonly popupMessageService: PopupMessageService,
     private readonly categoryService: CategoryService
   ) {
-    this.editableCategories = this.data.originalCategories.map(c => ({ ...c }));
+    this.editableCategories = [...this.data.originalCategories];
+    this.deletedCategories = [...this.data.deletedCategories];
   }
 
   ngOnDestroy(): void {
@@ -48,7 +56,7 @@ export class CategoriesDialogComponent implements OnDestroy {
   }
 
   get hasChanges(): boolean {
-    return this.changed.size > 0 || this.deleted.size > 0;
+    return this.changed.size > 0;
   }
 
   add(): void {
@@ -93,27 +101,57 @@ export class CategoriesDialogComponent implements OnDestroy {
   }
 
   remove(id: number): void {
-    const founded = this.editableCategories.find(c => c.id === id);
-    if (!founded) return;
+    const idx = this.editableCategories.findIndex(c => c.id === id);
+    if (idx === -1) return;
+
+    const found = this.editableCategories[idx];
 
     this.categoryService
       .delete(id)
       .pipe(takeUntil(this.$unsubscribe))
       .subscribe({
         next: () => {
-          this.editableCategories = this.editableCategories.filter(x => x.id !== id);
-          this.isEditModeEnabled = this.editableCategories.length > 0 && this.isEditModeEnabled;
-          this.popupMessageService.success(`Category ${founded.name} removed`);
+          this.editableCategories.splice(idx, 1);
+          
+          if (this.editableCategories.length === 0) {
+            this.isEditModeEnabled = false;
+          }
+
+          const alreadyDeleted = this.deletedCategories.some(c => c.id === id);
+          if (!alreadyDeleted) {
+            this.deletedCategories.push(found);
+          }
+
+          this.popupMessageService.success(`Category ${found.name} removed`);
         }
       });
+  }
+
+  restore(): void {
+    if (!this.selectedDeletedId) return;
+  
+    this.categoryService.restore(this.selectedDeletedId)
+      .pipe(takeUntil(this.$unsubscribe))
+      .subscribe({
+        next: (restoredCategory) => {
+          this.deletedCategories = this.deletedCategories.filter(c => c.id !== restoredCategory.id);
+
+          const exists = this.editableCategories.some(c => c.id === restoredCategory.id);
+          if (!exists) {
+            this.editableCategories.push(restoredCategory);
+          }
+
+          this.selectedDeletedId = null;
+          this.popupMessageService.success('Category restored');
+        }
+    });
   }
 
   cancel(): void {
     this.isEditModeEnabled = false;
 
     this.changed.clear();
-    this.deleted.clear();
 
-    this.editableCategories = this.data.originalCategories.map(c => ({...c}));
+    this.editableCategories = [...this.data.originalCategories];
   }
 }

@@ -43,9 +43,6 @@ namespace Deed.Infrastructure.Persistence.Migrations
                     b.Property<int>("Currency")
                         .HasColumnType("int");
 
-                    b.Property<DateTimeOffset?>("DeletedAt")
-                        .HasColumnType("datetimeoffset");
-
                     b.Property<bool>("IncludeInTotal")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bit")
@@ -148,9 +145,6 @@ namespace Deed.Infrastructure.Persistence.Migrations
 
                     b.Property<int>("CreatedBy")
                         .HasColumnType("int");
-
-                    b.Property<DateTimeOffset?>("DeletedAt")
-                        .HasColumnType("datetimeoffset");
 
                     b.Property<bool?>("IsDeleted")
                         .HasColumnType("bit");
@@ -363,9 +357,6 @@ namespace Deed.Infrastructure.Persistence.Migrations
                     b.Property<int>("CreatedBy")
                         .HasColumnType("int");
 
-                    b.Property<DateTimeOffset?>("DeletedAt")
-                        .HasColumnType("datetimeoffset");
-
                     b.Property<bool?>("IsDeleted")
                         .HasColumnType("bit");
 
@@ -423,9 +414,6 @@ namespace Deed.Infrastructure.Persistence.Migrations
                     b.Property<int>("CreatedBy")
                         .HasColumnType("int");
 
-                    b.Property<DateTimeOffset?>("DeletedAt")
-                        .HasColumnType("datetimeoffset");
-
                     b.Property<bool?>("IsDeleted")
                         .HasColumnType("bit");
 
@@ -475,9 +463,6 @@ namespace Deed.Infrastructure.Persistence.Migrations
                     b.Property<int>("CreatedBy")
                         .HasColumnType("int");
 
-                    b.Property<DateTimeOffset?>("DeletedAt")
-                        .HasColumnType("datetimeoffset");
-
                     b.Property<bool?>("IsDeleted")
                         .HasColumnType("bit");
 
@@ -520,9 +505,6 @@ namespace Deed.Infrastructure.Persistence.Migrations
 
                     b.Property<int>("CreatedBy")
                         .HasColumnType("int");
-
-                    b.Property<DateTimeOffset?>("DeletedAt")
-                        .HasColumnType("datetimeoffset");
 
                     b.Property<int?>("DestinationCapitalId")
                         .HasColumnType("int");

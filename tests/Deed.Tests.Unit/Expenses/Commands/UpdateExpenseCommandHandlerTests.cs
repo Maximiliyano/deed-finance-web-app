@@ -24,7 +24,46 @@ public sealed class UpdateExpenseCommandHandlerTests
         _handler = new UpdateExpenseCommandHandler(_capitalRepository, _categoryRepository, _expenseRepository, _unitOfWork);
     }
 
-    // TODO add test failure createExpenseWithCapitalForSavingsOnly
+    [Fact]
+    public async Task Handle_UpdateExpenseWithCapitialForSavingsOnly_ShouldReturnFailure()
+    {
+        // Arrange
+        var expense = new Expense(1)
+        {
+            Amount = 10.0m,
+            PaymentDate = DateTimeOffset.UtcNow,
+            CategoryId = 1,
+            Category = new Category(1)
+            {
+                Name = "ExpenseCategory",
+                Type = CategoryType.Expenses
+            },
+            CapitalId = 1,
+            Capital = new Capital(1)
+            {
+                Name = "SavingsCapital",
+                Balance = 500.0m,
+                Currency = CurrencyType.USD,
+                OnlyForSavings = true
+            }
+        };
+
+        _expenseRepository.GetAsync(Arg.Any<ExpenseByIdSpecification>())
+            .Returns(expense);
+
+        var command = new UpdateExpenseCommand(expense.Id);
+
+        // Act
+        var result = await _handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        result.IsSuccess.Should().BeFalse();
+        result.Errors.Should().OnlyContain(e => e.Equals(DomainErrors.Capital.ForSavingsOnly));
+        
+        _expenseRepository.DidNotReceive().Update(Arg.Any<Expense>());
+        await _unitOfWork.DidNotReceive().SaveChangesAsync(CancellationToken.None);
+    }
+
     [Theory]
     [InlineData(null, null, null, null)]
     [InlineData(5, 4, null, null)]

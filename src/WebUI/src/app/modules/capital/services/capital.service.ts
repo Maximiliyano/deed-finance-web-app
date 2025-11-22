@@ -8,6 +8,7 @@ import { CapitalResponse } from '../models/capital-response';
 import { UpdateCapitalOrderRequest } from '../models/update-capital-order-request';
 import { CurrencyType } from '../../../core/types/currency-type';
 import { stringToCurrencyEnum } from '../../../shared/components/currency/functions/string-to-currency-enum';
+import { QueryParams } from '../../../core/models/query-params';
 
 @Injectable({
   providedIn: 'root'
@@ -24,22 +25,8 @@ export class CapitalService {
     }
   }
 
-  getAll(searchTerm?: string, sortBy?: string, sortDirection?: string, filterBy?: 'onlyForSavings'): Observable<CapitalResponse[]> {
-    let params = new HttpParams();
-    if (searchTerm) {
-      params = params.set("searchTerm", searchTerm);
-    }
-    if (sortBy) {
-      params = params.set("sortBy", sortBy);
-    }
-    if (sortDirection) {
-      params = params.set("sortDirection", sortDirection);
-    }
-    if (filterBy) {
-      params = params.set("filterBy", filterBy);
-    }
-
-    return this.httpClient.get<CapitalResponse[]>(this.baseApiUrl, { params });
+  getAll(params: QueryParams): Observable<CapitalResponse[]> {
+    return this.httpClient.post<CapitalResponse[]>(`${this.baseApiUrl}/all`, params);
   }
 
   getById(id: number): Observable<CapitalResponse> {

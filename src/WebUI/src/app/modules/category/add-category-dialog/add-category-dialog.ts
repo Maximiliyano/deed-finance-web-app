@@ -1,13 +1,13 @@
 import { Component, Inject, OnInit } from '@angular/core';
-import { DialogRef } from '../../dialogs/models/dialog-ref';
-import { CategoryResponse } from '../../../../core/models/category-model';
-import { CategoryType } from '../../../../core/types/category-type';
-import { PerPeriodType } from '../../../../core/types/per-period-type';
-import { SharedModule } from "../../../shared.module";
-import { FormControl, FormGroup, Validators } from '@angular/forms';
-import { FormField } from '../../forms/models/form-field';
-import { enumToOptions } from '../../../../core/utils/enum';
-import { DIALOG_DATA } from '../../dialogs/models/dialog-consts';
+import { FormGroup, FormControl, Validators } from '@angular/forms';
+import { CategoryType } from '../../../core/types/category-type';
+import { PerPeriodType } from '../../../core/types/per-period-type';
+import { enumToOptions } from '../../../core/utils/enum';
+import { DIALOG_DATA } from '../../../shared/components/dialogs/models/dialog-consts';
+import { DialogRef } from '../../../shared/components/dialogs/models/dialog-ref';
+import { FormField } from '../../../shared/components/forms/models/form-field';
+import { SharedModule } from '../../../shared/shared.module';
+import { CategoryResponse } from '../models/category-model';
 
 @Component({
   selector: 'app-add-category-dialog',
@@ -91,7 +91,8 @@ export class AddCategoryDialog implements OnInit {
       name: updated.Name,
       type: updated.Type,
       periodAmount: updated.PeriodAmount,
-      periodType: updated.PeriodType
+      periodType: updated.PeriodType,
+      isDeleted: false
     });
   }
 

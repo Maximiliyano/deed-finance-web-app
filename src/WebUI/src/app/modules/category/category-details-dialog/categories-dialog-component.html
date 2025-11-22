@@ -79,35 +79,12 @@
 
               @if (isEditModeEnabled) {
                 <td class="p-2 text-center">
-
-                  @if (!category.deleted) {
-                    <button
-                      class="text-red-500 hover:text-red-700"
-                      (click)="category.deleted = true"
-                    >
-                      <app-icon name="fa-trash"></app-icon>
-                    </button>
-                  } @else {
-
-                    <div class="flex justify-center gap-1">
-
-                      <button
-                        class="text-green-600 hover:text-green-700"
-                        (click)="remove(category.id)"
-                      >
-                        <app-icon name="fa-check"></app-icon>
-                      </button>
-
-                      <button
-                        class="text-red-500 hover:text-red-700"
-                        (click)="category.deleted = false"
-                      >
-                        <app-icon name="fa-times"></app-icon>
-                      </button>
-
-                    </div>
-                  }
-
+                  <button
+                    class="text-red-500 hover:text-red-700"
+                    (click)="remove(category.id)"
+                  >
+                    <app-icon name="fa-trash"></app-icon>
+                  </button>
                 </td>
               }
             </tr>
@@ -118,12 +95,32 @@
     }
   </div>
 
+  @if (deletedCategories.length > 0) {
+    <div class="flex gap-1">
+      <select [(ngModel)]="selectedDeletedId"
+        class="border rounded p-1 w-full text-center"
+      >
+        <option [ngValue]="null">Select deleted category...</option>
+        @for (item of deletedCategories; track item.id) {
+          <option [value]="item.id">{{ item.name }}</option>
+        }
+      </select>
+
+      <button
+        class="flex items-center gap-1 border px-2 py-1 rounded text-white bg-amber-600 hover:bg-amber-700"
+        (click)="restore()"
+        [disabled]="!selectedDeletedId"
+      >
+        Restore
+      </button>
+    </div>
+    }
+
   <div class="flex justify-between pt-2 border-t">
 
     @if (!isEditModeEnabled) {
-
       <button
-        class="flex items-center gap-1 border px-2 py-1 rounded text-white bg-green-600 hover:bg-green-700"
+        class="flex items-center gap-2 border px-2 py-1 rounded text-white bg-green-600 hover:bg-green-700"
         (click)="add()"
       >
         Add <app-icon name="fa-circle-plus"></app-icon>
@@ -131,7 +128,7 @@
 
       @if (editableCategories.length > 0) {
         <button
-          class="flex items-center gap-1 border px-2 py-1 rounded text-white bg-blue-500 hover:bg-blue-600"
+          class="flex items-center gap-2 border px-2 py-1 rounded text-white bg-blue-500 hover:bg-blue-600"
           (click)="isEditModeEnabled = true"
         >
           Edit all <app-icon name="fa-pen"></app-icon>
@@ -154,9 +151,8 @@
         class="bg-red-500 hover:bg-red-700 border rounded text-white px-4 py-1"
         (click)="cancel()"
       >
-        Cancel
+        Close
       </button>
-
     }
 
   </div>

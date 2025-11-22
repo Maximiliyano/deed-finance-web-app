@@ -35,7 +35,5 @@ public sealed class Exchange
 
     public int? UpdatedBy { get; init; }
 
-    public DateTimeOffset? DeletedAt { get; init; }
-
-    public bool? IsDeleted { get; init; }
+    public bool? IsDeleted { get; set; }
 }

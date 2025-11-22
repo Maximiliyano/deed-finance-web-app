@@ -16,10 +16,26 @@ internal sealed class UpdateAuditableEntitiesInterceptor(IDateTimeProvider dateT
     {
         if (eventData.Context is not null)
         {
+            SoftDeleteAuditableEntities(eventData.Context);
             UpdateAuditableEntities(eventData.Context);
         }
 
         return base.SavingChangesAsync(eventData, result, cancellationToken);
+    }
+
+    private void SoftDeleteAuditableEntities(DbContext context)
+    {
+        var entries = context
+            .ChangeTracker
+            .Entries<ISoftDeletableEntity>()
+            .Where(e => e.State == EntityState.Deleted)
+            .ToList();
+
+        foreach (var entry in entries)
+        {
+            SetCurrentPropertyValue(entry, nameof(ISoftDeletableEntity.IsDeleted), true);
+            entry.State = EntityState.Modified;
+        }
     }
 
     private void UpdateAuditableEntities(DbContext context)
@@ -27,25 +43,27 @@ internal sealed class UpdateAuditableEntitiesInterceptor(IDateTimeProvider dateT
         var entries = context
             .ChangeTracker
             .Entries<IAuditableEntity>()
+            .Where(e => e.State == EntityState.Added || e.State == EntityState.Modified)
             .ToList();
 
-        foreach (EntityEntry<IAuditableEntity> entry in entries)
+        Parallel.ForEach(entries, entry =>
         {
             if (entry.State == EntityState.Added)
             {
+                SetCurrentPropertyValue(entry, nameof(IAuditableEntity.CreatedBy), 0); // TODO userID
                 SetCurrentPropertyValue(entry, nameof(IAuditableEntity.CreatedAt), dateTimeProvider.UtcNow);
             }
-
-            if (entry.State == EntityState.Modified)
+            else
             {
+                SetCurrentPropertyValue(entry, nameof(IAuditableEntity.UpdatedBy), 0); // TODO userID
                 SetCurrentPropertyValue(entry, nameof(IAuditableEntity.UpdatedAt), dateTimeProvider.UtcNow);
             }
-        }
+        });
     }
 
     private static void SetCurrentPropertyValue(
         EntityEntry entry,
         string propertyName,
-        DateTimeOffset utcNow)
-            => entry.Property(propertyName).CurrentValue = utcNow;
+        object? value)
+            => entry.Property(propertyName).CurrentValue = value;
 }

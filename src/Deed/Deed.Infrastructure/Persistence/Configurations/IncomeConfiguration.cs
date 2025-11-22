@@ -11,6 +11,13 @@ internal sealed class IncomeConfiguration : IEntityTypeConfiguration<Income>
     {
         builder.ToTable(TableConfigurationConstants.Incomes);
 
+        builder.HasQueryFilter(c =>
+            !c.IsDeleted.HasValue ||
+            c.IsDeleted.HasValue && !c.IsDeleted.Value);
+
+        builder.HasIndex(t => t.IsDeleted)
+            .HasFilter("is_deleted = 0");
+
         builder.HasKey(i => i.Id);
 
         builder.Property(e => e.PaymentDate)

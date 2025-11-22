@@ -10,7 +10,14 @@ internal sealed class TransferConfiguration : IEntityTypeConfiguration<Transfer>
     public void Configure(EntityTypeBuilder<Transfer> builder)
     {
         builder.ToTable(TableConfigurationConstants.Transfers);
-        
+
+        builder.HasQueryFilter(c =>
+            !c.IsDeleted.HasValue ||
+            c.IsDeleted.HasValue && !c.IsDeleted.Value);
+
+        builder.HasIndex(t => t.IsDeleted)
+            .HasFilter("is_deleted = 0");
+
         builder.HasKey(t => t.Id);
 
         builder.Property(x => x.Amount)

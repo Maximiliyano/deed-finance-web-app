@@ -56,5 +56,8 @@ public static class DomainErrors
 
         public static Error ReferenceExists
             => Error.Conflict("Category.ReferenceExists", "Category cannot be deleted because it has related references.");
+
+        public static Error RestoreFailed
+            => Error.NotFound("Category.RestoreFailed", "This category is not available for restore.");
     }
 }

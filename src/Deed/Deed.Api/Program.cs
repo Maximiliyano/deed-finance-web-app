@@ -24,8 +24,8 @@ var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwaggerDependencies();
     app.ApplyMigrations();
+    app.UseSwaggerDependencies();
 }
 else
 { 

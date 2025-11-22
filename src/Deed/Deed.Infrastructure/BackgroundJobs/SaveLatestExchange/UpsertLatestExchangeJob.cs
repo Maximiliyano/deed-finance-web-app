@@ -16,7 +16,7 @@ public sealed class UpsertLatestExchangeJob(
     IExchangeHttpService service)
     : IJob
 {
-    public async Task Execute(IJobExecutionContext context) // TODO tests
+    public async Task Execute(IJobExecutionContext context)
     {
         Log.Information("Job started: {Name}", nameof(UpsertLatestExchangeJob));
 
@@ -60,7 +60,7 @@ public sealed class UpsertLatestExchangeJob(
 
         if (entitiesToAdd.Count > 0)
         {
-            repository.AddRange(entitiesToAdd);
+            repository.CreateRange(entitiesToAdd);
         }
 
         if (entitiesToUpdate.Count > 0)

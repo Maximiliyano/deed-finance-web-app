@@ -1,8 +1,10 @@
+using Deed.Application.Abstractions.Data;
 using Deed.Application.Categories.Commands.Delete;
 using Deed.Application.Categories.Specifications;
 using Deed.Domain.Entities;
 using Deed.Domain.Enums;
 using Deed.Domain.Errors;
+using Deed.Domain.Providers;
 using Deed.Domain.Repositories;
 using FluentAssertions;
 using NSubstitute;

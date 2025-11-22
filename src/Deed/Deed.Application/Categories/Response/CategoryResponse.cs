@@ -7,4 +7,6 @@ public sealed record CategoryResponse(
     string Name,
     CategoryType Type,
     PerPeriodType PeriodType,
-    decimal PeriodAmount);
+    decimal PeriodAmount,
+    bool IsDeleted
+);

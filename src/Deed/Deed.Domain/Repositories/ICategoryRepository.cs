@@ -5,15 +5,13 @@ namespace Deed.Domain.Repositories;
 
 public interface ICategoryRepository
 {
-    Task<IEnumerable<Category>> GetAllAsync(CategoryType? type = null, IEnumerable<int>? ids = null, bool tracking = false);
+    Task<IEnumerable<Category>> GetAllAsync(CategoryType? type = null, IEnumerable<int>? ids = null, bool? includeDeleted = null, bool tracking = false);
 
     Task<Category?> GetAsync(ISpecification<Category> specification);
 
     void Create(Category category);
 
     void Update(Category category);
-
-    void UpdateRange(IEnumerable<Category> categories);
 
     void Delete(Category category);
 

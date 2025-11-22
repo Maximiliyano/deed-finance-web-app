@@ -14,7 +14,7 @@ internal sealed class GetAllCategoryQueryHandler(
 {
     public async Task<Result<IEnumerable<CategoryResponse>>> Handle(GetAllCategoryQuery query, CancellationToken cancellationToken)
     {
-        var categories = (await repository.GetAllAsync(query.Type).ConfigureAwait(false)).ToResponses();
+        var categories = (await repository.GetAllAsync(query.Type, includeDeleted: query.IncludeDeleted).ConfigureAwait(false)).ToResponses();
 
         return Result.Success(categories);
     }

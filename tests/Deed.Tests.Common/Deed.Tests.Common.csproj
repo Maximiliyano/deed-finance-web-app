@@ -14,6 +14,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\..\src\Deed\Deed.Application\Deed.Application.csproj" />
+      <ProjectReference Include="..\..\src\Deed\Deed.Infrastructure\Deed.Infrastructure.csproj" />
     </ItemGroup>
 
 </Project>

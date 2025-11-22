@@ -15,7 +15,9 @@ internal static class CategoryExtensions
                     category.Name,
                     category.Type,
                     category.Period,
-                    category.PlannedPeriodAmount);
+                    category.PlannedPeriodAmount,
+                    category.IsDeleted ?? false
+        );
     }
 
     internal static IEnumerable<CategoryResponse> ToResponses(this IEnumerable<Category> categories)

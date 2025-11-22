@@ -22,7 +22,39 @@ public sealed class CreateExpenseCommandHandlerTests
         _handler = new CreateExpenseCommandHandler(_capitalRepositoryMock, _expenseRepositoryMock, _unitOfWorkMock);
     }
 
-    // TODO add test failure createExpenseWithCapitalForSavingsOnly
+    [Fact]
+    public async Task Handle_CreateExpenseWithCapitalForSavingsOnly_ShouldReturnsFailure()
+    {
+        // Arrange
+        var capital = new Capital(1)
+        {
+            Name = "TestCapital",
+            Balance = 100,
+            Currency = CurrencyType.UAH,
+            OnlyForSavings = true
+        };
+        var category = new Category(1)
+        {
+            Name = "TestCategory",
+            Type = CategoryType.Expenses
+        };
+        var command = new CreateExpenseCommand(capital.Id, category.Id, 10m, DateTimeOffset.UtcNow, null);
+        _capitalRepositoryMock.GetAsync(Arg.Any<CapitalByIdSpecification>())
+            .Returns(capital);
+        // Act
+        var result = await _handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        result.IsSuccess.Should().BeFalse();
+        result.Errors.Should().OnlyContain(e => e == DomainErrors.Capital.ForSavingsOnly);
+
+        _capitalRepositoryMock.DidNotReceive().Update(Arg.Any<Capital>());
+        _expenseRepositoryMock.DidNotReceive().Create(Arg.Any<Expense>());
+        
+        await _capitalRepositoryMock.Received(1).GetAsync(Arg.Any<CapitalByIdSpecification>());
+        await _unitOfWorkMock.DidNotReceive().SaveChangesAsync();
+    }
+
     [Fact]
     public async Task Handle_CreateExpense_ShouldReturnsId()
     {

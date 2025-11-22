@@ -17,6 +17,10 @@ internal abstract class BaseSpecification<TEntity>(
 
     public IList<Expression<Func<TEntity, object>>> Includes { get; } = [];
 
+    public bool? IgnoreQueryFilter { get; protected set; }
+
+    public bool? Tracking { get; protected set; }
+
     protected void AddInclude(Expression<Func<TEntity, object>> include)
     {
         Includes.Add(include);

@@ -16,7 +16,7 @@
       >
         <app-icon name="fa-sliders" />
         <select [(ngModel)]="filterBy" (change)="onFilterChange()">
-          <option [ngValue]="undefined">Select a filter...</option>
+          <option [ngValue]="null">Select a filter...</option>
           <option value="onlyForSavings">Only For Savings</option>
         </select>
       </div>

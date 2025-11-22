@@ -10,7 +10,14 @@ internal sealed class ExchangeConfiguration : IEntityTypeConfiguration<Exchange>
     public void Configure(EntityTypeBuilder<Exchange> builder)
     {
         builder.ToTable(TableConfigurationConstants.Exchanges);
-        
+
+        builder.HasQueryFilter(c =>
+            !c.IsDeleted.HasValue ||
+            c.IsDeleted.HasValue && !c.IsDeleted.Value);
+
+        builder.HasIndex(t => t.IsDeleted)
+            .HasFilter("is_deleted = 0");
+
         builder.HasKey(ex => ex.Id);
 
         builder.Property(x => x.NationalCurrencyCode)

@@ -6,7 +6,7 @@ namespace Deed.Application.Categories.Specifications;
 internal sealed class CategoryByIdSpecification
     : BaseSpecification<Category>
 {
-    public CategoryByIdSpecification(int id, bool includeExpenses = false, bool includeIncomes = false)
+    public CategoryByIdSpecification(int id, bool includeExpenses = false, bool includeIncomes = false, bool ignoreQueryFilter = false, bool tracking = false)
         : base(c => c.Id == id)
     {
         if (includeIncomes)
@@ -16,6 +16,14 @@ internal sealed class CategoryByIdSpecification
         if (includeExpenses)
         {
             AddInclude(c => c.Expenses);
+        }
+        if (ignoreQueryFilter)
+        {
+            IgnoreQueryFilter = true;
+        }
+        if (tracking)
+        {
+            Tracking = true;
         }
     }
 }

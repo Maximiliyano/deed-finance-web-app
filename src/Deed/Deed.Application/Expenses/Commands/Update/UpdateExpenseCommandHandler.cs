@@ -13,7 +13,7 @@ internal sealed class UpdateExpenseCommandHandler(
     IUnitOfWork unitOfWork)
     : ICommandHandler<UpdateExpenseCommand>
 {
-    public async Task<Result> Handle(UpdateExpenseCommand command, CancellationToken cancellationToken) // TODO update tests
+    public async Task<Result> Handle(UpdateExpenseCommand command, CancellationToken cancellationToken)
     {
         var expense = await expenseRepository.GetAsync(new ExpenseByIdSpecification(command.Id, true, true)).ConfigureAwait(false);
 
@@ -22,14 +22,14 @@ internal sealed class UpdateExpenseCommandHandler(
             return Result.Failure(DomainErrors.General.NotFound(nameof(expense)));
         }
 
-        if (HasNoChanges(command, expense.Purpose))
-        {
-            return Result.Success();
-        }
-
         if (expense.Capital.OnlyForSavings)
         {
             return Result.Failure(DomainErrors.Capital.ForSavingsOnly);
+        }
+
+        if (HasNoChanges(command, expense.Purpose))
+        {
+            return Result.Success();
         }
 
         if (command.Amount is not null)

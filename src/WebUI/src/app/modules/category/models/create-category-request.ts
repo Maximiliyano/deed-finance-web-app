@@ -1,5 +1,5 @@
-import { CategoryType } from "../../../../core/types/category-type";
-import { PerPeriodType } from "../../../../core/types/per-period-type";
+import { CategoryType } from "../../../core/types/category-type";
+import { PerPeriodType } from "../../../core/types/per-period-type";
 
 export interface CreateCategoryRequest {
     name: string;

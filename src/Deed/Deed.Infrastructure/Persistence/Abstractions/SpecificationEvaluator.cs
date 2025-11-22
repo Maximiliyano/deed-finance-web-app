@@ -19,6 +19,17 @@ public static class SpecificationEvaluator
             return queryable;
         }
 
+        if (!specification.Tracking.HasValue ||
+            specification.Tracking.HasValue && !specification.Tracking.Value)
+        {
+            queryable = queryable.AsNoTracking();
+        }
+
+        if (specification.IgnoreQueryFilter.HasValue && specification.IgnoreQueryFilter.Value)
+        {
+            queryable = queryable.IgnoreQueryFilters();
+        }
+
         if (specification.Criteria is not null)
         {
             queryable = queryable.Where(specification.Criteria);
