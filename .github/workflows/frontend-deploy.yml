@@ -33,7 +33,7 @@ jobs:
       - name: Deploy to Netlify
         uses: nwtgck/actions-netlify@v2
         with:
-          publish-dir: "src/WebUI/dist/finance-tracker-app/browser"
+          publish-dir: "src/WebUI/dist/deed/browser"
           production-branch: master
           github-token: ${{ secrets.GITHUB_TOKEN }}
           deploy-message: "Deployed Angular App via GitHub Actions 🚀"
