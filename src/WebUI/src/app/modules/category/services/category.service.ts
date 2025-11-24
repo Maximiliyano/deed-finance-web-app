@@ -29,11 +29,11 @@ export class CategoryService {
   }
 
   create(request: CreateCategoryRequest): Observable<number> {
-    return this.http.post<number>(`${this.baseApiUrl}`, request);
+    return this.http.post<number>(`${this.baseApiUrl}`, request, {withCredentials: true});
   }
 
   updateRange(categories: CategoryResponse[]): Observable<void> {
-    return this.http.put<void>(`${this.baseApiUrl}/updateRange`, categories);
+    return this.http.put<void>(`${this.baseApiUrl}/updateRange`, categories, {withCredentials: true});
   }
 
   delete(id: number): Observable<void> {
@@ -41,6 +41,6 @@ export class CategoryService {
   }
 
   restore(id: number): Observable<CategoryResponse> {
-    return this.http.post<CategoryResponse>(`${this.baseApiUrl}/${id}/restore`, {});
+    return this.http.post<CategoryResponse>(`${this.baseApiUrl}/${id}/restore`, {}, {withCredentials: true});
   }
 }
