@@ -4,7 +4,7 @@ export interface FormField {
   label: string,
   controlName: string,
   input?: {
-    type: 'text' | 'number' | 'checkbox',
+    type: 'text' | 'number' | 'checkbox' | 'password',
     placeholder?: string
   },
   select?: {

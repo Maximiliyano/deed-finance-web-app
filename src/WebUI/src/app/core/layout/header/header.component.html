@@ -52,10 +52,25 @@
       </nav>
 
       <div class="profile">
-        <button class="account-button">
-          <app-icon [name]="'fa-user-circle'"></app-icon>
-          <span class="profile-text">Profile</span>
-        </button>
+        @if (user) {
+          <button class="account-button" (click)="profile()" title="Profile">
+            <img class="h-7 w-7" [src]="user.pictureUrl" alt="Avatar" />
+            <span class="profile-text">{{ user.fullname }}</span>
+          </button>
+
+          <button
+            class="shadow-md rounded-md p-1 gap-1 hover:text-red-300 hover:bg-red-600"
+            title="Log out"
+            (click)="logout()"
+          >
+            <app-icon name="fa-arrow-right-from-bracket"></app-icon>
+          </button>
+        } @else {
+          <button class="account-button" (click)="login()" title="Login">
+            <app-icon name="fa-user-circle"></app-icon>
+            <span class="profile-text">Log in</span>
+          </button>
+        }
       </div>
     </div>
   </div>
