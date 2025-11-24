@@ -24,24 +24,28 @@ var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwaggerDependencies();
     app.ApplyMigrations();
+    app.UseSwaggerDependencies();
+}
+else
+{ 
+    app.UseHsts();
 }
 
-app.MapHealthChecks("health", new HealthCheckOptions
-{
-    ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
-});
+app.UseExceptionHandler();
+
+app.UseHttpsRedirection();
+
+app.UseCorsPolicy();
 
 app.UseRequestContextLogging();
 
 app.UseSerilogRequestLogging();
 
-app.UseExceptionHandler();
-
-app.UseCorsPolicy();
-
-app.UseHttpsRedirection();
+app.MapHealthChecks("health", new HealthCheckOptions
+{
+    ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+});
 
 app.MapEndpoints();
 

@@ -11,7 +11,7 @@ internal sealed class GetIncomesQueryHandler(
 {
     public async Task<Result<IEnumerable<IncomeResponse>>> Handle(GetIncomesQuery query, CancellationToken cancellationToken)
     {
-        var incomes = await repository.GetAllAsync();
+        var incomes = await repository.GetAllAsync().ConfigureAwait(false);
 
         var incomeResponses = incomes.ToResponses();
 

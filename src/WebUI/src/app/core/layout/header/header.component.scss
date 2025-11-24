@@ -1,10 +1,11 @@
-@import '../../../../assets/scss/variables.scss';
-@import '../../../../assets/scss/mixins.scss';
+@use '../../../../assets/scss/variables.scss' as var;
+@use '../../../../assets/scss/mixins.scss' as mixin;
 
 .header {
-  background-color: $header-background;
-  border-bottom: 2px solid $header-border-color;
-  width: 100%;
+  background-color: var.$header-background;
+  border-bottom: 2px solid var.$header-border-color;
+  min-width: 100%;
+  min-height: 90px;
 
   .header-container {
     .header-inner {
@@ -12,7 +13,7 @@
       align-items: center;
       justify-content: space-between;
 
-      @include respond-to('xs') {
+      @include mixin.respond-to('xs') {
         padding: 10px 0;
       }
 
@@ -27,10 +28,10 @@
           align-items: center;
           font-size: 15px;
           font-weight: 500;
-          color: $text-color;
-          text-shadow: $text-shadow;
+          color: var.$text-color;
+          text-shadow: var.$text-shadow;
 
-          @include respond-to('sm') {
+          @include mixin.respond-to('sm') {
             display: flex;
             font-size: 20px;
           }
@@ -39,7 +40,7 @@
         .home {
           display: flex;
 
-          @include respond-to('sm') {
+          @include mixin.respond-to('sm') {
             display: none;
           }
         }
@@ -47,13 +48,13 @@
         .burger-menu {
           display: flex;
 
-          @include respond-to('xl') {
+          @include mixin.respond-to('xl') {
             display: none;
           }
         }
 
         .exchange-button {
-          @include respond-to('sm') {
+          @include mixin.respond-to('sm') {
             display: none;
           }
         }
@@ -67,11 +68,11 @@
         .exchange {
           display: none;
           gap: 3px;
-          border: 1px solid $exchange-border-color;
+          border: 1px solid var.$exchange-border-color;
           border-radius: 5px;
           padding: 5px;
 
-          @include respond-to('sm') {
+          @include mixin.respond-to('sm') {
             display: inline-flex;
           }
 
@@ -84,7 +85,15 @@
           .currencies {
             display: flex;
             flex-direction: column;
-            color: $exchange-border-color;
+            color: var.$exchange-border-color;
+          }
+        }
+
+        .more-btn {
+          transition: 0.3s background-color ease-out;
+
+          &:hover {
+            background-color: #ccccccb0;
           }
         }
       }
@@ -102,18 +111,18 @@
             color: rgb(34, 34, 34);
             font-weight: 500;
             font-size: 16px;
-            padding: 3px;
+            padding: 5px;
             gap: 5px;
             border-radius: 5px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             transition: background-color 0.3s ease-in-out;
 
             &:hover {
-              background-color: $navigation-item-hover-color;
+              background-color: var.$navigation-item-hover-color;
               cursor: pointer;
             }
 
-            @include respond-to('md') {
+            @include mixin.respond-to('md') {
               padding: 5px;
             }
           }
@@ -136,14 +145,14 @@
           transition: background-color 0.3s ease-in-out;
 
           &.active {
-            color: $button-active-color;
+            color: var.$button-active-color;
           }
 
           .profile-text {
             display: none;
           }
 
-          @include respond-to('xs') {
+          @include mixin.respond-to('xs') {
             padding: 5px;
             border-radius: 5px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -154,7 +163,7 @@
           }
 
           &:hover {
-            background-color: $navigation-item-hover-color;
+            background-color: var.$navigation-item-hover-color;
           }
         }
       }
@@ -167,7 +176,7 @@
     left: -250px;
     width: 250px;
     height: 100%;
-    background-color: $header-background;
+    background-color: var.$header-background;
     box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
     border-radius: 5px;
     transition: left 0.3s ease-in-out;

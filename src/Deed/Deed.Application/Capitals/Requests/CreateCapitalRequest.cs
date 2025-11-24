@@ -4,6 +4,8 @@ namespace Deed.Application.Capitals.Requests;
 
 public sealed record CreateCapitalRequest(
     string Name,
-    float Balance,
+    decimal Balance,
     CurrencyType Currency,
-    bool IncludeInTotal);
+    bool IncludeInTotal,
+    bool OnlyForSavings
+);

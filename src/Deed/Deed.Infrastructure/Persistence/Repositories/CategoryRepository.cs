@@ -6,54 +6,33 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Deed.Infrastructure.Persistence.Repositories;
 
-internal sealed class CategoryRepository(
-    IDeedDbContext context)
+internal sealed class CategoryRepository(IDeedDbContext context)
     : GeneralRepository<Category>(context), ICategoryRepository
 {
-    public new async Task<Category?> GetAsync(ISpecification<Category> specification)
-        => await base.GetAsync(specification);
+    public async Task<IEnumerable<Category>> GetAllAsync(CategoryType? type = null, IEnumerable<int>? ids = null, bool? includeDeleted = null, bool tracking = false)
+    { // TODO write into specification
+        var queryable = DbContext.Categories.AsQueryable();
 
-    public async Task<IEnumerable<Category>> GetAllAsync(CategoryType? type)
-        => await DbContext.Categories
-            .Where(c => !type.HasValue || c.Type == type.Value)
-            .AsNoTracking()
-            .AsSplitQuery()
-            .Include(c => c.Expenses)
-            .Include(c => c.Incomes)
-            .Select(c => new Category(c.Id)
-            {
-                Name = c.Name,
-                Type = c.Type,
-                PlannedPeriodAmount = c.PlannedPeriodAmount,
-                Period = c.Period,
-                Expenses = c.Expenses!.Select(e => new Expense(e.Id)
-                {
-                    Amount = e.Amount,
-                    PaymentDate = e.PaymentDate,
-                    Purpose = e.Purpose,
-                    CategoryId = e.CategoryId,
-                    CapitalId = e.CapitalId
-                }),
-                Incomes = c.Incomes!.Select(i => new Income(i.Id)
-                {
-                    Amount = i.Amount,
-                    PaymentDate = i.PaymentDate,
-                    Purpose = i.Purpose,
-                    CategoryId = i.CategoryId,
-                    CapitalId = i.CapitalId
-                })
-            })
-            .ToListAsync();
+        if (includeDeleted.HasValue && includeDeleted.Value)
+        {
+            queryable = queryable.IgnoreQueryFilters();
+        }
 
-    public new void Create(Category category)
-        => base.Create(category);
+        if (type.HasValue)
+        {
+            queryable = queryable.Where(c => c.Type == type.Value);
+        }
 
-    public new void Update(Category category)
-        => base.Update(category);
+        if (ids != null)
+        {
+            queryable = queryable.Where(c => ids.Contains(c.Id));
+        }
 
-    public new void Delete(Category category)
-        => base.Delete(category);
+        if (!tracking)
+        {
+            queryable = queryable.AsNoTracking();
+        }
 
-    public new async Task<bool> AnyAsync(ISpecification<Category> specification)
-        => await base.AnyAsync(specification);
+        return await queryable.ToListAsync();
+    }
 }

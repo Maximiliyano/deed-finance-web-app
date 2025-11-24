@@ -12,7 +12,9 @@ internal sealed class GetAllCapitalsQueryHandler(
 {
     public async Task<Result<IEnumerable<CapitalResponse>>> Handle(GetAllCapitalsQuery query, CancellationToken cancellationToken)
     {
-        var capitals = await repository.GetAllAsync(query.SearchTerm, query.SortBy, query.SortDirection);
+        var capitals = await repository
+            .GetAllAsync(new CapitalsByQueryParamsSpecification(query.SearchTerm, query.SortBy, query.SortDirection, query.FilterBy))
+            .ConfigureAwait(false);
 
         var capitalResponses = capitals.ToResponses();
 

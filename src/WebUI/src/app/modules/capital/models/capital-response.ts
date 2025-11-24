@@ -4,8 +4,11 @@ export interface CapitalResponse {
   balance: number;
   currency: string;
   includeInTotal: boolean;
+  onlyForSavings: boolean;
   totalIncome: number;
   totalExpense: number;
   totalTransferIn: number;
   totalTransferOut: number;
+  createdAt: Date;
+  createdBy: number;
 }

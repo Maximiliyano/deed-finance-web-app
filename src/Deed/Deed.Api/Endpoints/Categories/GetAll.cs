@@ -10,9 +10,9 @@ internal sealed class GetAll : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("api/categories", async (ISender sender, [FromQuery] CategoryType? type) =>
+        app.MapGet("api/categories", async ([FromQuery] CategoryType? type, [FromQuery] bool? includeDeleted, ISender sender, CancellationToken ct) =>
             (await sender
-                .Send(new GetAllCategoryQuery(type)))
+                .Send(new GetAllCategoryQuery(type, includeDeleted), ct))
                 .Process())
             .WithTags(nameof(Categories));
     }

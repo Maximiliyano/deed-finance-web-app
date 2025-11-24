@@ -9,26 +9,35 @@ internal sealed class ExpenseConfiguration : IEntityTypeConfiguration<Expense>
 {
     public void Configure(EntityTypeBuilder<Expense> builder)
     {
+        builder.ToTable(TableConfigurationConstants.Expenses);
+
+        builder.HasQueryFilter(c =>
+            !c.IsDeleted.HasValue ||
+            c.IsDeleted.HasValue && !c.IsDeleted.Value);
+
+        builder.HasIndex(t => t.IsDeleted)
+            .HasFilter("is_deleted = 0");
+
         builder.HasKey(e => e.Id);
 
-        builder
-            .HasOne(e => e.Category)
+        builder.Property(e => e.PaymentDate)
+            .IsRequired();
+
+        builder.Property(e => e.Amount)
+            .IsRequired()
+            .HasPrecision(18,2);
+
+        builder.Property(e => e.Purpose)
+            .HasMaxLength(255);
+
+        builder.HasOne(e => e.Category)
             .WithMany(c => c.Expenses)
-            .HasForeignKey(e => e.CategoryId);
+            .HasForeignKey(e => e.CategoryId)
+            .OnDelete(DeleteBehavior.Restrict);
 
-        builder
-            .Navigation(e => e.Category)
-            .AutoInclude();
-
-        builder
-            .HasOne(e => e.Capital)
+        builder.HasOne(e => e.Capital)
             .WithMany(c => c.Expenses)
-            .HasForeignKey(e => e.CapitalId);
-
-        builder
-            .Navigation(e => e.Capital)
-            .AutoInclude();
-
-        builder.ToTable(TableConfigurationConstants.Expenses);
+            .HasForeignKey(e => e.CapitalId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

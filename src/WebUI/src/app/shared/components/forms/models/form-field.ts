@@ -11,6 +11,10 @@ export interface FormField {
     options: SelectOptionModel[],
     optionCaption?: string
   },
-  dateTimePicker?: {},
-  textArea?: {}
+  dateTimePicker?: {
+    restrictFuture?: boolean
+  },
+  textArea?: {
+    placeholder?: string;
+  }
 }

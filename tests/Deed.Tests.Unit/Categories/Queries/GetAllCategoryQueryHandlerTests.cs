@@ -1,9 +1,12 @@
+using Deed.Application.Abstractions.Settings;
 using Deed.Application.Categories.Queries.GetAll;
 using Deed.Application.Categories.Response;
 using Deed.Domain.Entities;
 using Deed.Domain.Enums;
 using Deed.Domain.Repositories;
 using FluentAssertions;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Options;
 using NSubstitute;
 
 namespace Deed.Tests.Unit.Categories.Queries;

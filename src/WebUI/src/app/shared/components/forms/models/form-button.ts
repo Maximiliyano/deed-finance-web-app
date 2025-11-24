@@ -5,4 +5,4 @@ export interface FormButton {
   disabled?: boolean;
   visible?: boolean;
   onClick?: () => void;
-};
+}

@@ -1,10 +1,11 @@
 using Deed.Domain.Entities;
+using Deed.Domain.Enums;
 
 namespace Deed.Domain.Repositories;
 
 public interface ICapitalRepository
 {
-    Task<IEnumerable<Capital>> GetAllAsync(string? searchTerm = null, string? sortBy = null, string? sortDirection = null);
+    Task<IEnumerable<Capital>> GetAllAsync(ISpecification<Capital> specification);
 
     Task<Capital?> GetAsync(ISpecification<Capital> specification);
 
@@ -12,7 +13,17 @@ public interface ICapitalRepository
 
     void Update(Capital capital);
 
-    Task UpdateOrderIndexes(IEnumerable<(int Id, int OrderIndex)> capitals);
+    Task<bool> PatchIncludeInTotalAsync(
+        int id,
+        bool includeInTotal,
+        CancellationToken cancellationToken);
+
+    Task<bool> PatchSavingsOnlyAsync(
+        int id,
+        bool onlyForSavings,
+        CancellationToken cancellationToken);
+
+    Task UpdateOrderIndexesAsync(IList<(int Id, int OrderIndex)> capitals, CancellationToken cancellationToken);
 
     void Delete(Capital capital);
 

@@ -13,16 +13,21 @@ internal sealed class DeleteCapitalCommandHandler(
 {
     public async Task<Result> Handle(DeleteCapitalCommand command, CancellationToken cancellationToken)
     {
-        var capital = await repository.GetAsync(new CapitalByIdSpecification(command.Id));
+        var capital = await repository.GetAsync(new CapitalByIdSpecification(command.Id, true, true, true, true)).ConfigureAwait(false);
 
         if (capital is null)
         {
             return Result.Failure(DomainErrors.General.NotFound(nameof(capital)));
         }
 
+        if (capital.HasReferences())
+        {
+            return Result.Failure(DomainErrors.Capital.ReferenceExists);
+        }
+
         repository.Delete(capital);
 
-        await unitOfWork.SaveChangesAsync(cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         return Result.Success();
     }

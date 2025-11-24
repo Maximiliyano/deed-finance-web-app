@@ -5,5 +5,5 @@ namespace Deed.Application.Categories.Requests;
 public sealed record CreateCategoryRequest(
     string Name,
     CategoryType Type,
-    float PlannedPeriodAmount,
+    decimal PlannedPeriodAmount,
     PerPeriodType Period);

@@ -10,40 +10,43 @@ internal abstract class GeneralRepository<TEntity>(IDeedDbContext context)
     where TEntity : Entity, ISoftDeletableEntity
 {
     protected IDeedDbContext DbContext { get; } = context;
+    protected readonly DbSet<TEntity> DbSet = context.Set<TEntity>();
 
-    protected async Task<IEnumerable<TEntity>> GetAllAsync() =>
-        await DbContext.Set<TEntity>()
+    public async Task<IEnumerable<TEntity>> GetAllAsync() =>
+        await DbSet
             .AsNoTracking()
+            .AsSplitQuery()
             .ToListAsync();
 
-    protected async Task<TEntity?> GetAsync(ISpecification<TEntity> specification) =>
+    public async Task<IEnumerable<TEntity>> GetAllAsync(ISpecification<TEntity> specification) =>
+        await ApplySpecification(specification)
+            .AsNoTracking()
+            .AsSplitQuery()
+            .ToListAsync();
+
+    public async Task<TEntity?> GetAsync(ISpecification<TEntity> specification) =>
         await ApplySpecification(specification)
             .SingleOrDefaultAsync();
 
-    protected void Create(TEntity entity) =>
-        DbContext.Set<TEntity>().Add(entity);
+    public void Create(TEntity entity) =>
+        DbSet.Add(entity);
 
-    protected void CreateRange(IEnumerable<TEntity> entities) =>
-        DbContext.Set<TEntity>().AddRange(entities);
+    public void CreateRange(IEnumerable<TEntity> entities) =>
+        DbSet.AddRange(entities);
 
+    public void Update(TEntity entity) =>
+        DbSet.Update(entity);
 
-    protected void Update(TEntity entity) =>
-        DbContext.Set<TEntity>().Update(entity);
+    public void UpdateRange(IEnumerable<TEntity> entities) =>
+        DbSet.UpdateRange(entities);
 
-    protected void UpdateRange(IEnumerable<TEntity> entities) =>
-        DbContext.Set<TEntity>().UpdateRange(entities);
+    public void Delete(TEntity entity) => 
+        DbSet.Remove(entity);
 
-    protected void Delete(TEntity entity) =>
-        DbContext.Set<TEntity>().Remove(entity);
-
-    protected void DeleteRange(IEnumerable<TEntity> entities) =>
-        DbContext.Set<TEntity>().RemoveRange(entities);
-
-    protected async Task<bool> AnyAsync(ISpecification<TEntity> specification) =>
+    public async Task<bool> AnyAsync(ISpecification<TEntity> specification) =>
         await ApplySpecification(specification)
             .AnyAsync();
 
     private IQueryable<TEntity> ApplySpecification(ISpecification<TEntity>? specification)
-        => SpecificationEvaluator.GetQuery(
-                DbContext.Set<TEntity>(), specification);
+        => SpecificationEvaluator.GetQuery(DbSet, specification);
 }

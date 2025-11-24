@@ -6,18 +6,18 @@
         
         <AnalysisLevel>latest</AnalysisLevel>
         <AnalysisMode>all</AnalysisMode>
-        <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
-        <CodeAnalysisTreatWarningsAsErrors>false</CodeAnalysisTreatWarningsAsErrors>
+        <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+        <CodeAnalysisTreatWarningsAsErrors>true</CodeAnalysisTreatWarningsAsErrors>
         <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
 	</PropertyGroup>
 
     <ItemGroup>
         <PackageReference
-                Include="SonarAnalyzer.CSharp"
-                IncludeAssets="runtime; build; native; contentfiles; analyzers; buildtransitive"
-                Version="10.11.0.117924"
-                PrivateAssets="all"
-                Condition="$(MSBuildProjectExtension) == '.csproj'"
+            Include="SonarAnalyzer.CSharp"
+            IncludeAssets="runtime; build; native; contentfiles; analyzers; buildtransitive"
+            Version="10.15.0.120848"
+            PrivateAssets="all"
+            Condition="$(MSBuildProjectExtension) == '.csproj'"
         />
     </ItemGroup>
 

@@ -1,8 +1,29 @@
-<h1 class="dialog-title">Confirm {{ title }}</h1>
-<div class="dialog-content">
-  <p>Are you sure you want to {{ action }} this item?</p>
+<div class="dialog-title">
+  <h2>{{ title }}</h2>
+
+  @switch(icon) {
+    @case('warning') {
+      <i class="fa-solid fa-triangle-exclamation text-yellow-600 text-2xl"></i>
+    }
+    @case ('danger') {
+      <i class="fa-solid fa-circle-xmark text-red-600 text-2xl"></i>
+    }
+    @case ('info') {
+      <i class="fa-solid fa-circle-info text-blue-600 text-2xl"></i>
+    }
+   }
 </div>
+
+<div class="dialog-content">
+  <p [innerHTML]="message"></p>
+</div>
+
 <div class="dialog-actions">
-  <button class="cursor-pointer border rounded bg-green-700 text-white px-2" (click)="handleConfirm()">Confirm</button>
-  <button class="cursor-pointer border rounded bg-red-600 text-white px-2" (click)="handleCancel()">Cancel</button>
+  <button class="cursor-pointer border rounded bg-green-700 text-white py-1 w-full" (click)="handleConfirm()">
+    {{ submitText}}
+  </button>
+  
+  <button class="cursor-pointer border rounded bg-red-600 text-white py-1 font-semibold w-full" (click)="handleCancel()">
+    {{ cancelText }}
+  </button>
 </div>

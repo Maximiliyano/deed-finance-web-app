@@ -12,11 +12,11 @@ public sealed class GetAllExpensesQueryHandlerTests
 {
     private readonly IExpenseRepository _expenseRepositoryMock = Substitute.For<IExpenseRepository>();
 
-    private readonly GetAllExpensesQueryHandler _handler;
+    private readonly GetExpensesByCategoryHandler _handler;
 
     public GetAllExpensesQueryHandlerTests()
     {
-        _handler = new GetAllExpensesQueryHandler(_expenseRepositoryMock);
+        _handler = new GetExpensesByCategoryHandler(_expenseRepositoryMock);
     }
 
     [Fact]
@@ -42,17 +42,15 @@ public sealed class GetAllExpensesQueryHandlerTests
             }
         };
         var entities = new List<Expense> { entity };
-        var query = new GetAllExpensesQuery();
+        var query = new GetExpensesByCategoryQuery(entity.CategoryId);
 
-        _expenseRepositoryMock.GetAllAsync().Returns(entities);
-
-        var response = entity.ToResponse();
+        _expenseRepositoryMock.GetAllAsync(query.CategoryId).Returns(entities);
 
         // Act
         var result = await _handler.Handle(query, CancellationToken.None);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        result.Value.Should().OnlyContain(x => x == response);
+        result.Value.Should().OnlyContain(x => x.CategoryId == query.CategoryId);
     }
 }

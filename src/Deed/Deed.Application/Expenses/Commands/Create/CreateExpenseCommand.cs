@@ -5,7 +5,7 @@ namespace Deed.Application.Expenses.Commands.Create;
 public sealed record CreateExpenseCommand(
     int CapitalId,
     int CategoryId,
-    float Amount,
+    decimal Amount,
     DateTimeOffset PaymentDate,
     string? Purpose)
     : ICommand<int>;

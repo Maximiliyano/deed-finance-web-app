@@ -12,7 +12,7 @@ public sealed class Expense
     {
     }
 
-    public required float Amount { get; set; }
+    public required decimal Amount { get; set; }
 
     public required DateTimeOffset PaymentDate { get; set; }
 
@@ -22,7 +22,7 @@ public sealed class Expense
 
     public Capital? Capital { get; init; }
 
-    public required int CapitalId { get; init; }
+    public required int CapitalId { get; set; }
 
     public string? Purpose { get; set; }
 
@@ -34,7 +34,5 @@ public sealed class Expense
 
     public int? UpdatedBy { get; init; }
 
-    public DateTimeOffset? DeletedAt { get; init; }
-
-    public bool? IsDeleted { get; init; }
+    public bool? IsDeleted { get; set; }
 }

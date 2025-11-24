@@ -1,7 +1,10 @@
 import { Pipe, PipeTransform } from "@angular/core";
 import { CurrencySymbols } from "../models/currency-symbols";
 
-@Pipe({ name: 'currencySymbol' })
+@Pipe({
+    name: 'currencySymbol',
+    standalone: false
+})
 export class CurrencySymbolPipe implements PipeTransform {
   transform(
     value: number,

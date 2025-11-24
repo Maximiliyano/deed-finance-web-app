@@ -1,8 +1,13 @@
+using System.Text;
+using System.Text.Json;
+using Deed.Domain.Constants;
 using Deed.Domain.Entities;
 using Deed.Domain.Enums;
 using Deed.Infrastructure.Persistence.Constants;
+using Deed.Infrastructure.Persistence.DataSeed;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Microsoft.Extensions.Options;
 
 namespace Deed.Infrastructure.Persistence.Configurations;
 
@@ -10,114 +15,42 @@ internal sealed class CategoryConfiguration : IEntityTypeConfiguration<Category>
 {
     public void Configure(EntityTypeBuilder<Category> builder)
     {
+        builder.ToTable(TableConfigurationConstants.Categories);
+
+        builder.HasQueryFilter(c =>
+            !c.IsDeleted.HasValue ||
+            c.IsDeleted.HasValue && !c.IsDeleted.Value);
+
+        builder.HasIndex(t => t.IsDeleted)
+            .HasFilter("is_deleted = 0");
+
         builder.HasKey(c => c.Id);
 
-        builder.HasData(DefaultCategories());
+        builder.Property(c => c.Name)
+            .IsRequired()
+            .HasMaxLength(ValidationConstants.MaxLenghtName);
 
-        builder.ToTable(TableConfigurationConstants.Categories);
-    }
+        builder.Property(c => c.Type)
+            .IsRequired()
+            .HasConversion<int>();
 
-    private static IEnumerable<Category> DefaultCategories() // TODO convert into json data
-    {
-        var utcNow = DateTimeOffset.UtcNow;
+        builder.Property(c => c.PlannedPeriodAmount)
+            .HasPrecision(18, 2)
+            .HasDefaultValue(0);
 
-        return [
-            new Category(1)
-            {
-                Name = "Groceries",
-                Type = CategoryType.Expenses,
-                CreatedAt = utcNow
-            },
-            new Category(2)
-            {
-                Name = "Utilities",
-                Type = CategoryType.Expenses,
-                CreatedAt = utcNow
-            },
-            new Category(3)
-            {
-                Name = "Rent",
-                Type = CategoryType.Expenses,
-                CreatedAt = utcNow
-            },
-            new Category(4)
-            {
-                Name = "Transportation",
-                Type = CategoryType.Expenses,
-                CreatedAt = utcNow
-            },
-            new Category(5)
-            {
-                Name = "Healthcare",
-                Type = CategoryType.Expenses,
-                CreatedAt = utcNow
-            },
-            new Category(6)
-            {
-                Name = "Entertainment",
-                Type = CategoryType.Expenses,
-                CreatedAt = utcNow
-            },
-            new Category(7)
-            {
-                Name = "Education",
-                Type = CategoryType.Expenses,
-                CreatedAt = utcNow
-            },
-            new Category(8)
-            {
-                Name = "Clothing",
-                Type = CategoryType.Expenses,
-                CreatedAt = utcNow
-            },
-            new Category(9)
-            {
-                Name = "Subscriptions",
-                Type = CategoryType.Expenses,
-                CreatedAt = utcNow
-            },
-            new Category(10)
-            {
-                Name = "Travel",
-                Type = CategoryType.Expenses,
-                CreatedAt = utcNow
-            },
-            new Category(11)
-            {
-                Name = "Gifts",
-                Type = CategoryType.Expenses,
-                CreatedAt = utcNow
-            },
-            new Category(12)
-            {
-                Name = "Donations",
-                Type = CategoryType.Expenses,
-                CreatedAt = utcNow
-            },
-            new Category(13)
-            {
-                Name = "Salary",
-                Type = CategoryType.Incomes,
-                CreatedAt = utcNow
-            },
-            new Category(14)
-            {
-                Name = "Gifts",
-                Type = CategoryType.Incomes,
-                CreatedAt = utcNow
-            },
-            new Category(15)
-            {
-                Name = "Grants",
-                Type = CategoryType.Incomes,
-                CreatedAt = utcNow
-            },
-            new Category(16)
-            {
-                Name = "Sales",
-                Type = CategoryType.Incomes,
-                CreatedAt = utcNow
-            }
-        ];
+        builder.Property(c => c.Period)
+            .HasConversion<int>();
+
+        builder.HasMany(x => x.Incomes)
+            .WithOne(x => x.Category)
+            .HasForeignKey(x => x.CategoryId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasMany(x => x.Expenses)
+            .WithOne(x => x.Category)
+            .HasForeignKey(x => x.CategoryId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasData(Seeder.Parse<Category>(SeederConstants.Categories));
     }
 }

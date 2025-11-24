@@ -26,24 +26,24 @@ public sealed class UpdateIncomeCommandHandlerTests
     [Theory]
     [InlineData(null, null, null)]
     [InlineData(4, null, null)]
-    [InlineData(3, 100f, null)]
+    [InlineData(3, 100.0, null)]
     [InlineData(3, null, "Hi")]
-    [InlineData(null, 200f, null)]
-    [InlineData(null, 200f, "Well")]
-    [InlineData(1, 200f, null)]
+    [InlineData(null, 200.0, null)]
+    [InlineData(null, 200.0, "Well")]
+    [InlineData(1, 200.0, null)]
     [InlineData(null, null, "Purspo")]
-    [InlineData(null, 12f, "Purspo")]
+    [InlineData(null, 12.0, "Purspo")]
     [InlineData(4, null, "Purspo")]
-    [InlineData(1, 150f, "Test")]
+    [InlineData(1, 150.0, "Test")]
     public async Task Handle_ShouldReturnSuccess_WhenIncomeUpdatedSuccessfully(
         int? categoryId,
-        float? amount,
+        double? amount,
         string? purpose)
     {
         // Arrange
         const int id = 1;
         const int oldCategoryId = 2;
-        const float oldAmount = 100f;
+        const decimal oldAmount = 100m;
         const string oldPurpose = "Hello";
 
         var utcNow = DateTimeOffset.UtcNow;
@@ -66,13 +66,14 @@ public sealed class UpdateIncomeCommandHandlerTests
             },
             Purpose = oldPurpose
         };
-        var command = new UpdateIncomeCommand(id, categoryId, amount, purpose, utcNow);
+        decimal? newAmount = amount is null ? null : (decimal)amount;
+        var command = new UpdateIncomeCommand(id, categoryId, newAmount, purpose, utcNow);
 
         _incomeRepository.GetAsync(Arg.Any<IncomeByIdSpecification>())
             .Returns(income);
 
-        var expectedCapitalBalance = amount.HasValue
-            ? income.Capital.Balance + amount.Value - income.Amount
+        var expectedCapitalBalance = newAmount.HasValue
+            ? income.Capital.Balance + newAmount.Value - income.Amount
             : income.Capital.Balance;
 
         // Act
@@ -82,7 +83,7 @@ public sealed class UpdateIncomeCommandHandlerTests
         result.IsSuccess.Should().BeTrue();
 
         income.Id.Should().Be(id);
-        income.Amount.Should().Be(amount ?? oldAmount);
+        income.Amount.Should().Be(newAmount ?? oldAmount);
         income.Capital.Balance.Should().Be(expectedCapitalBalance);
         income.Purpose.Should().Be(purpose ?? oldPurpose);
         income.PaymentDate.Should().Be(utcNow);

@@ -1,13 +1,15 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import { FormGroup,  } from '@angular/forms';
 import { FormField } from './models/form-field';
 import { FormButton } from './models/form-button';
+import { Subject, takeUntil } from 'rxjs';
 
 @Component({
-  selector: 'app-form',
-  templateUrl: './form.component.html'
+    selector: 'app-form',
+    templateUrl: './form.component.html',
+    standalone: false
 })
-export class FormComponent {
+export class FormComponent implements OnInit, OnDestroy {
   @Input() headerText: string = 'Default form';
   @Input() form: FormGroup = new FormGroup({});
   @Input() fields: FormField[] = [];
@@ -15,8 +17,7 @@ export class FormComponent {
     {
       type: 'submit',
       text: 'Save',
-      styles: 'bg-blue-600 hover:bg-blue-700 text-white',
-      disabled: this.form.invalid,
+      styles: `bg-blue-600 text-white hover:bg-blue-700`
     },
     {
       type: 'button',
@@ -28,6 +29,22 @@ export class FormComponent {
 
   @Output() submitForm = new EventEmitter<void>();
   @Output() cancelForm = new EventEmitter<void>();
+  
+  private $unsubscribe = new Subject<void>();
+  
+  ngOnInit(): void {
+    this.form.statusChanges
+      .pipe(takeUntil(this.$unsubscribe))
+      .subscribe({
+        next: () => this.updateSubmitButtonState()
+      });
+    this.updateSubmitButtonState();
+  }
+
+  ngOnDestroy(): void {
+    this.$unsubscribe.next();
+    this.$unsubscribe.complete();
+  }
 
   onSubmit() {
     this.submitForm.emit();
@@ -35,5 +52,12 @@ export class FormComponent {
 
   onCancel() {
     this.cancelForm.emit();
+  }
+
+  private updateSubmitButtonState(): void {
+    const submitButton = this.buttons.find(b => b.type === 'submit');
+    if (submitButton) {
+      submitButton.disabled = this.form.invalid;
+    }
   }
 }

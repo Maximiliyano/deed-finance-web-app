@@ -1,55 +1,56 @@
 import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
-import { debounceTime, distinctUntilChanged, Subject, takeUntil } from 'rxjs';
+import { debounceTime, Subject, takeUntil } from 'rxjs';
 import { Exchange } from '../../core/models/exchange-model';
-import { ConfirmDialogComponent } from '../../shared/components/dialogs/confirm-dialog/confirm-dialog.component';
-import { DialogService } from '../../shared/services/dialog.service';
+import { DialogService } from '../../shared/components/dialogs/services/dialog.service';
 import { ExchangeService } from '../../shared/services/exchange.service';
 import { PopupMessageService } from '../../shared/services/popup-message.service';
-import { AddCapitalDialogComponent } from './components/capital-dialog/add-capital-dialog.component';
 import { AddCapitalRequest } from './models/add-capital-request';
 import { CapitalItem } from './models/capital-item';
 import { CapitalResponse } from './models/capital-response';
 import { CapitalService } from './services/capital.service';
-import { CapitalDetailsComponent } from './components/capital-details/capital-details.component';
 import { animate, style, transition, trigger } from '@angular/animations';
 import { CurrencyType } from '../../core/types/currency-type';
 import { getCurrencies } from '../../shared/components/currency/functions/get-currencies.component';
 import { UpdateCapitalRequest } from './models/update-capital-request';
-import { stringToCurrencyEnum } from '../../shared/components/currency/functions/string-to-currency-enum';
 import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
+import { AddCapitalDialogComponent } from './components/capital-dialog/add-capital-dialog.component';
+import { CapitalDetailsComponent } from './components/capital-details/capital-details.component';
+import { ConfirmDialogComponent } from '../../shared/components/dialogs/confirm-dialog/confirm-dialog.component';
 
 @Component({
-  selector: 'app-capitals',
-  templateUrl: './capitals.component.html',
-  styleUrl: './capitals.component.scss',
-  animations: [
-    trigger('slideRemove', [
-      transition(':leave', [
-        animate('300ms ease', style({ transform: 'traslateX(100%)', opacity: 0 }))
-      ]),
-      transition(':enter', [
-        style({ transform: 'translateX(-100%)', opacity: 0 }),
-        animate('300ms ease', style({ transform: 'translateX(0)', opacity: 1 }))
-      ])
-    ])
-  ]
+    selector: 'app-capitals',
+    templateUrl: './capitals.component.html',
+    styleUrl: './capitals.component.scss',
+    animations: [
+        trigger('slideRemove', [
+            transition(':leave', [
+                animate('350ms ease', style({ transform: 'traslateY(100%)', opacity: 0 }))
+            ]),
+            transition(':enter', [
+                style({ transform: 'translateY(-100%)', opacity: 0 }),
+                animate('350ms ease', style({ transform: 'translateY(0)', opacity: 1 }))
+            ])
+        ])
+    ],
+    standalone: false
 })
 export class CapitalsComponent implements OnInit, OnDestroy {
   capitals: CapitalResponse[] = [];
   capitalStatItems: CapitalItem[] = [
     { key: 'totalIncome', title: 'Incomes', icon: 'fa-dollar-sign', style: 'cp-incomes' },
-    { key: 'totalExpense', title: 'Expenses', icon: 'fa-money-bill-wave', style: 'cp-expenses' },
+    { key: 'totalExpense', title: 'Expenses', icon: 'fa-money-bill-wave', style: 'cp-expenses', url: '/expenses' },
     { key: 'totalTransferOut', title: 'Transfer Out', icon: 'fa-arrow-up', style: 'text-blue-400' },
     { key: 'totalTransferIn', title: 'Transfer In', icon: 'fa-arrow-down', style: 'text-pink-400' },
   ];
   exchanges: Exchange[] = [];
 
-  searchTerm: string = '';
+  searchTerm = '';
   selectedSortOption: string = '';
   sortDirection: 'asc' | 'desc' = 'asc';
+  filterBy: 'onlyForSavings' | null = null;
 
-  mainCurrency: string = 'UAH';
-  mainCurrencyVal: CurrencyType = stringToCurrencyEnum(this.mainCurrency) ?? CurrencyType.None;
+  mainCurrency: string;
+  mainCurrencyVal: CurrencyType;
 
   sortOptions: {label: string; key: string}[] = [
     { label: 'user order', key: '' },
@@ -68,18 +69,35 @@ export class CapitalsComponent implements OnInit, OnDestroy {
 
   currencyOptions = getCurrencies({ excludeNone: true });
 
-  private queryParams$ = new Subject<void>;
-  private unsubcribe$ = new Subject<void>;
+  private queryParams$ = new Subject<void>();
+  private unsubcribe$ = new Subject<void>();
 
   constructor(
     private readonly capitalService: CapitalService,
     private readonly popupMessageService: PopupMessageService,
     private readonly exchangeService: ExchangeService,
     private readonly dialogService: DialogService
-  ) { }
+  ) {
+  }
+
+  capitalBackgroundClass(includeInTotal: boolean, onlyForSavings: boolean) {
+    if (onlyForSavings) {
+      return 'cp bg-gradient-to-r from-white to-yellow-600';
+    }
+    if (!includeInTotal) {
+      return 'cp bg-gradient-to-r from-white to-blue-950';
+    }
+    else {
+      return 'cp bg-gradient-to-r from-white to-gray-100';
+    }
+  }
 
   @HostListener('document:click', ['$event.target'])
-  onClickOutside(targetElement: HTMLElement): void {
+  onClickOutside(targetElement: EventTarget | null): void {
+    if (!(targetElement instanceof HTMLElement)) {
+      return;
+    }
+
     const clickedInside = targetElement.closest('.cp-actions-compact');
 
     if (!clickedInside) {
@@ -88,6 +106,12 @@ export class CapitalsComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    document.title = "Deed - Capitals";
+
+    const mainCurrency = this.capitalService.getMainCurrency();
+    this.mainCurrency = mainCurrency.str;
+    this.mainCurrencyVal = mainCurrency.val;
+
     this.queryParams$
       .pipe(
         debounceTime(300),
@@ -109,7 +133,7 @@ export class CapitalsComponent implements OnInit, OnDestroy {
 
   fetchExchanges(): void {
     this.exchangeService
-      .getAll()
+      .getLatest()
       .pipe(takeUntil(this.unsubcribe$))
       .subscribe({
         next: (response) => this.exchanges = response
@@ -117,13 +141,22 @@ export class CapitalsComponent implements OnInit, OnDestroy {
   }
 
   fetchCapitals(): void {
-    this.capitalService.getAll(this.searchTerm, this.selectedSortOption, this.sortDirection)
+    this.capitalService.getAll({
+        searchTerm: this.searchTerm,
+        sortBy: this.selectedSortOption,
+        sortDirection: this.sortDirection,
+        filterBy: this.filterBy
+      })
       .pipe(takeUntil(this.unsubcribe$))
       .subscribe({
         next: (response) => {
           this.capitals = response;
         }
     });
+  }
+
+  onFilterChange(): void {
+    this.queryParams$.next();
   }
 
   onSearchChange(): void {
@@ -151,25 +184,29 @@ export class CapitalsComponent implements OnInit, OnDestroy {
   toggleEditDialog(capital: CapitalResponse) {
     this.onMenuItemClick();
 
-    this.dialogService.open({
-      component: CapitalDetailsComponent,
+    const ref = this.dialogService.open(CapitalDetailsComponent, {
       data: {
         capital: capital,
         currencyOptions: this.currencyOptions,
         exchanges: this.exchanges
-      },
-      onSubmit: (request: UpdateCapitalRequest | null) => {
-        if (request) {
-          this.capitalService
-            .update(request.id, request)
-            .pipe(takeUntil(this.unsubcribe$))
-            .subscribe({
-              next: () => this.capitalUpdated(request)
-            });
-        }
-        this.dialogService.close();
       }
-    })
+    });
+
+    ref
+      .afterClosed$
+      .pipe(takeUntil(this.unsubcribe$))
+      .subscribe({
+        next: (request: UpdateCapitalRequest | null) => {
+          if (request) {
+            this.capitalService
+              .update(request.id, request)
+              .pipe(takeUntil(this.unsubcribe$))
+              .subscribe({
+                next: () => this.capitalUpdated(request)
+              });
+          }
+        }
+      });
   }
 
   capitalUpdated(request: UpdateCapitalRequest): void {
@@ -180,6 +217,7 @@ export class CapitalsComponent implements OnInit, OnDestroy {
       capital.balance = request.balance ?? capital.balance;
       capital.currency = request.currency ? CurrencyType[request.currency] : capital.currency;
       capital.includeInTotal = request.includeInTotal ?? capital.includeInTotal;
+      capital.onlyForSavings = request.onlyForSavings ?? capital.onlyForSavings;
 
       this.popupMessageService.success(`${capital.name} was successfully updated.`);
     } else {
@@ -190,22 +228,26 @@ export class CapitalsComponent implements OnInit, OnDestroy {
   openToCreateCapitalDialog(): void {
     this.onMenuItemClick();
 
-    this.dialogService.open({
-      component: AddCapitalDialogComponent,
-      data: {
-        currencyOptions: this.currencyOptions
-      },
-      onSubmit: (request: AddCapitalRequest | null) => {
-        if (request) {
-          this.capitalService.create(request)
-            .pipe(takeUntil(this.unsubcribe$))
-            .subscribe({
-              next: (id) => this.addCapitalToTheList(id, request)
-            });
-        }
-        this.dialogService.close();
-      }
+    const dialogRef = this.dialogService.open(AddCapitalDialogComponent, {
+      data: this.currencyOptions
     });
+
+    dialogRef
+      .afterClosed$
+      .subscribe({
+        next: (request: AddCapitalRequest | null) => {
+          if (request) {
+            this.capitalService.create(request)
+              .pipe(takeUntil(this.unsubcribe$))
+              .subscribe({
+                next: (id) => {
+                  this.addCapitalToTheList(id, request);
+                }
+              });
+          }
+        }
+      }
+    );
   }
 
   addCapitalToTheList(id: number, request: AddCapitalRequest): void {
@@ -215,17 +257,20 @@ export class CapitalsComponent implements OnInit, OnDestroy {
       balance: Number(request.balance),
       currency: CurrencyType[request.currency],
       includeInTotal: request.includeInTotal,
+      onlyForSavings: request.onlyForSavings,
       totalIncome: 0,
       totalExpense: 0,
       totalTransferIn: 0,
-      totalTransferOut: 0
+      totalTransferOut: 0,
+      createdAt: new Date(),
+      createdBy: 0
     };
 
     this.capitals.push(response);
     this.popupMessageService.success(`${request.name} successfully added.`);
-  };
+  }
 
-  totalCapitalAmount(): number {
+  get totalCapitalBalance(): number {
     return this.capitals?.reduce((accumulator, capital) => {
       if (!capital.includeInTotal) return accumulator;
 
@@ -255,37 +300,53 @@ export class CapitalsComponent implements OnInit, OnDestroy {
     }
   }
 
-  includeInTotalCapital(id: number): void {
+  toggleIncludeInTotal(id: number): void {
     const capital = this.capitals.find(c => c.id === id);
 
     if (capital) {
-      const request: UpdateCapitalRequest = {
-        id: id,
-        name: null,
-        balance: null,
-        currency: null,
-        includeInTotal: !capital.includeInTotal,
-      };
-
       this.capitalService
-        .update(request.id, request)
+        .patchIncludeTotal(id, !capital.includeInTotal)
         .pipe(takeUntil(this.unsubcribe$))
         .subscribe({
-          next: () => capital.includeInTotal = !capital.includeInTotal
+          next: () => {
+            capital.includeInTotal = !capital.includeInTotal;
+            this.popupMessageService.success(`${capital.name} ${capital.includeInTotal ? 'included into' : 'excluded from'} total balance`);
+          }
         });
     }
   }
 
-  removeCapital(id: number): void {
+  toggleSavingsOnly(id: number): void {
+    const capital = this.capitals.find(c => c.id === id);
+
+    if (capital) {
+      this.capitalService
+        .patchSavingsOnly(id, !capital.onlyForSavings)
+        .pipe(takeUntil(this.unsubcribe$))
+        .subscribe({
+          next: () => {
+            capital.onlyForSavings = !capital.onlyForSavings;
+            this.popupMessageService.success(`${capital.name} set to ${capital.onlyForSavings ? 'only for savings' : 'regular'} capital`);
+          }
+        });
+    }
+  }
+
+  deleteCapital(id: number): void {
     this.onMenuItemClick();
 
-    this.dialogService.open({
-      component: ConfirmDialogComponent,
+    const ref = this.dialogService.open(ConfirmDialogComponent, {
       data: {
-        title: 'removal capital',
-        action: 'remove'
+        title: 'Deletion of capital',
+        message: `
+          Are you sure you want to perform this action?<br><br>
+          <b>Note!</b> It may contain references and cannot be deleted.`,
+        icon: 'danger'
       },
-      onSubmit: (confirmed: boolean) => {
+    });
+
+    ref.afterClosed$.subscribe({
+      next: (confirmed: boolean) => {
         if (confirmed) {
           this.capitalService
             .delete(id)
@@ -293,12 +354,11 @@ export class CapitalsComponent implements OnInit, OnDestroy {
             .subscribe({
               next: () => {
                 this.capitals = this.capitals.filter(x => x.id !== id);
-                this.popupMessageService.success("The capital was successful removed.");
+                this.popupMessageService.success("The capital was successful deleted.");
               }});
         }
-        this.dialogService.close();
       }
-    })
+    });
   }
 
   onMenuItemClick(): void {

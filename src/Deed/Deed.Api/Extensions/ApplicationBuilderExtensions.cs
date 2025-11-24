@@ -17,11 +17,11 @@ internal static class ApplicationBuilderExtensions
         var webUiSettings = serviceScope.ServiceProvider.GetRequiredService<IOptions<WebUrlSettings>>().Value;
 
         builder.UseCors(policyBuilder => policyBuilder
-            .AllowCredentials()
-            .AllowAnyMethod()
+            .WithOrigins(webUiSettings.UIUrl)
             .AllowAnyHeader()
-            .WithOrigins(
-                webUiSettings.UIUrl));
+            .AllowAnyMethod()
+            .AllowCredentials()
+        );
 
         return builder;
     }

@@ -1,8 +1,10 @@
+using Deed.Application.Abstractions.Data;
 using Deed.Application.Categories.Commands.Delete;
 using Deed.Application.Categories.Specifications;
 using Deed.Domain.Entities;
 using Deed.Domain.Enums;
 using Deed.Domain.Errors;
+using Deed.Domain.Providers;
 using Deed.Domain.Repositories;
 using FluentAssertions;
 using NSubstitute;
@@ -22,12 +24,12 @@ public sealed class DeleteCategoryCommandHandlerTests
     }
 
     [Theory]
-    [InlineData(CategoryType.Incomes, "IncomesWithHighAmountOfDollars", 0f, PerPeriodType.None)]
-    [InlineData(CategoryType.Expenses, "E", 100f, PerPeriodType.Daily)]
+    [InlineData(CategoryType.Incomes, "IncomesWithHighAmountOfDollars", 0, PerPeriodType.None)]
+    [InlineData(CategoryType.Expenses, "E", 100, PerPeriodType.Daily)]
     public async Task Handle_ShouldDeleteCategory_ReturnSuccess(
         CategoryType type,
         string name,
-        float periodAmount,
+        decimal periodAmount,
         PerPeriodType periodType)
     {
         // Arrange

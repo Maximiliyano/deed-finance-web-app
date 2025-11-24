@@ -45,6 +45,8 @@ public static class DependencyInjection
 
         services.Configure<BackgroundJobsSettings>(configuration.GetRequiredSection(nameof(BackgroundJobsSettings)));
 
+        services.Configure<MemoryCacheSettings>(configuration.GetRequiredSection(nameof(MemoryCacheSettings)));
+
         return services;
     }
 }

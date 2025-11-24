@@ -12,7 +12,6 @@ namespace Deed.Tests.Unit.Expenses.Commands;
 
 public sealed class UpdateExpenseCommandHandlerTests
 {
-    private readonly IDateTimeProvider _dateTimeProvider = Substitute.For<IDateTimeProvider>();
     private readonly ICapitalRepository _capitalRepository = Substitute.For<ICapitalRepository>();
     private readonly ICategoryRepository _categoryRepository = Substitute.For<ICategoryRepository>();
     private readonly IExpenseRepository _expenseRepository = Substitute.For<IExpenseRepository>();
@@ -22,31 +21,72 @@ public sealed class UpdateExpenseCommandHandlerTests
 
     public UpdateExpenseCommandHandlerTests()
     {
-        _handler = new UpdateExpenseCommandHandler(_dateTimeProvider, _capitalRepository, _categoryRepository, _expenseRepository, _unitOfWork);
+        _handler = new UpdateExpenseCommandHandler(_capitalRepository, _categoryRepository, _expenseRepository, _unitOfWork);
+    }
+
+    [Fact]
+    public async Task Handle_UpdateExpenseWithCapitialForSavingsOnly_ShouldReturnFailure()
+    {
+        // Arrange
+        var expense = new Expense(1)
+        {
+            Amount = 10.0m,
+            PaymentDate = DateTimeOffset.UtcNow,
+            CategoryId = 1,
+            Category = new Category(1)
+            {
+                Name = "ExpenseCategory",
+                Type = CategoryType.Expenses
+            },
+            CapitalId = 1,
+            Capital = new Capital(1)
+            {
+                Name = "SavingsCapital",
+                Balance = 500.0m,
+                Currency = CurrencyType.USD,
+                OnlyForSavings = true
+            }
+        };
+
+        _expenseRepository.GetAsync(Arg.Any<ExpenseByIdSpecification>())
+            .Returns(expense);
+
+        var command = new UpdateExpenseCommand(expense.Id);
+
+        // Act
+        var result = await _handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        result.IsSuccess.Should().BeFalse();
+        result.Errors.Should().OnlyContain(e => e.Equals(DomainErrors.Capital.ForSavingsOnly));
+        
+        _expenseRepository.DidNotReceive().Update(Arg.Any<Expense>());
+        await _unitOfWork.DidNotReceive().SaveChangesAsync(CancellationToken.None);
     }
 
     [Theory]
-    [InlineData(null, null, null)]
-    [InlineData(4, null, null)]
-    [InlineData(3, 100f, null)]
-    [InlineData(3, null, "Hi")]
-    [InlineData(null, 200f, null)]
-    [InlineData(null, 200f, "Well")]
-    [InlineData(1, 200f, null)]
-    [InlineData(null, null, "Purspo")]
-    [InlineData(null, 12f, "Purspo")]
-    [InlineData(4, null, "Purspo")]
-    [InlineData(1, 150f, "Test")]
+    [InlineData(null, null, null, null)]
+    [InlineData(5, 4, null, null)]
+    [InlineData(2, 3, 100.0, null)]
+    [InlineData(5, 3, null, "Hi")]
+    [InlineData(null, null, 200.0, null)]
+    [InlineData(7, null, 200.0, "Well")]
+    [InlineData(2, 1, 200.0, null)]
+    [InlineData(null, null, null, "Purspo")]
+    [InlineData(null, null, 12.0, "Purspo")]
+    [InlineData(2, 4, null, "Purspo")]
+    [InlineData(8, 1, 150.0, "Test")]
     public async Task Handle_UpdateExpense_ShouldReturnUpdated(
+        int? capitalId,
         int? categoryId,
-        float? amount,
+        double? amount,
         string? purpose)
     {
         // Arrange
         const int id = 1;
         const int oldCategoryId = 2;
-        const float oldAmount = 100f;
-        const string oldPurpose = "Hello";
+        const int oldCapitalId = 1;
+        const decimal oldAmount = 100m;
 
         var utcNow = DateTimeOffset.UtcNow;
         var expense = new Expense(id)
@@ -59,24 +99,23 @@ public sealed class UpdateExpenseCommandHandlerTests
                 Name = "TestCategory",
                 Type = CategoryType.Expenses
             },
-            CapitalId = 1,
-            Capital = new Capital(1)
+            CapitalId = oldCapitalId,
+            Capital = new Capital(oldCapitalId)
             {
                 Name = "TestCapital",
                 Balance = 1000,
                 Currency = CurrencyType.UAH
             },
-            Purpose = oldPurpose
+            Purpose = purpose
         };
-        var command = new UpdateExpenseCommand(id, categoryId, amount, purpose, utcNow);
+        decimal? newAmount = amount is null ? null : (decimal)amount;
+        var command = new UpdateExpenseCommand(id, categoryId, capitalId, newAmount, purpose, utcNow);
 
         _expenseRepository.GetAsync(Arg.Any<ExpenseByIdSpecification>())
             .Returns(expense);
 
-        _dateTimeProvider.UtcNow.Returns(utcNow);
-
-        var expectedCapitalBalance = amount.HasValue
-            ? expense.Capital.Balance + expense.Amount - amount.Value
+        var expectedCapitalBalance = newAmount.HasValue
+            ? expense.Capital.Balance + expense.Amount - newAmount.Value
             : expense.Capital.Balance;
 
         // Act
@@ -86,15 +125,16 @@ public sealed class UpdateExpenseCommandHandlerTests
         result.IsSuccess.Should().BeTrue();
 
         expense.Id.Should().Be(id);
-        expense.Amount.Should().Be(amount ?? oldAmount);
+        expense.Amount.Should().Be(newAmount ?? oldAmount);
         expense.Capital.Balance.Should().Be(expectedCapitalBalance);
-        expense.Purpose.Should().Be(purpose ?? oldPurpose);
+        expense.Purpose.Should().Be(purpose);
         expense.PaymentDate.Should().Be(utcNow);
         expense.CategoryId.Should().Be(categoryId ?? oldCategoryId);
+        expense.CapitalId.Should().Be(capitalId ?? oldCapitalId);
 
         _expenseRepository.Received(1).Update(expense);
 
-        if (amount.HasValue)
+        if (amount.HasValue || capitalId.HasValue)
         {
             _capitalRepository.Received(1).Update(expense.Capital);
         }

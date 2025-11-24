@@ -11,9 +11,9 @@ internal sealed class UpdateOrder : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPut("api/capitals/orders", async (UpdateCapitalOrdersRequest request, ISender sender) =>
+        app.MapPut("api/capitals/orders", async (UpdateCapitalOrdersRequest request, ISender sender, CancellationToken ct) =>
             (await sender
-                .Send(new UpdateCapitalOrdersCommand(request.Capitals)))
+                .Send(new UpdateCapitalOrdersCommand(request.Capitals), ct))
                 .Process())
             .WithTags(nameof(Capitals));
     }

@@ -1,5 +1,8 @@
+using System.Xml.Linq;
+using Deed.Application.Capitals;
 using Deed.Application.Capitals.Queries.GetAll;
 using Deed.Application.Capitals.Responses;
+using Deed.Application.Capitals.Specifications;
 using Deed.Domain.Entities;
 using Deed.Domain.Enums;
 using Deed.Domain.Repositories;
@@ -26,10 +29,11 @@ public sealed class GetAllCapitalQueryHandlerTests
         // Arrange
         const int capitalId = 1;
 
-        var query = new GetAllCapitalsQuery();
+        var capitalName = "TestCapital";
+        var query = new GetAllCapitalsQuery(capitalName);
         var capitals = new List<Capital> { new(capitalId)
             {
-                Name = "TestCapital",
+                Name = capitalName,
                 Balance = 10,
                 Currency = CurrencyType.USD
             }
@@ -41,12 +45,16 @@ public sealed class GetAllCapitalQueryHandlerTests
                 x.Balance,
                 x.Currency.ToString(),
                 x.IncludeInTotal,
+                x.OnlyForSavings,
                 x.TotalIncome,
                 x.TotalExpense,
                 x.TotalTransferIn,
-                x.TotalTransferOut));
+                x.TotalTransferOut,
+                x.CreatedAt,
+                x.CreatedBy
+            ));
 
-        _repositoryMock.GetAllAsync().Returns(capitals);
+        _repositoryMock.GetAllAsync(Arg.Any<CapitalsByQueryParamsSpecification>()).Returns(capitals);
 
         // Act
         var result = await _handler.Handle(query, CancellationToken.None);
@@ -57,7 +65,7 @@ public sealed class GetAllCapitalQueryHandlerTests
             result.IsSuccess.Should().BeTrue();
             result.Value.Should().BeEquivalentTo(capitalResponses);
 
-            await _repositoryMock.Received(1).GetAllAsync();
+            await _repositoryMock.Received(1).GetAllAsync(Arg.Any<CapitalsByQueryParamsSpecification>());
         }
     }
 
@@ -70,15 +78,18 @@ public sealed class GetAllCapitalQueryHandlerTests
         var capitalResponses = capitals.Select(_ => new CapitalResponse(
             0,
             string.Empty,
-            0f,
+            0m,
             string.Empty,
             false,
-            0f,
-            0f,
-            0f,
-            0f));
+            false,
+            0m,
+            0m,
+            0m,
+            0m,
+            DateTimeOffset.Now,
+            0));
 
-        _repositoryMock.GetAllAsync().Returns(capitals);
+        _repositoryMock.GetAllAsync(Arg.Any<ISpecification<Capital>>()).Returns(capitals);
 
         // Act
         var result = await _handler.Handle(query, CancellationToken.None);
@@ -89,7 +100,39 @@ public sealed class GetAllCapitalQueryHandlerTests
             result.IsSuccess.Should().BeTrue();
             result.Value.Should().BeEquivalentTo(capitalResponses);
 
-            await _repositoryMock.Received(1).GetAllAsync();
+            await _repositoryMock.Received(1).GetAllAsync(Arg.Any<ISpecification<Capital>>());
         }
+    }
+
+    [Theory]
+    [InlineData("name", "asc")]
+    [InlineData("name", "desc")]
+    [InlineData("balance", "asc")]
+    [InlineData("expenses", "desc")]
+    [InlineData(null, null)]
+    public async Task Handle_ShouldGetAllCapitalsBySortParams_ReturnsSortedCapitals(string? sortBy, string? sortDirection)
+    {
+        // Arrange
+        var query = new GetAllCapitalsQuery(null, sortBy, sortDirection);
+        var capitals = new List<Capital>
+        {
+            new(1) { Name = "Berlin", Balance = 100, Currency = CurrencyType.USD, OrderIndex = 2 },
+            new(2) { Name = "Paris", Balance = 200, Currency = CurrencyType.UAH, OrderIndex = 1 }
+        };
+        var response = capitals.ToResponses();
+
+        _repositoryMock
+            .GetAllAsync(Arg.Any<CapitalsByQueryParamsSpecification>())
+            .Returns(capitals);
+
+        // Act
+        var result = await _handler.Handle(query, CancellationToken.None);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().BeEquivalentTo(response);
+
+        await _repositoryMock.Received(1)
+            .GetAllAsync(Arg.Any<CapitalsByQueryParamsSpecification>());
     }
 }

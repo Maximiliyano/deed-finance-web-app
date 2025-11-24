@@ -12,7 +12,7 @@ internal sealed class GetByIdCapitalQueryHandler(ICapitalRepository repository)
 {
     public async Task<Result<CapitalResponse>> Handle(GetByIdCapitalQuery query, CancellationToken cancellationToken)
     {
-        var capital = await repository.GetAsync(new CapitalByIdSpecification(query.Id));
+        var capital = await repository.GetAsync(new CapitalByIdSpecification(query.Id)).ConfigureAwait(false);
 
         if (capital is null)
         {

@@ -1,3 +1,4 @@
+using Deed.Application.Abstractions.Settings;
 using Deed.Application.Exchanges;
 using Deed.Application.Exchanges.Queries.GetLatest;
 using Deed.Application.Exchanges.Responses;
@@ -10,6 +11,7 @@ using Deed.Domain.Repositories;
 using Deed.Domain.Results;
 using FluentAssertions;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Options;
 using NSubstitute;
 
 namespace Deed.Tests.Unit.Exchanges.Queries;
@@ -18,12 +20,17 @@ public sealed class GetLatestExchangesHandlerTests
 {
     private readonly IExchangeRepository _repositoryMock = Substitute.For<IExchangeRepository>();
     private readonly IMemoryCache _memoryCacheMock = Substitute.For<IMemoryCache>();
+    private readonly IOptions<MemoryCacheSettings> _settings;
 
     private readonly GetLatestExchangeQueryHandler _handler;
 
     public GetLatestExchangesHandlerTests()
     {
-        _handler = new GetLatestExchangeQueryHandler(_repositoryMock, _memoryCacheMock);
+        _settings = Options.Create(new MemoryCacheSettings
+        {
+            ExchangesTimespanInHours = 1
+        });
+        _handler = new GetLatestExchangeQueryHandler(_settings, _repositoryMock, _memoryCacheMock);
     }
 
     [Fact]
@@ -37,8 +44,8 @@ public sealed class GetLatestExchangesHandlerTests
             {
                 NationalCurrencyCode = "UAH",
                 TargetCurrencyCode = "EUR",
-                Buy = 39.1f,
-                Sale = 39.8f,
+                Buy = 39.1m,
+                Sale = 39.8m,
                 CreatedAt = DateTimeOffset.UtcNow
             }
         };
@@ -53,8 +60,8 @@ public sealed class GetLatestExchangesHandlerTests
         result.Value.Should().OnlyContain(c =>
             c.NationalCurrency == "UAH" &&
             c.TargetCurrency == "EUR" &&
-            c.Buy.Equals(39.1f) &&
-            c.Sale.Equals(39.8f));
+            c.Buy.Equals(39.1m) &&
+            c.Sale.Equals(39.8m));
     }
 
     [Fact]
@@ -68,16 +75,16 @@ public sealed class GetLatestExchangesHandlerTests
             {
                 NationalCurrencyCode = "USD",
                 TargetCurrencyCode = "UAH",
-                Buy = 32.1f,
-                Sale = 31.9f,
+                Buy = 32.1m,
+                Sale = 31.9m,
                 CreatedAt = utcNow
             },
             new()
             {
                 NationalCurrencyCode = "EUR",
                 TargetCurrencyCode = "UAH",
-                Buy = 29.6f,
-                Sale = 28.2f,
+                Buy = 29.6m,
+                Sale = 28.2m,
                 CreatedAt = utcNow
             }
         };

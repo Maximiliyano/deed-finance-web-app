@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
     <PropertyGroup>
         <TargetFramework>net9.0</TargetFramework>
@@ -11,20 +11,19 @@
         <NoWarn>NU1903</NoWarn>
     </PropertyGroup>
 
-    <ItemGroup>
-        <PackageReference Include="AspNetCore.HealthChecks.UI.Client" Version="9.0.0" />
-        <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.6">
-          <PrivateAssets>all</PrivateAssets>
-          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-        </PackageReference>
-        <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="9.0.6" />
-        <PackageReference Include="Quartz.Extensions.Hosting" Version="3.14.0" />
-        <PackageReference Include="Serilog.AspNetCore" Version="9.0.0" />
-        <PackageReference Include="Serilog.Sinks.Seq" Version="9.0.0" />
-        <PackageReference Include="Swashbuckle.AspNetCore" Version="9.0.1" />
-    </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="AspNetCore.HealthChecks.UI.Client" Version="9.0.0" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.8">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="Quartz.Extensions.Hosting" Version="3.15.0" />
+		<PackageReference Include="Serilog.AspNetCore" Version="9.0.0" />
+		<PackageReference Include="Serilog.Sinks.Seq" Version="9.0.0" />
+		<PackageReference Include="Swashbuckle.AspNetCore" Version="9.0.4" />
+	</ItemGroup>
 
-    <ItemGroup>
+	<ItemGroup>
       <ProjectReference Include="..\Deed.Infrastructure\Deed.Infrastructure.csproj" />
     </ItemGroup>
 

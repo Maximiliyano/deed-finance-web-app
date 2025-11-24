@@ -1,0 +1,159 @@
+<h1 class="font-bold text-lg text-center mb-2">
+  {{ data.type ? data.type + ' categories' : 'Categories' }}
+</h1>
+
+@if (data.type) {
+  <div class="text-sm">
+    Type: <span class="font-bold">{{ data.type }}</span>
+  </div>
+}
+
+<div class="flex flex-col gap-4 h-96 border rounded p-2 bg-slate-50">
+
+  <div class="overflow-y-auto flex-1">
+    @if (editableCategories.length === 0) {
+
+      <div class="text-gray-500">No categories found</div>
+
+    } @else {
+
+      <table class="w-full text-sm">
+        <thead class="font-medium border-b bg-slate-100">
+          <tr>
+            <th class="text-left p-2">Name</th>
+            <th class="text-center p-2">Period Amount</th>
+            <th class="text-center p-2 text-nowrap">Period Type</th>
+
+            @if (isEditModeEnabled) {
+              <th class="text-center p-2 w-14">Actions</th>
+            }
+          </tr>
+        </thead>
+
+        <tbody>
+          @for (category of editableCategories; track category.id) {
+
+            <tr class="border-b hover:bg-gray-50">
+
+              <td class="p-2">
+                @if (!isEditModeEnabled) {
+                  <span class="truncate block" [title]="category.name">{{ category.name }}</span>
+                } @else {
+                  <input
+                    class="border rounded p-1 w-full"
+                    [(ngModel)]="category.name"
+                    (ngModelChange)="onFieldChange(category.id)"
+                    type="text"
+                  />
+                }
+              </td>
+
+              <td class="text-center p-2">
+                @if (!isEditModeEnabled) {
+                  {{ category.periodAmount | currencySymbol:data.currency }}
+                } @else {
+                  <input
+                    class="border rounded p-1 w-full text-center"
+                    [(ngModel)]="category.periodAmount"
+                    (ngModelChange)="onFieldChange(category.id)"
+                    type="number"
+                  />
+                }
+              </td>
+
+              <td class="text-center p-2">
+                @if (!isEditModeEnabled) {
+                  {{ category.periodType | enumText:PerPeriodType }}
+                } @else {
+                  <select
+                    class="border rounded p-1 w-full text-center"
+                    [(ngModel)]="category.periodType"
+                    (ngModelChange)="onFieldChange(category.id)"
+                  >
+                    @for (item of periodTypeOptions; track item) {
+                      <option [value]="item.value">{{ item.key }}</option>
+                    }
+                  </select>
+                }
+              </td>
+
+              @if (isEditModeEnabled) {
+                <td class="p-2 text-center">
+                  <button
+                    class="text-red-500 hover:text-red-700"
+                    (click)="remove(category.id)"
+                  >
+                    <app-icon name="fa-trash"></app-icon>
+                  </button>
+                </td>
+              }
+            </tr>
+          }
+        </tbody>
+      </table>
+
+    }
+  </div>
+
+  @if (deletedCategories.length > 0) {
+    <div class="flex gap-1">
+      <select [(ngModel)]="selectedDeletedId"
+        class="border rounded p-1 w-full text-center"
+      >
+        <option [ngValue]="null">Select deleted category...</option>
+        @for (item of deletedCategories; track item.id) {
+          <option [value]="item.id">{{ item.name }}</option>
+        }
+      </select>
+
+      <button
+        class="flex items-center gap-1 border px-2 py-1 rounded text-white bg-amber-600 hover:bg-amber-700"
+        (click)="restore()"
+        [disabled]="!selectedDeletedId"
+      >
+        Restore
+      </button>
+    </div>
+    }
+
+  <div class="flex justify-between pt-2 border-t">
+
+    @if (!isEditModeEnabled) {
+      <button
+        class="flex items-center gap-2 border px-2 py-1 rounded text-white bg-green-600 hover:bg-green-700"
+        (click)="add()"
+      >
+        Add <app-icon name="fa-circle-plus"></app-icon>
+      </button>
+
+      @if (editableCategories.length > 0) {
+        <button
+          class="flex items-center gap-2 border px-2 py-1 rounded text-white bg-blue-500 hover:bg-blue-600"
+          (click)="isEditModeEnabled = true"
+        >
+          Edit all <app-icon name="fa-pen"></app-icon>
+        </button>
+      }
+
+    } @else {
+
+      <button
+        class="bg-green-600 border rounded text-white px-6 py-1
+              disabled:opacity-50
+              {{ hasChanges ? 'hover:bg-green-800' : 'cursor-not-allowed' }}"
+        [disabled]="!hasChanges"
+        (click)="save()"
+      >
+        Update
+      </button>
+
+      <button
+        class="bg-red-500 hover:bg-red-700 border rounded text-white px-4 py-1"
+        (click)="cancel()"
+      >
+        Close
+      </button>
+    }
+
+  </div>
+</div>

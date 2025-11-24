@@ -417,3 +417,6 @@ src/Deed/.idea/
 /src/WebUI/package-lock.json
 # Local Netlify folder
 .netlify
+
+# Migrations
+/src/Deed/Deed.Infrastructure/Persistence/Migrations

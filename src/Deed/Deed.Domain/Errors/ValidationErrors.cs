@@ -1,4 +1,5 @@
-﻿using Deed.Domain.Results;
+﻿using Deed.Domain.Constants;
+using Deed.Domain.Results;
 
 namespace Deed.Domain.Errors;
 
@@ -8,6 +9,9 @@ public static class ValidationErrors
     {
         public static Error InvalidPaymentDate
             => Error.BadRequest(nameof(InvalidPaymentDate), "The expense payment date was invalid.");
+
+        public static Error PurposeEmptyOrWhitespace
+            => Error.BadRequest("Expense.PurposeEmptyOrWhitespace", "Purpose field should not be empty or whitespace.");
     }
 
     public static class Capital
@@ -21,6 +25,12 @@ public static class ValidationErrors
 
     public static class Category
     {
+        public static Error EmptyName
+            => Error.BadRequest(nameof(EmptyName), "The category name is required.");
+
+        public static Error NameTooLong
+            => Error.BadRequest(nameof(NameTooLong), $"The category name should be less than {ValidationConstants.MaxLenghtName}");
+
         public static Error InvalidType
             => Error.BadRequest(nameof(InvalidType), "The category type is invalid.");
 

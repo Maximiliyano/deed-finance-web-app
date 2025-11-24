@@ -20,7 +20,7 @@
       </div>
 
       <div class="exchanges">
-        <ng-container *ngFor="let exchange of exchanges">
+        @for (exchange of exchanges; track exchange.sale) {
           <div class="exchange">
             <div class="prices">
               <span>{{ exchange?.buy || '0' | number: '1.2-2' }}</span>
@@ -31,15 +31,23 @@
               <span>{{ exchange?.nationalCurrency || 'None' }}</span>
             </div>
           </div>
-        </ng-container>
+        }
+        @if (exchanges.length > 3) {
+          <div class="exchange more-btn">
+            <button (click)="openExchangeDialog()"></button>
+          </div>
+        }
+        <span class="text-sm opacity-50 font-thin italic">Last sync: {{exchangeUpdatedAt | date }}</span>
       </div>
 
       <nav class="navigation">
         <ul class="list">
-          <li *ngFor="let item of navItems" class="item" [routerLink]="item.link">
-            <app-icon [name]="item.icon"></app-icon>
-            {{ item.label }}
-          </li>
+          @for (item of navItems; track item.label) {
+            <li class="item" [routerLink]="item.link">
+              <app-icon [name]="item.icon"></app-icon>
+              {{ item.label }}
+            </li>
+          }
         </ul>
       </nav>
 
@@ -63,10 +71,12 @@
     <div class="sidebar-content">
       <nav class="sidebar-nav">
         <ul class="sidebar-nav-list">
-          <li *ngFor="let item of navItems" class="sidebar-nav-item" [routerLink]="item.link" (click)="isSidebarExpanded = false">
-            <app-icon [name]="item.icon"></app-icon>
-            {{ item.label }}
-          </li>
+          @for (item of navItems; track item.label) {
+            <a class="sidebar-nav-item" [routerLink]="item.link" (click)="isSidebarExpanded = false">
+              <app-icon [name]="item.icon"></app-icon>
+              {{ item.label }}
+            </a>
+          }
         </ul>
       </nav>
     </div>

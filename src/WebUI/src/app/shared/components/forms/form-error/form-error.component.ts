@@ -2,17 +2,19 @@ import { Component, Input } from '@angular/core';
 import { FormGroup } from '@angular/forms';
 
 @Component({
-  selector: 'app-form-error',
-  templateUrl: './form-error.component.html'
+    selector: 'app-form-error',
+    templateUrl: './form-error.component.html',
+    standalone: false
 })
 export class FormErrorComponent {
-  @Input() form: FormGroup;
-  @Input() controlName: string;
+  @Input({ required: true }) form: FormGroup;
+  @Input({ required: true }) controlName: string;
 
   get errorMessage(): string | null {
     const control = this.form?.get(this.controlName);
     if (!control || !control.errors || !control.touched || !control.dirty) return null;
 
+    if (control.errors['futureDate']) return 'Payment date cannot be in the future.';
     if (control.errors['required']) return 'This field is required.';
     if (control.errors['minlength']) return `Minimum length is ${control.errors['minlength'].requiredLength}.`;
     if (control.errors['maxlength']) return `Maximum length is ${control.errors['maxlength'].requiredLength}.`;

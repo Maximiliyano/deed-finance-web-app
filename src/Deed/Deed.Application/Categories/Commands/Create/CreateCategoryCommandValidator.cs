@@ -13,11 +13,13 @@ internal sealed class CreateCategoryCommandValidator : AbstractValidator<CreateC
     public CreateCategoryCommandValidator(ICategoryRepository repository)
     {
         RuleFor(c => c.Name)
-            .MustAsync(async (name, _) => !await repository
-                .AnyAsync(new CategoryByNameSpecification(name)))
-            .WithError(ValidationErrors.Category.AlreadyExists)
             .NotEmpty()
-            .MaximumLength(ValidationConstants.MaxLenghtName);
+            .WithError(ValidationErrors.Category.EmptyName)
+            .MaximumLength(ValidationConstants.MaxLenghtName)
+            .WithError(ValidationErrors.Category.NameTooLong)
+            .MustAsync(async (name, _) =>
+                !await repository.AnyAsync(new CategoryByNameSpecification(name)).ConfigureAwait(false))
+            .WithError(ValidationErrors.Category.AlreadyExists);
 
         RuleFor(c => c.Type)
             .Must(type => type is not CategoryType.None)

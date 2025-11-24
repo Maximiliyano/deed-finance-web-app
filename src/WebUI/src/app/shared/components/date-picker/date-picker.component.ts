@@ -5,18 +5,21 @@ import {
 } from '@angular/forms';
 
 @Component({
-  selector: 'app-date-picker',
-  templateUrl: './date-picker.component.html',
-  providers: [
-    {
-      provide: NG_VALUE_ACCESSOR,
-      useExisting: forwardRef(() => DatePickerComponent),
-      multi: true
-    }
-  ]
+    selector: 'app-date-picker',
+    templateUrl: './date-picker.component.html',
+    providers: [
+        {
+            provide: NG_VALUE_ACCESSOR,
+            useExisting: forwardRef(() => DatePickerComponent),
+            multi: true
+        }
+    ],
+    standalone: false
 })
 export class DatePickerComponent implements ControlValueAccessor {
-  @Input() label: string | null = null;
+  @Input() restrictFuture: boolean;
+
+  today = new Date().toISOString().split('T')[0]; // TODO move into function
 
   value: string | null = null;
   disabled = false;

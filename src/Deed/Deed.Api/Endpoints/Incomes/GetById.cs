@@ -8,9 +8,9 @@ internal sealed class GetById : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("api/incomes/{id:int}", async (int id, ISender sender) =>
+        app.MapGet("api/incomes/{id:int}", async (int id, ISender sender, CancellationToken ct) =>
             (await sender
-                .Send(new GetIncomeByIdQuery(id)))
+                .Send(new GetIncomeByIdQuery(id), ct))
                 .Process())
             .WithTags(nameof(Incomes));
     }

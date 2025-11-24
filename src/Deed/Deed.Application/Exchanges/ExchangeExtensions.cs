@@ -11,7 +11,7 @@ internal static class ExchangeExtensions
             exchange.NationalCurrencyCode,
             exchange.Buy,
             exchange.Sale,
-            exchange.CreatedAt == DateTimeOffset.MinValue ? DateTimeOffset.UtcNow : exchange.CreatedAt);
+            exchange.UpdatedAt ?? exchange.CreatedAt);
 
     internal static IEnumerable<ExchangeResponse> ToResponses(this IEnumerable<Exchange> exchanges)
         => exchanges.Select(e => e.ToResponse());

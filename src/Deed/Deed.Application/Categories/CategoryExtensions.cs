@@ -1,4 +1,6 @@
 using Deed.Application.Categories.Commands.Create;
+using Deed.Application.Categories.Commands.UpdateRange;
+using Deed.Application.Categories.Requests;
 using Deed.Application.Categories.Response;
 using Deed.Domain.Entities;
 
@@ -13,7 +15,9 @@ internal static class CategoryExtensions
                     category.Name,
                     category.Type,
                     category.Period,
-                    category.PlannedPeriodAmount);
+                    category.PlannedPeriodAmount,
+                    category.IsDeleted ?? false
+        );
     }
 
     internal static IEnumerable<CategoryResponse> ToResponses(this IEnumerable<Category> categories)

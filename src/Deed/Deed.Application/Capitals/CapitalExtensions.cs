@@ -14,10 +14,14 @@ internal static class CapitalExtensions
             capital.Balance,
             capital.Currency.ToString(),
             capital.IncludeInTotal,
+            capital.OnlyForSavings,
             capital.TotalIncome,
             capital.TotalExpense,
             capital.TotalTransferIn,
-            capital.TotalTransferOut);
+            capital.TotalTransferOut,
+            capital.CreatedAt,
+            capital.CreatedBy
+    );
 
     internal static IEnumerable<CapitalResponse> ToResponses(this IEnumerable<Capital> capitals)
         => capitals.Select(e => e.ToResponse());
@@ -28,6 +32,7 @@ internal static class CapitalExtensions
             Name = command.Name.Trim(),
             Balance = command.Balance,
             Currency = command.Currency,
-            IncludeInTotal = command.IncludeInTotal
+            IncludeInTotal = command.IncludeInTotal,
+            OnlyForSavings = command.OnlyForSavings,
         };
 }

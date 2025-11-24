@@ -5,4 +5,5 @@ export type CapitalItem = {
   title: string;
   icon: string;
   style: string;
+  url?: string;
 };

@@ -4,6 +4,7 @@ using Deed.Domain.Enums;
 using Deed.Domain.Errors;
 using Deed.Domain.Repositories;
 using Deed.Domain.Results;
+using Microsoft.EntityFrameworkCore;
 
 namespace Deed.Application.Capitals.Commands.Update;
 
@@ -12,7 +13,7 @@ internal sealed class UpdateCapitalCommandHandler(ICapitalRepository repository,
 {
     public async Task<Result> Handle(UpdateCapitalCommand command, CancellationToken cancellationToken)
     {
-        var capital = await repository.GetAsync(new CapitalByIdSpecification(command.Id));
+        var capital = await repository.GetAsync(new CapitalByIdSpecification(command.Id)).ConfigureAwait(false);
 
         if (capital is null)
         {
@@ -23,10 +24,11 @@ internal sealed class UpdateCapitalCommandHandler(ICapitalRepository repository,
         capital.Balance = command.Balance ?? capital.Balance;
         capital.Currency = command.Currency ?? capital.Currency;
         capital.IncludeInTotal = command.IncludeInTotal ?? capital.IncludeInTotal;
+        capital.OnlyForSavings = command.OnlyForSavings ?? capital.OnlyForSavings;
 
         repository.Update(capital);
 
-        await unitOfWork.SaveChangesAsync(cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         return Result.Success();
     }

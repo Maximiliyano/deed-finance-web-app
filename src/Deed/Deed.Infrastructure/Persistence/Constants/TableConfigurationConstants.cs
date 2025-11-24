@@ -1,4 +1,6 @@
-﻿namespace Deed.Infrastructure.Persistence.Constants;
+﻿using Microsoft.EntityFrameworkCore.Metadata.Builders;
+
+namespace Deed.Infrastructure.Persistence.Constants;
 
 internal static class TableConfigurationConstants
 {
@@ -13,4 +15,8 @@ internal static class TableConfigurationConstants
     public const string Transfers = nameof(Transfers);
 
     public const string Categories = nameof(Categories);
+
+    public const string DatabaseConnection = nameof(DatabaseConnection);
+
+    public const string Users = nameof(Users);
 }

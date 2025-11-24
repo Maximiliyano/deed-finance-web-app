@@ -24,12 +24,14 @@ public sealed class CreateCapitalCommandHandlerTests
     public async Task Handle_CreateValidCapital_ReturnsSuccess()
     {
         // Arrange
-        var command = new CreateCapitalCommand("FancyName  ", 1000, CurrencyType.USD, true);
+        var command = new CreateCapitalCommand("FancyName  ", 1000, CurrencyType.USD, true, false);
         var exceptedCapital = new Capital(1)
         {
             Name = "FancyName",
             Balance = 1000,
-            Currency = CurrencyType.USD
+            Currency = CurrencyType.USD,
+            IncludeInTotal = true,
+            OnlyForSavings = false
         };
 
         // Act
@@ -42,7 +44,9 @@ public sealed class CreateCapitalCommandHandlerTests
         _repositoryMock.Received(1).Create(Arg.Is<Capital>(c =>
             c.Name.Equals(exceptedCapital.Name, StringComparison.Ordinal) &&
             c.Balance.Equals(exceptedCapital.Balance) &&
-            c.Currency.Equals(exceptedCapital.Currency) 
+            c.Currency.Equals(exceptedCapital.Currency) &&
+            c.IncludeInTotal.Equals(exceptedCapital.IncludeInTotal) &&
+            c.OnlyForSavings.Equals(exceptedCapital.OnlyForSavings)
         ));
 
         await _unitOfWorkMock.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());

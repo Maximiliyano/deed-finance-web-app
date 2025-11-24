@@ -6,17 +6,29 @@ public static class DomainErrors
 {
     public static class General
     {
-        public static Error Exception(string message)
-            => Error.Failure(nameof(Exception), $"The exception occured with message: {message}");
+        public static Error Exception
+            => Error.Failure(nameof(Exception), "An unexcepted error occured.");
 
         public static Error NotFound(string name)
             => Error.NotFound(nameof(NotFound), $"The specific {name} was not found.");
+
+        public static Error UpdateFailed
+            => Error.Failure(nameof(UpdateFailed), "Update entity failed.");
+
+        public static Error EmptyCollection
+            => Error.BadRequest(nameof(EmptyCollection), "The collection of entities is empty.");
     }
 
     public static class Capital
     {
         public static Error InvalidCurrency
             => Error.BadRequest(nameof(InvalidCurrency), "The currency is invalid.");
+
+        public static Error ForSavingsOnly
+            => Error.BadRequest(nameof(ForSavingsOnly), "Capital is only for savings.");
+
+        public static Error ReferenceExists
+            => Error.Conflict("Capital.ReferenceExists", "Capital cannot be deleted because it has related references.");
     }
 
     public static class Exchange
@@ -38,5 +50,14 @@ public static class DomainErrors
     {
         public static Error InvalidPerPeriod
             => Error.BadRequest(nameof(InvalidPerPeriod), "Category per period is invalid.");
+
+        public static Error PeriodAmountGreaterEqualZero
+            => Error.BadRequest(nameof(PeriodAmountGreaterEqualZero), "Period amount should be greater or equal zero.");
+
+        public static Error ReferenceExists
+            => Error.Conflict("Category.ReferenceExists", "Category cannot be deleted because it has related references.");
+
+        public static Error RestoreFailed
+            => Error.NotFound("Category.RestoreFailed", "This category is not available for restore.");
     }
 }

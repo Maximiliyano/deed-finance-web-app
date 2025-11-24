@@ -1,69 +1,28 @@
-import { Component, OnInit, OnDestroy, ViewChild, ViewContainerRef, ComponentRef } from '@angular/core';
-import { Subscription } from 'rxjs';
-import { DialogData, DialogService } from '../../services/dialog.service';
+import { Component, ViewContainerRef, Type, Injector, AfterViewInit, ViewChild, Input } from '@angular/core';
+import { DialogRef } from './models/dialog-ref';
 
 @Component({
-  selector: 'app-dialog',
-  templateUrl: './dialog.component.html',
-  styleUrl: './dialog.component.scss',
+    selector: 'app-dialog',
+    templateUrl: './dialog.component.html',
+    styleUrl: './dialog.component.scss',
+    standalone: true
 })
-export class DialogComponent implements OnInit, OnDestroy {
-  visible = false;
-  dialogData: DialogData | null = null;
+export class DialogComponent implements AfterViewInit {
+  @ViewChild('dialogContainer', { read: ViewContainerRef })
+  container!: ViewContainerRef;
+  
+  @Input() index = 0;
+  @Input() childComponentType!: Type<any>;
+  @Input() childInjector!: Injector;
 
-  private sub!: Subscription;
-
-  @ViewChild('dialogContainer', { read: ViewContainerRef, static: false }) container!: ViewContainerRef;
-  private componentRef?: ComponentRef<any>;
-
-  constructor(private dialogService: DialogService) {}
-
-  ngOnInit() {
-    this.sub = this.dialogService.dialogState$.subscribe(dialogState => {
-      this.dialogData = dialogState;
-      this.visible = !!dialogState;
-
-      if (this.visible) {
-        setTimeout(() => this.loadComponent(), 0);
-      } else {
-        this.clearContainer();
-      }
+  ngAfterViewInit(): void {
+    this.container.createComponent(this.childComponentType, {
+      injector: this.childInjector
     });
   }
 
-  loadComponent() {
-    if (!this.container) return;
-
-    this.container.clear();
-
-    if (this.dialogData) {
-      this.componentRef = this.container.createComponent(this.dialogData.component);
-
-      if (this.dialogData.data) {
-        Object.assign(this.componentRef.instance, this.dialogData.data);
-      }
-
-      const instance = this.componentRef.instance as any;
-
-      if (instance.submitted && typeof instance.submitted.subscribe === 'function' && this.dialogData.onSubmit) {
-        instance.submitted.subscribe({ next: (result: any | null) => {
-          this.dialogData?.onSubmit?.(result);
-        }});
-      }
-    }
-  }
-
-  clearContainer() {
-    if (this.container) {
-      this.container.clear();
-    }
-  }
-
-  ngOnDestroy() {
-    this.sub.unsubscribe();
-  }
-
-  close() {
-    this.dialogService.close();
+  close(): void {
+    const ref = this.childInjector.get(DialogRef, null);
+    ref?.close();
   }
 }

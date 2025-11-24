@@ -3,7 +3,7 @@ namespace Deed.Domain.Entities;
 public sealed class Transfer
     : Entity, IAuditableEntity, ISoftDeletableEntity
 {
-    public required float Amount { get; set; }
+    public required decimal Amount { get; set; }
 
     public int? SourceCapitalId { get; init; }
 
@@ -21,7 +21,5 @@ public sealed class Transfer
 
     public int? UpdatedBy { get; init; }
 
-    public DateTimeOffset? DeletedAt { get; init; }
-
-    public bool? IsDeleted { get; init; }
+    public bool? IsDeleted { get; set; }
 }

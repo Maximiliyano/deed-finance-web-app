@@ -1,17 +1,19 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, TrackByFunction } from '@angular/core';
 import { Exchange } from '../../models/exchange-model';
 import { ExchangeService } from '../../../shared/services/exchange.service';
 import { Subject, takeUntil } from 'rxjs';
 import { ExchangeDialogComponent } from '../../../shared/components/dialogs/exchange-dialog/exchange-dialog.component';
-import { DialogService } from '../../../shared/services/dialog.service';
+import { DialogService } from '../../../shared/components/dialogs/services/dialog.service';
 
 @Component({
-  selector: 'app-header',
-  templateUrl: './header.component.html',
-  styleUrl: './header.component.scss'
+    selector: 'app-header',
+    templateUrl: './header.component.html',
+    styleUrl: './header.component.scss',
+    standalone: false
 })
 export class HeaderComponent implements OnInit, OnDestroy {
   exchanges: Exchange[] = [];
+  exchangeUpdatedAt: Date | null = null;
   isSidebarExpanded: boolean;
   navItems = [
     { label: 'Capitals', icon: 'fa-wallet', link: '/capitals' },
@@ -22,6 +24,9 @@ export class HeaderComponent implements OnInit, OnDestroy {
   ];
 
   private unsubscribe = new Subject<void>();
+  
+  trackByLabel: TrackByFunction<{ label: string; icon: string; link: string; }>;
+  trackBySale: TrackByFunction<Exchange>;
 
   constructor(
     private readonly dialogService: DialogService,
@@ -29,24 +34,26 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.exchangeService
-      .getAll()
-      .pipe(
-        takeUntil(this.unsubscribe))
+      .getLatest()
+      .pipe(takeUntil(this.unsubscribe))
       .subscribe({
-        next: (exchanges) => this.exchanges = exchanges.slice(0, 3)
+        next: (exchanges) => {
+          this.exchanges = exchanges;
+          if (exchanges.length > 0) {
+            this.exchangeUpdatedAt = exchanges[0].updatedAt;
+          }
+        }
       });
   }
 
   ngOnDestroy(): void {
+    this.unsubscribe.next();
     this.unsubscribe.complete();
   }
 
   openExchangeDialog(): void {
-    this.dialogService.open({
-      component: ExchangeDialogComponent,
-      data: {
-        exchanges: this.exchanges
-      }
+    this.dialogService.open(ExchangeDialogComponent, {
+      data: this.exchanges
     });
   }
 }

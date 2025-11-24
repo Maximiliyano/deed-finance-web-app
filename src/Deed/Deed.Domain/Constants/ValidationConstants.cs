@@ -2,7 +2,7 @@
 
 public static class ValidationConstants
 {
-    public const float ZeroValue = 0;
+    public const decimal ZeroValue = 0;
 
     public const int MaxLenghtName = 32;
 

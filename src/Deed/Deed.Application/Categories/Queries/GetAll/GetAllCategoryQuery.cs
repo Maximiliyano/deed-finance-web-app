@@ -5,5 +5,6 @@ using Deed.Domain.Enums;
 namespace Deed.Application.Categories.Queries.GetAll;
 
 public sealed record GetAllCategoryQuery(
-    CategoryType? Type = null)
+    CategoryType? Type = null,
+    bool? IncludeDeleted = null)
     : IQuery<IEnumerable<CategoryResponse>>;
