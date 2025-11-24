@@ -19,7 +19,7 @@ import { CategoryService } from '../services/category.service';
     standalone: true,
     imports: [SharedModule]
 })
-export class CategoriesDialogComponent implements OnDestroy {
+export class CategoriesDialogComponent implements OnDestroy { // TODO there is a bug, that collections updated here in child component, won't updated in parent (expenses)
   periodTypeOptions = enumToOptions(PerPeriodType);
   PerPeriodType = PerPeriodType;
   

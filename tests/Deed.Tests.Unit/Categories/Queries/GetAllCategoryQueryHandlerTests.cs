@@ -39,7 +39,7 @@ public sealed class GetAllCategoryQueryHandlerTests
             }
         };
         var responses = categories.Select(x =>
-            new CategoryResponse(x.Id, x.Name, x.Type, x.Period, x.PlannedPeriodAmount));
+            new CategoryResponse(x.Id, x.Name, x.Type, x.Period, x.PlannedPeriodAmount, x.IsDeleted ?? false));
 
         _repositoryMock.GetAllAsync(type).Returns(categories);
 
