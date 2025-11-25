@@ -420,3 +420,4 @@ src/Deed/.idea/
 
 # Migrations
 /src/Deed/Deed.Infrastructure/Persistence/Migrations
+src/WebUI/deno.lock
