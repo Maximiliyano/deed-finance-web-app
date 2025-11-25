@@ -24,7 +24,7 @@ jobs:
         working-directory: src/WebUI
 
       - name: Build Angular
-        run: sed -i "s|__API_URL__|$apiUrl|g" src/environments/environment.prod.ts
+        run: sed -i "s|API_URL|$apiUrl|g" src/environments/environment.prod.ts
             npm run build --configuration=production
         working-directory: src/WebUI
 
