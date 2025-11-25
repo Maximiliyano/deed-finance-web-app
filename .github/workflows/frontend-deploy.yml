@@ -29,7 +29,7 @@ jobs:
         working-directory: src/WebUI
 
       - name: Replace API URL in environment
-        run: sed -i "s|__API_URL__|$API_URL|g" src/environments/environment.prod.ts
+        run: sed -i "s|__API_URL__|$API_URL|g" src/WebUI/environments/environment.production.ts
         working-directory: src/WebUI
 
       - name: Build Angular
