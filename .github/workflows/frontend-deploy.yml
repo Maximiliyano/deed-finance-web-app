@@ -24,7 +24,8 @@ jobs:
         working-directory: src/WebUI
 
       - name: Build Angular
-        run: npm run build
+        run: sed -i "s|__API_URL__|$apiUrl|g" src/environments/environment.prod.ts
+            npm run build --configuration=production
         working-directory: src/WebUI
 
       - name: Deploy to Netlify
