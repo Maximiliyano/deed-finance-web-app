@@ -7,8 +7,13 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-and-deploy:
+  angular-netlify-publish:
     runs-on: ubuntu-latest
+
+    env:
+      NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+      NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+      API_URL: ${{ secrets.API_URL }}
 
     steps:
       - name: Checkout Code
@@ -23,9 +28,12 @@ jobs:
         run: npm install
         working-directory: src/WebUI
 
+      - name: Replace API URL in environment
+        run: sed -i "s|__API_URL__|$API_URL|g" src/environments/environment.prod.ts
+        working-directory: src/WebUI
+
       - name: Build Angular
-        run: sed -i "s|API_URL|$apiUrl|g" src/environments/environment.prod.ts
-            npm run build --configuration=production
+        run: npm run build --configuration=production
         working-directory: src/WebUI
 
       - name: Deploy to Netlify
@@ -37,6 +45,3 @@ jobs:
           deploy-message: "Deployed Angular App via GitHub Actions"
           alias: "latest"
           enable-pull-request-comment: true
-        env:
-          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
