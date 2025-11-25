@@ -20,7 +20,7 @@ jobs:
           node-version: 20.19.0
 
       - name: Install Dependencies
-        run: npm ci
+        run: npm install
         working-directory: src/WebUI
 
       - name: Build Angular
