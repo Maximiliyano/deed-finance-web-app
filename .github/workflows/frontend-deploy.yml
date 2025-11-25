@@ -24,7 +24,9 @@ jobs:
         working-directory: src/WebUI
 
       - name: Build Angular
-        run: npm run build
+        run: |
+          export NG_API_URL="${{ secrets.NG_API_URL }}"
+          npm run build
         working-directory: src/WebUI
 
       - name: Deploy to Netlify
