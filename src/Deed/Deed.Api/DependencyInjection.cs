@@ -11,6 +11,8 @@ internal static class DependencyInjection
         services.AddEndpointsApiExplorer();
         services.AddSwaggerGen();
 
+        services.AddHttpContextAccessor();
+
         services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
 
         services.AddHealthChecks();
