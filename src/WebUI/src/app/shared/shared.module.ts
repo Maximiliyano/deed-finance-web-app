@@ -10,7 +10,6 @@ import { IconComponent } from './components/icon/icon.component';
 
 @NgModule({
   declarations: [
-    OverlayComponent,
     LayoutComponent,
     CurrencySymbolPipe,
     EnumTextPipe
