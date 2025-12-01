@@ -11,8 +11,8 @@ import { Subject, takeUntil } from 'rxjs';
 })
 export class FormComponent implements OnInit, OnDestroy {
   @Input() headerText: string = 'Default form';
-  @Input() form: FormGroup = new FormGroup({});
-  @Input() fields: FormField[] = [];
+  @Input({ required: true }) form: FormGroup = new FormGroup({});
+  @Input({ required: true }) fields: FormField[] = [];
   @Input() buttons: FormButton[] = [
     {
       type: 'submit',

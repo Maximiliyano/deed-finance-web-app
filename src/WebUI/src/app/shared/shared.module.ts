@@ -13,7 +13,6 @@ import { EnumTextPipe } from '../core/utils/enum';
 
 @NgModule({
   declarations: [
-    OverlayComponent,
     LayoutComponent,
     IconComponent,
     FormComponent,
