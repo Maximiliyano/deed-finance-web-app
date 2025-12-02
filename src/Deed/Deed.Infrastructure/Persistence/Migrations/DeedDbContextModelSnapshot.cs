@@ -79,6 +79,9 @@ namespace Deed.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("IsDeleted")
+                        .HasFilter("IsDeleted = 0");
+
                     b.ToTable("Capitals", (string)null);
 
                     b.HasData(
@@ -173,6 +176,9 @@ namespace Deed.Infrastructure.Persistence.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("IsDeleted")
+                        .HasFilter("IsDeleted = 0");
 
                     b.ToTable("Categories", (string)null);
 
@@ -384,6 +390,9 @@ namespace Deed.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("IsDeleted")
+                        .HasFilter("IsDeleted = 0");
+
                     b.HasIndex("NationalCurrencyCode", "TargetCurrencyCode")
                         .IsUnique();
 
@@ -436,6 +445,9 @@ namespace Deed.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("CategoryId");
 
+                    b.HasIndex("IsDeleted")
+                        .HasFilter("IsDeleted = 0");
+
                     b.ToTable("Expenses", (string)null);
                 });
 
@@ -485,6 +497,9 @@ namespace Deed.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("CategoryId");
 
+                    b.HasIndex("IsDeleted")
+                        .HasFilter("IsDeleted = 0");
+
                     b.ToTable("Incomes", (string)null);
                 });
 
@@ -524,6 +539,9 @@ namespace Deed.Infrastructure.Persistence.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("DestinationCapitalId");
+
+                    b.HasIndex("IsDeleted")
+                        .HasFilter("IsDeleted = 0");
 
                     b.HasIndex("SourceCapitalId");
 

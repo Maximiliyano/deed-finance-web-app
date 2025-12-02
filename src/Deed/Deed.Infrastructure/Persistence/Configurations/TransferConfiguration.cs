@@ -16,7 +16,7 @@ internal sealed class TransferConfiguration : IEntityTypeConfiguration<Transfer>
             c.IsDeleted.HasValue && !c.IsDeleted.Value);
 
         builder.HasIndex(t => t.IsDeleted)
-            .HasFilter("is_deleted = 0");
+            .HasFilter("IsDeleted = 0");
 
         builder.HasKey(t => t.Id);
 
