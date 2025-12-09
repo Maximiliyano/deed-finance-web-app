@@ -87,7 +87,7 @@ public sealed class GetAllCapitalQueryHandlerTests
             0m,
             0m,
             DateTimeOffset.Now,
-            0));
+            string.Empty));
 
         _repositoryMock.GetAllAsync(Arg.Any<ISpecification<Capital>>()).Returns(capitals);
 

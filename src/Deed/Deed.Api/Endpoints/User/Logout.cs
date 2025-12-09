@@ -19,20 +19,12 @@ internal sealed class Logout : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("/api/auth/logout", async (HttpContext context, IOptions<WebUrlSettings> options) =>
+        app.MapGet("/api/auth/logout", async (HttpContext context, IOptions<WebUrlSettings> webUrlSettings, IOptions<AuthSettings> authSettings) =>
         {
             await context.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-            if (context.User.Identity?.IsAuthenticated == true)
-            {
-                await context.SignOutAsync(Auth0Constants.AuthenticationScheme, new AuthenticationProperties
-                {
-                    RedirectUri = options.Value.UIUrl
-                });
-            }
-            else
-            {
-                context.Response.Redirect(options.Value.UIUrl); // fallback
-            }
+
+            var logoutUri = $"{authSettings.Value.Domain}/v2/logout?client_id={authSettings.Value.ClientID}&returnTo={Uri.EscapeDataString(webUrlSettings.Value.UIUrl)}";
+            context.Response.Redirect(logoutUri);
         })
         .RequireAuthorization()
         .WithTags(nameof(User));

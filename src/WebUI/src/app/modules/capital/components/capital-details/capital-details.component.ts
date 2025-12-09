@@ -127,7 +127,7 @@ export class CapitalDetailsComponent implements OnInit, OnDestroy {
       {
         type: 'submit',
         text: 'Update',
-        styles: `bg-[#377e21] ${!isSubmitBtnDisabled ? 'hover:bg-[#47a42b]' : 'cursor-not-allowed'} text-white`,
+        styles: `bg-[#377e21] enabled:hover:bg-[#47a42b] disabled:cursor-not-allowed text-white`,
         disabled: isSubmitBtnDisabled,
       },
       {

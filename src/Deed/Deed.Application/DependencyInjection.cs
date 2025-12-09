@@ -71,25 +71,14 @@ public static class DependencyInjection
             options.ClientId = authSettings.ClientID;
             options.ClientSecret = authSettings.ClientSecret;
             options.ResponseType = Auth0Constants.ResponseType;
+            options.SaveTokens = true;
 
             options.Scope.Clear();
             options.Scope.Add("openid");
             options.Scope.Add("profile");
             options.Scope.Add("email");
 
-            options.SaveTokens = true;
-
             options.CallbackPath = new PathString("/api/auth/callback");
-            options.Events = new OpenIdConnectEvents
-            {
-                OnRedirectToIdentityProviderForSignOut = context =>
-                {
-                    var logoutUri = $"{authSettings.Domain}/v2/logout?client_id={authSettings.ClientID}&returnTo={Uri.EscapeDataString("http://localhost:4200")}";
-                    context.Response.Redirect(logoutUri);
-                    context.HandleResponse();
-                    return Task.CompletedTask;
-                }
-            };
         });
 
         services.AddAuthorization();

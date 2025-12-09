@@ -263,7 +263,7 @@ export class CapitalsComponent implements OnInit, OnDestroy {
       totalTransferIn: 0,
       totalTransferOut: 0,
       createdAt: new Date(),
-      createdBy: 0
+      createdBy: ''
     };
 
     this.capitals.push(response);

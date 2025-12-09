@@ -20,16 +20,15 @@ internal sealed class Login : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("api/auth/login", async (HttpContext context, IOptions<WebUrlSettings> options) =>
-            await context.ChallengeAsync(Auth0Constants.AuthenticationScheme, new AuthenticationProperties
-            {
-                RedirectUri = $"{options.Value.UIUrl}/profile"
-            }))
-            .WithTags(nameof(User));
+        app.MapGet("api/auth/login", (IOptions<WebUrlSettings> authSettings) => Results.Challenge(new AuthenticationProperties()
+        {
+            RedirectUri = $"{authSettings.Value.UIUrl}/profile"
+        }, [Auth0Constants.AuthenticationScheme]))
+            .WithTags(nameof(User))
+            .AllowAnonymous();
 
-        app.MapGet("/api/auth/callback", (HttpContext context) =>
-            // TODO: The middleware automatically processes the response and signs in the user
-            context.Response.Redirect("http://localhost:4200/profile"))
-        .AllowAnonymous();
+        app.MapGet("api/auth/callback", () => Results.Ok())
+            .WithTags(nameof(User))
+            .AllowAnonymous();
     }
 }

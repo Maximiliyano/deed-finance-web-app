@@ -21,26 +21,27 @@ internal sealed class Me : IEndpoint
         app.MapGet("api/users/me", (HttpContext context) =>
         {
             var user = context.User;
-            if (!bool.TryParse(user.Claims.FirstOrDefault(x => x.Type == "email_verified")?.Value, out var emailVerified))
+            if (!user.Identity?.IsAuthenticated ?? true)
             {
-                return Results.BadRequest("Email verified prop absent");
+                return Results.Unauthorized();
             }
-            return Results.Ok(new UserResponse(
-                user.Claims.FirstOrDefault(x => x.Type == ClaimValueTypes.Email)?.Value,
-                emailVerified,
-                user.Claims.FirstOrDefault(x => x.Type == "name")?.Value,
-                new Uri(user.Claims.FirstOrDefault(x => x.Type == "picture")?.Value ?? string.Empty)
-            ));
+
+            var email = user.FindFirst(c => c.Type == ClaimTypes.Email)?.Value;
+            var emailVerified = bool.TryParse(user.FindFirst(c => c.Type == "email_verified")?.Value, out var v) && v;
+            var name = user.FindFirst(c => c.Type == "name")?.Value;
+            var picture = user.FindFirst(c => c.Type == "picture")?.Value ?? string.Empty;
+            var userSid = user.FindFirst(c => c.Type == "sid")?.Value;
+
+            var resp = new UserResponse(userSid, email, emailVerified, name, new Uri(picture));
+            return Results.Ok(resp);
         })
-        .RequireAuthorization(new AuthorizeAttribute
-        {
-            AuthenticationSchemes = CookieAuthenticationDefaults.AuthenticationScheme
-        })
+        .RequireAuthorization()
         .WithTags(nameof(User));
     }
 }
 
 internal sealed record UserResponse(
+    string? Sid,
     string? Email,
     bool? EmailVerified,
     string? Fullname,
