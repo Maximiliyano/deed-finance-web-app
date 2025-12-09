@@ -1,10 +1,11 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { AuthService, User } from '../../services/auth-service';
+import { AuthService } from '../../services/auth-service';
 import { Subject, takeUntil } from 'rxjs';
 import { SharedModule } from "../../../../shared/shared.module";
 import { DialogService } from '../../../../shared/components/dialogs/services/dialog.service';
 import { ConfirmDialogComponent } from '../../../../shared/components/dialogs/confirm-dialog/confirm-dialog.component';
 import { PopupMessageService } from '../../../../shared/services/popup-message.service';
+import { User } from '../../models/user';
 
 @Component({
   selector: 'app-profile',
@@ -14,6 +15,7 @@ import { PopupMessageService } from '../../../../shared/services/popup-message.s
 })
 export class ProfileComponent implements OnInit, OnDestroy {
   user: User | null;
+  editMode: boolean;
 
   private $unsubscribe = new Subject<void>();
 
@@ -38,7 +40,11 @@ export class ProfileComponent implements OnInit, OnDestroy {
   }
 
   handleEdit(): void {
+    if (this.editMode) { // TODO save, sends new user
 
+    }
+
+    this.editMode = !this.editMode;
   }
 
   handleLogout(): void {

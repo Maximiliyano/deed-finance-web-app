@@ -3,6 +3,7 @@ using System.Text;
 using System.Text.Json;
 using Deed.Application.Abstractions.Behaviours;
 using Deed.Application.Abstractions.Settings;
+using Deed.Application.Auth;
 using Deed.Application.Exchanges;
 using Deed.Application.Exchanges.Service;
 using Deed.Infrastructure.Persistence.Constants;
@@ -38,13 +39,15 @@ public static class DependencyInjection
 
     private static void AddAuth(this IServiceCollection services)
     {
+        services.AddSingleton<IUser, User>();
+
         var authSettings = services.BuildServiceProvider().GetRequiredService<IOptions<AuthSettings>>().Value;
 
         services.AddAuthentication(options =>
         {
             options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
             options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-            options.DefaultChallengeScheme = Auth0Constants.AuthenticationScheme;
+            options.DefaultChallengeScheme = AuthConstants.AuthenticationScheme;
         })
         .AddCookie(options =>
         {
@@ -65,12 +68,12 @@ public static class DependencyInjection
                 return Task.CompletedTask;
             };
         })
-        .AddOpenIdConnect(Auth0Constants.AuthenticationScheme, options =>
+        .AddOpenIdConnect(AuthConstants.AuthenticationScheme, options =>
         {
             options.Authority = authSettings.Domain;
             options.ClientId = authSettings.ClientID;
             options.ClientSecret = authSettings.ClientSecret;
-            options.ResponseType = Auth0Constants.ResponseType;
+            options.ResponseType = AuthConstants.ResponseType;
             options.SaveTokens = true;
 
             options.Scope.Clear();

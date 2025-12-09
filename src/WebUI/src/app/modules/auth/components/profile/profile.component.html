@@ -25,21 +25,38 @@
 
         <!-- Controls -->
         <div class="flex flex-row gap-2">
-            <button
-                class="px-4 py-2 bg-blue-600 rounded-md text-white flex gap-1 hover:opacity-85"
-                (click)="handleEdit()"
-            >
-                <span>Edit</span>
-                <app-icon name="fa-pen"></app-icon>
-            </button>
+            @if (editMode) {
+                 <button
+                    class="px-4 py-2 bg-green-600 rounded-md text-white flex gap-1 hover:opacity-85"
+                    (click)="handleEdit()"
+                >
+                    <span>Save</span>
+                    <app-icon name="fa-pen"></app-icon>
+                </button>
 
-            <button
-                class="shadow-md rounded-md p-1 gap-1 hover:opacity-50 bg-red-600 text-white"
-                (click)="handleLogout()"
-            >
-                <app-icon name="fa-arrow-right-from-bracket"></app-icon>
-                <span>Log Out</span>
-            </button>
+                <button
+                    class="shadow-md rounded-md p-1 gap-1 hover:opacity-50 bg-red-600 text-white"
+                    (click)="handleEdit()"
+                >
+                    <span>Cancel</span>
+                </button>
+            } @else {
+                <button
+                    class="px-4 py-2 bg-blue-600 rounded-md text-white flex gap-1 hover:opacity-85"
+                    (click)="handleEdit()"
+                >
+                    <span>Edit</span>
+                    <app-icon name="fa-pen"></app-icon>
+                </button>
+
+                <button
+                    class="shadow-md rounded-md p-1 gap-1 hover:opacity-50 bg-red-600 text-white"
+                    (click)="handleLogout()"
+                >
+                    <app-icon name="fa-arrow-right-from-bracket"></app-icon>
+                    <span>Log Out</span>
+                </button>
+            }
         </div>
 
   </div>

@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { environment } from '../../../../environments/environment';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, catchError, Observable, of, tap } from 'rxjs';
+import { User } from '../models/user';
 
 @Injectable({
   providedIn: 'root'
@@ -38,5 +39,3 @@ export class AuthService {
       return this.user$;
   }
 }
-
-export interface User { sid: string, fullname: string, email: string, emailVerified: boolean, pictureUrl: string };

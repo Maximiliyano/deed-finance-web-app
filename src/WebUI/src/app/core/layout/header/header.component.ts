@@ -5,7 +5,8 @@ import { Subject, takeUntil } from 'rxjs';
 import { ExchangeDialogComponent } from '../../../shared/components/dialogs/exchange-dialog/exchange-dialog.component';
 import { Router } from '@angular/router';
 import { DialogService } from '../../../shared/components/dialogs/services/dialog.service';
-import { AuthService, User } from '../../../modules/auth/services/auth-service';
+import { AuthService } from '../../../modules/auth/services/auth-service';
+import { User } from '../../../modules/auth/models/user';
 
 @Component({
     selector: 'app-header',

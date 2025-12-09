@@ -20,7 +20,7 @@ internal sealed class UpdateAuditableEntitiesInterceptor(IDateTimeProvider dateT
         {
             SoftDeleteAuditableEntities(eventData.Context);
             
-            var userSid = accessor.HttpContext?.User.FindFirst(x => x.Type == "sid")?.Value;
+            var userSid = accessor.HttpContext?.User.FindFirst(x => x.Type == "name")?.Value;
 
             UpdateAuditableEntities(eventData.Context, userSid);
         }

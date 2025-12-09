@@ -23,7 +23,7 @@ internal sealed class Login : IEndpoint
         app.MapGet("api/auth/login", (IOptions<WebUrlSettings> authSettings) => Results.Challenge(new AuthenticationProperties()
         {
             RedirectUri = $"{authSettings.Value.UIUrl}/profile"
-        }, [Auth0Constants.AuthenticationScheme]))
+        }, [AuthConstants.AuthenticationScheme]))
             .WithTags(nameof(User))
             .AllowAnonymous();
 

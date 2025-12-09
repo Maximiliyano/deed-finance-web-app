@@ -55,7 +55,7 @@
         @if (user) {
           <button class="account-button" (click)="profile()" title="Profile">
             <img class="h-7 w-7 rounded" [src]="user.pictureUrl" alt="Avatar" />
-            <span class="profile-text">{{ user.fullname }}</span>
+            <span class="profile-text truncate max-w-40">{{ user.fullname }}</span>
           </button>
         } @else {
           <button class="account-button" (click)="login()" title="Login">

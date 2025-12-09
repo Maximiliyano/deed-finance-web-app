@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Deed.Infrastructure.Persistence.Constants;
 
-public static class Auth0Constants
+public static class AuthConstants
 {
     public const string AuthenticationScheme = "Auth0";
 
