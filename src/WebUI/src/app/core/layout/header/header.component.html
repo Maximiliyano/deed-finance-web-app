@@ -37,7 +37,7 @@
             <button (click)="openExchangeDialog()"></button>
           </div>
         }
-        <span class="text-sm opacity-50 font-thin italic">Last sync: {{exchangeUpdatedAt | date }}</span>
+        <span class="text-sm opacity-50 font-thin italic xl:block hidden">Last sync: {{exchangeUpdatedAt | date }}</span>
       </div>
 
       <nav class="navigation">
@@ -52,10 +52,17 @@
       </nav>
 
       <div class="profile">
-        <button class="account-button">
-          <app-icon [name]="'fa-user-circle'"></app-icon>
-          <span class="profile-text">Profile</span>
-        </button>
+        @if (user) {
+          <button class="account-button" (click)="profile()" title="Profile">
+            <img class="h-7 w-7 rounded" [src]="user.pictureUrl" alt="Avatar" />
+            <span class="profile-text truncate max-w-40">{{ user.fullname }}</span>
+          </button>
+        } @else {
+          <button class="account-button" (click)="login()" title="Login">
+            <app-icon name="fa-user-circle"></app-icon>
+            <span class="profile-text">Log in</span>
+          </button>
+        }
       </div>
     </div>
   </div>

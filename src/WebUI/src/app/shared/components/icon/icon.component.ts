@@ -6,5 +6,5 @@ import { Component, Input } from '@angular/core';
     standalone: false
 })
 export class IconComponent {
-  @Input() name: string = 'fa-icon';
+  @Input({ required: true }) name: string = 'fa-icon';
 }

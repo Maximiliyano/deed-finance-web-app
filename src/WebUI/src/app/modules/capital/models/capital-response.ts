@@ -10,5 +10,5 @@ export interface CapitalResponse {
   totalTransferIn: number;
   totalTransferOut: number;
   createdAt: Date;
-  createdBy: number;
+  createdBy: string | null;
 }

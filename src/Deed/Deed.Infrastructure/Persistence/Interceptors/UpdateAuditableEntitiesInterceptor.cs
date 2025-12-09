@@ -1,12 +1,14 @@
 using Deed.Domain.Entities;
 using Deed.Domain.Providers;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.Extensions.Primitives;
 
 namespace Deed.Infrastructure.Persistence.Interceptors;
 
-internal sealed class UpdateAuditableEntitiesInterceptor(IDateTimeProvider dateTimeProvider)
+internal sealed class UpdateAuditableEntitiesInterceptor(IDateTimeProvider dateTimeProvider, IHttpContextAccessor accessor)
     : SaveChangesInterceptor
 {
     public override ValueTask<InterceptionResult<int>> SavingChangesAsync(
@@ -17,7 +19,10 @@ internal sealed class UpdateAuditableEntitiesInterceptor(IDateTimeProvider dateT
         if (eventData.Context is not null)
         {
             SoftDeleteAuditableEntities(eventData.Context);
-            UpdateAuditableEntities(eventData.Context);
+            
+            var userSid = accessor.HttpContext?.User.FindFirst(x => x.Type == "name")?.Value;
+
+            UpdateAuditableEntities(eventData.Context, userSid);
         }
 
         return base.SavingChangesAsync(eventData, result, cancellationToken);
@@ -38,7 +43,7 @@ internal sealed class UpdateAuditableEntitiesInterceptor(IDateTimeProvider dateT
         }
     }
 
-    private void UpdateAuditableEntities(DbContext context)
+    private void UpdateAuditableEntities(DbContext context, string? userSid)
     {
         var entries = context
             .ChangeTracker
@@ -50,12 +55,12 @@ internal sealed class UpdateAuditableEntitiesInterceptor(IDateTimeProvider dateT
         {
             if (entry.State == EntityState.Added)
             {
-                SetCurrentPropertyValue(entry, nameof(IAuditableEntity.CreatedBy), 0); // TODO userID
+                SetCurrentPropertyValue(entry, nameof(IAuditableEntity.CreatedBy), userSid); // TODO : Replace with actual user SID
                 SetCurrentPropertyValue(entry, nameof(IAuditableEntity.CreatedAt), dateTimeProvider.UtcNow);
             }
             else
             {
-                SetCurrentPropertyValue(entry, nameof(IAuditableEntity.UpdatedBy), 0); // TODO userID
+                SetCurrentPropertyValue(entry, nameof(IAuditableEntity.UpdatedBy), userSid); // TODO : Replace with actual user SID
                 SetCurrentPropertyValue(entry, nameof(IAuditableEntity.UpdatedAt), dateTimeProvider.UtcNow);
             }
         });

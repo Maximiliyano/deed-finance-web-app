@@ -20,7 +20,7 @@ internal static class CapitalExtensions
             capital.TotalTransferIn,
             capital.TotalTransferOut,
             capital.CreatedAt,
-            capital.CreatedBy
+            capital.CreatedBy ?? "Anonymous"
     );
 
     internal static IEnumerable<CapitalResponse> ToResponses(this IEnumerable<Capital> capitals)

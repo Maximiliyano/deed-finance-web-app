@@ -16,6 +16,8 @@ import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import { AddCapitalDialogComponent } from './components/capital-dialog/add-capital-dialog.component';
 import { CapitalDetailsComponent } from './components/capital-details/capital-details.component';
 import { ConfirmDialogComponent } from '../../shared/components/dialogs/confirm-dialog/confirm-dialog.component';
+import { User } from '../auth/models/user';
+import { AuthService } from '../auth/services/auth-service';
 
 @Component({
     selector: 'app-capitals',
@@ -69,6 +71,8 @@ export class CapitalsComponent implements OnInit, OnDestroy {
 
   currencyOptions = getCurrencies({ excludeNone: true });
 
+  user: User | null = null;
+
   private queryParams$ = new Subject<void>();
   private unsubcribe$ = new Subject<void>();
 
@@ -76,7 +80,8 @@ export class CapitalsComponent implements OnInit, OnDestroy {
     private readonly capitalService: CapitalService,
     private readonly popupMessageService: PopupMessageService,
     private readonly exchangeService: ExchangeService,
-    private readonly dialogService: DialogService
+    private readonly dialogService: DialogService,
+    private readonly authService: AuthService
   ) {
   }
 
@@ -107,6 +112,12 @@ export class CapitalsComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     document.title = "Deed - Capitals";
+
+    this.authService.user$
+      .pipe(takeUntil(this.unsubcribe$))
+      .subscribe(user => {
+        this.user = user;
+      });
 
     const mainCurrency = this.capitalService.getMainCurrency();
     this.mainCurrency = mainCurrency.str;
@@ -263,7 +274,7 @@ export class CapitalsComponent implements OnInit, OnDestroy {
       totalTransferIn: 0,
       totalTransferOut: 0,
       createdAt: new Date(),
-      createdBy: 0
+      createdBy: this.user?.fullname ?? 'Anonymous'
     };
 
     this.capitals.push(response);

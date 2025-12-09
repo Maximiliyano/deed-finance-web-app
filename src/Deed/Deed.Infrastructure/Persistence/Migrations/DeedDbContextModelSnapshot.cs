@@ -37,8 +37,8 @@ namespace Deed.Infrastructure.Persistence.Migrations
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("datetimeoffset");
 
-                    b.Property<int>("CreatedBy")
-                        .HasColumnType("int");
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("Currency")
                         .HasColumnType("int");
@@ -74,8 +74,8 @@ namespace Deed.Infrastructure.Persistence.Migrations
                     b.Property<DateTimeOffset?>("UpdatedAt")
                         .HasColumnType("datetimeoffset");
 
-                    b.Property<int?>("UpdatedBy")
-                        .HasColumnType("int");
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
@@ -90,7 +90,6 @@ namespace Deed.Infrastructure.Persistence.Migrations
                             Id = 1,
                             Balance = 1000.0m,
                             CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 2, 12, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
-                            CreatedBy = 0,
                             Currency = 1,
                             IncludeInTotal = true,
                             Name = "Cash",
@@ -102,7 +101,6 @@ namespace Deed.Infrastructure.Persistence.Migrations
                             Id = 2,
                             Balance = 1000.0m,
                             CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 2, 12, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
-                            CreatedBy = 0,
                             Currency = 1,
                             IncludeInTotal = true,
                             Name = "Bank",
@@ -114,7 +112,6 @@ namespace Deed.Infrastructure.Persistence.Migrations
                             Id = 3,
                             Balance = 1000.0m,
                             CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 2, 12, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
-                            CreatedBy = 0,
                             Currency = 2,
                             IncludeInTotal = true,
                             Name = "Investments",
@@ -126,7 +123,6 @@ namespace Deed.Infrastructure.Persistence.Migrations
                             Id = 4,
                             Balance = 1000.0m,
                             CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 2, 12, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
-                            CreatedBy = 0,
                             Currency = 2,
                             IncludeInTotal = true,
                             Name = "Savings",
@@ -146,8 +142,8 @@ namespace Deed.Infrastructure.Persistence.Migrations
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("datetimeoffset");
 
-                    b.Property<int>("CreatedBy")
-                        .HasColumnType("int");
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool?>("IsDeleted")
                         .HasColumnType("bit");
@@ -172,8 +168,8 @@ namespace Deed.Infrastructure.Persistence.Migrations
                     b.Property<DateTimeOffset?>("UpdatedAt")
                         .HasColumnType("datetimeoffset");
 
-                    b.Property<int?>("UpdatedBy")
-                        .HasColumnType("int");
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
@@ -187,7 +183,6 @@ namespace Deed.Infrastructure.Persistence.Migrations
                         {
                             Id = 1,
                             CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 2, 12, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
-                            CreatedBy = 0,
                             Name = "Groceries",
                             Period = 0,
                             PlannedPeriodAmount = 0m,
@@ -197,7 +192,6 @@ namespace Deed.Infrastructure.Persistence.Migrations
                         {
                             Id = 2,
                             CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 2, 12, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
-                            CreatedBy = 0,
                             Name = "Utilities",
                             Period = 0,
                             PlannedPeriodAmount = 0m,
@@ -207,7 +201,6 @@ namespace Deed.Infrastructure.Persistence.Migrations
                         {
                             Id = 3,
                             CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 2, 12, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
-                            CreatedBy = 0,
                             Name = "Rent",
                             Period = 0,
                             PlannedPeriodAmount = 0m,
@@ -217,7 +210,6 @@ namespace Deed.Infrastructure.Persistence.Migrations
                         {
                             Id = 4,
                             CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 2, 12, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
-                            CreatedBy = 0,
                             Name = "Transportation",
                             Period = 0,
                             PlannedPeriodAmount = 0m,
@@ -227,7 +219,6 @@ namespace Deed.Infrastructure.Persistence.Migrations
                         {
                             Id = 5,
                             CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 2, 12, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
-                            CreatedBy = 0,
                             Name = "Healthcare",
                             Period = 0,
                             PlannedPeriodAmount = 0m,
@@ -237,7 +228,6 @@ namespace Deed.Infrastructure.Persistence.Migrations
                         {
                             Id = 6,
                             CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 2, 12, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
-                            CreatedBy = 0,
                             Name = "Entertainment",
                             Period = 0,
                             PlannedPeriodAmount = 0m,
@@ -247,7 +237,6 @@ namespace Deed.Infrastructure.Persistence.Migrations
                         {
                             Id = 7,
                             CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 2, 12, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
-                            CreatedBy = 0,
                             Name = "Education",
                             Period = 0,
                             PlannedPeriodAmount = 0m,
@@ -257,7 +246,6 @@ namespace Deed.Infrastructure.Persistence.Migrations
                         {
                             Id = 8,
                             CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 2, 12, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
-                            CreatedBy = 0,
                             Name = "Clothing",
                             Period = 0,
                             PlannedPeriodAmount = 0m,
@@ -267,7 +255,6 @@ namespace Deed.Infrastructure.Persistence.Migrations
                         {
                             Id = 9,
                             CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 2, 12, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
-                            CreatedBy = 0,
                             Name = "Subscriptions",
                             Period = 0,
                             PlannedPeriodAmount = 0m,
@@ -277,7 +264,6 @@ namespace Deed.Infrastructure.Persistence.Migrations
                         {
                             Id = 10,
                             CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 2, 12, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
-                            CreatedBy = 0,
                             Name = "Travel",
                             Period = 0,
                             PlannedPeriodAmount = 0m,
@@ -287,7 +273,6 @@ namespace Deed.Infrastructure.Persistence.Migrations
                         {
                             Id = 11,
                             CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 2, 12, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
-                            CreatedBy = 0,
                             Name = "Gifts",
                             Period = 0,
                             PlannedPeriodAmount = 0m,
@@ -297,7 +282,6 @@ namespace Deed.Infrastructure.Persistence.Migrations
                         {
                             Id = 12,
                             CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 2, 12, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
-                            CreatedBy = 0,
                             Name = "Donations",
                             Period = 0,
                             PlannedPeriodAmount = 0m,
@@ -307,7 +291,6 @@ namespace Deed.Infrastructure.Persistence.Migrations
                         {
                             Id = 13,
                             CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 2, 12, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
-                            CreatedBy = 0,
                             Name = "Salary",
                             Period = 0,
                             PlannedPeriodAmount = 0m,
@@ -317,7 +300,6 @@ namespace Deed.Infrastructure.Persistence.Migrations
                         {
                             Id = 14,
                             CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 2, 12, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
-                            CreatedBy = 0,
                             Name = "Gifts",
                             Period = 0,
                             PlannedPeriodAmount = 0m,
@@ -327,7 +309,6 @@ namespace Deed.Infrastructure.Persistence.Migrations
                         {
                             Id = 15,
                             CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 2, 12, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
-                            CreatedBy = 0,
                             Name = "Grants",
                             Period = 0,
                             PlannedPeriodAmount = 0m,
@@ -337,7 +318,6 @@ namespace Deed.Infrastructure.Persistence.Migrations
                         {
                             Id = 16,
                             CreatedAt = new DateTimeOffset(new DateTime(2025, 9, 2, 12, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
-                            CreatedBy = 0,
                             Name = "Sales",
                             Period = 0,
                             PlannedPeriodAmount = 0m,
@@ -360,8 +340,8 @@ namespace Deed.Infrastructure.Persistence.Migrations
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("datetimeoffset");
 
-                    b.Property<int>("CreatedBy")
-                        .HasColumnType("int");
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool?>("IsDeleted")
                         .HasColumnType("bit");
@@ -385,8 +365,8 @@ namespace Deed.Infrastructure.Persistence.Migrations
                     b.Property<DateTimeOffset?>("UpdatedAt")
                         .HasColumnType("datetimeoffset");
 
-                    b.Property<int?>("UpdatedBy")
-                        .HasColumnType("int");
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
@@ -420,8 +400,8 @@ namespace Deed.Infrastructure.Persistence.Migrations
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("datetimeoffset");
 
-                    b.Property<int>("CreatedBy")
-                        .HasColumnType("int");
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool?>("IsDeleted")
                         .HasColumnType("bit");
@@ -436,8 +416,8 @@ namespace Deed.Infrastructure.Persistence.Migrations
                     b.Property<DateTimeOffset?>("UpdatedAt")
                         .HasColumnType("datetimeoffset");
 
-                    b.Property<int?>("UpdatedBy")
-                        .HasColumnType("int");
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
@@ -472,8 +452,8 @@ namespace Deed.Infrastructure.Persistence.Migrations
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("datetimeoffset");
 
-                    b.Property<int>("CreatedBy")
-                        .HasColumnType("int");
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool?>("IsDeleted")
                         .HasColumnType("bit");
@@ -488,8 +468,8 @@ namespace Deed.Infrastructure.Persistence.Migrations
                     b.Property<DateTimeOffset?>("UpdatedAt")
                         .HasColumnType("datetimeoffset");
 
-                    b.Property<int?>("UpdatedBy")
-                        .HasColumnType("int");
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
@@ -518,8 +498,8 @@ namespace Deed.Infrastructure.Persistence.Migrations
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("datetimeoffset");
 
-                    b.Property<int>("CreatedBy")
-                        .HasColumnType("int");
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int?>("DestinationCapitalId")
                         .HasColumnType("int");
@@ -533,8 +513,8 @@ namespace Deed.Infrastructure.Persistence.Migrations
                     b.Property<DateTimeOffset?>("UpdatedAt")
                         .HasColumnType("datetimeoffset");
 
-                    b.Property<int?>("UpdatedBy")
-                        .HasColumnType("int");
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
