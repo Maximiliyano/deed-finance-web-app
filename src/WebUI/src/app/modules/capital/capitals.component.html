@@ -70,10 +70,20 @@
                 {{ capital.name }}
               </button>
 
-              <div class="absolute sm:static right-2 top-2 hidden sm:block sm:right-auto sm:top-auto text-xs text-gray-500 dark:text-gray-400 italic">
-                Created {{capital.createdAt | date }} by
-                <span class="font-semibold text-gray-700 dark:text-gray-300">
-                  {{ capital.createdBy }}
+              <div
+                class="absolute sm:static right-2 top-2 hidden sm:flex sm:flex-col 
+                      text-xs text-gray-500 dark:text-gray-400 italic"
+              >
+                <span>
+                  Created {{ capital.createdAt | date }}
+                </span>
+
+                <span
+                  [title]="capital.createdBy"
+                  class="font-semibold text-gray-700 dark:text-gray-300 
+                        inline-block max-w-[150px] truncate"
+                >
+                  by {{ capital.createdBy }}
                 </span>
               </div>
             </div>

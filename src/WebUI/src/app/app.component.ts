@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { AuthService } from './modules/auth/services/auth-service';
 
 @Component({
     selector: 'app-root',
@@ -7,4 +8,7 @@ import { Component } from '@angular/core';
     standalone: false
 })
 export class AppComponent {
+    constructor(private readonly authService: AuthService) {
+        authService.me().subscribe();
+    }
 }

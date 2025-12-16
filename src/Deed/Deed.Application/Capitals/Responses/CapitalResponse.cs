@@ -12,5 +12,5 @@ public sealed record CapitalResponse(
     decimal TotalTransferIn,
     decimal TotalTransferOut,
     DateTimeOffset CreatedAt,
-    int CreatedBy
+    string? CreatedBy
 );

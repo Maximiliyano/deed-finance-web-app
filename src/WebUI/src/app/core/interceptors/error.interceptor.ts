@@ -19,7 +19,7 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
       const result: Result | null = response.error;
 
       if (response.status === 401) {
-        popupMessageService.warning('You need to authenticate before accessing this page');
+        popupMessageService.warning('You are not authenticated.');
         router.navigate([previousUrl]);
       }
       else if (response.status >= 400 && response.status < 500 && result) {

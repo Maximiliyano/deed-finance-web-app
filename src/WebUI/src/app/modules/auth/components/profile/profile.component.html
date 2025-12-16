@@ -1,0 +1,43 @@
+
+@if (user) {
+    <div class="flex flex-col items-center gap-4 mt-2 bg-white min-w-full p-4 shadow-md">
+        
+        <!-- Avatar -->
+        <img 
+            [src]="user.pictureUrl"
+            alt="Profile picture"
+            class="w-24 h-24 rounded-full object-cover shadow"
+        />
+
+        <!-- Data -->
+        <div class="text-center">
+            <p class="text-xl font-semibold">{{ user.fullname }}</p>
+
+            <div class="flex flex-row gap-1">
+                <p class="text-gray-600">{{ user.email }}</p>
+                @if (user.emailVerified) {
+                    <app-icon title="verified" class="text-green-500" name="fa-award"></app-icon>
+                } @else {
+                    <app-icon title="not verified" class="text-red-600" name="fa-award"></app-icon>
+                }
+            </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="flex flex-row gap-2">
+            <button
+                class="shadow-md rounded-md p-1 gap-1 hover:opacity-50 bg-red-600 text-white"
+                (click)="handleLogout()"
+            >
+                <app-icon name="fa-arrow-right-from-bracket"></app-icon>
+                <span>Log Out</span>
+            </button>
+        </div>
+
+  </div>
+
+} @else {
+
+  <p class="text-red-600 font-medium">Unexpected error occurred.</p>
+
+}

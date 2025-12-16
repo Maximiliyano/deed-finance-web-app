@@ -13,7 +13,9 @@ internal sealed class GetAll : IEndpoint
         app.MapPost("api/capitals/all", async (QueryParams query, ISender sender, CancellationToken ct) =>
             (await sender
                 .Send(new GetAllCapitalsQuery(query.SearchTerm, query.SortBy, query.SortDirection, query.FilterBy), ct))
-                .Process())
-            .WithTags(nameof(Capitals));
+                .Process()
+            )
+            .WithTags(nameof(Capitals))
+            .RequireAuthorization();
     }
 }
