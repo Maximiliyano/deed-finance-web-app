@@ -39,14 +39,6 @@ export class ProfileComponent implements OnInit, OnDestroy {
     this.$unsubscribe.complete();
   }
 
-  handleEdit(): void {
-    if (this.editMode) { // TODO save, sends new user
-
-    }
-
-    this.editMode = !this.editMode;
-  }
-
   handleLogout(): void {
     const dialogRef = this.dialogService.open(ConfirmDialogComponent, {
       data: {

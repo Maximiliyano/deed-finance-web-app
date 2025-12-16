@@ -29,7 +29,6 @@ internal sealed class Me : IEndpoint
             return Results.Ok(new UserResponse(
                 user.Email, user.IsEmailVerified, user.Name, user.PictureUrl));
         })
-        .RequireAuthorization()
         .WithTags(nameof(User));
     }
 }
