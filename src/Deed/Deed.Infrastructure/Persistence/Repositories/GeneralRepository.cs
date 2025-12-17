@@ -12,16 +12,8 @@ internal abstract class GeneralRepository<TEntity>(IDeedDbContext context)
     protected IDeedDbContext DbContext { get; } = context;
     protected readonly DbSet<TEntity> DbSet = context.Set<TEntity>();
 
-    public async Task<IEnumerable<TEntity>> GetAllAsync() =>
-        await DbSet
-            .AsNoTracking()
-            .AsSplitQuery()
-            .ToListAsync();
-
     public async Task<IEnumerable<TEntity>> GetAllAsync(ISpecification<TEntity> specification) =>
         await ApplySpecification(specification)
-            .AsNoTracking()
-            .AsSplitQuery()
             .ToListAsync();
 
     public async Task<TEntity?> GetAsync(ISpecification<TEntity> specification) =>

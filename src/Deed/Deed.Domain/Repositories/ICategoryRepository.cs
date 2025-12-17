@@ -5,7 +5,7 @@ namespace Deed.Domain.Repositories;
 
 public interface ICategoryRepository
 {
-    Task<IEnumerable<Category>> GetAllAsync(CategoryType? type = null, IEnumerable<int>? ids = null, bool? includeDeleted = null, bool tracking = false);
+    Task<IEnumerable<Category>> GetAllAsync(ISpecification<Category> specification);
 
     Task<Category?> GetAsync(ISpecification<Category> specification);
 

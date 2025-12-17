@@ -1,6 +1,7 @@
 using Deed.Application.Abstractions.Settings;
 using Deed.Application.Categories.Queries.GetAll;
 using Deed.Application.Categories.Response;
+using Deed.Application.Categories.Specifications;
 using Deed.Domain.Entities;
 using Deed.Domain.Enums;
 using Deed.Domain.Repositories;
@@ -40,8 +41,9 @@ public sealed class GetAllCategoryQueryHandlerTests
         };
         var responses = categories.Select(x =>
             new CategoryResponse(x.Id, x.Name, x.Type, x.Period, x.PlannedPeriodAmount, x.IsDeleted ?? false));
-
-        _repositoryMock.GetAllAsync(type).Returns(categories);
+        
+        _repositoryMock.GetAllAsync(Arg.Any<CategoriesByQuerySpecification>())
+            .Returns(categories);
 
         // Act
         var result = await _handler.Handle(query, CancellationToken.None);
@@ -50,7 +52,7 @@ public sealed class GetAllCategoryQueryHandlerTests
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().BeEquivalentTo(responses);
 
-        await _repositoryMock.Received(1).GetAllAsync(type);
+        await _repositoryMock.Received(1).GetAllAsync(Arg.Any<CategoriesByQuerySpecification>());
     }
 
     [Fact]
@@ -59,7 +61,7 @@ public sealed class GetAllCategoryQueryHandlerTests
         // Arrange
         var query = new GetAllCategoryQuery();
 
-        _repositoryMock.GetAllAsync(null).Returns([]);
+        _repositoryMock.GetAllAsync(Arg.Any<CategoriesByQuerySpecification>()).Returns([]);
 
         // Act
         var result = await _handler.Handle(query, CancellationToken.None);
@@ -68,6 +70,6 @@ public sealed class GetAllCategoryQueryHandlerTests
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().BeEquivalentTo(Enumerable.Empty<CategoryResponse>());
 
-        await _repositoryMock.Received(1).GetAllAsync(null);
+        await _repositoryMock.Received(1).GetAllAsync(Arg.Any<CategoriesByQuerySpecification>());
     }
 }

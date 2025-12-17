@@ -1,5 +1,6 @@
 using Deed.Application.Abstractions.Messaging;
 using Deed.Application.Incomes.Responses;
+using Deed.Application.Incomes.Specifications;
 using Deed.Domain.Repositories;
 using Deed.Domain.Results;
 
@@ -11,7 +12,7 @@ internal sealed class GetIncomesQueryHandler(
 {
     public async Task<Result<IEnumerable<IncomeResponse>>> Handle(GetIncomesQuery query, CancellationToken cancellationToken)
     {
-        var incomes = await repository.GetAllAsync().ConfigureAwait(false);
+        var incomes = await repository.GetAllAsync(new IncomesByQuerySpecification()).ConfigureAwait(false);
 
         var incomeResponses = incomes.ToResponses();
 

@@ -1,5 +1,6 @@
 using Deed.Application.Incomes;
 using Deed.Application.Incomes.Queries.GetAll;
+using Deed.Application.Incomes.Specifications;
 using Deed.Domain.Entities;
 using Deed.Domain.Enums;
 using Deed.Domain.Repositories;
@@ -44,7 +45,7 @@ public sealed class GetAllIncomesQueryHandlerTests
         var entities = new List<Income> { entity };
         var query = new GetIncomesQuery();
 
-        _incomeRepositoryMock.GetAllAsync().Returns(entities);
+        _incomeRepositoryMock.GetAllAsync(new IncomesByQuerySpecification()).Returns(entities);
 
         var response = entity.ToResponse();
 

@@ -1,13 +1,11 @@
-using System.Diagnostics;
-using System.Linq;
 using Deed.Application.Exchanges.Service;
+using Deed.Application.Exchanges.Specifications;
 using Deed.Domain.Entities;
 using Deed.Domain.Repositories;
-using Microsoft.Extensions.Logging;
 using Quartz;
 using Serilog;
 
-namespace Deed.Infrastructure.BackgroundJobs.SaveLatestExchange;
+namespace Deed.Infrastructure.BackgroundJobs.UpsertLatestExchange;
 
 [DisallowConcurrentExecution]
 public sealed class UpsertLatestExchangeJob(
@@ -28,7 +26,7 @@ public sealed class UpsertLatestExchangeJob(
             return;
         }
 
-        var exchanges = await repository.GetAllAsync().ConfigureAwait(false);
+        var exchanges = (await repository.GetAllAsync(new ExchangesByQuerySpecification()).ConfigureAwait(false)).ToList();
         var lookup = exchanges
             .ToDictionary(
                 e => key(e.NationalCurrencyCode, e.TargetCurrencyCode),

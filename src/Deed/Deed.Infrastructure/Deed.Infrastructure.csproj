@@ -7,6 +7,7 @@
         <RootNamespace>Deed.Infrastructure</RootNamespace>
         <LangVersion>latestmajor</LangVersion>
         <NoWarn>NU1902;NU1901;NU1903</NoWarn>
+        <NuGetAuditLevel>low</NuGetAuditLevel>
     </PropertyGroup>
 
     <ItemGroup>

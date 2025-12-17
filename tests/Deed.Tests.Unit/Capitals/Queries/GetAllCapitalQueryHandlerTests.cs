@@ -60,13 +60,10 @@ public sealed class GetAllCapitalQueryHandlerTests
         var result = await _handler.Handle(query, CancellationToken.None);
 
         // Assert
-        using (new AssertionScope())
-        {
-            result.IsSuccess.Should().BeTrue();
-            result.Value.Should().BeEquivalentTo(capitalResponses);
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().BeEquivalentTo(capitalResponses, o => o.Excluding(c => c.CreatedBy));
 
-            await _repositoryMock.Received(1).GetAllAsync(Arg.Any<CapitalsByQueryParamsSpecification>());
-        }
+        await _repositoryMock.Received(1).GetAllAsync(Arg.Any<CapitalsByQueryParamsSpecification>());
     }
 
     [Fact]

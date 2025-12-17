@@ -1,6 +1,6 @@
 using Deed.Application.Abstractions.Data;
 using Deed.Domain.Repositories;
-using Deed.Infrastructure.BackgroundJobs.SaveLatestExchange;
+using Deed.Infrastructure.BackgroundJobs.UpsertLatestExchange;
 using Deed.Infrastructure.Persistence;
 using Deed.Infrastructure.Persistence.Constants;
 using Deed.Infrastructure.Persistence.DataSeed;
