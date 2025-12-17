@@ -3,6 +3,7 @@ using Deed.Application.Exchanges;
 using Deed.Application.Exchanges.Queries.GetLatest;
 using Deed.Application.Exchanges.Responses;
 using Deed.Application.Exchanges.Service;
+using Deed.Application.Exchanges.Specifications;
 using Deed.Domain.Entities;
 using Deed.Domain.Enums;
 using Deed.Domain.Errors;
@@ -50,7 +51,7 @@ public sealed class GetLatestExchangesHandlerTests
             }
         };
 
-        _repositoryMock.GetAllAsync().Returns(exchangeEntities);
+        _repositoryMock.GetAllAsync(new ExchangesByQuerySpecification()).Returns(exchangeEntities);
 
         // Act
         var result = await _handler.Handle(query, CancellationToken.None);
@@ -91,7 +92,7 @@ public sealed class GetLatestExchangesHandlerTests
         var responses = exchanges.ToResponses();
         var query = new GetLatestExchangeQuery();
 
-        _repositoryMock.GetAllAsync().Returns(exchanges);
+        _repositoryMock.GetAllAsync(Arg.Any<ExchangesByQuerySpecification>()).Returns(exchanges);
         _memoryCacheMock.Set(nameof(Exchange), exchanges, TimeSpan.FromHours(3));
 
         // Act
@@ -101,5 +102,6 @@ public sealed class GetLatestExchangesHandlerTests
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().BeEquivalentTo(responses);
 
+        await _repositoryMock.Received(1).GetAllAsync(Arg.Any<ExchangesByQuerySpecification>());
     }
 }

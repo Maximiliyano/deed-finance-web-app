@@ -4,15 +4,16 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Deed.Application.Exchanges.Service;
+using Deed.Application.Exchanges.Specifications;
 using Deed.Domain.Entities;
 using Deed.Domain.Errors;
 using Deed.Domain.Repositories;
 using Deed.Domain.Results;
-using Deed.Infrastructure.BackgroundJobs.SaveLatestExchange;
+using Deed.Infrastructure.BackgroundJobs.UpsertLatestExchange;
 using NSubstitute;
 using Quartz;
 
-namespace Deed.Tests.Unit.SaveLatestExchange;
+namespace Deed.Tests.Unit.BackgroundJobs;
 
 public sealed class UpsertLatestExchangeJobTests
 {
@@ -54,7 +55,7 @@ public sealed class UpsertLatestExchangeJobTests
         };
 
         _service.GetCurrenciesAsync().Returns(Result.Success<IEnumerable<Exchange>>(newRates));
-        _repository.GetAllAsync().Returns(new List<Exchange>());
+        _repository.GetAllAsync(Arg.Any<ExchangesByQuerySpecification>()).Returns(new List<Exchange>());
 
         // Act
         await _job.Execute(_context);
@@ -70,7 +71,7 @@ public sealed class UpsertLatestExchangeJobTests
         var existing = new Exchange(1) { NationalCurrencyCode = "USD", TargetCurrencyCode = "UAH", Buy = 40, Sale = 41 };
 
         _service.GetCurrenciesAsync().Returns(Result.Success<IEnumerable<Exchange>>(new[] { existing }));
-        _repository.GetAllAsync().Returns([existing]);
+        _repository.GetAllAsync(Arg.Any<ExchangesByQuerySpecification>()).Returns(new[] { existing });
 
         // Act
         await _job.Execute(_context);
@@ -88,7 +89,7 @@ public sealed class UpsertLatestExchangeJobTests
         var latest = new Exchange(1) { NationalCurrencyCode = "USD", TargetCurrencyCode = "UAH", Buy = 42, Sale = 43 };
 
         _service.GetCurrenciesAsync().Returns(Result.Success<IEnumerable<Exchange>>(new[] { latest }));
-        _repository.GetAllAsync().Returns(new[] { existing });
+        _repository.GetAllAsync(Arg.Any<ExchangesByQuerySpecification>()).Returns(new[] { existing });
 
         // Act
         await _job.Execute(_context);
@@ -109,7 +110,7 @@ public sealed class UpsertLatestExchangeJobTests
         var added = new Exchange(1) { NationalCurrencyCode = "EUR", TargetCurrencyCode = "UAH", Buy = 43, Sale = 44 };
 
         _service.GetCurrenciesAsync().Returns(Result.Success<IEnumerable<Exchange>>(new[] { updated, added }));
-        _repository.GetAllAsync().Returns(new[] { existing });
+        _repository.GetAllAsync(Arg.Any<ExchangesByQuerySpecification>()).Returns(new[] { existing });
 
         // Act
         await _job.Execute(_context);
@@ -124,7 +125,7 @@ public sealed class UpsertLatestExchangeJobTests
     public async Task Execute_ShouldDoNothing_WhenRemoteListIsEmpty()
     {
         _service.GetCurrenciesAsync().Returns(Result.Success<IEnumerable<Exchange>>(Array.Empty<Exchange>()));
-        _repository.GetAllAsync().Returns(new List<Exchange>());
+        _repository.GetAllAsync(Arg.Any<ExchangesByQuerySpecification>()).Returns(new List<Exchange>());
 
         // Act
         await _job.Execute(_context);

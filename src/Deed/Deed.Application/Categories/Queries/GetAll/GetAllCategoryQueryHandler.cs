@@ -1,6 +1,7 @@
 using Deed.Application.Abstractions.Messaging;
 using Deed.Application.Abstractions.Settings;
 using Deed.Application.Categories.Response;
+using Deed.Application.Categories.Specifications;
 using Deed.Domain.Repositories;
 using Deed.Domain.Results;
 using Microsoft.Extensions.Caching.Memory;
@@ -14,7 +15,7 @@ internal sealed class GetAllCategoryQueryHandler(
 {
     public async Task<Result<IEnumerable<CategoryResponse>>> Handle(GetAllCategoryQuery query, CancellationToken cancellationToken)
     {
-        var categories = (await repository.GetAllAsync(query.Type, includeDeleted: query.IncludeDeleted).ConfigureAwait(false)).ToResponses();
+        var categories = (await repository.GetAllAsync(new CategoriesByQuerySpecification([], type: query.Type, includeDeleted: query.IncludeDeleted)).ConfigureAwait(false)).ToResponses();
 
         return Result.Success(categories);
     }

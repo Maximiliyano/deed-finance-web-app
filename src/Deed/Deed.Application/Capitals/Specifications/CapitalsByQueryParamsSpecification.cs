@@ -16,7 +16,7 @@ namespace Deed.Application.Capitals.Specifications;
 internal sealed class CapitalsByQueryParamsSpecification : BaseSpecification<Capital>
 {
     public CapitalsByQueryParamsSpecification(string? searchTerm, string? sortBy, string? sortDirection, string? filterBy)
-        : base(GetFilterProperties(filterBy, searchTerm))
+        : base(GetCriteria(filterBy, searchTerm))
     {
         var keySelector = GetSortProperties(sortBy);
 
@@ -36,7 +36,7 @@ internal sealed class CapitalsByQueryParamsSpecification : BaseSpecification<Cap
         AddInclude(c => c.TransfersOut);
     }
 
-    private static Expression<Func<Capital, bool>>? GetFilterProperties(string? filterBy, string? searchTerm)
+    private static Expression<Func<Capital, bool>>? GetCriteria(string? filterBy, string? searchTerm)
     {
         if (!string.IsNullOrWhiteSpace(searchTerm))
         {

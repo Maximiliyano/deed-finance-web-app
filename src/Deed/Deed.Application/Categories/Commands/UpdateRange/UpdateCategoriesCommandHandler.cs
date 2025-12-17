@@ -19,12 +19,11 @@ public sealed class UpdateCategoriesCommandHandler(
     public async Task<Result> Handle(UpdateCategoriesCommand request, CancellationToken cancellationToken)
     {
         var ids = request.Requests.Select(r => r.Id).ToList();
-        var categories = await repository.GetAllAsync(ids: ids, tracking: true).ConfigureAwait(false);
+        var categories = await repository.GetAllAsync(new CategoriesByQuerySpecification(ids, tracking: true)).ConfigureAwait(false);
         if (!categories.Any())
         {
-            return Result.Success();
+            return Result.Failure(DomainErrors.General.NotFound("category"));
         }
-
         foreach (var updatedCategory in request.Requests)
         {
             var selectedCategory = categories.FirstOrDefault(c => c.Id.Equals(updatedCategory.Id));

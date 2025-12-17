@@ -2,6 +2,7 @@ using Deed.Application.Abstractions.Messaging;
 using Deed.Application.Abstractions.Settings;
 using Deed.Application.Exchanges.Responses;
 using Deed.Application.Exchanges.Service;
+using Deed.Application.Exchanges.Specifications;
 using Deed.Domain.Entities;
 using Deed.Domain.Errors;
 using Deed.Domain.Providers;
@@ -24,7 +25,7 @@ public sealed class GetLatestExchangeQueryHandler(
     {
         if (!memoryCache.TryGetValue(nameof(Exchanges), out IEnumerable<ExchangeResponse> cachedExchanges))
         {
-            var actualExchanges = (await repository.GetAllAsync().ConfigureAwait(false)).ToResponses();
+            var actualExchanges = (await repository.GetAllAsync(new ExchangesByQuerySpecification()).ConfigureAwait(false)).ToResponses();
 
             if (!actualExchanges.Any())
             {
@@ -32,7 +33,7 @@ public sealed class GetLatestExchangeQueryHandler(
                 return Result.Success(Enumerable.Empty<ExchangeResponse>());
             }
 
-            memoryCache.Set<IEnumerable<ExchangeResponse>>(nameof(Exchanges), actualExchanges, TimeSpan.FromHours(settings.Value.ExchangesTimespanInHours));
+            memoryCache.Set(nameof(Exchanges), actualExchanges, TimeSpan.FromHours(settings.Value.ExchangesTimespanInHours));
 
             return Result.Success(actualExchanges);
         }

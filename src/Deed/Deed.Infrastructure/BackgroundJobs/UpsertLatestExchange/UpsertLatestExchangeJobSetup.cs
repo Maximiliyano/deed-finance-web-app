@@ -2,7 +2,7 @@ using Deed.Application.Abstractions.Settings;
 using Microsoft.Extensions.Options;
 using Quartz;
 
-namespace Deed.Infrastructure.BackgroundJobs.SaveLatestExchange;
+namespace Deed.Infrastructure.BackgroundJobs.UpsertLatestExchange;
 
 public sealed class UpsertLatestExchangeJobSetup(
     IOptions<BackgroundJobsSettings> settings)
