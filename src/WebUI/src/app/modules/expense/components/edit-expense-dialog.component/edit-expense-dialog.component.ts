@@ -1,4 +1,4 @@
-import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
+import { Component, Inject, OnInit } from '@angular/core';
 import { SharedModule } from "../../../../shared/shared.module";
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { FormField } from '../../../../shared/components/forms/models/form-field';
@@ -10,10 +10,11 @@ import { ExpenseResponse } from '../../models/expense-response';
 import { SelectOptionModel } from '../../../../shared/components/forms/models/select-option-model';
 import { noFutureDate } from '../../../../shared/components/forms/validators/noFutureDate';
 import { inputDateToISO, toInputDateString } from '../../../../core/utils/date';
+import { FormComponent } from "../../../../shared/components/forms/form.component";
 
 @Component({
   selector: 'app-edit-expense-dialog.component',
-  imports: [SharedModule],
+  imports: [SharedModule, FormComponent],
   templateUrl: './edit-expense-dialog.component.html',
   styleUrl: './edit-expense-dialog.component.scss',
   standalone: true

@@ -1,5 +1,6 @@
 using Deed.Application.Expenses;
 using Deed.Application.Expenses.Queries.GetAll;
+using Deed.Application.Expenses.Specifications;
 using Deed.Domain.Entities;
 using Deed.Domain.Enums;
 using Deed.Domain.Repositories;
@@ -44,7 +45,7 @@ public sealed class GetAllExpensesQueryHandlerTests
         var entities = new List<Expense> { entity };
         var query = new GetExpensesByCategoryQuery(entity.CategoryId);
 
-        _expenseRepositoryMock.GetAllAsync(query.CategoryId).Returns(entities);
+        _expenseRepositoryMock.GetAllAsync(Arg.Any<ExpenseByQueriesSpecification>()).Returns(entities);
 
         // Act
         var result = await _handler.Handle(query, CancellationToken.None);
@@ -52,5 +53,7 @@ public sealed class GetAllExpensesQueryHandlerTests
         // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().OnlyContain(x => x.CategoryId == query.CategoryId);
+
+        await _expenseRepositoryMock.Received(1).GetAllAsync(Arg.Any<ExpenseByQueriesSpecification>());
     }
 }

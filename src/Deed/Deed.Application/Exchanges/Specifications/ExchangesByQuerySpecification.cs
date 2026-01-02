@@ -8,7 +8,6 @@ using Deed.Application.Abstractions;
 using Deed.Domain.Entities;
 
 
-[assembly: InternalsVisibleTo("Deed.Infrastructure")]
 namespace Deed.Application.Exchanges.Specifications;
 
 internal sealed class ExchangesByQuerySpecification

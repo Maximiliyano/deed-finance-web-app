@@ -1,6 +1,7 @@
 using Deed.Application.Abstractions.Messaging;
 using Deed.Application.Categories.Response;
 using Deed.Application.Expenses.Responses;
+using Deed.Application.Expenses.Specifications;
 using Deed.Domain.Enums;
 using Deed.Domain.Repositories;
 using Deed.Domain.Results;
@@ -13,7 +14,7 @@ internal sealed class GetExpensesByCategoryHandler(
 {
     public async Task<Result<IEnumerable<CategoryExpenseResponse>>> Handle(GetExpensesByCategoryQuery query, CancellationToken cancellationToken)
     {
-        var expenses = await repository.GetAllAsync(query.CategoryId).ConfigureAwait(false);
+        var expenses = await repository.GetAllAsync(new ExpenseByQueriesSpecification(query.CategoryId)).ConfigureAwait(false);
 
         if (!expenses.Any())
         {

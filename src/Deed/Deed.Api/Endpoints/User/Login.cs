@@ -2,8 +2,8 @@
 using System.IdentityModel.Tokens.Jwt;
 using Deed.Api.Extensions;
 using Deed.Application.Abstractions.Settings;
+using Deed.Application.Auth;
 using Deed.Application.Auth.Commands.Login;
-using Deed.Infrastructure.Persistence.Constants;
 using MediatR;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;

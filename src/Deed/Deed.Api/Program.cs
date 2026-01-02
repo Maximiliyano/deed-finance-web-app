@@ -1,3 +1,4 @@
+using System.Reflection;
 using Deed.Api;
 using Deed.Api.Extensions;
 using Deed.Application;
@@ -5,7 +6,6 @@ using Deed.Infrastructure;
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Serilog;
-using AssemblyReference = Deed.Api.AssemblyReference;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,12 +18,13 @@ builder.Services
     .AddApi()
     .AddInfrastructure();
 
-builder.Services.AddEndpoints(AssemblyReference.Assembly);
+builder.Services.AddEndpoints();
 
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
 {
+    // TODO: DB migrations run in Development without waiting for DB readiness. When using containers, the API may start before SQL Server is ready => migration/connection failures. Add a retry/healthy-wait loop.
     app.ApplyMigrations();
     app.UseSwaggerDependencies();
 }

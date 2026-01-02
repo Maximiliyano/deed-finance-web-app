@@ -44,14 +44,17 @@ public static class DependencyInjection
     private static IServiceCollection AddRepositories(this IServiceCollection services)
     {
         services.AddTransient<ICapitalRepository, CapitalRepository>();
+        services.AddTransient<ICategoryRepository, CategoryRepository>();
 
         services.AddTransient<IExpenseRepository, ExpenseRepository>();
 
         services.AddTransient<IExchangeRepository, ExchangeRepository>();
 
         services.AddTransient<IIncomeRepository, IncomeRepository>();
+        
+        services.AddTransient<ITagRepository, TagRepository>();
 
-        services.AddTransient<ICategoryRepository, CategoryRepository>();
+        services.AddTransient<IExpenseTagRepository, ExpenseTagRepository>();
 
         return services;
     }

@@ -3,44 +3,55 @@
 
     @for (field of fields; track field.controlName) {
       <div class="mb-4">
-        @if (field.input?.type !== 'checkbox') {
-          <label [for]="field.controlName" class="block mb-1 text-sm font-medium">{{ field.label }}</label>
-    
-          @if (field.input) {
-            <input
-              [type]="field.input.type"
-              class="w-full border rounded px-3 py-2"
-              [id]="field.controlName"
-              [formControlName]="field.controlName"
-              [placeholder]="field.input.placeholder ?? 'Enter the value'"
-              autocomplete="off"
-            />
+        @switch (field.input?.type) {
+          @case ('checkbox') {
+            <div class="flex items-center justify-between mb-4">
+              <div class="flex items-center">
+                <input
+                  type="checkbox"
+                  [id]="field.controlName"
+                  [formControlName]="field.controlName"
+                  class="h-4 w-4 text-blue-600 border-gray-300 rounded"
+                  autocomplete="off"
+                >
+                <label
+                  [for]="field.controlName"
+                  class="ml-2 text-sm font-medium"
+                >
+                  {{ field.label }}
+                </label>
+              </div>
+            </div>
           }
-        }
-        @else {
-          <div class="flex items-center justify-between mb-4">
-            <div class="flex items-center">
+          @default {
+            <label [for]="field.controlName" class="block mb-1 text-sm font-medium">{{ field.label }}</label>
+    
+            @if (field.input) {
               <input
-                type="checkbox"
+                [type]="field.input.type"
+                class="w-full border rounded px-3 py-2"
                 [id]="field.controlName"
                 [formControlName]="field.controlName"
-                class="h-4 w-4 text-blue-600 border-gray-300 rounded"
+                [placeholder]="field.input.placeholder ?? 'Enter the value'"
                 autocomplete="off"
-              >
-              <label
-                [for]="field.controlName"
-                class="ml-2 text-sm font-medium"
-              >
-                {{ field.label }}
-              </label>
-            </div>
-          </div>
+              />
+            }
+          }
         }
   
+        @if (field.selectiveInput) {
+          <app-selective-input
+              [formControlName]="field.controlName"
+              [suggestions]="field.selectiveInput.data"
+              (searchChange)="field.selectiveInput.onSearch($event)"
+              (createChange)="field.selectiveInput.onCreate($event)"
+          />
+        }
+
         @if (field.select) {
           <select
             [formControlName]="field.controlName"
-            class="w-full border rounded px-3 py-2 {{ form.get(field.controlName)?.disabled ? 'cursor-not-allowed text-gray-300' : 'cursor-pointer' }}"
+            class="w-full border rounded px-3 py-2 {{ formControl(field.controlName)?.disabled ? 'cursor-not-allowed text-gray-300' : 'cursor-pointer' }}"
           >
             @if (field.select.optionCaption) {
               <option value="">{{ field.select.optionCaption }}</option>

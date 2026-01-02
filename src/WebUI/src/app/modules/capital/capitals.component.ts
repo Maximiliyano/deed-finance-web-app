@@ -232,7 +232,7 @@ export class CapitalsComponent implements OnInit, OnDestroy {
 
       this.popupMessageService.success(`${capital.name} was successfully updated.`);
     } else {
-      this.popupMessageService.error('Error while updating occured.');
+      this.popupMessageService.error('Error while updating occurred.');
     }
   }
 

@@ -14,7 +14,7 @@ import {
             multi: true
         }
     ],
-    standalone: false
+    standalone: true
 })
 export class DatePickerComponent implements ControlValueAccessor {
   @Input() restrictFuture: boolean;

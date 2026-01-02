@@ -16,7 +16,8 @@ internal sealed class Create : IEndpoint
                     request.CategoryId,
                     request.Amount,
                     request.PaymentDate,
-                    request.Purpose), ct))
+                    request.Purpose,
+                    request.TagNames), ct)) // TODO TagIds
                 .Process())
             .WithTags(nameof(Expenses));
     }

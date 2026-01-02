@@ -1,6 +1,6 @@
 ﻿using System.Security.Claims;
 
-namespace Deed.Infrastructure.Persistence.Constants;
+namespace Deed.Application.Auth;
 
 public static class AuthClaimTypes
 {

@@ -1,5 +1,6 @@
 ﻿using Deed.Application.Abstractions.Messaging;
 using Deed.Application.Capitals.Specifications;
+using Deed.Application.Tags.Specifications;
 using Deed.Domain.Errors;
 using Deed.Domain.Repositories;
 using Deed.Domain.Results;
@@ -10,6 +11,7 @@ namespace Deed.Application.Expenses.Commands.Create;
 internal sealed class CreateExpenseCommandHandler(
     ICapitalRepository capitalRepository,
     IExpenseRepository expenseRepository,
+    ITagRepository tagRepository,
     IUnitOfWork unitOfWork)
     : ICommandHandler<CreateExpenseCommand, int>
 {
@@ -28,6 +30,31 @@ internal sealed class CreateExpenseCommandHandler(
         }
 
         var expense = command.ToEntity();
+
+        foreach (var tagName in command.TagNames)
+        {
+            var tag = await tagRepository.GetAsync(new TagByNameSpecification(tagName, true)).ConfigureAwait(false);
+            if (tag is null)
+            {
+                tagRepository.Create(new ()
+                {
+                    Name = tagName,
+                    ExpenseTags =
+                    [
+                        new ()
+                        {
+                            Expense = expense
+                        }
+                    ]
+                });
+                continue;
+            }
+            expense.Tags.Add(new ()
+            {
+                Tag = tag
+            });
+        }
+
 
         capital.Balance -= expense.Amount;
 

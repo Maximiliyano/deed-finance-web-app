@@ -19,4 +19,8 @@ internal static class TableConfigurationConstants
     public const string DatabaseConnection = nameof(DatabaseConnection);
 
     public const string Users = nameof(Users);
+
+    public const string Tags = nameof(Tags);
+
+    public const string ExpenseTags = nameof(ExpenseTags);
 }

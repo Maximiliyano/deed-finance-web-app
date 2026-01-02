@@ -5,4 +5,6 @@ public sealed record CreateExpenseRequest(
     int CategoryId,
     decimal Amount,
     DateTimeOffset PaymentDate,
-    string? Purpose);
+    string? Purpose,
+    List<string> TagNames
+);

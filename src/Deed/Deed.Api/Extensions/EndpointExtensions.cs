@@ -6,9 +6,9 @@ namespace Deed.Api.Extensions;
 
 internal static class EndpointExtensions
 {
-    internal static IServiceCollection AddEndpoints(this IServiceCollection services, Assembly assembly)
+    internal static IServiceCollection AddEndpoints(this IServiceCollection services)
     {
-        ServiceDescriptor[] serviceDescriptors = assembly
+        ServiceDescriptor[] serviceDescriptors = Assembly.GetExecutingAssembly()
             .DefinedTypes
             .Where(type => type is { IsAbstract: false, IsInterface: false } &&
                            type.IsAssignableTo(typeof(IEndpoint)))

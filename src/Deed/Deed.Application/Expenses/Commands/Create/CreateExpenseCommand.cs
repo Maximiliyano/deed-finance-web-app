@@ -7,5 +7,6 @@ public sealed record CreateExpenseCommand(
     int CategoryId,
     decimal Amount,
     DateTimeOffset PaymentDate,
-    string? Purpose)
-    : ICommand<int>;
+    string? Purpose,
+    List<string> TagNames
+) : ICommand<int>;
