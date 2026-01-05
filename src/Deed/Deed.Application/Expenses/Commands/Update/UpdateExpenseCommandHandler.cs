@@ -1,6 +1,6 @@
 using Deed.Application.Abstractions.Messaging;
 using Deed.Application.Expenses.Specifications;
-using Deed.Application.Tags.Specifications;
+using Deed.Domain.Entities;
 using Deed.Domain.Errors;
 using Deed.Domain.Repositories;
 using Deed.Domain.Results;
@@ -26,54 +26,77 @@ internal sealed class UpdateExpenseCommandHandler(
             return Result.Failure(DomainErrors.Capital.ForSavingsOnly);
         }
 
-        // TODO include tagnames
-        if (HasNoChanges(command, expense.Purpose))
+        if (HasNoChanges(command, expense))
         {
             return Result.Success();
         }
 
-        if (command.Amount is not null)
+        var changed = false;
+
+        if (command.Amount is not null && command.Amount != expense.Amount)
         {
             var difference = expense.Amount - command.Amount.Value;
 
             expense.Capital.Balance += difference;
 
             expense.Amount = command.Amount.Value;
+            changed = true;
         }
 
-        if (command.CapitalId.HasValue)
+        if (command.CapitalId.HasValue && command.CapitalId.Value != expense.CapitalId)
         {
             expense.CapitalId = command.CapitalId.Value;
+            changed = true;
         }
-        
-        // TODO execute tags from repository & complete
+
         if (command.TagNames is not null && command.TagNames.Any())
         {
             expense.Tags.Clear();
-            expense.Tags.AddRange(command.TagNames.Select(t => new Domain.Entities.ExpenseTag()
+            expense.Tags.AddRange(command.TagNames.Select(t => new ExpenseTag
             {
                 Expense = expense,
-                
+                Tag = new Tag { Name = t },
             }));
+            changed = true;
         }
 
-        expense.Purpose = command.Purpose;
-        expense.PaymentDate = command.Date ?? expense.PaymentDate;
+        if (command.Purpose is not null && command.Purpose != expense.Purpose)
+        {
+            expense.Purpose = command.Purpose;
+            changed = true;
+        }
 
-        if (command.CategoryId.HasValue)
+        if (command.Date is not null && command.Date != expense.PaymentDate)
+        {
+            expense.PaymentDate = command.Date.Value;
+            changed = true;
+        }
+
+        if (command.CategoryId.HasValue && command.CategoryId.Value != expense.CategoryId)
         {
             expense.CategoryId = command.CategoryId.Value;
+
+            changed = true;
         }
+
+        if (!changed)
+        {
+            return Result.Success();
+        }
+
+        expenseRepository.Update(expense);
 
         await unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         return Result.Success();
     }
 
-    private bool HasNoChanges(UpdateExpenseCommand command, string? purpose) =>
-        command.CategoryId is null &&
-        command.CapitalId is null &&
-        command.Amount is null &&
-        command.Date is null &&
-        command.Purpose == purpose;
+    private bool HasNoChanges(UpdateExpenseCommand command, Domain.Entities.Expense expense) =>
+        (command.CategoryId is null || command.CategoryId == expense.CategoryId) &&
+        (command.CapitalId is null || command.CapitalId == expense.CapitalId) &&
+        (command.Amount is null || command.Amount == expense.Amount) &&
+        (command.Date is null || command.Date == expense.PaymentDate) &&
+        (command.Purpose is null || command.Purpose == expense.Purpose) &&
+        (command.TagNames is null || command.TagNames.All(name => expense.Tags.Exists(t => t.Tag.Name.Equals(name, StringComparison.OrdinalIgnoreCase)))
+    );
 }
