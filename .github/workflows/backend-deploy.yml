@@ -42,4 +42,5 @@ jobs:
       - name: Deploy with Fly.io
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
-        run: flyctl deploy --remote-only --app deed-api
+        run: flyctl deploy --remote-only --app deed-api --verbose
+        working-directory: src/Deed/Deed.Api
