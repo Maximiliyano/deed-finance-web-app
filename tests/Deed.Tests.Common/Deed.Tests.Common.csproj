@@ -5,6 +5,7 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <LangVersion>latestmajor</LangVersion>
+		<RootNamespace>Deed.Tests.Common</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>
@@ -13,8 +14,15 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\..\src\Deed\Deed.Api\Deed.Api.csproj" />
       <ProjectReference Include="..\..\src\Deed\Deed.Application\Deed.Application.csproj" />
       <ProjectReference Include="..\..\src\Deed\Deed.Infrastructure\Deed.Infrastructure.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Update="appsettings.Test.json">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
     </ItemGroup>
 
 </Project>

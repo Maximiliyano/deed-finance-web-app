@@ -1,17 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using System.Net;
+﻿using System.Net;
 using System.Text;
-using System.Threading.Tasks;
 using Deed.Application.Abstractions.Settings;
 using Deed.Application.Exchanges.Service;
 using Deed.Domain.Errors;
 using Deed.Domain.Providers;
 using Deed.Tests.Common.Mocks;
 using FluentAssertions;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NSubstitute;
 
@@ -22,6 +16,7 @@ public sealed class ExchangeHttpServiceTests
     private readonly IDateTimeProvider _dateTimeProvider = Substitute.For<IDateTimeProvider>();
     private readonly IOptions<WebUrlSettings> _options = Options.Create(new WebUrlSettings
     {
+        DeedApiUrl = "https://api.deed.com",
         UIUrl = "https://ui.ex.com",
         ExchangeRatesPrivatAPIUrl = "https://api.ex.com/rates?date={0}"
     });
