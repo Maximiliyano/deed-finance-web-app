@@ -1,18 +1,29 @@
-﻿using System.Net.Http.Json;
-using Deed.Domain.Results;
-using MediatR;
+﻿
+using System.Net.Http.Json;
+using System.Text.Json;
 
 namespace Deed.Tests.Common.Mocks;
 
-public sealed class TestClient : IDisposable
+public sealed class TestApiClient : IDisposable
 {
     private readonly HttpClient _httpClient;
+    private readonly JsonSerializerOptions _jsonSerializerOptions = new() { PropertyNameCaseInsensitive = true };
 
-    public TestClient()
+    private const string AppsettingsJson = "appsettings.Test.json";
+
+    public TestApiClient()
     {
+        var path = Directory.GetCurrentDirectory();
+        var json = File.ReadAllText($"{path}/{AppsettingsJson}");
+        var settings = JsonSerializer.Deserialize<AppSettings>(json, _jsonSerializerOptions);
+
+        ArgumentNullException.ThrowIfNull(settings?.ApiUrl);
+
+        var apiUrl = new Uri(settings.ApiUrl);
+
         _httpClient = new HttpClient()
         {
-            BaseAddress = new Uri("http://localhost:8000/")
+            BaseAddress = apiUrl
         };
     }
 
@@ -32,7 +43,7 @@ public sealed class TestClient : IDisposable
         return await response.Content.ReadFromJsonAsync<T>();
     }
 
-    public async Task<TestResult> SendRequestAsync(HttpMethod method, Uri? uri = null)
+    public async ValueTask<bool> SendRequestAsync(HttpMethod method, Uri? uri = null)
     {
         using var request = new HttpRequestMessage()
         {
@@ -41,16 +52,13 @@ public sealed class TestClient : IDisposable
         };
 
         var response = await _httpClient.SendAsync(request);
+
         if (response is null)
         {
-            return TestResult.Failure();
+            return false;
         }
-        var result = await response.Content.ReadFromJsonAsync<T>();
-        if (result is null)
-        {
-            return new TestResult(false);
-        }
-        return new TestResult(true);
+
+        return true;
     }
 
     public void Dispose()
