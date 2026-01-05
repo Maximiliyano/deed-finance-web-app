@@ -23,15 +23,15 @@ export class SelectiveInputComponent implements ControlValueAccessor {
   @Input() placeholder = 'Add tag...';
   
   @Output() searchChange = new EventEmitter<string>();
-  @Output() createChange = new EventEmitter<Tag[]>();
+  @Output() createChange = new EventEmitter<string[]>();
   
   filteredSuggestions: Tag[] = [];
   inputCtrl = new FormControl('');
-  selectedTags: Tag[] = [];
+  selectedTags: string[] = [];
   showDropdown = false;
   inputValue = '';
   
-  private onChange: (value: Tag[]) => void = () => {};
+  private onChange: (value: string[]) => void = () => {};
   private onTouched: () => void = () => {};
   
   constructor() {
@@ -49,13 +49,13 @@ export class SelectiveInputComponent implements ControlValueAccessor {
 
     this.filteredSuggestions = this.suggestions.filter(tag =>
       tag.name.toLowerCase().includes(term) &&
-      !this.selectedTags.some(selected => selected.tagId === tag.tagId)
+      !this.selectedTags.some(name => name === tag.name)
     );
 
     this.showDropdown = this.filteredSuggestions.length > 0;
   }
 
-  writeValue(value: Tag[]): void {
+  writeValue(value: string[]): void {
     this.selectedTags = value ?? [];
   }
 
@@ -79,10 +79,11 @@ export class SelectiveInputComponent implements ControlValueAccessor {
 
   onSelectSuggestion(tag: Tag) {
     // select already added
-    if (this.selectedTags.some(t => t.tagId === tag.tagId)) return;
+    if (this.selectedTags.some(name => name === tag.name)) return;
 
-    this.selectedTags = [...this.selectedTags, tag];
-
+    this.selectedTags = [...this.selectedTags, tag.name];
+    
+    this.inputCtrl.reset();
     this.onChange(this.selectedTags);
     this.filterSuggestions();
   }
@@ -100,14 +101,8 @@ export class SelectiveInputComponent implements ControlValueAccessor {
     this.createChange.emit(this.selectedTags);
   }
 
-  removeTag(tag: Tag) {
-    this.selectedTags = this.selectedTags.filter(t => t.tagId !== tag.tagId);
+  removeTag(tagName: string) {
+    this.selectedTags = this.selectedTags.filter(name => name !== tagName);
     this.onChange(this.selectedTags);
-  }
-
-  private resetInput() {
-    this.inputCtrl.reset();
-    this.showDropdown = false;
-    this.filteredSuggestions = [...this.suggestions]
   }
 }

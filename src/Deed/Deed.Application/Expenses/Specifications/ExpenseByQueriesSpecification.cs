@@ -15,7 +15,9 @@ internal sealed class ExpenseByQueriesSpecification : BaseSpecification<Expense>
     public ExpenseByQueriesSpecification(int? capitalId)
         : base(e => !capitalId.HasValue || e.CapitalId == capitalId.Value)
     {
-        AddInclude(e => e.Capital);
-        AddInclude(e => e.Category);
+        AddInclude(t => t.Capital);
+        AddInclude(t => t.Category);
+
+        Includes.Add(e => e.Include(t => t.Tags).ThenInclude(ta => ta.Tag));
     }
 }

@@ -229,9 +229,6 @@ export class ExpensesComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (request: CreateExpenseRequest) => {
           if (request) {
-            // TODO condition for create
-            this.createTag();
-
             this.expenseService.create(request)
               .pipe(takeUntil(this.$unsubscribe))
               .subscribe({
@@ -245,10 +242,6 @@ export class ExpensesComponent implements OnInit, OnDestroy {
     );
   }
 
-  createTag(): void {
-    
-  }
-
   addExpenseToList(expenseId: number, request: CreateExpenseRequest): void {
     const existingCategoryExpense = this.expenseCategories.find(c => c.categoryId === request.categoryId);
 
@@ -257,7 +250,8 @@ export class ExpensesComponent implements OnInit, OnDestroy {
       capitalId: request.capitalId,
       amount: request.amount,
       paymentDate: request.paymentDate,
-      purpose: request.purpose
+      purpose: request.purpose,
+      tagNames: request.tagNames
     };
 
     if (existingCategoryExpense) {
@@ -299,7 +293,8 @@ export class ExpensesComponent implements OnInit, OnDestroy {
         expense: expense,
         categoryId: oldCategoryId,
         categoryOptions: this.categoryOptions,
-        capitalOptions: this.capitalOptions
+        capitalOptions: this.capitalOptions,
+        tags: this.tags
       }
     });
 

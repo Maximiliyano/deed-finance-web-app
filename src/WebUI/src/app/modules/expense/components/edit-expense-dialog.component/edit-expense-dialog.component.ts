@@ -11,6 +11,7 @@ import { SelectOptionModel } from '../../../../shared/components/forms/models/se
 import { noFutureDate } from '../../../../shared/components/forms/validators/noFutureDate';
 import { inputDateToISO, toInputDateString } from '../../../../core/utils/date';
 import { FormComponent } from "../../../../shared/components/forms/form.component";
+import { Tag } from '../../models/tag';
 
 @Component({
   selector: 'app-edit-expense-dialog.component',
@@ -33,7 +34,8 @@ export class EditExpenseDialogComponent implements OnInit { // TODO
       expense: ExpenseResponse,
       categoryId: number,
       capitalOptions: SelectOptionModel[],
-      categoryOptions: SelectOptionModel[]
+      categoryOptions: SelectOptionModel[],
+      tags: Tag[]
     }, 
     private readonly dialogRef: DialogRef<UpdateExpenseRequest | null>,
     private readonly popupMessageService: PopupMessageService
@@ -61,10 +63,11 @@ export class EditExpenseDialogComponent implements OnInit { // TODO
         [Validators.required]
       ),
       PaymentDate: new FormControl(
-       toInputDateString(this.expense.paymentDate) ?? '',
-       [Validators.required, noFutureDate]
+        toInputDateString(this.expense.paymentDate) ?? '',
+        [Validators.required, noFutureDate]
       ),
-      Purpose: new FormControl(this.expense.purpose, [Validators.minLength(1)])
+      Purpose: new FormControl(this.expense.purpose, [Validators.minLength(1)]),
+      TagNames: new FormControl(this.expense.tagNames)
     });
   }
 
@@ -92,6 +95,15 @@ export class EditExpenseDialogComponent implements OnInit { // TODO
         }
       },
       {
+        label: 'Tags',
+        controlName: 'TagNames',
+        selectiveInput: {
+          data: this.data.tags,
+          onSearch: this.onSearch,
+          onCreate: this.onCreate
+        }
+      },
+      {
         label: 'Payment date',
         controlName: 'PaymentDate',
         dateTimePicker: {
@@ -105,6 +117,9 @@ export class EditExpenseDialogComponent implements OnInit { // TODO
       }
     ];
   }
+
+  onCreate(tags: string[]): void {}
+  onSearch(term?: string): void {}
 
   handleSubmit(): void {
     if (this.form.invalid) {
@@ -141,6 +156,11 @@ export class EditExpenseDialogComponent implements OnInit { // TODO
         ? inputDateToISO(formPaymentDateStr)
         : undefined,
 
+      tagNames:
+        JSON.stringify(formValue.TagNames) !== JSON.stringify(this.expense.tagNames)
+          ? formValue.TagNames
+          : undefined,
+          
       purpose: formValue.Purpose?.trim() === '' ? null : formValue.Purpose
     };
 

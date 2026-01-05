@@ -83,13 +83,8 @@ export class AddExpenseDialogComponent implements OnInit {
     ]
   }
 
-  onCreate(name: Tag[]): void {
-
-  }
-  
-  onSearch(term?: string): void {
-
-  }
+  onCreate(names: string[]): void {}
+  onSearch(term?: string): void {}
 
   private initForm(): void {
     this.form = new FormGroup({
@@ -108,18 +103,15 @@ export class AddExpenseDialogComponent implements OnInit {
       return;
     }
 
-    // TODO create not existing tagIds
-
     const capitalId = Number(this.form.value.CapitalId);
-    const tags = this.form.value.TagNames as Tag[] | null;
-    console.log('Selected tags:', tags);
+    const tags = this.form.value.TagNames as string[] | null;
     const request: CreateExpenseRequest = {
       capitalId: capitalId,
       categoryId: Number(this.form.value.CategoryId),
       amount: Number(this.form.value.Amount),
       paymentDate: this.form.value.PaymentDate,
       purpose: this.form.value.Purpose,
-      tagNames: tags?.map(t => t.name) ?? null
+      tagNames: tags
     };
 
     this.dialogRef.close(request);

@@ -8,4 +8,6 @@ public sealed record ExpenseResponse(
     int CapitalId,
     decimal Amount,
     DateTimeOffset PaymentDate,
-    string? Purpose);
+    string? Purpose,
+    List<string> TagNames
+);

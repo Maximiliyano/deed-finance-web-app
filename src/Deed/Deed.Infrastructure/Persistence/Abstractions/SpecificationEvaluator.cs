@@ -41,7 +41,7 @@ public static class SpecificationEvaluator
                 .Aggregate(
                     queryable,
                     (currect, includeExpression) =>
-                        currect.Include(includeExpression))
+                        includeExpression(currect))
                 .AsSplitQuery();
         }
 

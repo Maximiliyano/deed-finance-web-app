@@ -18,6 +18,7 @@ internal sealed class Update : IEndpoint
                     request.CapitalId,
                     request.Amount,
                     request.Purpose,
+                    request.TagNames,
                     request.Date), ct))
                 .Process(ResultType.NoContent))
             .WithTags(nameof(Expenses));

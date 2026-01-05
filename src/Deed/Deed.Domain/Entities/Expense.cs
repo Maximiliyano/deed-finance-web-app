@@ -36,5 +36,5 @@ public sealed class Expense
 
     public bool? IsDeleted { get; set; }
 
-    public ICollection<ExpenseTag> Tags { get; init; } = [];
+    public List<ExpenseTag> Tags { get; init; } = [];
 }

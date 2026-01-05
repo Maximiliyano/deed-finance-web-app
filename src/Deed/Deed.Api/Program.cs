@@ -1,4 +1,3 @@
-using System.Reflection;
 using Deed.Api;
 using Deed.Api.Extensions;
 using Deed.Application;
@@ -24,12 +23,11 @@ var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
 {
-    // TODO: DB migrations run in Development without waiting for DB readiness. When using containers, the API may start before SQL Server is ready => migration/connection failures. Add a retry/healthy-wait loop.
     app.ApplyMigrations();
     app.UseSwaggerDependencies();
 }
 else
-{ 
+{
     app.UseHsts();
 }
 

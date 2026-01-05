@@ -15,7 +15,9 @@ internal static class ExpenseExtensions
             expense.CapitalId,
             expense.Amount,
             expense.PaymentDate,
-            expense.Purpose);
+            expense.Purpose,
+            [.. expense.Tags.Select(t => t.Tag.Name)]
+        );
 
     internal static IEnumerable<ExpenseResponse> ToResponses(this IEnumerable<Expense> expenses)
         => expenses.Select(e => e.ToResponse());

@@ -6,7 +6,7 @@ public interface ISpecification<TEntity>
 {
     Expression<Func<TEntity, bool>>? Criteria { get; }
 
-    IList<Expression<Func<TEntity, object>>> Includes { get; }
+    List<Func<IQueryable<TEntity>, IQueryable<TEntity>>> Includes { get; }
 
     Expression<Func<TEntity, object>>? OrderBy { get; }
 

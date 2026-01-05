@@ -1,5 +1,6 @@
 using Deed.Application.Abstractions.Messaging;
 using Deed.Application.Expenses.Specifications;
+using Deed.Application.Tags.Specifications;
 using Deed.Domain.Errors;
 using Deed.Domain.Repositories;
 using Deed.Domain.Results;
@@ -7,15 +8,13 @@ using Deed.Domain.Results;
 namespace Deed.Application.Expenses.Commands.Update;
 
 internal sealed class UpdateExpenseCommandHandler(
-    ICapitalRepository capitalRepository,
-    ICategoryRepository categoryRepository,
     IExpenseRepository expenseRepository,
     IUnitOfWork unitOfWork)
     : ICommandHandler<UpdateExpenseCommand>
 {
     public async Task<Result> Handle(UpdateExpenseCommand command, CancellationToken cancellationToken)
     {
-        var expense = await expenseRepository.GetAsync(new ExpenseByIdSpecification(command.Id, true, true)).ConfigureAwait(false);
+        var expense = await expenseRepository.GetAsync(new ExpenseByIdSpecification(command.Id, true, true, true, enableTracking: true)).ConfigureAwait(false);
 
         if (expense?.Capital is null || expense?.Category is null)
         {
@@ -27,6 +26,7 @@ internal sealed class UpdateExpenseCommandHandler(
             return Result.Failure(DomainErrors.Capital.ForSavingsOnly);
         }
 
+        // TODO include tagnames
         if (HasNoChanges(command, expense.Purpose))
         {
             return Result.Success();
@@ -45,10 +45,16 @@ internal sealed class UpdateExpenseCommandHandler(
         {
             expense.CapitalId = command.CapitalId.Value;
         }
-
-        if (command.Amount.HasValue || command.CapitalId.HasValue)
+        
+        // TODO execute tags from repository & complete
+        if (command.TagNames is not null && command.TagNames.Any())
         {
-            capitalRepository.Update(expense.Capital);
+            expense.Tags.Clear();
+            expense.Tags.AddRange(command.TagNames.Select(t => new Domain.Entities.ExpenseTag()
+            {
+                Expense = expense,
+                
+            }));
         }
 
         expense.Purpose = command.Purpose;
@@ -57,11 +63,7 @@ internal sealed class UpdateExpenseCommandHandler(
         if (command.CategoryId.HasValue)
         {
             expense.CategoryId = command.CategoryId.Value;
-
-            categoryRepository.Update(expense.Category);
         }
-
-        expenseRepository.Update(expense);
 
         await unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 

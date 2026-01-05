@@ -12,7 +12,7 @@ export interface FormField {
     placeholder?: string,
     data: Tag[],
     onSearch: (term?: string) => void;
-    onCreate: (collection: any[]) => void;
+    onCreate: (collection: string[]) => void;
   }
   select?: {
     options: SelectOptionModel[],
