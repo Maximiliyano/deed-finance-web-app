@@ -4,7 +4,6 @@ using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
-using Deed.Infrastructure.Persistence.Constants;
 using Microsoft.AspNetCore.Http;
 
 namespace Deed.Application.Auth;

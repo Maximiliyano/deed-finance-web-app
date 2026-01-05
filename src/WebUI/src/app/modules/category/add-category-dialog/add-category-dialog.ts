@@ -8,13 +8,14 @@ import { DialogRef } from '../../../shared/components/dialogs/models/dialog-ref'
 import { FormField } from '../../../shared/components/forms/models/form-field';
 import { SharedModule } from '../../../shared/shared.module';
 import { CategoryResponse } from '../models/category-model';
+import { FormComponent } from '../../../shared/components/forms/form.component';
 
 @Component({
   selector: 'app-add-category-dialog',
-  imports: [SharedModule],
   templateUrl: './add-category-dialog.html',
   styleUrl: './add-category-dialog.scss',
-  standalone: true
+  standalone: true,
+  imports: [SharedModule, FormComponent]
 })
 export class AddCategoryDialog implements OnInit {
   form: FormGroup;

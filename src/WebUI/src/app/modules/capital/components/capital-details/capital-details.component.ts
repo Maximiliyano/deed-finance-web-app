@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Inject, OnDestroy, OnInit, Output } from '@angular/core';
+import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { PopupMessageService } from '../../../../shared/services/popup-message.service';
 import { UpdateCapitalRequest } from '../../models/update-capital-request';
 import { CurrencyType } from '../../../../core/types/currency-type';
@@ -11,12 +11,14 @@ import { FormButton } from '../../../../shared/components/forms/models/form-butt
 import { Subject, takeUntil } from 'rxjs';
 import { DIALOG_DATA } from '../../../../shared/components/dialogs/models/dialog-consts';
 import { DialogRef } from '../../../../shared/components/dialogs/models/dialog-ref';
+import { FormComponent } from '../../../../shared/components/forms/form.component';
 
 @Component({
     selector: 'app-capital-details',
     templateUrl: './capital-details.component.html',
     styleUrl: './capital-details.component.scss',
-    standalone: false
+    imports: [FormComponent],
+    standalone: true
 })
 export class CapitalDetailsComponent implements OnInit, OnDestroy {
   form: FormGroup;

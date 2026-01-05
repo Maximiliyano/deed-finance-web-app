@@ -6,7 +6,7 @@ public interface IExpenseRepository
 {
     Task<Expense?> GetAsync(ISpecification<Expense> specification);
 
-    Task<IEnumerable<Expense>> GetAllAsync(int? capitalId);
+    Task<IEnumerable<Expense>> GetAllAsync(ISpecification<Expense> specification);
 
     void Create(Expense expense);
 

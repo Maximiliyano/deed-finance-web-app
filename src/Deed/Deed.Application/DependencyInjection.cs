@@ -6,7 +6,6 @@ using Deed.Application.Abstractions.Settings;
 using Deed.Application.Auth;
 using Deed.Application.Exchanges;
 using Deed.Application.Exchanges.Service;
-using Deed.Infrastructure.Persistence.Constants;
 using FluentValidation;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -39,6 +38,7 @@ public static class DependencyInjection
 
     private static void AddAuth(this IServiceCollection services)
     {
+        // TODO setup proper local auth
         services.AddSingleton<IUser, User>();
 
         var authSettings = services.BuildServiceProvider().GetRequiredService<IOptions<AuthSettings>>().Value;

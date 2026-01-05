@@ -1,18 +1,22 @@
 import { Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
-import { FormGroup,  } from '@angular/forms';
+import { AbstractControl, FormGroup, ReactiveFormsModule,  } from '@angular/forms';
 import { FormField } from './models/form-field';
 import { FormButton } from './models/form-button';
 import { Subject, takeUntil } from 'rxjs';
+import { FormErrorComponent } from "./form-error/form-error.component";
+import { DatePickerComponent } from '../date-picker/date-picker.component';
+import { SelectiveInputComponent } from "../inputs/selective-input.component/selective-input.component";
 
 @Component({
     selector: 'app-form',
     templateUrl: './form.component.html',
-    standalone: false
+    imports: [ReactiveFormsModule, FormErrorComponent, DatePickerComponent, SelectiveInputComponent],
+    standalone: true
 })
 export class FormComponent implements OnInit, OnDestroy {
   @Input() headerText: string = 'Default form';
-  @Input() form: FormGroup = new FormGroup({});
-  @Input() fields: FormField[] = [];
+  @Input({ required: true }) form: FormGroup = new FormGroup({});
+  @Input({ required: true }) fields: FormField[] = [];
   @Input() buttons: FormButton[] = [
     {
       type: 'submit',
@@ -31,10 +35,14 @@ export class FormComponent implements OnInit, OnDestroy {
   @Output() cancelForm = new EventEmitter<void>();
   
   private $unsubscribe = new Subject<void>();
+
+  formControl(controlName: string): AbstractControl<any, any, any> | null {
+    return this.form.get(controlName);
+  }
   
   ngOnInit(): void {
     this.form.statusChanges
-      .pipe(takeUntil(this.$unsubscribe))
+    .pipe(takeUntil(this.$unsubscribe))
       .subscribe({
         next: () => this.updateSubmitButtonState()
       });

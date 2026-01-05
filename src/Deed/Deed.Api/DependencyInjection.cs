@@ -19,7 +19,7 @@ internal static class DependencyInjection
 
         services.AddCors();
 
-        services.AddExceptionHandler<GlobalExceptionHandlerMiiddleware>();
+        services.AddExceptionHandler<GlobalExceptionHandler>();
         services.AddProblemDetails();
 
         services.AddMemoryCache();

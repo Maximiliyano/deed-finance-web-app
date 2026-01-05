@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Deed.Infrastructure.Persistence.Repositories;
 
 internal abstract class GeneralRepository<TEntity>(IDeedDbContext context)
-    where TEntity : Entity, ISoftDeletableEntity
+    where TEntity : Entity
 {
     protected IDeedDbContext DbContext { get; } = context;
     protected readonly DbSet<TEntity> DbSet = context.Set<TEntity>();

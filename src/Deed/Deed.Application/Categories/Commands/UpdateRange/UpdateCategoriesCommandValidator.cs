@@ -35,7 +35,7 @@ internal sealed class UpdateCategoriesCommandValidator : AbstractValidator<Updat
                     .WithError(ValidationErrors.Category.EmptyName)
                     .MaximumLength(ValidationConstants.MaxLenghtName)
                     .WithError(ValidationErrors.Category.NameTooLong)
-                    .MustAsync(async (name, _) =>
+                    .MustAsync(async (name, _) => // TODO fix bug, updateRange existing category - occuer error
                         !await categoryRepository.AnyAsync(new CategoryByNameSpecification(name)).ConfigureAwait(false))
                     .WithError(ValidationErrors.Category.AlreadyExists);
             });

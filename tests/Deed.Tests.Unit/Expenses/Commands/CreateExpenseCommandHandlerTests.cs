@@ -9,17 +9,19 @@ using NSubstitute;
 
 namespace Deed.Tests.Unit.Expenses.Commands;
 
+// TODO write tests for tags
 public sealed class CreateExpenseCommandHandlerTests
 {
     private readonly IExpenseRepository _expenseRepositoryMock = Substitute.For<IExpenseRepository>();
     private readonly ICapitalRepository _capitalRepositoryMock = Substitute.For<ICapitalRepository>();
+    private readonly ITagRepository _tagRepositoryMock = Substitute.For<ITagRepository>();
     private readonly IUnitOfWork _unitOfWorkMock = Substitute.For<IUnitOfWork>();
 
     private readonly CreateExpenseCommandHandler _handler;
 
     public CreateExpenseCommandHandlerTests()
     {
-        _handler = new CreateExpenseCommandHandler(_capitalRepositoryMock, _expenseRepositoryMock, _unitOfWorkMock);
+        _handler = new CreateExpenseCommandHandler(_capitalRepositoryMock, _expenseRepositoryMock, _tagRepositoryMock, _unitOfWorkMock);
     }
 
     [Fact]
@@ -38,7 +40,7 @@ public sealed class CreateExpenseCommandHandlerTests
             Name = "TestCategory",
             Type = CategoryType.Expenses
         };
-        var command = new CreateExpenseCommand(capital.Id, category.Id, 10m, DateTimeOffset.UtcNow, null);
+        var command = new CreateExpenseCommand(capital.Id, category.Id, 10m, DateTimeOffset.UtcNow, null, []);
         _capitalRepositoryMock.GetAsync(Arg.Any<CapitalByIdSpecification>())
             .Returns(capital);
         // Act
@@ -71,7 +73,7 @@ public sealed class CreateExpenseCommandHandlerTests
             Type = CategoryType.Expenses
         };
 
-        var command = new CreateExpenseCommand(capital.Id, category.Id, 10m, DateTimeOffset.UtcNow, null);
+        var command = new CreateExpenseCommand(capital.Id, category.Id, 10m, DateTimeOffset.UtcNow, null, []);
 
         _capitalRepositoryMock.GetAsync(Arg.Any<CapitalByIdSpecification>())
             .Returns(capital);
@@ -95,7 +97,7 @@ public sealed class CreateExpenseCommandHandlerTests
     public async Task Handle_CreateExpenseWhenCapitalNotFound_ShouldReturnsFailure()
     {
         // Arrange
-        var command = new CreateExpenseCommand(1, 1, 10m, DateTimeOffset.UtcNow, null);
+        var command = new CreateExpenseCommand(1, 1, 10m, DateTimeOffset.UtcNow, null, []);
 
         _capitalRepositoryMock.GetAsync(Arg.Any<CapitalByIdSpecification>())
             .Returns((Capital)null);

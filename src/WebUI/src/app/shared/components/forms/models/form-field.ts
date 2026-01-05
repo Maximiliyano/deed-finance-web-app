@@ -1,3 +1,4 @@
+import { Tag } from "../../../../modules/expense/models/tag";
 import { SelectOptionModel } from "./select-option-model"
 
 export interface FormField {
@@ -7,6 +8,12 @@ export interface FormField {
     type: 'text' | 'number' | 'checkbox' | 'password',
     placeholder?: string
   },
+  selectiveInput?: {
+    placeholder?: string,
+    data: Tag[],
+    onSearch: (term?: string) => void;
+    onCreate: (collection: string[]) => void;
+  }
   select?: {
     options: SelectOptionModel[],
     optionCaption?: string

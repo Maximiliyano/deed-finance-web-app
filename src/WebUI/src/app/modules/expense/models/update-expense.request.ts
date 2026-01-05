@@ -4,5 +4,6 @@ export interface UpdateExpenseRequest {
     categoryId?: number;
     amount?: number;
     purpose?: string;
+    tagNames?: string[];
     date?: string | null; 
 }

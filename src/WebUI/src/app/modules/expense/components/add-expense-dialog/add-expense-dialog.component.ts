@@ -8,13 +8,15 @@ import { noFutureDate } from '../../../../shared/components/forms/validators/noF
 import { SharedModule } from "../../../../shared/shared.module";
 import { DIALOG_DATA } from '../../../../shared/components/dialogs/models/dialog-consts';
 import { DialogRef } from '../../../../shared/components/dialogs/models/dialog-ref';
+import { FormComponent } from '../../../../shared/components/forms/form.component';
+import { Tag } from '../../models/tag';
 
 @Component({
     selector: 'app-add-expense-dialog',
     templateUrl: './add-expense-dialog.component.html',
     styleUrl: './add-expense-dialog.component.scss',
     standalone: true,
-    imports: [SharedModule]
+    imports: [SharedModule, FormComponent]
 })
 export class AddExpenseDialogComponent implements OnInit {
   form: FormGroup;
@@ -24,6 +26,7 @@ export class AddExpenseDialogComponent implements OnInit {
     @Inject(DIALOG_DATA) public data: {
       categoryOptions: SelectOptionModel[];
       capitalsOptions: SelectOptionModel[];
+      tags: Tag[];
     },
     private readonly dialogRef: DialogRef<CreateExpenseRequest | null>,
     private readonly popupMessageService: PopupMessageService) {}
@@ -64,6 +67,15 @@ export class AddExpenseDialogComponent implements OnInit {
         }
       },
       {
+        label: 'Tags',
+        controlName: 'TagNames',
+        selectiveInput: {
+          data: this.data.tags,
+          onSearch: this.onSearch,
+          onCreate: this.onCreate
+        }
+      },
+      {
         label: 'Purpose',
         controlName: 'Purpose',
         textArea: {}
@@ -71,11 +83,15 @@ export class AddExpenseDialogComponent implements OnInit {
     ]
   }
 
+  onCreate(names: string[]): void {}
+  onSearch(term?: string): void {}
+
   private initForm(): void {
     this.form = new FormGroup({
       Amount: new FormControl(0, [Validators.required, Validators.min(1)]),
       CapitalId: new FormControl({ value: '', disabled: this.data.capitalsOptions.length === 0 }, [Validators.required]),
       CategoryId: new FormControl({ value: '', disabled: this.data.categoryOptions.length === 0 }, [Validators.required]),
+      TagNames: new FormControl(null),
       PaymentDate: new FormControl(new Date().toISOString().split('T')[0], [Validators.required, noFutureDate]), // TODO move into function
       Purpose: new FormControl(null, [Validators.minLength(1)])
     });
@@ -88,12 +104,14 @@ export class AddExpenseDialogComponent implements OnInit {
     }
 
     const capitalId = Number(this.form.value.CapitalId);
+    const tags = this.form.value.TagNames as string[] | null;
     const request: CreateExpenseRequest = {
       capitalId: capitalId,
       categoryId: Number(this.form.value.CategoryId),
       amount: Number(this.form.value.Amount),
       paymentDate: this.form.value.PaymentDate,
-      purpose: this.form.value.Purpose
+      purpose: this.form.value.Purpose,
+      tagNames: tags
     };
 
     this.dialogRef.close(request);

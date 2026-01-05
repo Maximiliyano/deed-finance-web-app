@@ -74,9 +74,9 @@
                 <div
                   class="flex justify-between items-center py-2 border-b border-gray-100 last:border-0 text-sm"
                 >
-                  <span class="text-gray-500">{{ e.paymentDate | date: 'shortDate' }}</span>
-                  <span class="font-medium text-gray-800">{{ e.amount | currencySymbol: capitalCurrency }}</span>
-                  <span class="text-gray-700 truncate">{{ e.purpose ?? 'No comment' }}</span>
+                  <span class="text-gray-500">{{ e.paymentDate | date: 'dd/MM/yy' }}</span>
+                  <span class="text-center font-medium text-gray-800 truncate w-24" [title]="e.amount">{{ e.amount | currencySymbol: capitalCurrency }}</span>
+                  <span class="text-gray-700 truncate w-24" [title]="e.purpose">{{ e.purpose ?? 'No comment' }}</span>
                   <div class="flex gap-2">
                     <button
                       title="Edit expense"

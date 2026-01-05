@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Deed.Infrastructure.Persistence.Constants;
+namespace Deed.Application.Auth;
 
 public static class AuthConstants
 {

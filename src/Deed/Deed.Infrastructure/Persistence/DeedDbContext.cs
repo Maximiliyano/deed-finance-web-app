@@ -16,16 +16,6 @@ public sealed class DeedDbContext(DbContextOptions<DeedDbContext> options)
 {
     public DbSet<Capital> Capitals { get; set; }
 
-    public DbSet<Category> Categories { get; set; }
-
-    public DbSet<Transfer> Transfers { get; set; }
-
-    public DbSet<Income> Incomes { get; set; }
-
-    public DbSet<Expense> Expenses { get; set; }
-
-    public DbSet<Exchange> Exchanges { get; set; }
-
     public new DbSet<TEntity> Set<TEntity>()
         where TEntity : Entity
             => base.Set<TEntity>();

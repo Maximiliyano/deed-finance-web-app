@@ -4,7 +4,7 @@ import { FormGroup } from '@angular/forms';
 @Component({
     selector: 'app-form-error',
     templateUrl: './form-error.component.html',
-    standalone: false
+    standalone: true
 })
 export class FormErrorComponent {
   @Input({ required: true }) form: FormGroup;

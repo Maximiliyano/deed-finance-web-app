@@ -3,15 +3,12 @@ using Deed.Domain.Repositories;
 using Deed.Infrastructure.BackgroundJobs.UpsertLatestExchange;
 using Deed.Infrastructure.Persistence;
 using Deed.Infrastructure.Persistence.Constants;
-using Deed.Infrastructure.Persistence.DataSeed;
 using Deed.Infrastructure.Persistence.Interceptors;
 using Deed.Infrastructure.Persistence.Repositories;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Quartz;
 
 namespace Deed.Infrastructure;
@@ -45,13 +42,17 @@ public static class DependencyInjection
     {
         services.AddTransient<ICapitalRepository, CapitalRepository>();
 
+        services.AddTransient<ICategoryRepository, CategoryRepository>();
+
         services.AddTransient<IExpenseRepository, ExpenseRepository>();
 
         services.AddTransient<IExchangeRepository, ExchangeRepository>();
 
         services.AddTransient<IIncomeRepository, IncomeRepository>();
 
-        services.AddTransient<ICategoryRepository, CategoryRepository>();
+        services.AddTransient<ITagRepository, TagRepository>();
+
+        services.AddTransient<IExpenseTagRepository, ExpenseTagRepository>();
 
         return services;
     }
@@ -70,6 +71,9 @@ public static class DependencyInjection
                     w.Ignore(RelationalEventId.PendingModelChangesWarning))
                 .AddInterceptors(auditableInterceptor);
         });
+
+        services.AddHealthChecks()
+            .AddDbContextCheck<DeedDbContext>(name: "deed_db", tags: ["db", "sql"]);
 
         services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<DeedDbContext>());
         services.AddScoped<IDeedDbContext>(sp => sp.GetRequiredService<DeedDbContext>());

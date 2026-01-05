@@ -9,12 +9,13 @@ import { SelectOptionModel } from '../../../../shared/components/forms/models/se
 import { DIALOG_DATA } from '../../../../shared/components/dialogs/models/dialog-consts';
 import { DialogRef } from '../../../../shared/components/dialogs/models/dialog-ref';
 import { SharedModule } from "../../../../shared/shared.module";
+import { FormComponent } from '../../../../shared/components/forms/form.component';
 
 @Component({
     selector: 'app-add-capital-dialog',
     templateUrl: './add-capital-dialog.component.html',
     standalone: true,
-    imports: [SharedModule]
+    imports: [SharedModule, FormComponent]
 })
 export class AddCapitalDialogComponent implements OnInit, OnDestroy {
   form: FormGroup;

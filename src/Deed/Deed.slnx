@@ -1,0 +1,22 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path="../../.editorconfig" />
+    <File Path="../../.gitignore" />
+    <File Path="../../Directory.Build.props" />
+    <File Path="../../fly.toml" />
+    <File Path="../../README.md" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="Deed.Api/Deed.Api.csproj" />
+    <Project Path="Deed.Application/Deed.Application.csproj" />
+    <Project Path="Deed.Domain/Deed.Domain.csproj" />
+    <Project Path="Deed.Infrastructure/Deed.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="../../tests/Deed.Tests.Common/Deed.Tests.Common.csproj" />
+    <Project Path="../../tests/Deed.Tests.Unit/Deed.Tests.Unit.csproj" />
+  </Folder>
+  <Project Path="../../docker-compose.dcproj">
+    <Build Solution="Release|*" />
+  </Project>
+</Solution>

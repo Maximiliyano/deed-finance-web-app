@@ -5,6 +5,12 @@ namespace Deed.Domain.Errors;
 
 public static class ValidationErrors
 {
+    public static class Tag
+    {
+        public static Error AlreadyExists
+            => Error.Conflict(nameof(AlreadyExists), "This tag was already exists.");
+    }
+
     public static class Expense
     {
         public static Error InvalidPaymentDate

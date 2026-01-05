@@ -39,5 +39,10 @@ internal sealed class ExpenseConfiguration : IEntityTypeConfiguration<Expense>
             .WithMany(c => c.Expenses)
             .HasForeignKey(e => e.CapitalId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasMany(e => e.Tags)
+            .WithOne(et => et.Expense)
+            .HasForeignKey(et => et.Id)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

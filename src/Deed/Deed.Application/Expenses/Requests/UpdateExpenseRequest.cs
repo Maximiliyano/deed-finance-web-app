@@ -6,4 +6,5 @@ public sealed record UpdateExpenseRequest(
     int? CapitalId,
     decimal? Amount,
     string? Purpose,
+    List<string>? TagNames, 
     DateTimeOffset? Date);

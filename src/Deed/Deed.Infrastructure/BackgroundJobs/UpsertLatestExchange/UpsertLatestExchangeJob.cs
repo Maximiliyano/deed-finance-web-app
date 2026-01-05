@@ -22,7 +22,6 @@ public sealed class UpsertLatestExchangeJob(
 
         if (!latestExchangesResult.IsSuccess)
         {
-            Log.Error("Exchange API request failed: {Message}", string.Join(", ", latestExchangesResult.Errors.Select(e => e.Message)));
             return;
         }
 

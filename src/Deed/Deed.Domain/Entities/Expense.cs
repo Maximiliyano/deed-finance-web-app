@@ -35,4 +35,6 @@ public sealed class Expense
     public string? UpdatedBy { get; init; }
 
     public bool? IsDeleted { get; set; }
+
+    public List<ExpenseTag> Tags { get; init; } = [];
 }

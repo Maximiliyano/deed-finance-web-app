@@ -5,7 +5,7 @@ import { AddExpenseDialogComponent } from './components/add-expense-dialog/add-e
 import { CapitalResponse } from '../capital/models/capital-response';
 import { ExpenseService } from './services/expense.service';
 import { CapitalService } from '../capital/services/capital.service';
-import { Subject, takeUntil, throttleTime } from 'rxjs';
+import { Subject, takeUntil } from 'rxjs';
 import { CategoryService } from '../category/services/category.service';
 import { CategoryType } from '../../core/types/category-type';
 import { CreateExpenseRequest } from './models/create-expense-request';
@@ -19,6 +19,8 @@ import { EditExpenseDialogComponent } from './components/edit-expense-dialog.com
 import { UpdateExpenseRequest } from './models/update-expense.request';
 import { CategoriesDialogComponent } from '../category/category-details-dialog/categories-dialog-component';
 import { CategoryResponse } from '../category/models/category-model';
+import { TagService } from './components/tag.service';
+import { Tag } from './models/tag';
 
 @Component({
     selector: 'app-expenses',
@@ -32,6 +34,7 @@ export class ExpensesComponent implements OnInit, OnDestroy {
 
   currentCategories: CategoryResponse[] = [];
   deletedCategories: CategoryResponse[] = [];
+  tags: Tag[] = [];
 
   selectedCapital: CapitalResponse | null = null;
   openedExpensesCategoryId: number | null = null;
@@ -47,6 +50,7 @@ export class ExpensesComponent implements OnInit, OnDestroy {
     private readonly expenseService: ExpenseService,
     private readonly categoryService: CategoryService,
     private readonly capitalService: CapitalService,
+    private readonly tagService: TagService,
     private readonly dialogService: DialogService,
     private readonly popupMessageService: PopupMessageService
   ) {}
@@ -79,6 +83,7 @@ export class ExpensesComponent implements OnInit, OnDestroy {
     this.fetchExpenses();
     this.fetchCapitals();
     this.fetchCategories();
+    this.fetchTags();
   }
 
   ngOnDestroy(): void {
@@ -92,6 +97,17 @@ export class ExpensesComponent implements OnInit, OnDestroy {
 
   isCategorySumGreaterPlannedPeriod(expenseCategory: ExpenseCategoryResponse): boolean {
     return expenseCategory.plannedPeriodAmount - expenseCategory.categorySum > 0;
+  }
+
+  fetchTags(): void {
+    this.tagService
+      .search()
+      .pipe(takeUntil(this.$unsubscribe))
+      .subscribe({
+        next: (tags) => {
+          this.tags = tags;
+        }
+      })
   }
 
   fetchCategories(): void {
@@ -109,7 +125,8 @@ export class ExpensesComponent implements OnInit, OnDestroy {
   fetchExpenses(): void {
     this.expenseService
       .getAllByCategories(this.selectedCapital?.id)
-      .pipe(takeUntil(this.$unsubscribe))
+      .pipe(
+        takeUntil(this.$unsubscribe))
       .subscribe({
         next: (responses) => this.expenseCategories = responses
       });
@@ -203,6 +220,7 @@ export class ExpensesComponent implements OnInit, OnDestroy {
         data: {
           capitalsOptions: this.capitalOptions,
           categoryOptions: this.categoryOptions,
+          tags: this.tags
         },
     });
 
@@ -232,7 +250,8 @@ export class ExpensesComponent implements OnInit, OnDestroy {
       capitalId: request.capitalId,
       amount: request.amount,
       paymentDate: request.paymentDate,
-      purpose: request.purpose
+      purpose: request.purpose,
+      tagNames: request.tagNames
     };
 
     if (existingCategoryExpense) {
@@ -274,7 +293,8 @@ export class ExpensesComponent implements OnInit, OnDestroy {
         expense: expense,
         categoryId: oldCategoryId,
         categoryOptions: this.categoryOptions,
-        capitalOptions: this.capitalOptions
+        capitalOptions: this.capitalOptions,
+        tags: this.tags
       }
     });
 

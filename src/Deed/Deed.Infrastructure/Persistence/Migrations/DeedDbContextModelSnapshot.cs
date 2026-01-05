@@ -431,6 +431,24 @@ namespace Deed.Infrastructure.Persistence.Migrations
                     b.ToTable("Expenses", (string)null);
                 });
 
+            modelBuilder.Entity("Deed.Domain.Entities.ExpenseTag", b =>
+                {
+                    b.Property<int>("Id")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TagId")
+                        .HasColumnType("int");
+
+                    b.Property<bool?>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.HasKey("Id", "TagId");
+
+                    b.HasIndex("TagId");
+
+                    b.ToTable("ExpenseTags", (string)null);
+                });
+
             modelBuilder.Entity("Deed.Domain.Entities.Income", b =>
                 {
                     b.Property<int>("Id")
@@ -481,6 +499,26 @@ namespace Deed.Infrastructure.Persistence.Migrations
                         .HasFilter("IsDeleted = 0");
 
                     b.ToTable("Incomes", (string)null);
+                });
+
+            modelBuilder.Entity("Deed.Domain.Entities.Tag", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("Tags", (string)null);
                 });
 
             modelBuilder.Entity("Deed.Domain.Entities.Transfer", b =>
@@ -547,6 +585,25 @@ namespace Deed.Infrastructure.Persistence.Migrations
                     b.Navigation("Category");
                 });
 
+            modelBuilder.Entity("Deed.Domain.Entities.ExpenseTag", b =>
+                {
+                    b.HasOne("Deed.Domain.Entities.Expense", "Expense")
+                        .WithMany("Tags")
+                        .HasForeignKey("Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Deed.Domain.Entities.Tag", "Tag")
+                        .WithMany("ExpenseTags")
+                        .HasForeignKey("TagId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Expense");
+
+                    b.Navigation("Tag");
+                });
+
             modelBuilder.Entity("Deed.Domain.Entities.Income", b =>
                 {
                     b.HasOne("Deed.Domain.Entities.Capital", "Capital")
@@ -599,6 +656,16 @@ namespace Deed.Infrastructure.Persistence.Migrations
                     b.Navigation("Expenses");
 
                     b.Navigation("Incomes");
+                });
+
+            modelBuilder.Entity("Deed.Domain.Entities.Expense", b =>
+                {
+                    b.Navigation("Tags");
+                });
+
+            modelBuilder.Entity("Deed.Domain.Entities.Tag", b =>
+                {
+                    b.Navigation("ExpenseTags");
                 });
 #pragma warning restore 612, 618
         }

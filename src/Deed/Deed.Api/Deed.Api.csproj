@@ -27,4 +27,8 @@
       <ProjectReference Include="..\Deed.Infrastructure\Deed.Infrastructure.csproj" />
     </ItemGroup>
 
+	<ItemGroup>
+	  <Folder Include="Properties\" />
+	</ItemGroup>
+
 </Project>

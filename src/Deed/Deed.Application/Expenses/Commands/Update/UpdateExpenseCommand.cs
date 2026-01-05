@@ -8,5 +8,6 @@ public sealed record UpdateExpenseCommand(
     int? CapitalId = null,
     decimal? Amount = null,
     string? Purpose = null,
+    List<string>? TagNames = null,
     DateTimeOffset? Date = null)
     : ICommand;

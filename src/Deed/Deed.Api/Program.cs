@@ -5,7 +5,6 @@ using Deed.Infrastructure;
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Serilog;
-using AssemblyReference = Deed.Api.AssemblyReference;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,7 +17,7 @@ builder.Services
     .AddApi()
     .AddInfrastructure();
 
-builder.Services.AddEndpoints(AssemblyReference.Assembly);
+builder.Services.AddEndpoints();
 
 var app = builder.Build();
 
@@ -28,7 +27,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerDependencies();
 }
 else
-{ 
+{
     app.UseHsts();
 }
 

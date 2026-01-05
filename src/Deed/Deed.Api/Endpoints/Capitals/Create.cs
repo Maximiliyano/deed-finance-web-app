@@ -15,6 +15,7 @@ internal sealed class Create : IEndpoint
             (await sender
                 .Send(new CreateCapitalCommand(request.Name, request.Balance, request.Currency, request.IncludeInTotal, request.OnlyForSavings), ct))
                 .Process())
+            .RequireAuthorization()
             .WithTags(nameof(Capitals));
     }
 }

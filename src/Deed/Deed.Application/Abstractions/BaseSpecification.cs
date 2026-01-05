@@ -1,6 +1,7 @@
 using System.Linq.Expressions;
 using Deed.Domain.Entities;
 using Deed.Domain.Repositories;
+using Microsoft.EntityFrameworkCore;
 
 namespace Deed.Application.Abstractions;
 
@@ -15,15 +16,15 @@ internal abstract class BaseSpecification<TEntity>(
 
     public Expression<Func<TEntity, bool>>? Criteria { get; protected init; } = criteria;
 
-    public IList<Expression<Func<TEntity, object>>> Includes { get; } = [];
+    public List<Func<IQueryable<TEntity>, IQueryable<TEntity>>> Includes { get; } = [];
 
     public bool? IgnoreQueryFilter { get; protected set; }
 
     public bool? Tracking { get; protected set; }
 
-    protected void AddInclude(Expression<Func<TEntity, object>> include)
+    protected void AddInclude(Expression<Func<TEntity, object>> expression)
     {
-        Includes.Add(include);
+        Includes.Add(i => i.Include(expression));
     }
 
     protected void ApplyOrderByDescending(Expression<Func<TEntity, object>> expression)
