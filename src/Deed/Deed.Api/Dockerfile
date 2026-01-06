@@ -5,7 +5,6 @@ EXPOSE 8001
 
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 ARG BUILD_CONFIGURATION=Release
-ARG API_PATH="/src/Deed/Deed.Api"
 WORKDIR /src
 
 COPY ["src/Deed/Deed.Api/Deed.Api.csproj", "Deed.Api/"]
@@ -13,8 +12,10 @@ COPY ["src/Deed/Deed.Domain/Deed.Domain.csproj", "Deed.Domain/"]
 COPY ["src/Deed/Deed.Application/Deed.Application.csproj", "Deed.Application/"]
 COPY ["src/Deed/Deed.Infrastructure/Deed.Infrastructure.csproj", "Deed.Infrastructure/"]
 
-COPY . .
 RUN dotnet restore "src/Deed/Deed.Api/Deed.Api.csproj"
+
+COPY . .
+
 RUN dotnet build "src/Deed/Deed.Api/Deed.Api.csproj" -c $BUILD_CONFIGURATION --no-restore -o /app/build
 
 FROM build AS publish
