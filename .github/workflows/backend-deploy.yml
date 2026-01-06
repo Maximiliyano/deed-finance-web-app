@@ -20,11 +20,11 @@ jobs:
 
       - name: Restore
         run: dotnet restore
-        working-directory: ./src/Deed
+        working-directory: ./src/Deed/Deed.Api
 
       - name: Build
         run: dotnet build --no-restore --configuration Release
-        working-directory: ./src/Deed
+        working-directory: ./src/Deed/Deed.Api
         
       - name: Test
         run: dotnet test --no-build --configuration Release
