@@ -7,10 +7,10 @@ FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 
-COPY ["src/Deed/Deed.Api/Deed.Api.csproj", "Deed.Api/"]
-COPY ["src/Deed/Deed.Domain/Deed.Domain.csproj", "Deed.Domain/"]
-COPY ["src/Deed/Deed.Application/Deed.Application.csproj", "Deed.Application/"]
-COPY ["src/Deed/Deed.Infrastructure/Deed.Infrastructure.csproj", "Deed.Infrastructure/"]
+COPY ["src/Deed/Deed.Api/Deed.Api.csproj", "src/Deed/Deed.Api/"]
+COPY ["src/Deed/Deed.Domain/Deed.Domain.csproj", "src/Deed/Deed.Domain/"]
+COPY ["src/Deed/Deed.Application/Deed.Application.csproj", "src/Deed/Deed.Application/"]
+COPY ["src/Deed/Deed.Infrastructure/Deed.Infrastructure.csproj", "src/Deed/Deed.Infrastructure/"]
 
 RUN dotnet restore "src/Deed/Deed.Api/Deed.Api.csproj"
 
