@@ -27,7 +27,7 @@ jobs:
         working-directory: ./src/Deed/Deed.Api
         
       - name: Unit tests
-        run: dotnet test --no-build --configuration Release
+        run: dotnet test Deed.slnx --no-build --configuration Release
         working-directory: ./src/Deed
 
       - name: Publish
