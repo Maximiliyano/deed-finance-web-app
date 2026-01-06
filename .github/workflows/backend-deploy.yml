@@ -26,13 +26,13 @@ jobs:
         run: dotnet build --no-restore --configuration Release
         working-directory: ./src/Deed/Deed.Api
         
-      - name: Test
+      - name: Unit tests
         run: dotnet test --no-build --configuration Release
-        working-directory: ./src/Deed
+        working-directory: ./tests/Deed/Deed.Tests.Unit
 
       - name: Publish
         run: dotnet publish -c Release -o ./publish
-        working-directory: ./src/Deed
+        working-directory: ./src/Deed/Deed.Api
 
   deploy:
     runs-on: ubuntu-latest
