@@ -28,7 +28,7 @@ jobs:
         
       - name: Unit tests
         run: dotnet test --no-build --configuration Release
-        working-directory: ./tests/Deed.Tests.Unit
+        working-directory: ./src/Deed
 
       - name: Publish
         run: dotnet publish -c Release -o ./publish
