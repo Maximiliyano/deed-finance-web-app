@@ -9,6 +9,7 @@
         <DockerComposeProjectPath>..\docker-compose.dcproj</DockerComposeProjectPath>
         <LangVersion>latestmajor</LangVersion>
         <NoWarn>NU1903</NoWarn>
+		<OutputType>Exe</OutputType>
     </PropertyGroup>
 
 	<ItemGroup>
