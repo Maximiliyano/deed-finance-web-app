@@ -1,46 +1,83 @@
-name: Build and deploy .NET application to container app deed
+name: Build & Deploy Deed API
+
 on:
   push:
-    branches:
-    - master
+    branches: [ master ]
+  workflow_dispatch:
+
 permissions:
   id-token: write
   contents: read
+
 env:
-  CONTAINER_APP_CONTAINER_NAME: deed
+  ACR_NAME: deedregistry
+  ACR_LOGIN_SERVER: deedregistry.azurecr.io
+  IMAGE_NAME: deed-api
+  RESOURCE_GROUP: deed-rg
   CONTAINER_APP_NAME: deed
-  CONTAINER_APP_RESOURCE_GROUP_NAME: deed-rg
-  CONTAINER_REGISTRY_LOGIN_SERVER: deedregistry.azurecr.io
-  DOCKER_FILE_PATH: Deed.Api/Dockerfile
-  PROJECT_NAME_FOR_DOCKER: deed.api
+  CONTAINER_NAME: deed
+
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
-    - name: Checkout to the branch
+    - name: Checkout
       uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 9.0.x
+
+    - name: Restore
+      run: dotnet restore
+
+    - name: Build
+      run: dotnet build --no-restore -c Release
+
+    - name: Test
+      run: dotnet test --no-build -c Release
+
+    # Azure Login (OIDC)
+    - name: Azure Login
+      uses: azure/login@v2
+      with:
+        client-id: ${{ vars.AZURE_CLIENT_ID }}
+        tenant-id: ${{ vars.AZURE_TENANT_ID }}
+        subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+
+    # Login to ACR securely
     - name: Login to ACR
-      run: az acr login --name deedregistry
+      run: az acr login --name $ACR_NAME
+
+    # Build & Push image
+    - name: Build & Push Docker image
+      run: |
+        docker build -t $ACR_LOGIN_SERVER/$IMAGE_NAME:${{ github.sha }} .
+        docker push $ACR_LOGIN_SERVER/$IMAGE_NAME:${{ github.sha }}
 
   deploy:
     runs-on: ubuntu-latest
     needs: build
+
     steps:
     - name: Azure Login
       uses: azure/login@v2
       with:
-        client-id: ${{ vars.deed_CLIENT_ID_2475 }}
-        tenant-id: ${{ vars.deed_TENANT_ID_2475 }}
-        subscription-id: ${{ vars.deed_SUBSCRIPTION_ID_2475 }}
-    - name: Deploy to containerapp
-      uses: azure/CLI@v2
-      with:
-        inlineScript: >
-          az config set extension.use_dynamic_install=yes_without_prompt
+        client-id: ${{ vars.AZURE_CLIENT_ID }}
+        tenant-id: ${{ vars.AZURE_TENANT_ID }}
+        subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
 
-          az containerapp registry set --name ${{ env.CONTAINER_APP_NAME }} --resource-group ${{ env.CONTAINER_APP_RESOURCE_GROUP_NAME }} --server ${{ env.CONTAINER_REGISTRY_LOGIN_SERVER }} --username ${{ secrets.deedregistry_USERNAME_2475 }} --password ${{ secrets.deedregistry_PASSWORD_2475 }}
+    - name: Deploy to Container App
+      run: |
+        az config set extension.use_dynamic_install=yes_without_prompt
 
-          az containerapp update --name ${{ env.CONTAINER_APP_NAME }} --container-name ${{ env.CONTAINER_APP_CONTAINER_NAME }} --resource-group ${{ env.CONTAINER_APP_RESOURCE_GROUP_NAME }} --image ${{ env.CONTAINER_REGISTRY_LOGIN_SERVER }}/${{ env.PROJECT_NAME_FOR_DOCKER }}:${{ github.sha }}
-    - name: logout
-      run: >
-        az logout
+        az containerapp update \
+          --name $CONTAINER_APP_NAME \
+          --resource-group $RESOURCE_GROUP \
+          --container-name $CONTAINER_NAME \
+          --image $ACR_LOGIN_SERVER/$IMAGE_NAME:${{ github.sha }}
+
+    - name: Logout
+      run: az logout
