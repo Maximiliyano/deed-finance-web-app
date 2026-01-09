@@ -35,21 +35,19 @@ jobs:
       run: dotnet build -c Release --no-restore
 
     - name: Test
-      run: dotnet test -c Release --no-build
-
-    # Azure login (OIDC)
+      run: dotnet test Deed.slnx --configuration Release
+      working-directory: ./src/Deed
+      
     - name: Azure Login
       uses: azure/login@v2
       with:
         client-id: ${{ secrets.DEED_AZURE_CLIENT_ID }}
         tenant-id: ${{ secrets.DEED_AZURE_TENANT_ID }}
         subscription-id: ${{ secrets.DEED_AZURE_SUBSCRIPTION_ID }}
-
-    # Login to ACR
+        
     - name: Login to ACR
       run: az acr login --name $ACR_NAME
-
-    # Build & push image
+      
     - name: Build & Push
       run: |
         docker build -f src/Deed/Deed.Api/Dockerfile -t $ACR_LOGIN_SERVER/$IMAGE_NAME:${{ github.sha }} .
@@ -75,4 +73,11 @@ jobs:
           --name $CONTAINER_APP_NAME \
           --resource-group $RESOURCE_GROUP \
           --container-name $CONTAINER_NAME \
-          --image $ACR_LOGIN_SERVER/$IMAGE_NAME:${{ github.sha }}
+          --image $ACR_LOGIN_SERVER/$IMAGE_NAME:${{ github.sha }} \
+          --set-env-vars \
+          AuthSettings__Audience=secretref:AuthSettings__Audience \
+          AuthSettings__ClientID=secretref:AuthSettings__ClientID \
+          AuthSettings__ClientSecret=secretref:AuthSettings__ClientSecret \
+          AuthSettings__Domain=secretref:AuthSettings__Domain \
+          DatabaseConnection=secretref:DatabaseConnection \
+          WebUrlSettings__UIUrl=secretref:WebUrlSettings__UIUrl
