@@ -32,7 +32,8 @@ jobs:
       run: dotnet restore
 
     - name: Build
-      run: dotnet build -c Release --no-restore
+      run: docker build -f src/Deed/Deed.Api/Dockerfile -t $ACR_LOGIN_SERVER/$IMAGE_NAME:${{ github.sha }} .
+
 
     - name: Test
       run: dotnet test -c Release --no-build
