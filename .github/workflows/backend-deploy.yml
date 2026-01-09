@@ -75,9 +75,9 @@ jobs:
           --container-name $CONTAINER_NAME \
           --image $ACR_LOGIN_SERVER/$IMAGE_NAME:${{ github.sha }} \
           --set-env-vars \
-          AuthSettings__Audience=secretref:AuthSettings__Audience \
-          AuthSettings__ClientID=secretref:AuthSettings__ClientID \
-          AuthSettings__ClientSecret=secretref:AuthSettings__ClientSecret \
-          AuthSettings__Domain=secretref:AuthSettings__Domain \
-          DatabaseConnection=secretref:DatabaseConnection \
-          WebUrlSettings__UIUrl=secretref:WebUrlSettings__UIUrl
+          AuthSettings__Audience=secretref:auth-audience \
+          AuthSettings__ClientID=secretref:auth-clientid \
+          AuthSettings__ClientSecret=secretref:auth-clientsecret \
+          AuthSettings__Domain=secretref:auth-domain \
+          DatabaseConnection=secretref:db-connection \
+          WebUrlSettings__UIUrl=secretref:webui-url
