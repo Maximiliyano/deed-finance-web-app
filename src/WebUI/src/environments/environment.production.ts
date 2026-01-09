@@ -1,4 +1,4 @@
 export const environment = {
   production: true,
-  apiUrl: process.env['API_URL'] || '',
+  apiUrl: 'https://deed.lemonwave-dd59fae1.westeurope.azurecontainerapps.io',
 };
