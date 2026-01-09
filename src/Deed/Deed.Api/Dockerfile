@@ -15,12 +15,10 @@ COPY ["src/Deed/Deed.Infrastructure/Deed.Infrastructure.csproj", "Deed.Infrastru
 RUN dotnet restore "Deed.Api/Deed.Api.csproj"
 
 COPY . .
-RUN dotnet build "Deed.Api/Deed.Api.csproj" -c $BUILD_CONFIGURATION --no-restore -o /app/build
 
-FROM build AS publish
 RUN dotnet publish "Deed.Api/Deed.Api.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 FROM base AS final
 WORKDIR /app
-COPY --from=publish /app/publish .
+COPY --from=build /app/publish .
 ENTRYPOINT ["dotnet", "Deed.Api.dll"]
