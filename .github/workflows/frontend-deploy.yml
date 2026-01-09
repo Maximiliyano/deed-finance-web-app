@@ -11,6 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
@@ -19,6 +20,11 @@ jobs:
       - name: Install Dependencies
         run: npm install
         working-directory: src/WebUI
+
+      - name: Inject API URL
+        run: |
+          echo "Injecting API URL for production build..."
+          sed -i "s|PLACEHOLDER_API_URL|${{ secrets.API_URL }}|g" src/WebUI/src/environments/environment.production.ts
 
       - name: Build Angular
         run: npm run build --configuration=production
