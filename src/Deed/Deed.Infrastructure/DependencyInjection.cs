@@ -40,19 +40,19 @@ public static class DependencyInjection
 
     private static IServiceCollection AddRepositories(this IServiceCollection services)
     {
-        services.AddTransient<ICapitalRepository, CapitalRepository>();
+        services.AddScoped<ICapitalRepository, CapitalRepository>();
 
-        services.AddTransient<ICategoryRepository, CategoryRepository>();
+        services.AddScoped<ICategoryRepository, CategoryRepository>();
 
-        services.AddTransient<IExpenseRepository, ExpenseRepository>();
+        services.AddScoped<IExpenseRepository, ExpenseRepository>();
 
-        services.AddTransient<IExchangeRepository, ExchangeRepository>();
+        services.AddScoped<IExchangeRepository, ExchangeRepository>();
 
-        services.AddTransient<IIncomeRepository, IncomeRepository>();
+        services.AddScoped<IIncomeRepository, IncomeRepository>();
 
-        services.AddTransient<ITagRepository, TagRepository>();
+        services.AddScoped<ITagRepository, TagRepository>();
 
-        services.AddTransient<IExpenseTagRepository, ExpenseTagRepository>();
+        services.AddScoped<IExpenseTagRepository, ExpenseTagRepository>();
 
         return services;
     }
