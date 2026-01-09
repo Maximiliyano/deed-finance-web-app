@@ -7,16 +7,17 @@ FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 
-COPY ["src/Deed/Deed.Api/Deed.Api.csproj", "Deed.Api/"]
-COPY ["src/Deed/Deed.Domain/Deed.Domain.csproj", "Deed.Domain/"]
-COPY ["src/Deed/Deed.Application/Deed.Application.csproj", "Deed.Application/"]
-COPY ["src/Deed/Deed.Infrastructure/Deed.Infrastructure.csproj", "Deed.Infrastructure/"]
+COPY src/Deed/Deed.Api/Deed.Api.csproj Deed.Api/
+COPY src/Deed/Deed.Domain/Deed.Domain.csproj Deed.Domain/
+COPY src/Deed/Deed.Application/Deed.Application.csproj Deed.Application/
+COPY src/Deed/Deed.Infrastructure/Deed.Infrastructure.csproj Deed.Infrastructure/
 
-RUN dotnet restore "Deed.Api/Deed.Api.csproj"
+RUN dotnet restore Deed.Api/Deed.Api.csproj
 
-COPY . .
+COPY src/ .
 
-RUN dotnet publish "Deed.Api/Deed.Api.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+WORKDIR /src/Deed/Deed.Api
+RUN dotnet publish -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 FROM base AS final
 WORKDIR /app
