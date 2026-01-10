@@ -101,7 +101,12 @@ public static class DependencyInjection
     {
         var configuration = services.BuildServiceProvider().GetRequiredService<IConfiguration>();
 
-        services.Configure<ForwardedHeadersOptions>(options => options.ForwardedHeaders = ForwardedHeaders.XForwardedProto);
+        services.Configure<ForwardedHeadersOptions>(options =>
+        {
+            options.ForwardedHeaders = ForwardedHeaders.XForwardedProto;
+            options.KnownNetworks.Clear();
+            options.KnownProxies.Clear();
+        });
 
         services.Configure<WebUrlSettings>(configuration.GetRequiredSection(nameof(WebUrlSettings)));
 

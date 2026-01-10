@@ -22,6 +22,11 @@ builder.Services.AddEndpoints();
 
 var app = builder.Build();
 
+app.UseForwardedHeaders(new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedProto
+});
+
 if (app.Environment.IsDevelopment())
 {
     app.ApplyMigrations();
@@ -31,11 +36,6 @@ else
 {
     app.UseHsts();
 }
-
-app.UseForwardedHeaders(new ForwardedHeadersOptions
-{
-    ForwardedHeaders = ForwardedHeaders.XForwardedProto
-});
 
 app.UseExceptionHandler();
 
@@ -56,6 +56,5 @@ app.MapHealthChecks("health", new HealthCheckOptions
 });
 
 app.MapEndpoints();
-
 
 await app.RunAsync();
