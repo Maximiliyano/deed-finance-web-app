@@ -1,20 +1,14 @@
-using System.Security.Claims;
-using System.Text;
-using System.Text.Json;
 using Deed.Application.Abstractions.Behaviours;
 using Deed.Application.Abstractions.Settings;
 using Deed.Application.Auth;
-using Deed.Application.Exchanges;
 using Deed.Application.Exchanges.Service;
 using FluentValidation;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Authentication.OAuth;
-using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 
 namespace Deed.Application;
@@ -38,10 +32,10 @@ public static class DependencyInjection
 
     private static void AddAuth(this IServiceCollection services)
     {
-        // TODO setup proper local auth
         services.AddSingleton<IUser, User>();
 
-        var authSettings = services.BuildServiceProvider().GetRequiredService<IOptions<AuthSettings>>().Value;
+        var authSettings = services.BuildServiceProvider()
+            .GetRequiredService<IOptions<AuthSettings>>().Value;
 
         services.AddAuthentication(options =>
         {
@@ -54,6 +48,7 @@ public static class DependencyInjection
             options.Cookie.HttpOnly = true;
             options.Cookie.SameSite = SameSiteMode.None;
             options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+
             options.ExpireTimeSpan = TimeSpan.FromHours(1);
             options.SlidingExpiration = true;
 
@@ -73,6 +68,7 @@ public static class DependencyInjection
             options.Authority = authSettings.Domain;
             options.ClientId = authSettings.ClientID;
             options.ClientSecret = authSettings.ClientSecret;
+
             options.ResponseType = AuthConstants.ResponseType;
             options.SaveTokens = true;
 
@@ -104,6 +100,8 @@ public static class DependencyInjection
     private static IServiceCollection AddSettings(this IServiceCollection services)
     {
         var configuration = services.BuildServiceProvider().GetRequiredService<IConfiguration>();
+
+        services.Configure<ForwardedHeadersOptions>(options => options.ForwardedHeaders = ForwardedHeaders.XForwardedProto);
 
         services.Configure<WebUrlSettings>(configuration.GetRequiredSection(nameof(WebUrlSettings)));
 

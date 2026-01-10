@@ -4,6 +4,7 @@ using Deed.Application;
 using Deed.Infrastructure;
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.AspNetCore.HttpOverrides;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -31,6 +32,11 @@ else
     app.UseHsts();
 }
 
+app.UseForwardedHeaders(new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedProto
+});
+
 app.UseExceptionHandler();
 
 app.UseHttpsRedirection();
@@ -50,5 +56,6 @@ app.MapHealthChecks("health", new HealthCheckOptions
 });
 
 app.MapEndpoints();
+
 
 await app.RunAsync();
