@@ -34,7 +34,8 @@ jobs:
         with:
           publish-dir: "src/WebUI/dist/deed/browser"
           production-branch: master
-          github-token: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          netlify-auth-token: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          site-id: ${{ secrets.NETLIFY_SITE_ID }}
           deploy-message: "Deployed Angular App via GitHub Actions"
           alias: "latest"
           enable-pull-request-comment: true
