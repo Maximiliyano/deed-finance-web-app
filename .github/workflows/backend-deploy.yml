@@ -80,4 +80,5 @@ jobs:
           AuthSettings__ClientSecret=secretref:auth-clientsecret \
           AuthSettings__Domain=secretref:auth-domain \
           DatabaseConnection=secretref:db-connection \
-          WebUrlSettings__UIUrl=secretref:webui-url
+          WebUrlSettings__UIUrl=secretref:webui-url \
+          ASPNETCORE_FORWARDEDHEADERS_ENABLED=true
