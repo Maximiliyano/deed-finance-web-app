@@ -4,7 +4,7 @@ import { Component } from '@angular/core';
     selector: 'app-overlay',
     templateUrl: './overlay.component.html',
     styleUrl: './overlay.component.scss',
-    standalone: false
+    standalone: true
 })
 export class OverlayComponent {
 }
