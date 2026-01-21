@@ -1,7 +1,6 @@
 ﻿using Deed.Api.Extensions;
 using Deed.Application.Abstractions.Data;
 using Deed.Application.Capitals.Queries.GetAll;
-using Deed.Application.Capitals.Requests;
 using MediatR;
 
 namespace Deed.Api.Endpoints.Capitals;
@@ -15,7 +14,7 @@ internal sealed class GetAll : IEndpoint
                 .Send(new GetAllCapitalsQuery(query.SearchTerm, query.SortBy, query.SortDirection, query.FilterBy), ct))
                 .Process()
             )
-            .WithTags(nameof(Capitals))
-            .RequireAuthorization();
+            .RequireAuthorization()
+            .WithTags(nameof(Capitals));
     }
 }

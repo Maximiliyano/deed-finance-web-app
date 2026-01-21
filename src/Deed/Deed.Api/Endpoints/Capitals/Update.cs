@@ -13,6 +13,7 @@ internal sealed class Update : IEndpoint
             (await sender
                 .Send(new UpdateCapitalCommand(id, request.Name, request.Balance, request.Currency, request.IncludeInTotal, request.OnlyForSavings), ct))
                 .Process())
+            .RequireAuthorization()
             .WithTags(nameof(Capitals));
     }
 }

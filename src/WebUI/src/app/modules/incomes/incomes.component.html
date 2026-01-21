@@ -1,0 +1,27 @@
+<p>Incomes</p>
+
+@if (incomes().length > 0) {
+    <table class="w-full table-auto border-collapse border border-gray-300">
+        <thead>
+            <tr>
+                <th class="border border-gray-300 px-4 py-2 text-left">ID</th>
+            </tr>
+        </thead>
+        <tbody>
+            @for (item of incomes(); track item.id) {
+                <tr>
+                    <td class="border border-gray-300 px-4 py-2">{{item.id}}</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+<div class="flex justify-center mt-4 border">
+    <button
+        class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+        (click)="openCreateIncomeDialog()"
+    >
+        Create Income
+    </button>
+</div>

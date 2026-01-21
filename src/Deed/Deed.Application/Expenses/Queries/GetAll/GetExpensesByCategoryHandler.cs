@@ -1,5 +1,5 @@
 using Deed.Application.Abstractions.Messaging;
-using Deed.Application.Categories.Response;
+using Deed.Application.Auth;
 using Deed.Application.Expenses.Responses;
 using Deed.Application.Expenses.Specifications;
 using Deed.Domain.Enums;
@@ -9,12 +9,14 @@ using Deed.Domain.Results;
 namespace Deed.Application.Expenses.Queries.GetAll;
 
 internal sealed class GetExpensesByCategoryHandler(
+    IUser user,
     IExpenseRepository repository)
     : IQueryHandler<GetExpensesByCategoryQuery, IEnumerable<CategoryExpenseResponse>>
 {
     public async Task<Result<IEnumerable<CategoryExpenseResponse>>> Handle(GetExpensesByCategoryQuery query, CancellationToken cancellationToken)
     {
-        var expenses = await repository.GetAllAsync(new ExpenseByQueriesSpecification(query.CategoryId)).ConfigureAwait(false);
+        ArgumentNullException.ThrowIfNullOrEmpty(user.Name);
+        var expenses = await repository.GetAllAsync(new ExpenseByQueriesSpecification(user.Name, query.CategoryId)).ConfigureAwait(false);
 
         if (!expenses.Any())
         {
@@ -22,7 +24,7 @@ internal sealed class GetExpensesByCategoryHandler(
         }
 
         var totalSum = expenses.Sum(e => e.Amount);
-        
+
         const decimal Epsilon = 0.0001m;
 
         var grouped = expenses
@@ -45,7 +47,7 @@ internal sealed class GetExpensesByCategoryHandler(
                     category?.Period.ToString() ?? nameof(PerPeriodType.None),
                     g.ToResponses()
                 );
-                
+
             });
 
         return Result.Success(grouped);

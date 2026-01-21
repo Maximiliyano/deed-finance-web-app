@@ -150,14 +150,16 @@
     <span class="text-sm text-gray-400 flex justify-center">In total {{ capitals.length }} capitals</span>
   }
   @else {
-    <button
-      type="button"
-      class="no-capittals"
-      (click)="openToCreateCapitalDialog()"
-    >
-      Create your first capital...
-      <app-icon class="btn-create-icon" name="fa-circle-plus" />
-    </button>
+    <div class="cp-list p-2">
+      <button
+        type="button"
+        class="no-capittals"
+        (click)="openToCreateCapitalDialog()"
+      >
+        Create your first capital...
+        <app-icon class="btn-create-icon" name="fa-circle-plus" />
+      </button>
+    </div>
   }
 </app-layout>
 

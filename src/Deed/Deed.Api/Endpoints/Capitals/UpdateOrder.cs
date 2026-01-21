@@ -2,7 +2,6 @@
 using Deed.Api.Extensions;
 using Deed.Application.Capitals.Commands.UpdateOrders;
 using Deed.Application.Capitals.Requests;
-using Deed.Domain.Results;
 using MediatR;
 
 namespace Deed.Api.Endpoints.Capitals;
@@ -15,6 +14,7 @@ internal sealed class UpdateOrder : IEndpoint
             (await sender
                 .Send(new UpdateCapitalOrdersCommand(request.Capitals), ct))
                 .Process())
+            .RequireAuthorization()
             .WithTags(nameof(Capitals));
     }
 }

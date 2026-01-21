@@ -88,10 +88,10 @@ export class AddExpenseDialogComponent implements OnInit {
 
   private initForm(): void {
     this.form = new FormGroup({
-      Amount: new FormControl(0, [Validators.required, Validators.min(1)]),
+      Amount: new FormControl(null, [Validators.required, Validators.min(1)]),
       CapitalId: new FormControl({ value: '', disabled: this.data.capitalsOptions.length === 0 }, [Validators.required]),
       CategoryId: new FormControl({ value: '', disabled: this.data.categoryOptions.length === 0 }, [Validators.required]),
-      TagNames: new FormControl(null),
+      TagNames: new FormControl([]),
       PaymentDate: new FormControl(new Date().toISOString().split('T')[0], [Validators.required, noFutureDate]), // TODO move into function
       Purpose: new FormControl(null, [Validators.minLength(1)])
     });
@@ -104,7 +104,7 @@ export class AddExpenseDialogComponent implements OnInit {
     }
 
     const capitalId = Number(this.form.value.CapitalId);
-    const tags = this.form.value.TagNames as string[] | null;
+    const tags = this.form.value.TagNames as string[] | [];
     const request: CreateExpenseRequest = {
       capitalId: capitalId,
       categoryId: Number(this.form.value.CategoryId),

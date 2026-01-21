@@ -38,7 +38,7 @@ public sealed class CreateIncomeCommandHandlerTests
             Type = CategoryType.Expenses
         };
 
-        var command = new CreateIncomeCommand(capital.Id, category.Id, 100m, DateTimeOffset.UtcNow);
+        var command = new CreateIncomeCommand(capital.Id, category.Id, 100m, DateTimeOffset.UtcNow, null, []);// TODO tag names
 
         _capitalRepositoryMock.GetAsync(Arg.Any<CapitalByIdSpecification>())
             .Returns(capital);
@@ -62,7 +62,7 @@ public sealed class CreateIncomeCommandHandlerTests
     public async Task Handle_ShouldReturnFailure_WhenIncomeNotFound()
     {
         // Arrange
-        var command = new CreateIncomeCommand(1, 1, 100m, DateTimeOffset.UtcNow);
+        var command = new CreateIncomeCommand(1, 1, 100m, DateTimeOffset.UtcNow, null, []); // TODO tag names
 
         _capitalRepositoryMock.GetAsync(Arg.Any<CapitalByIdSpecification>())
             .Returns((Capital)null);

@@ -21,6 +21,12 @@ const routes: Routes = [
     canActivate: [authGuard]
   },
   {
+    path: 'incomes',
+    loadComponent: () =>
+      import('./modules/incomes/incomes.component').then((x) => x.IncomesComponent),
+    canActivate: [authGuard]
+  },
+  {
     path: 'profile',
     loadComponent: () =>
       import('./modules/auth/components/profile/profile.component').then(x => x.ProfileComponent),

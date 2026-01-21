@@ -19,6 +19,7 @@ internal sealed class Create : IEndpoint
                     request.Purpose,
                     request.TagNames), ct))
                 .Process())
+            .RequireAuthorization()
             .WithTags(nameof(Expenses));
     }
 }

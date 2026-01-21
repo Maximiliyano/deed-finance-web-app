@@ -14,6 +14,7 @@ internal sealed class PatchOnlyForSavings : IEndpoint
             (await sender
                 .Send(new PatchCapitalSetForSavingsCommand(id, onlyForSavings), cancellationToken))
                 .Process())
+            .RequireAuthorization()
             .WithTags(nameof(Capitals));
     }
 }

@@ -7,5 +7,5 @@ import { Component, Input } from '@angular/core';
     standalone: false
 })
 export class LayoutComponent {
-  @Input() text: string = "Template Title";
+  @Input() text: string = "";
 }

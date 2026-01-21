@@ -7,5 +7,5 @@ public sealed record CreateIncomeCommand(
     int CategoryId,
     decimal Amount,
     DateTimeOffset PaymentDate,
-    string? Purpose = null)
-    : ICommand<int>;
+    string? Purpose
+) : ICommand<int>;

@@ -1,4 +1,4 @@
-using System.Xml.Linq;
+using Deed.Application.Auth;
 using Deed.Application.Capitals;
 using Deed.Application.Capitals.Queries.GetAll;
 using Deed.Application.Capitals.Responses;
@@ -15,12 +15,13 @@ namespace Deed.Tests.Unit.Capitals.Queries;
 public sealed class GetAllCapitalQueryHandlerTests
 {
     private readonly ICapitalRepository _repositoryMock = Substitute.For<ICapitalRepository>();
+    private readonly IUser _userMock = Substitute.For<IUser>();
 
     private readonly GetAllCapitalsQueryHandler _handler;
 
     public GetAllCapitalQueryHandlerTests()
     {
-        _handler = new GetAllCapitalsQueryHandler(_repositoryMock);
+        _handler = new GetAllCapitalsQueryHandler(_userMock, _repositoryMock);
     }
 
     [Fact]

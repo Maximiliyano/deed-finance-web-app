@@ -1,4 +1,13 @@
-<app-layout text="Expenses">
+<app-layout>
+  <ul class="flex justify-center gap-3 bg-slate-400 border rounded-lg">
+    <li class="rounded border p-2 cursor-pointer bg-cyan-900 text-white hover:bg-gray-300">
+      <a>Expenses</a>
+    </li>
+    <li class="rounded border p-2 cursor-pointer bg-cyan-900 text-white opacity-40 hover:bg-gray-300">
+      <a href="/incomes">Incomes</a>
+    </li>
+  </ul>
+
   <div class="flex justify-center gap-3 mb-6">
     <button
       (click)="toggleCreateDialog()"

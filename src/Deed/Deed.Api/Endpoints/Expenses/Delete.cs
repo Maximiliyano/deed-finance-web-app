@@ -1,6 +1,6 @@
-using Deed.Domain.Results;
 using Deed.Api.Extensions;
 using Deed.Application.Expenses.Commands.Delete;
+using Deed.Domain.Results;
 using MediatR;
 
 namespace Deed.Api.Endpoints.Expenses;
@@ -13,6 +13,7 @@ internal sealed class Delete : IEndpoint
             (await sender
                 .Send(new DeleteExpenseCommand(id), ct))
                 .Process(ResultType.NoContent))
+            .RequireAuthorization()
             .WithTags(nameof(Expenses));
     }
 }

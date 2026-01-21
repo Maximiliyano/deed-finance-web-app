@@ -5,4 +5,5 @@ public sealed record CreateIncomeRequest(
     int CategoryId,
     decimal Amount,
     DateTimeOffset PaymentDate,
-    string? Purpose);
+    string? Purpose
+);

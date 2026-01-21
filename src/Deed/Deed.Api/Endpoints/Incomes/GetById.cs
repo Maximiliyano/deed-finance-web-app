@@ -12,6 +12,7 @@ internal sealed class GetById : IEndpoint
             (await sender
                 .Send(new GetIncomeByIdQuery(id), ct))
                 .Process())
+            .RequireAuthorization()
             .WithTags(nameof(Incomes));
     }
 }

@@ -1,4 +1,4 @@
-using Deed.Application.Expenses;
+using Deed.Application.Auth;
 using Deed.Application.Expenses.Queries.GetAll;
 using Deed.Application.Expenses.Specifications;
 using Deed.Domain.Entities;
@@ -11,13 +11,14 @@ namespace Deed.Tests.Unit.Expenses.Queries;
 
 public sealed class GetAllExpensesQueryHandlerTests
 {
+    private readonly IUser _userMock = Substitute.For<IUser>();
     private readonly IExpenseRepository _expenseRepositoryMock = Substitute.For<IExpenseRepository>();
 
     private readonly GetExpensesByCategoryHandler _handler;
 
     public GetAllExpensesQueryHandlerTests()
     {
-        _handler = new GetExpensesByCategoryHandler(_expenseRepositoryMock);
+        _handler = new GetExpensesByCategoryHandler(_userMock, _expenseRepositoryMock);
     }
 
     [Fact]

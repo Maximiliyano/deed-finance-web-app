@@ -18,6 +18,7 @@ internal sealed class Create : IEndpoint
                     request.PaymentDate,
                     request.Purpose), ct))
                 .Process())
+            .RequireAuthorization()
             .WithTags(nameof(Incomes));
     }
 }
