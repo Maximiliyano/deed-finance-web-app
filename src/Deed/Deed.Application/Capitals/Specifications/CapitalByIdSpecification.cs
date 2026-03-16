@@ -1,4 +1,4 @@
-﻿using Deed.Application.Abstractions;
+using Deed.Application.Abstractions;
 using Deed.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,11 +8,12 @@ internal sealed class CapitalByIdSpecification : BaseSpecification<Capital>
 {
     public CapitalByIdSpecification(
         int id,
+        string? createdBy = null,
         bool includeExpenses = false,
         bool includeIncomes = false,
         bool includeTransfersIn = false,
         bool includeTransfersOut = false
-    ) : base(c => c.Id == id)
+    ) : base(c => c.Id == id && (createdBy == null || c.CreatedBy == createdBy))
     {
         if (includeIncomes)
         {

@@ -20,7 +20,7 @@ import { Tag } from '../../models/tag';
   styleUrl: './edit-expense-dialog.component.scss',
   standalone: true
 })
-export class EditExpenseDialogComponent implements OnInit { // TODO
+export class EditExpenseDialogComponent implements OnInit {
   form: FormGroup;
   fields: FormField[] = [];
 

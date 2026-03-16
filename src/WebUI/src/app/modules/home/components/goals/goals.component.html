@@ -1,0 +1,132 @@
+<app-layout text="Goals">
+  <div class="goals-page">
+
+    <div class="goals-toolbar">
+      <p class="goals-summary">
+        {{ activeGoals.length }} active
+        @if (completedGoals.length > 0) { · {{ completedGoals.length }} completed }
+      </p>
+      <button class="btn btn-primary btn-sm" (click)="openDialog()">
+        <i class="fas fa-plus"></i>
+        Add Goal
+      </button>
+    </div>
+
+    @if (loading) {
+      <div class="loading-state">
+        <i class="fas fa-spinner fa-spin"></i>
+        Loading goals…
+      </div>
+    } @else if (goals.length === 0) {
+      <div class="empty-state">
+        <i class="fas fa-star empty-icon"></i>
+        <p class="empty-title">No goals yet</p>
+        <p class="empty-hint">Add your first financial goal and start tracking your progress.</p>
+        <button class="btn btn-primary btn-sm" style="margin-top:.75rem" (click)="openDialog()">
+          <i class="fas fa-plus"></i> Add Goal
+        </button>
+      </div>
+    } @else {
+
+      <!-- Active goals -->
+      @if (activeGoals.length > 0) {
+        <h3 class="section-heading">In Progress</h3>
+        <div class="goals-grid">
+          @for (goal of activeGoals; track goal.id) {
+            <div class="goal-card">
+              <div class="goal-card-header">
+                <span class="goal-card-title">{{ goal.title }}</span>
+                <div class="goal-card-actions">
+                  <button class="icon-btn" title="Edit" (click)="openDialog(goal)">
+                    <i class="fas fa-pen"></i>
+                  </button>
+                  <button class="icon-btn icon-btn-danger" title="Delete" (click)="confirmDelete(goal)">
+                    <i class="fas fa-trash-can"></i>
+                  </button>
+                </div>
+              </div>
+
+              <div class="goal-amounts">
+                <span class="goal-current">{{ goal.currentAmount | currencySymbol: goal.currency }}</span>
+                <span class="goal-sep">/</span>
+                <span class="goal-target">{{ goal.targetAmount | currencySymbol: goal.currency }}</span>
+              </div>
+
+              <div class="goal-bar-track">
+                <div class="goal-bar-fill fill-primary" [style.width.%]="goalProgress(goal)"></div>
+              </div>
+
+              <div class="goal-card-footer">
+                <span class="goal-pct">{{ goalProgress(goal) }}%</span>
+                @if (goal.deadline) {
+                  <span class="goal-deadline">
+                    <i class="fas fa-calendar-days"></i>
+                    {{ goal.deadline | date: 'dd MMM yyyy' }}
+                  </span>
+                }
+              </div>
+
+              @if (goal.note) {
+                <p class="goal-note">{{ goal.note }}</p>
+              }
+            </div>
+          }
+        </div>
+      }
+
+      <!-- Completed goals -->
+      @if (completedGoals.length > 0) {
+        <h3 class="section-heading section-heading-completed">
+          <i class="fas fa-circle-check text-success"></i>
+          Completed
+        </h3>
+        <div class="goals-grid">
+          @for (goal of completedGoals; track goal.id) {
+            <div class="goal-card goal-card-completed">
+              <div class="goal-card-header">
+                <span class="goal-card-title">
+                  <i class="fas fa-circle-check text-success"></i>
+                  {{ goal.title }}
+                </span>
+                <div class="goal-card-actions">
+                  <button class="icon-btn" title="Edit" (click)="openDialog(goal)">
+                    <i class="fas fa-pen"></i>
+                  </button>
+                  <button class="icon-btn icon-btn-danger" title="Delete" (click)="confirmDelete(goal)">
+                    <i class="fas fa-trash-can"></i>
+                  </button>
+                </div>
+              </div>
+
+              <div class="goal-amounts">
+                <span class="goal-current text-success">{{ goal.currentAmount | currencySymbol: goal.currency }}</span>
+                <span class="goal-sep">/</span>
+                <span class="goal-target">{{ goal.targetAmount | currencySymbol: goal.currency }}</span>
+              </div>
+
+              <div class="goal-bar-track">
+                <div class="goal-bar-fill fill-success" style="width: 100%"></div>
+              </div>
+
+              <div class="goal-card-footer">
+                <span class="goal-pct text-success">100%</span>
+                @if (goal.deadline) {
+                  <span class="goal-deadline">
+                    <i class="fas fa-calendar-days"></i>
+                    {{ goal.deadline | date: 'dd MMM yyyy' }}
+                  </span>
+                }
+              </div>
+
+              @if (goal.note) {
+                <p class="goal-note">{{ goal.note }}</p>
+              }
+            </div>
+          }
+        </div>
+      }
+
+    }
+
+  </div>
+</app-layout>

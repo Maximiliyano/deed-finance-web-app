@@ -1,15 +1,18 @@
-/** @type {import('tailwindcss').Config} */
 module.exports = {
-  content: [
-    "./src/**/*.{html,ts}",
-  ],
+  content: ["./src/**/*.{html,ts}"],
   theme: {
     extend: {
       colors: {
-        primary: '#1a1a2e'
-      }
+        primary: {
+          DEFAULT: '#6366f1',
+          hover:   '#4f46e5',
+          light:   '#eef2ff',
+        }
+      },
+      fontFamily: {
+        sans: ['Inter', 'Roboto', 'sans-serif'],
+      },
     },
   },
   plugins: [],
 }
-

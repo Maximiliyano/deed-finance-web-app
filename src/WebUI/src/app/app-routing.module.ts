@@ -1,6 +1,6 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import { authGuard } from './modules/auth/guards/auth-guard';
+import { authGuard } from './core/guards/auth-guard';
 
 const routes: Routes = [
   {
@@ -21,6 +21,12 @@ const routes: Routes = [
     canActivate: [authGuard]
   },
   {
+    path: 'incomes',
+    loadComponent: () =>
+      import('./modules/incomes/incomes.component').then((x) => x.IncomesComponent),
+    canActivate: [authGuard]
+  },
+  {
     path: 'profile',
     loadComponent: () =>
       import('./modules/auth/components/profile/profile.component').then(x => x.ProfileComponent),
@@ -35,7 +41,7 @@ const routes: Routes = [
     path: '**',
     redirectTo: '/error',
     pathMatch: 'full',
-    data: { status: 404 } 
+    data: { status: 404 }
   },
 ];
 

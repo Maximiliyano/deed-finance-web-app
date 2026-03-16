@@ -1,14 +1,13 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
 import { AddCapitalRequest } from '../models/add-capital-request';
 import { UpdateCapitalRequest } from '../models/update-capital-request';
 import { CapitalResponse } from '../models/capital-response';
 import { UpdateCapitalOrderRequest } from '../models/update-capital-order-request';
-import { CurrencyType } from '../../../core/types/currency-type';
-import { stringToCurrencyEnum } from '../../../shared/components/currency/functions/string-to-currency-enum';
 import { QueryParams } from '../../../core/models/query-params';
+import { CurrencyType } from '../../../core/types/currency-type';
 
 @Injectable({
   providedIn: 'root'
@@ -17,13 +16,6 @@ export class CapitalService {
   private baseApiUrl = environment.apiUrl + '/api/capitals';
 
   constructor(private readonly httpClient: HttpClient) { }
-
-  getMainCurrency(): { str: string, val: CurrencyType } {
-    return {
-      str: 'UAH',
-      val: stringToCurrencyEnum('UAH') ?? CurrencyType.None
-    }
-  }
 
   getAll(params: QueryParams): Observable<CapitalResponse[]> {
       return this.httpClient.post<CapitalResponse[]>(`${this.baseApiUrl}/all`, params, {withCredentials: true});
@@ -55,5 +47,10 @@ export class CapitalService {
 
   delete(id: number): Observable<void> {
     return this.httpClient.delete<void>(`${this.baseApiUrl}/${id}`, { withCredentials: true });
+  }
+
+  getMainCurrency(): { str: string; val: CurrencyType } {
+    const val = CurrencyType.UAH;
+    return { str: CurrencyType[val], val };
   }
 }

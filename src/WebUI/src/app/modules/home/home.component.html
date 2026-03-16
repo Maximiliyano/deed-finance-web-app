@@ -1,6 +1,593 @@
-<div class="home-container">
+<div class="dashboard">
 
-  <section class="content">
-    <router-outlet></router-outlet>
-  </section>
+  <!-- ── Header ── -->
+  <header class="dashboard-header">
+    <div>
+      <h1 class="dashboard-title">Finance Dashboard</h1>
+      <p class="dashboard-subtitle">Plan, track and stay ahead of your finances</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-sm" [ngClass]="isEditMode ? 'btn-primary' : 'btn-secondary'" (click)="toggleEditMode()">
+        <i class="fas" [ngClass]="isEditMode ? 'fa-check' : 'fa-sliders'"></i>
+        {{ isEditMode ? 'Done' : 'Edit Dashboard' }}
+      </button>
+    </div>
+  </header>
+
+  <!-- ── Panel Editor ── -->
+  @if (isEditMode) {
+    <div class="panel-editor" cdkDropList cdkDropListOrientation="horizontal" (cdkDropListDropped)="dropPanel($event)">
+      <span class="panel-editor-label">Drag to reorder:</span>
+      @for (panel of layoutService.panels; track panel.id) {
+        <div class="panel-chip"
+             cdkDrag
+             [cdkDragDisabled]="panel.locked"
+             [ngClass]="panel.locked ? 'chip-locked' : layoutService.isVisible(panel.id) ? 'chip-active' : 'chip-inactive'">
+          @if (!panel.locked) {
+            <i class="fas fa-grip-vertical chip-grip" cdkDragHandle></i>
+          }
+          <i class="fas" [ngClass]="panel.icon"></i>
+          <span>{{ panel.label }}</span>
+          @if (panel.locked) {
+            <i class="fas fa-lock"></i>
+          } @else {
+            <button class="chip-toggle" (click)="togglePanel(panel.id)">
+              <i class="fas" [ngClass]="layoutService.isVisible(panel.id) ? 'fa-eye' : 'fa-eye-slash'"></i>
+            </button>
+          }
+        </div>
+      }
+    </div>
+  }
+
+  <!-- ── Dynamic Panels ── -->
+  @for (panel of layoutService.panels; track panel.id) {
+    @if (layoutService.isVisible(panel.id)) {
+      @switch (panel.id) {
+
+        <!-- KPI -->
+        @case ('kpi') {
+          <div id="kpi" class="kpi-grid">
+            <div class="kpi-card kpi-link" (click)="!isEditingSalary && startEditSalary()" [title]="isEditingSalary ? '' : 'Click to edit salary'">
+              <div class="kpi-icon wallet-icon"><i class="fas fa-wallet"></i></div>
+              <div class="kpi-body">
+                @if (isEditingSalary) {
+                  <div class="inline-edit" (click)="$event.stopPropagation()">
+                    <div class="inline-edit-row">
+                      <input type="number" class="input inline-input" [(ngModel)]="editSalary" min="0" step="0.01" placeholder="0">
+                      <select class="input inline-select" [(ngModel)]="editCurrency">
+                        @for (c of currencies; track c) {
+                          <option [value]="c">{{ c }}</option>
+                        }
+                      </select>
+                    </div>
+                    <div class="inline-edit-actions">
+                      <button class="btn btn-primary btn-sm" (click)="saveSalary()" [disabled]="savingSalary">
+                        @if (savingSalary) { <i class="fas fa-spinner fa-spin"></i> }
+                        Save
+                      </button>
+                      <button class="btn btn-ghost btn-sm" (click)="cancelEditSalary()">Cancel</button>
+                    </div>
+                  </div>
+                } @else {
+                  <p class="kpi-label">Monthly Salary <i class="fas fa-pen kpi-edit-hint"></i></p>
+                  <p class="kpi-value">
+                    @if (salary) {
+                      {{ salary | currencySymbol: currency }}
+                      @if (showDualCurrency) {
+                        <span class="kpi-alt">{{ salaryInUah | currencySymbol: 'UAH' }}</span>
+                      }
+                    }
+                    @else { <span class="kpi-empty">Not set — click to configure</span> }
+                  </p>
+                }
+              </div>
+            </div>
+
+            <div class="kpi-card">
+              <div class="kpi-icon expense-icon"><i class="fas fa-arrow-trend-down"></i></div>
+              <div class="kpi-body">
+                <p class="kpi-label">Planned Expenses</p>
+                <p class="kpi-value text-danger">
+                  {{ loss | currencySymbol: currency }}
+                  @if (showDualCurrency) {
+                    <span class="kpi-alt">{{ lossInUah | currencySymbol: 'UAH' }}</span>
+                  }
+                </p>
+              </div>
+            </div>
+
+            <div class="kpi-card">
+              <div class="kpi-icon" [ngClass]="isProfitable ? 'profit-icon' : 'deficit-icon'">
+                <i class="fas" [ngClass]="isProfitable ? 'fa-arrow-trend-up' : 'fa-triangle-exclamation'"></i>
+              </div>
+              <div class="kpi-body">
+                <p class="kpi-label">{{ isProfitable ? 'Monthly Profit' : 'Deficit' }}</p>
+                <p class="kpi-value" [ngClass]="isProfitable ? 'text-success' : 'text-danger'">
+                  {{ profit | currencySymbol: currency }}
+                  @if (showDualCurrency) {
+                    <span class="kpi-alt">{{ profitInUah | currencySymbol: 'UAH' }}</span>
+                  }
+                </p>
+              </div>
+            </div>
+
+            <div class="kpi-card">
+              <div class="kpi-icon alloc-icon"><i class="fas fa-chart-pie"></i></div>
+              <div class="kpi-body">
+                <p class="kpi-label">Salary Allocated</p>
+                <p class="kpi-value">{{ lossPercent }}%</p>
+                <div class="mini-bar">
+                  <div class="mini-bar-fill"
+                       [style.width.%]="lossPercent"
+                       [ngClass]="lossPercent >= 100 ? 'fill-danger' : lossPercent >= 80 ? 'fill-warning' : 'fill-primary'">
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        }
+
+        <!-- Capitals -->
+        @case ('capitals') {
+          <div id="capitals" class="card">
+            <div class="card-header">
+              <h2 class="card-title"><i class="fas fa-wallet"></i> Capitals</h2>
+              <div class="card-header-actions">
+                <button class="btn btn-primary btn-sm" (click)="openTransferDialog()" title="Transfer between capitals">
+                  <i class="fas fa-exchange-alt"></i> Transfer
+                </button>
+                <a class="btn btn-secondary btn-sm" routerLink="/capitals">
+                  <i class="fas fa-arrow-up-right-from-square"></i> Open
+                </a>
+              </div>
+            </div>
+            @if (capitals.length === 0) {
+              <div class="empty-state">
+                <i class="fas fa-wallet empty-icon"></i>
+                <p class="empty-title">No capitals yet</p>
+                <p class="empty-hint">Add your bank accounts, cash wallets and investment accounts.</p>
+              </div>
+            } @else {
+              <div class="summary-grid">
+                @for (cap of capitals; track cap.id) {
+                  <div class="summary-card clickable-row" (click)="openCapitalDetail(cap)">
+                    <div class="summary-card-header">
+                      <span class="summary-card-name">{{ cap.name }}</span>
+                      <div class="summary-card-actions">
+                        <button class="summary-icon-btn" (click)="$event.stopPropagation(); showTransfers(cap)" title="Transfers">
+                          <i class="fas fa-exchange-alt"></i>
+                        </button>
+                        <span class="badge" [ngClass]="cap.onlyForSavings ? 'badge-info' : 'badge-ok'">
+                          {{ cap.onlyForSavings ? 'Savings' : 'Active' }}
+                        </span>
+                      </div>
+                    </div>
+                    <p class="summary-card-value">{{ cap.balance | currencySymbol: cap.currency }}</p>
+                    <div class="summary-card-stats">
+                      <span class="text-success"><i class="fas fa-arrow-down"></i> {{ cap.totalIncome | currencySymbol: cap.currency }}</span>
+                      <span class="text-danger"><i class="fas fa-arrow-up"></i> {{ cap.totalExpense | currencySymbol: cap.currency }}</span>
+                      @if (borrowedAmount(cap.id); as borrowed) {
+                        <span class="text-warning"><i class="fas fa-hand-holding-dollar"></i> {{ borrowed | currencySymbol: cap.currency }} borrowed</span>
+                      }
+                    </div>
+                    @if (expandedCapitalId === cap.id) {
+                      <div class="cap-transfers" (click)="$event.stopPropagation()">
+                        @for (t of transfersForCapital(cap.id); track t.id) {
+                          <div class="txn-row">
+                            @if (t.sourceCapitalId === cap.id) {
+                              <span class="txn-amount text-danger">-{{ t.amount | currencySymbol: t.sourceCurrency ?? '' }}</span>
+                              <span class="txn-purpose"><i class="fas fa-arrow-right"></i> {{ t.destinationCapitalName }} ({{ t.destinationAmount | currencySymbol: t.destinationCurrency ?? '' }})</span>
+                            } @else {
+                              <span class="txn-amount text-success">+{{ t.destinationAmount | currencySymbol: t.destinationCurrency ?? '' }}</span>
+                              <span class="txn-purpose"><i class="fas fa-arrow-left"></i> {{ t.sourceCapitalName }} ({{ t.amount | currencySymbol: t.sourceCurrency ?? '' }})</span>
+                            }
+                            <span class="txn-date">{{ t.createdAt | date: 'dd MMM' }}</span>
+                            <button class="icon-btn icon-btn-danger" title="Delete & reverse" (click)="deleteTransfer(t.id)">
+                              <i class="fas fa-trash-can"></i>
+                            </button>
+                          </div>
+                        } @empty {
+                          <span class="txn-purpose">No transfers</span>
+                        }
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        }
+
+        <!-- Expenses -->
+        @case ('expenses') {
+          <div id="expenses" class="card">
+            <div class="card-header">
+              <h2 class="card-title"><i class="fas fa-money-bill-wave"></i> Expenses</h2>
+              <div class="card-header-actions">
+                <span class="badge badge-warning">{{ totalExpenses | currencySymbol: currency }}</span>
+                <button class="btn btn-danger btn-sm" (click)="openQuickExpense()">
+                  <i class="fas fa-plus"></i> Add
+                </button>
+                <a class="btn btn-secondary btn-sm" routerLink="/expenses">
+                  <i class="fas fa-arrow-up-right-from-square"></i>
+                </a>
+              </div>
+            </div>
+            @if (expenseCategories.length === 0) {
+              <div class="empty-state">
+                <i class="fas fa-money-bill-wave empty-icon"></i>
+                <p class="empty-title">No expenses yet</p>
+                <p class="empty-hint">Start tracking your expenses to see a breakdown here.</p>
+              </div>
+            } @else {
+              <div class="expense-summary-list">
+                @for (cat of expenseCategories; track cat.categoryId) {
+                  <div class="expense-summary-row clickable-row" (click)="toggleExpenseCat(cat.categoryId)">
+                    <div class="expense-summary-info">
+                      <i class="fas expand-icon" [ngClass]="expandedExpenseCats.has(cat.categoryId) ? 'fa-chevron-down' : 'fa-chevron-right'"></i>
+                      <span class="expense-summary-name">{{ cat.name }}</span>
+                      <span class="expense-summary-count">{{ cat.expenses.length }} {{ cat.expenses.length === 1 ? 'transaction' : 'transactions' }}</span>
+                    </div>
+                    <div class="expense-summary-right">
+                      <span class="expense-summary-amount">{{ cat.categorySum | currencySymbol: currency }}</span>
+                      <span class="expense-summary-pct">{{ cat.percentage }}%</span>
+                    </div>
+                    <div class="expense-summary-bar">
+                      <div class="expense-summary-bar-fill" [style.width.%]="cat.percentage"></div>
+                    </div>
+                    @if (expandedExpenseCats.has(cat.categoryId)) {
+                      @for (exp of cat.expenses; track exp.id) {
+                        <div class="txn-row" (click)="$event.stopPropagation()">
+                          <span class="txn-amount text-danger">{{ exp.amount | currencySymbol: currency }}</span>
+                          <span class="txn-purpose">{{ exp.purpose ?? '—' }}</span>
+                          <span class="txn-date">{{ exp.paymentDate | date: 'dd MMM' }}</span>
+                          <button class="icon-btn" title="Edit" (click)="openQuickExpense({ id: exp.id, capitalId: exp.capitalId, categoryId: cat.categoryId, amount: exp.amount, paymentDate: exp.paymentDate, purpose: exp.purpose })">
+                            <i class="fas fa-pen"></i>
+                          </button>
+                          <button class="icon-btn icon-btn-danger" title="Delete" (click)="deleteExpense(exp.id)">
+                            <i class="fas fa-trash-can"></i>
+                          </button>
+                        </div>
+                      }
+                    }
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        }
+
+        <!-- Incomes -->
+        @case ('incomes') {
+          <div id="incomes" class="card">
+            <div class="card-header">
+              <h2 class="card-title"><i class="fas fa-arrow-trend-up"></i> Incomes</h2>
+              <div class="card-header-actions">
+                <span class="badge badge-ok">{{ totalIncomes | currencySymbol: currency }}</span>
+                <button class="btn btn-success btn-sm" (click)="openQuickIncome()">
+                  <i class="fas fa-plus"></i> Add
+                </button>
+                <a class="btn btn-secondary btn-sm" routerLink="/incomes">
+                  <i class="fas fa-arrow-up-right-from-square"></i>
+                </a>
+              </div>
+            </div>
+            @if (incomes.length === 0) {
+              <div class="empty-state">
+                <i class="fas fa-arrow-trend-up empty-icon"></i>
+                <p class="empty-title">No incomes yet</p>
+                <p class="empty-hint">Start tracking your incomes to see a breakdown here.</p>
+              </div>
+            } @else {
+              <div class="expense-summary-list">
+                @for (item of incomesByCategory(); track item.name) {
+                  <div class="expense-summary-row clickable-row" (click)="toggleIncomeCat(item.name)">
+                    <div class="expense-summary-info">
+                      <i class="fas expand-icon" [ngClass]="expandedIncomeCats.has(item.name) ? 'fa-chevron-down' : 'fa-chevron-right'"></i>
+                      <span class="expense-summary-name">{{ item.name }}</span>
+                      <span class="expense-summary-count">{{ item.count }} {{ item.count === 1 ? 'transaction' : 'transactions' }}</span>
+                    </div>
+                    <div class="expense-summary-right">
+                      <span class="expense-summary-amount text-success">{{ item.total | currencySymbol: currency }}</span>
+                      @if (totalIncomes > 0) {
+                        <span class="expense-summary-pct">{{ (item.total / totalIncomes * 100) | number:'1.0-0' }}%</span>
+                      }
+                    </div>
+                    <div class="expense-summary-bar">
+                      <div class="expense-summary-bar-fill fill-success" [style.width.%]="totalIncomes > 0 ? (item.total / totalIncomes * 100) : 0"></div>
+                    </div>
+                    @if (expandedIncomeCats.has(item.name)) {
+                      @for (inc of item.items; track inc.id) {
+                        <div class="txn-row" (click)="$event.stopPropagation()">
+                          <span class="txn-amount text-success">{{ inc.amount | currencySymbol: currency }}</span>
+                          <span class="txn-purpose">{{ inc.purpose ?? '—' }}</span>
+                          <span class="txn-date">{{ inc.paymentDate | date: 'dd MMM' }}</span>
+                          <button class="icon-btn" title="Edit" (click)="openQuickIncome({ id: inc.id, capitalId: inc.capitalId, categoryId: inc.categoryId, amount: inc.amount, paymentDate: inc.paymentDate, purpose: inc.purpose })">
+                            <i class="fas fa-pen"></i>
+                          </button>
+                          <button class="icon-btn icon-btn-danger" title="Delete" (click)="deleteIncome(inc.id)">
+                            <i class="fas fa-trash-can"></i>
+                          </button>
+                        </div>
+                      }
+                    }
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        }
+
+        <!-- Budget Planner -->
+        @case ('estimations') {
+          <div id="estimations" class="card">
+            <div class="card-header">
+              <h2 class="card-title"><i class="fas fa-compass-drafting"></i> Budget Planner</h2>
+              <div class="card-header-actions">
+                @if (salary) {
+                  <button class="card-subtitle card-subtitle-link" (click)="startEditSalary()" title="Edit salary">
+                    {{ salary | currencySymbol: currency }}
+                    @if (showDualCurrency) { <span class="text-muted">({{ salaryInUah | currencySymbol: 'UAH' }})</span> }
+                    / mo <i class="fas fa-pen"></i>
+                  </button>
+                } @else {
+                  <button class="card-subtitle card-subtitle-link text-warning" (click)="startEditSalary()" title="Set salary">
+                    Set salary <i class="fas fa-pen"></i>
+                  </button>
+                }
+                <button class="btn btn-primary btn-sm" (click)="openEstimationDialog()">
+                  <i class="fas fa-plus"></i> Add
+                </button>
+              </div>
+            </div>
+            @if (estimations.length === 0) {
+              <div class="empty-state">
+                <i class="fas fa-compass-drafting empty-icon"></i>
+                <p class="empty-title">No budget items yet</p>
+                <p class="empty-hint">Plan recurring expenses like rent or one-off costs like a trip.</p>
+              </div>
+            } @else {
+              @if (salary) {
+                <div class="bp-bar-wrap">
+                  <div class="bp-bar">
+                    @for (est of estimations; track est.id) {
+                      <div class="bp-bar-seg"
+                           [style.flex-grow]="convertToSalaryCurrency(est.budgetAmount, est.budgetCurrency)"
+                           [style.background-color]="barColors[$index % barColors.length]"
+                           [title]="est.description + ' — ' + budgetPercent(est.budgetAmount, est.budgetCurrency) + '%'">
+                      </div>
+                    }
+                    @if (profit > 0) {
+                      <div class="bp-bar-seg bp-bar-free" [style.flex-grow]="profit" title="Free"></div>
+                    }
+                  </div>
+                </div>
+              }
+              <div class="bp-list">
+                @for (est of estimations; track est.id) {
+                  <div class="bp-item clickable-row" (click)="openEstimationDialog(est)">
+                    <div class="bp-item-color" [style.background-color]="barColors[$index % barColors.length]"></div>
+                    <div class="bp-item-body">
+                      <div class="bp-item-top">
+                        <span class="bp-item-name">{{ est.description }}</span>
+                        <div class="bp-item-actions">
+                          <span class="bp-item-amount">
+                            {{ est.budgetAmount | currencySymbol: est.budgetCurrency }}
+                            @if (est.budgetCurrency !== currency) {
+                              <span class="bp-item-converted">{{ convertToSalaryCurrency(est.budgetAmount, est.budgetCurrency) | currencySymbol: currency }}</span>
+                            }
+                          </span>
+                          <button class="icon-btn icon-btn-danger" title="Delete"
+                                  (click)="$event.stopPropagation(); deleteEstimation(est)">
+                            <i class="fas fa-trash-can"></i>
+                          </button>
+                        </div>
+                      </div>
+                      <div class="bp-item-bar">
+                        <div class="bp-item-bar-fill"
+                             [style.width.%]="budgetPercent(est.budgetAmount, est.budgetCurrency)"
+                             [style.background-color]="barColors[$index % barColors.length]"></div>
+                      </div>
+                      <div class="bp-item-meta">
+                        @if (salary) {
+                          <span class="bp-item-pct">{{ budgetPercent(est.budgetAmount, est.budgetCurrency) }}% of salary</span>
+                        }
+                        @if (est.capitalName) {
+                          <span class="bp-item-capital">
+                            <i class="fas fa-wallet"></i> {{ est.capitalName }}
+                            @if (est.capitalId) {
+                              <span [ngClass]="(est.capitalBalance - est.budgetAmount) < 0 ? 'text-danger' : 'text-success'">
+                                ({{ (est.capitalBalance - est.budgetAmount) | currencySymbol: est.budgetCurrency }} left)
+                              </span>
+                            }
+                          </span>
+                        }
+                      </div>
+                    </div>
+                  </div>
+                }
+              </div>
+              <div class="bp-summary">
+                <div class="bp-summary-row">
+                  <span class="bp-summary-label">Total planned</span>
+                  <span class="bp-summary-val text-danger">
+                    {{ loss | currencySymbol: currency }}
+                    @if (showDualCurrency) {
+                      <span class="bp-summary-alt">{{ lossInUah | currencySymbol: 'UAH' }}</span>
+                    }
+                  </span>
+                </div>
+                @if (salary) {
+                  <div class="bp-summary-row">
+                    <span class="bp-summary-label">{{ isProfitable ? 'Free to spend' : 'Deficit' }}</span>
+                    <span class="bp-summary-val" [ngClass]="isProfitable ? 'text-success' : 'text-danger'">
+                      {{ profit | currencySymbol: currency }}
+                      @if (showDualCurrency) {
+                        <span class="bp-summary-alt">{{ profitInUah | currencySymbol: 'UAH' }}</span>
+                      }
+                    </span>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        }
+
+        <!-- Goals -->
+        @case ('goals') {
+          <div id="goals" class="card">
+            <div class="card-header">
+              <h2 class="card-title"><i class="fas fa-star"></i> Goals</h2>
+              <div class="card-header-actions">
+                <button class="btn btn-primary btn-sm" (click)="openGoalDialog()">
+                  <i class="fas fa-plus"></i> Add
+                </button>
+              </div>
+            </div>
+            @if (goals.length === 0) {
+              <div class="empty-state">
+                <i class="fas fa-star empty-icon"></i>
+                <p class="empty-title">No goals yet</p>
+                <p class="empty-hint">Set financial goals and track your progress toward them.</p>
+              </div>
+            } @else {
+              <div class="goals-list">
+                @for (goal of goals; track goal.id) {
+                  <div class="goal-item clickable-row" [ngClass]="{ 'goal-completed': goal.isCompleted }" (click)="openGoalDialog(goal)">
+                    <div class="goal-item-header">
+                      <span class="goal-item-title">
+                        @if (goal.isCompleted) { <i class="fas fa-circle-check text-success"></i> }
+                        {{ goal.title }}
+                      </span>
+                      <div class="goal-item-right">
+                        <span class="goal-item-amounts">
+                          {{ goal.currentAmount | currencySymbol: goal.currency }}
+                          <span class="text-muted"> / </span>
+                        {{ goal.targetAmount | currencySymbol: goal.currency }}
+                        </span>
+                        <button class="icon-btn icon-btn-danger" title="Delete" (click)="$event.stopPropagation(); deleteGoal(goal)">
+                          <i class="fas fa-trash-can"></i>
+                        </button>
+                      </div>
+                    </div>
+                    <div class="goal-item-bar">
+                      <div class="goal-bar-fill"
+                           [style.width.%]="goalProgress(goal)"
+                           [ngClass]="goal.isCompleted ? 'fill-success' : 'fill-primary'"></div>
+                    </div>
+                    <div class="goal-item-footer">
+                      <span class="goal-pct" [ngClass]="goal.isCompleted ? 'text-success' : ''">{{ goalProgress(goal) }}%</span>
+                      @if (goal.deadline) {
+                        <span class="goal-deadline"><i class="fas fa-calendar-days"></i> {{ goal.deadline | date: 'dd MMM yyyy' }}</span>
+                      }
+                    </div>
+                    @if (goalSuggestion(goal); as tip) {
+                      <div class="goal-tip" [ngClass]="tip.overdue ? 'goal-tip--overdue' : tip.feasible ? 'goal-tip--ok' : 'goal-tip--warn'">
+                        <i class="fas" [ngClass]="tip.overdue ? 'fa-triangle-exclamation' : tip.feasible ? 'fa-lightbulb' : 'fa-circle-info'"></i>
+                        @if (tip.overdue) {
+                          <span>Deadline passed — {{ tip.monthly | currencySymbol: currency }} still needed</span>
+                        } @else {
+                          <span>Save <strong>{{ tip.monthly | currencySymbol: currency }}/mo</strong> for {{ tip.months }} month{{ tip.months !== 1 ? 's' : '' }}</span>
+                          @if (!tip.feasible) {
+                            <span class="goal-tip-extra">· exceeds free budget ({{ profit | currencySymbol: currency }}/mo)</span>
+                          }
+                        }
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        }
+
+        <!-- Debts -->
+        @case ('debts') {
+          <div id="debts" class="card">
+            <div class="card-header">
+              <h2 class="card-title"><i class="fas fa-hand-holding-dollar"></i> Debt Dashboard</h2>
+              <div class="card-header-actions">
+                <span class="badge" [ngClass]="debts.length > 0 ? 'badge-warning' : 'badge-ok'">
+                  {{ debts.length }} {{ debts.length === 1 ? 'debt' : 'debts' }}
+                </span>
+                <button class="btn btn-primary btn-sm" (click)="openDebtDialog()">
+                  <i class="fas fa-plus"></i> Add
+                </button>
+              </div>
+            </div>
+            @if (debts.length === 0) {
+              <div class="empty-state">
+                <i class="fas fa-circle-check empty-icon text-success"></i>
+                <p class="empty-title text-success">You're debt-free!</p>
+                <p class="empty-hint">Track borrowed money or obligations here once you add them.</p>
+              </div>
+            } @else {
+              <div class="table-overflow">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Item</th>
+                      <th>Amount</th>
+                      <th>Capital</th>
+                      <th>Source</th>
+                      <th>Recipient</th>
+                      <th>Borrowed At</th>
+                      <th>Deadline</th>
+                      <th>Status</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (debt of debts; track debt.id) {
+                      <tr class="clickable-row" [ngClass]="{ 'row-paid': debt.isPaid }" (click)="openDebtDialog(debt)">
+                        <td class="font-medium">
+                          @if (debt.isPaid) { <i class="fas fa-circle-check text-success"></i> }
+                          {{ debt.item }}
+                        </td>
+                        <td class="tabular-nums">{{ debt.amount | currencySymbol: debt.currency }}</td>
+                        <td>{{ debt.capitalName ?? '—' }}</td>
+                        <td>{{ debt.source }}</td>
+                        <td>{{ debt.recipient }}</td>
+                        <td>{{ debt.borrowedAt | date: 'dd MMM yyyy' }}</td>
+                        <td>{{ (debt.deadlineAt | date: 'dd MMM yyyy') ?? '—' }}</td>
+                        <td>
+                          @if (debt.isPaid) {
+                            <span class="status-badge status-ok">
+                              <i class="fas fa-circle-check"></i> Paid
+                            </span>
+                          } @else {
+                            <span class="status-badge"
+                                  [ngClass]="{
+                                    'status-overdue': debtStatus(debt) === 'overdue',
+                                    'status-soon':    debtStatus(debt) === 'soon',
+                                    'status-ok':      debtStatus(debt) === 'ok'
+                                  }">
+                              <i class="fas" [ngClass]="{
+                                'fa-circle-exclamation': debtStatus(debt) === 'overdue',
+                                'fa-clock':              debtStatus(debt) === 'soon',
+                                'fa-circle-check':       debtStatus(debt) === 'ok'
+                              }"></i>
+                              {{ debtStatus(debt) === 'overdue' ? 'Overdue' : debtStatus(debt) === 'soon' ? 'Due soon' : 'On track' }}
+                            </span>
+                          }
+                        </td>
+                        <td class="action-cell">
+                          <button class="icon-btn icon-btn-danger" title="Delete" (click)="$event.stopPropagation(); deleteDebt(debt)">
+                            <i class="fas fa-trash-can"></i>
+                          </button>
+                        </td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            }
+          </div>
+        }
+
+      }
+    }
+  }
+
 </div>

@@ -1,0 +1,64 @@
+<form [formGroup]="form" (ngSubmit)="submit()" class="qt-dialog">
+  <div class="qt-header" [ngClass]="isExpense ? 'qt-header--expense' : 'qt-header--income'">
+    <i class="fas" [ngClass]="isExpense ? 'fa-arrow-trend-down' : 'fa-arrow-trend-up'"></i>
+    {{ isEdit ? 'Edit' : 'Add' }} {{ isExpense ? 'Expense' : 'Income' }}
+  </div>
+
+  <div class="qt-body">
+    <div class="form-group">
+      <label class="form-label">Amount</label>
+      <input type="number" class="input" formControlName="amount" min="0.01" step="0.01" placeholder="0.00" autocomplete="off">
+    </div>
+
+    <div class="qt-row">
+      <div class="form-group" style="flex:1">
+        <label class="form-label">Capital</label>
+        <select class="input" formControlName="capitalId" [attr.disabled]="isEdit ? true : null">
+          <option [ngValue]="null" disabled>Select capital…</option>
+          @for (cap of capitals; track cap.id) {
+            <option [ngValue]="cap.id">{{ cap.name }} ({{ cap.currency }})</option>
+          }
+        </select>
+      </div>
+      <div class="form-group" style="flex:1">
+        <label class="form-label">
+          Category
+          <button type="button" class="qt-new-cat-btn" (click)="toggleNewCategory()" title="New category">
+            <i class="fas" [ngClass]="showNewCategory ? 'fa-times' : 'fa-plus'"></i>
+          </button>
+        </label>
+        @if (showNewCategory) {
+          <div class="qt-new-cat">
+            <input type="text" class="input" [(ngModel)]="newCategoryName" [ngModelOptions]="{standalone: true}" placeholder="Category name" maxlength="64">
+            <button type="button" class="btn btn-primary btn-sm" (click)="createCategory()" [disabled]="!newCategoryName.trim()">Add</button>
+          </div>
+        } @else {
+          <select class="input" formControlName="categoryId">
+            <option [ngValue]="null" disabled>Select category…</option>
+            @for (cat of categories; track cat.id) {
+              <option [ngValue]="cat.id">{{ cat.name }}</option>
+            }
+          </select>
+        }
+      </div>
+    </div>
+
+    <div class="qt-row">
+      <div class="form-group" style="flex:1">
+        <label class="form-label">Date</label>
+        <input type="date" class="input" formControlName="paymentDate">
+      </div>
+      <div class="form-group" style="flex:1">
+        <label class="form-label">Purpose (optional)</label>
+        <input type="text" class="input" formControlName="purpose" placeholder="What for…" autocomplete="off">
+      </div>
+    </div>
+  </div>
+
+  <div class="qt-footer">
+    <button type="button" class="btn btn-secondary btn-sm" (click)="cancel()">Cancel</button>
+    <button type="submit" class="btn btn-sm" [ngClass]="isExpense ? 'btn-danger' : 'btn-success'" [disabled]="form.invalid">
+      {{ isEdit ? 'Save' : (isExpense ? 'Add Expense' : 'Add Income') }}
+    </button>
+  </div>
+</form>

@@ -16,11 +16,17 @@ export class AuthService {
   constructor(private readonly http: HttpClient) { }
   
   login(): void {
-    window.location.href = `${environment.apiUrl}/api/auth/login`;
+    const returnUrl = encodeURIComponent(window.location.pathname + window.location.search);
+    window.location.href = `${environment.apiUrl}/api/auth/login?returnUrl=${returnUrl}`;
   }
 
   logout(): void {
     window.location.href = `${environment.apiUrl}/api/auth/logout`;
+  }
+
+  invalidate(): void {
+    this.loaded = false;
+    this.userSubject.next(null);
   }
 
   me(): Observable<User | null> {
@@ -36,6 +42,6 @@ export class AuthService {
       )
       .subscribe();
 
-      return this.user$;
+    return this.user$;
   }
 }

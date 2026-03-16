@@ -16,11 +16,11 @@ internal sealed class UpdateCapitalCommandValidator : AbstractValidator<UpdateCa
             .GreaterThanOrEqualTo(ValidationConstants.ZeroValue);
 
         RuleFor(c => c.Name)
-            .MustAsync(async (name, _) => !await repository
-                .AnyAsync(new CapitalByNameSpecification(name!)).ConfigureAwait(false))
+            .MustAsync(async (name, ct) => !await repository
+                .AnyAsync(new CapitalByNameSpecification(name!), ct).ConfigureAwait(false))
             .When(c => !string.IsNullOrEmpty(c.Name))
             .WithError(ValidationErrors.General.NameAlreadyExists)
-            .MaximumLength(ValidationConstants.MaxLenghtName);
+            .MaximumLength(ValidationConstants.MaxLengthName);
 
         RuleFor(c => c.Currency)
             .Must(currency => currency.HasValue && currency.Value != CurrencyType.None)

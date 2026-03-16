@@ -5,13 +5,13 @@ namespace Deed.Api.Extensions;
 
 internal static class MigrationExtensions
 {
-    public static IApplicationBuilder ApplyMigrations(this IApplicationBuilder app)
+    public static async Task<IApplicationBuilder> ApplyMigrationsAsync(this IApplicationBuilder app)
     {
         using var serviceScope = app.ApplicationServices.CreateScope();
 
         var dbContext = serviceScope.ServiceProvider.GetRequiredService<DeedDbContext>();
 
-        dbContext.Database.Migrate();
+        await dbContext.Database.MigrateAsync();
 
         return app;
     }

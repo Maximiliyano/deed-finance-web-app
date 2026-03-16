@@ -1,7 +1,6 @@
 using Deed.Application.Capitals.Commands.Create;
 using Deed.Application.Capitals.Responses;
 using Deed.Domain.Entities;
-using Deed.Domain.Enums;
 
 namespace Deed.Application.Capitals;
 
@@ -20,7 +19,7 @@ internal static class CapitalExtensions
             capital.TotalTransferIn,
             capital.TotalTransferOut,
             capital.CreatedAt,
-            capital.CreatedBy ?? "Anonymous"
+            capital.CreatedBy
     );
 
     internal static IEnumerable<CapitalResponse> ToResponses(this IEnumerable<Capital> capitals)

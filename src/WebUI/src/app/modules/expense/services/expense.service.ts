@@ -21,18 +21,18 @@ export class ExpenseService {
       params = params.set("capitalId", capitalId);
     }
 
-    return this.http.get<ExpenseCategoryResponse[]>(this.baseUrl, { params });
+    return this.http.get<ExpenseCategoryResponse[]>(this.baseUrl, { params,withCredentials: true });
   }
 
   create(request: CreateExpenseRequest): Observable<number> {
-    return this.http.post<number>(this.baseUrl, request);
+    return this.http.post<number>(this.baseUrl, request, { withCredentials: true });
   }
 
   update(request: UpdateExpenseRequest): Observable<void> {
-    return this.http.put<void>(this.baseUrl, request);
+    return this.http.put<void>(this.baseUrl, request, { withCredentials: true });
   }
 
   delete(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.baseUrl}/${id}`);
+    return this.http.delete<void>(`${this.baseUrl}/${id}`, { withCredentials: true });
   }
 }

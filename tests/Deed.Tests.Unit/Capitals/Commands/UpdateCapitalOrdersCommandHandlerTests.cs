@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Deed.Application.Capitals.Commands.Update;
+using Deed.Application.Auth;
 using Deed.Application.Capitals.Commands.UpdateOrders;
 using Deed.Application.Capitals.Requests;
 using Deed.Domain.Repositories;
@@ -16,12 +11,14 @@ public sealed class UpdateCapitalOrdersCommandHandlerTests
 {
     private readonly ICapitalRepository _repositoryMock = Substitute.For<ICapitalRepository>();
     private readonly IUnitOfWork _unitOfWorkMock = Substitute.For<IUnitOfWork>();
+    private readonly IUser _userMock = Substitute.For<IUser>();
 
     private readonly UpdateCapitalOrdersCommandHandler _handler;
 
     public UpdateCapitalOrdersCommandHandlerTests()
     {
-        _handler = new UpdateCapitalOrdersCommandHandler(_repositoryMock, _unitOfWorkMock);
+        _userMock.Name.Returns("testuser");
+        _handler = new UpdateCapitalOrdersCommandHandler(_repositoryMock, _unitOfWorkMock, _userMock);
     }
 
     [Fact]
@@ -41,9 +38,10 @@ public sealed class UpdateCapitalOrdersCommandHandlerTests
         result.IsSuccess.Should().BeTrue();
 
         await _repositoryMock.Received(1)
-            .UpdateOrderIndexesAsync(Arg.Is<IList<(int, int)>>(x =>
-                x.Any(c => c.Item2 == 0) &&
-                x.Any(c => c.Item2 == 1)), CancellationToken.None);
+            .UpdateOrderIndexesAsync(
+                Arg.Is<IList<(int, int)>>(x => x.Any(c => c.Item2 == 0) && x.Any(c => c.Item2 == 1)),
+                Arg.Any<string>(),
+                Arg.Any<CancellationToken>());
 
         await _unitOfWorkMock.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
     }
@@ -58,7 +56,7 @@ public sealed class UpdateCapitalOrdersCommandHandlerTests
         var result = await _handler.Handle(command, CancellationToken.None);
 
         // Assert
-        await _repositoryMock.Received(1).UpdateOrderIndexesAsync(Arg.Any<IList<(int, int)>>(), CancellationToken.None);
+        await _repositoryMock.Received(1).UpdateOrderIndexesAsync(Arg.Any<IList<(int, int)>>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
         await _unitOfWorkMock.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
 
         result.IsSuccess.Should().BeTrue();
@@ -71,7 +69,7 @@ public sealed class UpdateCapitalOrdersCommandHandlerTests
         var command = new UpdateCapitalOrdersCommand([
             new (1, 5),
         ]);
-        
+
         var cts = new CancellationTokenSource();
 
         // Act

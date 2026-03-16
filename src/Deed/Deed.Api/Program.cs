@@ -14,7 +14,7 @@ builder.Host.UseSerilogDependencies();
 builder.Configuration.AddEnvironmentVariables();
 
 builder.Services
-    .AddApplication()
+    .AddApplication(builder.Configuration, builder.Environment)
     .AddApi()
     .AddInfrastructure();
 
@@ -29,7 +29,7 @@ app.UseForwardedHeaders(new ForwardedHeadersOptions
 
 if (app.Environment.IsDevelopment())
 {
-    app.ApplyMigrations();
+    await app.ApplyMigrationsAsync();
     app.UseSwaggerDependencies();
 }
 else
@@ -39,9 +39,12 @@ else
 
 app.UseExceptionHandler();
 
-app.UseHttpsRedirection();
-
 app.UseCorsPolicy();
+
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
 
 app.UseAuthentication();
 app.UseAuthorization();
@@ -53,7 +56,7 @@ app.UseSerilogRequestLogging();
 app.MapHealthChecks("health", new HealthCheckOptions
 {
     ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
-});
+}).RequireAuthorization();
 
 app.MapEndpoints();
 

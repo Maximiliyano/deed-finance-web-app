@@ -18,10 +18,10 @@ internal sealed class CreateExpenseTagCommandValidator : AbstractValidator<Creat
     public CreateExpenseTagCommandValidator(ITagRepository tagRepository)
     {
         RuleFor(x => x.Name)
-            .MustAsync(async (name, _) => !await tagRepository
-                .AnyAsync(new TagByNameSpecification(name)).ConfigureAwait(false))
+            .MustAsync(async (name, ct) => !await tagRepository
+                .AnyAsync(new TagByNameSpecification(name), ct).ConfigureAwait(false))
             .WithError(ValidationErrors.Tag.AlreadyExists)
             .NotEmpty()
-            .MaximumLength(ValidationConstants.MaxLenghtName);
+            .MaximumLength(ValidationConstants.MaxLengthName);
     }
 }

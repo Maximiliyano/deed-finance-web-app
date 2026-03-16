@@ -1,16 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Deed.Application.Abstractions;
 using Deed.Application.Categories.Specifications;
 using Deed.Domain.Constants;
-using Deed.Domain.Enums;
 using Deed.Domain.Errors;
 using Deed.Domain.Repositories;
 using FluentValidation;
-using MediatR;
 
 namespace Deed.Application.Categories.Commands.UpdateRange;
 
@@ -33,10 +26,10 @@ internal sealed class UpdateCategoriesCommandValidator : AbstractValidator<Updat
                 request.RuleFor(r => r.Name)
                     .NotEmpty()
                     .WithError(ValidationErrors.Category.EmptyName)
-                    .MaximumLength(ValidationConstants.MaxLenghtName)
+                    .MaximumLength(ValidationConstants.MaxLengthName)
                     .WithError(ValidationErrors.Category.NameTooLong)
-                    .MustAsync(async (name, _) => // TODO fix bug, updateRange existing category - occuer error
-                        !await categoryRepository.AnyAsync(new CategoryByNameSpecification(name)).ConfigureAwait(false))
+                    .MustAsync(async (req, name, ct) =>
+                        !await categoryRepository.AnyAsync(new CategoryByNameSpecification(name!, req.Id), ct).ConfigureAwait(false))
                     .WithError(ValidationErrors.Category.AlreadyExists);
             });
     }

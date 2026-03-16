@@ -1,19 +1,18 @@
-﻿using Deed.Application.Abstractions.Messaging;
+using Deed.Application.Abstractions.Messaging;
+using Deed.Application.Auth;
 using Deed.Application.Capitals.Specifications;
-using Deed.Domain.Enums;
 using Deed.Domain.Errors;
 using Deed.Domain.Repositories;
 using Deed.Domain.Results;
-using Microsoft.EntityFrameworkCore;
 
 namespace Deed.Application.Capitals.Commands.Update;
 
-internal sealed class UpdateCapitalCommandHandler(ICapitalRepository repository, IUnitOfWork unitOfWork)
+internal sealed class UpdateCapitalCommandHandler(ICapitalRepository repository, IUnitOfWork unitOfWork, IUser user)
     : ICommandHandler<UpdateCapitalCommand>
 {
     public async Task<Result> Handle(UpdateCapitalCommand command, CancellationToken cancellationToken)
     {
-        var capital = await repository.GetAsync(new CapitalByIdSpecification(command.Id)).ConfigureAwait(false);
+        var capital = await repository.GetAsync(new CapitalByIdSpecification(command.Id, user.Name), cancellationToken).ConfigureAwait(false);
 
         if (capital is null)
         {

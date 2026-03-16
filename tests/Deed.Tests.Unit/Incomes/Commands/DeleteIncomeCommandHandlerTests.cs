@@ -1,3 +1,4 @@
+using Deed.Application.Auth;
 using Deed.Application.Incomes.Commands.Delete;
 using Deed.Application.Incomes.Specifications;
 using Deed.Domain.Entities;
@@ -14,12 +15,14 @@ public sealed class DeleteIncomeCommandHandlerTests
     private readonly IIncomeRepository _incomeRepository = Substitute.For<IIncomeRepository>();
     private readonly ICapitalRepository _capitalRepository = Substitute.For<ICapitalRepository>();
     private readonly IUnitOfWork _unitOfWork = Substitute.For<IUnitOfWork>();
+    private readonly IUser _userMock = Substitute.For<IUser>();
 
     private readonly DeleteIncomeCommandHandler _handler;
 
     public DeleteIncomeCommandHandlerTests()
     {
-        _handler = new DeleteIncomeCommandHandler(_incomeRepository, _capitalRepository, _unitOfWork);
+        _userMock.Name.Returns("testuser");
+        _handler = new DeleteIncomeCommandHandler(_incomeRepository, _capitalRepository, _unitOfWork, _userMock);
     }
 
     [Fact]

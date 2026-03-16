@@ -4,9 +4,9 @@ namespace Deed.Domain.Repositories;
 
 public interface IExpenseRepository
 {
-    Task<Expense?> GetAsync(ISpecification<Expense> specification);
+    Task<Expense?> GetAsync(ISpecification<Expense> specification, CancellationToken cancellationToken = default);
 
-    Task<IEnumerable<Expense>> GetAllAsync(ISpecification<Expense> specification);
+    Task<IEnumerable<Expense>> GetAllAsync(ISpecification<Expense> specification, CancellationToken cancellationToken = default);
 
     void Create(Expense expense);
 
@@ -14,5 +14,5 @@ public interface IExpenseRepository
 
     void Delete(Expense expense);
 
-    Task<bool> AnyAsync(ISpecification<Expense> specification);
+    Task<bool> AnyAsync(ISpecification<Expense> specification, CancellationToken cancellationToken = default);
 }

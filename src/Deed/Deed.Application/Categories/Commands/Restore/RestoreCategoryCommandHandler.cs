@@ -1,8 +1,3 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Deed.Application.Abstractions.Messaging;
 using Deed.Application.Categories.Response;
 using Deed.Application.Categories.Specifications;
@@ -12,7 +7,7 @@ using Deed.Domain.Results;
 
 namespace Deed.Application.Categories.Commands.Restore;
 
-internal sealed class RestoreCategoryCommandHandler( // TODO write tests
+internal sealed class RestoreCategoryCommandHandler(
     ICategoryRepository categoryRepository,
     IUnitOfWork unitOfWork
     ) : ICommandHandler<RestoreCategoryCommand, CategoryResponse>
@@ -21,7 +16,7 @@ internal sealed class RestoreCategoryCommandHandler( // TODO write tests
         RestoreCategoryCommand command,
         CancellationToken cancellationToken)
     {
-        var category = await categoryRepository.GetAsync(new CategoryByIdSpecification(command.Id, ignoreQueryFilter: true, tracking: true)).ConfigureAwait(false);
+        var category = await categoryRepository.GetAsync(new CategoryByIdSpecification(command.Id, ignoreQueryFilter: true, tracking: true), cancellationToken).ConfigureAwait(false);
 
         if (category is null)
         {

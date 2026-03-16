@@ -13,6 +13,7 @@ internal sealed class PatchIncludeTotal : IEndpoint
             (await sender
                 .Send(new PatchCapitalIncludeInTotalCommand(id, includeInTotal), cancellationToken))
                 .Process())
+            .RequireAuthorization()
             .WithTags(nameof(Capitals));
     }
 }

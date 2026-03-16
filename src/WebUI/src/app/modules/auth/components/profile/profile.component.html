@@ -1,42 +1,188 @@
-<app-layout text="User profile">
-    @if (user) {
-        <div class="flex flex-col items-center gap-4 mt-2 bg-white min-w-full p-4 shadow-md">
-            
-            <!-- Avatar -->
-            <img 
-                [src]="user.pictureUrl"
-                alt="Profile picture"
-                class="w-24 h-24 rounded-full object-cover shadow"
-            />
-    
-            <!-- Data -->
-            <div class="text-center">
-                <p class="text-xl font-semibold">{{ user.fullname }}</p>
-    
-                <div class="flex flex-row gap-1">
-                    <p class="text-gray-600">{{ user.email }}</p>
-                    @if (user.emailVerified) {
-                        <app-icon title="verified" class="text-green-500" name="fa-award"></app-icon>
-                    } @else {
-                        <app-icon title="not verified" class="text-red-600" name="fa-award"></app-icon>
-                    }
-                </div>
-            </div>
-    
-            <!-- Controls -->
-            <div class="flex flex-row gap-2">
-                <button
-                    class="shadow-md rounded-md p-1 gap-1 hover:opacity-50 bg-red-600 text-white"
-                    (click)="handleLogout()"
-                >
-                    <app-icon name="fa-arrow-right-from-bracket"></app-icon>
-                    <span>Log Out</span>
-                </button>
-            </div>
-    
+<app-layout text="Profile">
+  @if (user) {
+    <div class="profile-grid">
+
+      <!-- Profile card -->
+      <div class="card profile-card">
+        <div class="profile-cover"></div>
+        <div class="profile-body">
+          <div class="profile-avatar-wrap">
+            <img class="profile-avatar" [src]="user.pictureUrl" alt="Profile picture" />
+            @if (user.emailVerified) {
+              <span class="profile-verified" title="Verified account">
+                <i class="fas fa-check"></i>
+              </span>
+            }
+          </div>
+          <h2 class="profile-name">{{ user.fullname }}</h2>
+          <p class="profile-email">
+            {{ user.email }}
+            @if (!user.emailVerified) {
+              <span class="badge badge-warning" style="margin-left:.375rem">Unverified</span>
+            }
+          </p>
+        </div>
+        <div class="profile-actions">
+          <button class="btn btn-danger btn-sm" (click)="handleLogout()">
+            <i class="fas fa-arrow-right-from-bracket"></i>
+            Log out
+          </button>
+        </div>
       </div>
-    
-    } @else {
-      <p class="text-red-600 font-medium">Unexpected error occurred.</p>
-    }
+
+      <!-- Salary & Currency card -->
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">
+            <i class="fas fa-wallet"></i>
+            Salary &amp; Currency
+          </h2>
+        </div>
+        <form [formGroup]="settingsForm" (ngSubmit)="saveSettings()" class="settings-form">
+          <div class="form-group">
+            <label class="form-label">Monthly Salary</label>
+            <input type="number" class="input" formControlName="salary" min="0" step="0.01" autocomplete="off" placeholder="0">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Main Currency</label>
+            <select class="input" formControlName="currency">
+              @for (c of currencies; track c) {
+                <option [value]="c">{{ c }}</option>
+              }
+            </select>
+          </div>
+          <div class="settings-footer">
+            <button type="submit" class="btn btn-primary btn-sm" [disabled]="settingsForm.invalid || savingSettings">
+              @if (savingSettings) { <i class="fas fa-spinner fa-spin"></i> }
+              Save
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Appearance card -->
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">
+            <i class="fas fa-palette"></i>
+            Appearance
+          </h2>
+        </div>
+        <div class="settings-form">
+          <div class="toggle-row">
+            <div class="toggle-info">
+              <span class="toggle-label">Dark Mode</span>
+              <span class="toggle-hint">Switch between light and dark theme</span>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" [checked]="themeService.isDark" (change)="themeService.toggle()">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Notifications card -->
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">
+            <i class="fas fa-bell"></i>
+            Notifications
+          </h2>
+        </div>
+        <form [formGroup]="notificationForm" (ngSubmit)="saveSettings()" class="settings-form">
+          <div class="toggle-row">
+            <div class="toggle-info">
+              <span class="toggle-label">Balance Reminder</span>
+              <span class="toggle-hint">Get periodic summaries of your total balance</span>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" formControlName="balanceReminderEnabled">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          @if (notificationForm.value.balanceReminderEnabled) {
+            <div class="form-group">
+              <label class="form-label">Reminder Schedule</label>
+              <select class="input" formControlName="balanceReminderCron">
+                @for (preset of cronPresets; track preset.value) {
+                  <option [value]="preset.value">{{ preset.label }}</option>
+                }
+              </select>
+            </div>
+          }
+
+          <div class="toggle-row">
+            <div class="toggle-info">
+              <span class="toggle-label">Expense Reminder</span>
+              <span class="toggle-hint">Remind you to log your expenses</span>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" formControlName="expenseReminderEnabled">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          @if (notificationForm.value.expenseReminderEnabled) {
+            <div class="form-group">
+              <label class="form-label">Reminder Schedule</label>
+              <select class="input" formControlName="expenseReminderCron">
+                @for (preset of cronPresets; track preset.value) {
+                  <option [value]="preset.value">{{ preset.label }}</option>
+                }
+              </select>
+            </div>
+          }
+
+          <div class="toggle-row">
+            <div class="toggle-info">
+              <span class="toggle-label">Debt Reminder</span>
+              <span class="toggle-hint">Get alerts about upcoming or overdue debts</span>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" formControlName="debtReminderEnabled">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          @if (notificationForm.value.debtReminderEnabled) {
+            <div class="form-group">
+              <label class="form-label">Reminder Schedule</label>
+              <select class="input" formControlName="debtReminderCron">
+                @for (preset of cronPresets; track preset.value) {
+                  <option [value]="preset.value">{{ preset.label }}</option>
+                }
+              </select>
+            </div>
+          }
+
+          <div class="toggle-row">
+            <div class="toggle-info">
+              <span class="toggle-label">Email Notifications</span>
+              <span class="toggle-hint">Receive reminders via email</span>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" formControlName="emailNotificationsEnabled">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          @if (notificationForm.value.emailNotificationsEnabled && user?.email) {
+            <p class="form-hint">Notifications will be sent to <strong>{{ user.email }}</strong></p>
+          }
+
+          <div class="settings-footer">
+            <button type="submit" class="btn btn-primary btn-sm" [disabled]="savingSettings">
+              @if (savingSettings) { <i class="fas fa-spinner fa-spin"></i> }
+              Save
+            </button>
+          </div>
+        </form>
+      </div>
+
+    </div>
+  } @else {
+    <div class="empty">
+      <i class="fas fa-circle-exclamation"></i>
+      <p>Something went wrong</p>
+      <span>Could not load your profile. Please refresh the page.</span>
+    </div>
+  }
 </app-layout>

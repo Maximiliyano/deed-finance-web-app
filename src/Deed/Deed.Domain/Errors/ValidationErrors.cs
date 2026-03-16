@@ -35,7 +35,7 @@ public static class ValidationErrors
             => Error.BadRequest(nameof(EmptyName), "The category name is required.");
 
         public static Error NameTooLong
-            => Error.BadRequest(nameof(NameTooLong), $"The category name should be less than {ValidationConstants.MaxLenghtName}");
+            => Error.BadRequest(nameof(NameTooLong), $"The category name should be less than {ValidationConstants.MaxLengthName}");
 
         public static Error InvalidType
             => Error.BadRequest(nameof(InvalidType), "The category type is invalid.");

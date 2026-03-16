@@ -1,4 +1,5 @@
 using Deed.Application.Abstractions.Messaging;
+using Deed.Application.Auth;
 using Deed.Application.Capitals.Specifications;
 using Deed.Domain.Errors;
 using Deed.Domain.Repositories;
@@ -8,12 +9,13 @@ namespace Deed.Application.Capitals.Commands.Delete;
 
 internal sealed class DeleteCapitalCommandHandler(
     ICapitalRepository repository,
-    IUnitOfWork unitOfWork)
+    IUnitOfWork unitOfWork,
+    IUser user)
     : ICommandHandler<DeleteCapitalCommand>
 {
     public async Task<Result> Handle(DeleteCapitalCommand command, CancellationToken cancellationToken)
     {
-        var capital = await repository.GetAsync(new CapitalByIdSpecification(command.Id, true, true, true, true)).ConfigureAwait(false);
+        var capital = await repository.GetAsync(new CapitalByIdSpecification(command.Id, user.Name, includeExpenses: true, includeIncomes: true, includeTransfersIn: true, includeTransfersOut: true), cancellationToken).ConfigureAwait(false);
 
         if (capital is null)
         {

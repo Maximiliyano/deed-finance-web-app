@@ -14,18 +14,19 @@ internal sealed class CapitalConfiguration : IEntityTypeConfiguration<Capital>
     {
         builder.ToTable(TableConfigurationConstants.Capitals);
 
-        builder.HasQueryFilter(c => 
-            !c.IsDeleted.HasValue ||
-            c.IsDeleted.HasValue && !c.IsDeleted.Value);
+        builder.Property(c => c.IsDeleted)
+            .HasDefaultValue(false);
 
-        builder.HasIndex(t => t.IsDeleted)
-            .HasFilter("IsDeleted = 0");
+        builder.HasQueryFilter(c => !c.IsDeleted);
+
+        builder.HasIndex(c => c.IsDeleted)
+            .HasFilter("[IsDeleted] = 0");
 
         builder.HasKey(c => c.Id);
 
         builder.Property(c => c.Name)
             .IsRequired()
-            .HasMaxLength(ValidationConstants.MaxLenghtName);
+            .HasMaxLength(ValidationConstants.MaxLengthName);
 
         builder.Property(c => c.Balance)
             .IsRequired()
@@ -38,6 +39,13 @@ internal sealed class CapitalConfiguration : IEntityTypeConfiguration<Capital>
         builder.Property(x => x.IncludeInTotal).HasDefaultValue(true);
         builder.Property(x => x.OnlyForSavings).HasDefaultValue(false);
         builder.Property(x => x.OrderIndex).HasDefaultValue(0);
+
+        builder.Property(c => c.CreatedBy)
+            .IsRequired()
+            .HasMaxLength(256);
+
+        builder.Property(c => c.UpdatedBy)
+            .HasMaxLength(256);
 
         builder.Property(p => p.RowVersion)
             .IsRowVersion();

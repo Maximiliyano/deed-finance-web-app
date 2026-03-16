@@ -1,11 +1,8 @@
-<div class="layout-container">
-  <div class="layout-inner">
-    <div class="layout-header">
-      <div class="h-text">{{text}}</div>
+<div class="page">
+  @if (text) {
+    <div class="page-header">
+      <h1 class="page-title">{{ text }}</h1>
     </div>
-
-    <div class="layout-content">
-      <ng-content></ng-content>
-    </div>
-  </div>
+  }
+  <ng-content></ng-content>
 </div>

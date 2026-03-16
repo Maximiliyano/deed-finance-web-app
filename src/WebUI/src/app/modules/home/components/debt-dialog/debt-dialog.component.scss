@@ -1,0 +1,85 @@
+.debt-dialog { display: flex; flex-direction: column; }
+
+.debt-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.875rem 1.25rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--text);
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--border);
+  i { color: var(--text-muted); font-size: 0.875rem; }
+}
+
+.debt-body {
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.debt-row { display: flex; gap: 0.75rem; }
+
+.textarea { min-height: 4rem; resize: vertical; }
+
+.checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+
+.checkbox {
+  width: 1rem;
+  height: 1rem;
+  accent-color: var(--primary);
+  cursor: pointer;
+}
+
+.checkbox-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.form-hint {
+  font-size: 0.7rem;
+  color: var(--text-light);
+  margin-top: 0.25rem;
+}
+
+.pay-confirm {
+  padding: 0.875rem;
+  border-radius: var(--radius);
+  background: var(--warning-bg);
+  border: 1px solid var(--warning);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.pay-confirm-header {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--warning-text);
+}
+
+.pay-confirm-text {
+  font-size: 0.8rem;
+  color: var(--text);
+  margin: 0;
+}
+
+.debt-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  padding: 0.875rem 1.25rem;
+  border-top: 1px solid var(--border);
+  background: var(--surface-2);
+}

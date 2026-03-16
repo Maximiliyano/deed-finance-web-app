@@ -1,3 +1,4 @@
+using Deed.Application.Auth;
 using Deed.Application.Capitals.Commands.Delete;
 using Deed.Application.Capitals.Specifications;
 using Deed.Domain.Entities;
@@ -14,12 +15,14 @@ public sealed class DeleteCapitalCommandHandlerTests
 {
     private readonly ICapitalRepository _capitalRepositoryMock = Substitute.For<ICapitalRepository>();
     private readonly IUnitOfWork _unitOfWorkMock = Substitute.For<IUnitOfWork>();
+    private readonly IUser _userMock = Substitute.For<IUser>();
 
     private readonly DeleteCapitalCommandHandler _handler;
 
     public DeleteCapitalCommandHandlerTests()
     {
-        _handler = new DeleteCapitalCommandHandler(_capitalRepositoryMock, _unitOfWorkMock);
+        _userMock.Name.Returns("testuser");
+        _handler = new DeleteCapitalCommandHandler(_capitalRepositoryMock, _unitOfWorkMock, _userMock);
     }
 
     [Fact]

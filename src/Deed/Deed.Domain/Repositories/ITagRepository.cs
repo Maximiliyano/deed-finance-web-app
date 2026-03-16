@@ -13,7 +13,7 @@ public interface ITagRepository
 
     void Delete(Tag tag);
 
-    Task<Tag?> GetAsync(ISpecification<Tag> specification);
+    Task<Tag?> GetAsync(ISpecification<Tag> specification, CancellationToken cancellationToken = default);
 
-    Task<bool> AnyAsync(ISpecification<Tag> specification);
+    Task<bool> AnyAsync(ISpecification<Tag> specification, CancellationToken cancellationToken = default);
 }

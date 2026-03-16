@@ -1,23 +1,42 @@
-.dialog-title {
-  display: flex;
-  justify-content: center;
-  gap: 2px;
-
-  h2 {
-    font-size: 22px;
-    font-weight: bold;
-    text-align: center;
-  }
-}
-
-.dialog-content {
-  font-size: 17px;
-  padding: 16px;
+.confirm-dialog {
+  padding: 2rem 1.75rem 1.5rem;
   text-align: center;
 }
 
-.dialog-actions {
-  display: flex;
+.confirm-icon-wrap { margin-bottom: 1rem; }
+
+.confirm-icon {
+  display: inline-flex;
+  align-items: center;
   justify-content: center;
-  gap: 4px;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  font-size: 1.375rem;
+
+  &.warning { background: var(--warning-bg); color: var(--warning-text); }
+  &.danger  { background: var(--danger-bg);  color: var(--danger-text); }
+  &.info    { background: var(--primary-light); color: var(--primary); }
+}
+
+.confirm-title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0 0 0.5rem;
+}
+
+.confirm-message {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+  margin: 0 0 1.5rem;
+}
+
+.confirm-actions {
+  display: flex;
+  gap: 0.625rem;
+  justify-content: center;
+
+  .btn { min-width: 5rem; }
 }

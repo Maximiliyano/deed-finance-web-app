@@ -25,7 +25,7 @@ public sealed class GetLatestExchangeQueryHandler(
     {
         if (!memoryCache.TryGetValue(nameof(Exchanges), out IEnumerable<ExchangeResponse> cachedExchanges))
         {
-            var actualExchanges = (await repository.GetAllAsync(new ExchangesByQuerySpecification()).ConfigureAwait(false)).ToResponses();
+            var actualExchanges = (await repository.GetAllAsync(new ExchangesByQuerySpecification(), cancellationToken).ConfigureAwait(false)).ToResponses();
 
             if (!actualExchanges.Any())
             {

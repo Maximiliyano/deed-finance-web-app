@@ -1,3 +1,4 @@
+using Deed.Application.Auth;
 using Deed.Application.Incomes;
 using Deed.Application.Incomes.Queries.GetById;
 using Deed.Application.Incomes.Specifications;
@@ -12,12 +13,14 @@ namespace Deed.Tests.Unit.Incomes.Queries;
 public sealed class GetByIdIncomeQueryHandlerTests
 {
     private readonly IIncomeRepository _incomeRepositoryMock = Substitute.For<IIncomeRepository>();
+    private readonly IUser _userMock = Substitute.For<IUser>();
 
     private readonly GetIncomeByIdQueryHandler _handler;
 
     public GetByIdIncomeQueryHandlerTests()
     {
-        _handler = new GetIncomeByIdQueryHandler(_incomeRepositoryMock);
+        _userMock.Name.Returns("testuser");
+        _handler = new GetIncomeByIdQueryHandler(_incomeRepositoryMock, _userMock);
     }
 
     [Fact]

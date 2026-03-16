@@ -13,13 +13,14 @@ public sealed class CreateIncomeCommandHandlerTests
 {
     private readonly ICapitalRepository _capitalRepositoryMock = Substitute.For<ICapitalRepository>();
     private readonly IIncomeRepository _incomeRepositoryMock = Substitute.For<IIncomeRepository>();
+    private readonly ITagRepository _tagRepositoryMock = Substitute.For<ITagRepository>();
     private readonly IUnitOfWork _unitOfWorkMock = Substitute.For<IUnitOfWork>();
 
     private readonly CreateIncomeCommandHandler _handler;
 
     public CreateIncomeCommandHandlerTests()
     {
-        _handler = new CreateIncomeCommandHandler(_capitalRepositoryMock, _incomeRepositoryMock, _unitOfWorkMock);
+        _handler = new CreateIncomeCommandHandler(_capitalRepositoryMock, _incomeRepositoryMock, _tagRepositoryMock, _unitOfWorkMock);
     }
 
     [Fact]
@@ -32,13 +33,8 @@ public sealed class CreateIncomeCommandHandlerTests
             Balance = 100,
             Currency = CurrencyType.UAH
         };
-        var category = new Category(1)
-        {
-            Name = "TestCategory",
-            Type = CategoryType.Expenses
-        };
 
-        var command = new CreateIncomeCommand(capital.Id, category.Id, 100m, DateTimeOffset.UtcNow);
+        var command = new CreateIncomeCommand(capital.Id, 1, 100m, DateTimeOffset.UtcNow, null, []);
 
         _capitalRepositoryMock.GetAsync(Arg.Any<CapitalByIdSpecification>())
             .Returns(capital);
@@ -59,13 +55,13 @@ public sealed class CreateIncomeCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_ShouldReturnFailure_WhenIncomeNotFound()
+    public async Task Handle_ShouldReturnFailure_WhenCapitalNotFound()
     {
         // Arrange
-        var command = new CreateIncomeCommand(1, 1, 100m, DateTimeOffset.UtcNow);
+        var command = new CreateIncomeCommand(1, 1, 100m, DateTimeOffset.UtcNow, null, []);
 
         _capitalRepositoryMock.GetAsync(Arg.Any<CapitalByIdSpecification>())
-            .Returns((Capital)null);
+            .Returns((Capital?)null);
 
         // Act
         var result = await _handler.Handle(command, CancellationToken.None);
@@ -79,5 +75,29 @@ public sealed class CreateIncomeCommandHandlerTests
 
         await _capitalRepositoryMock.Received(1).GetAsync(Arg.Any<CapitalByIdSpecification>());
         await _unitOfWorkMock.DidNotReceive().SaveChangesAsync();
+    }
+
+    [Fact]
+    public async Task Handle_ShouldCreateTags_WhenTagNamesProvided()
+    {
+        // Arrange
+        var capital = new Capital(1)
+        {
+            Name = "TestCapital",
+            Balance = 500,
+            Currency = CurrencyType.USD
+        };
+
+        var command = new CreateIncomeCommand(capital.Id, 1, 200m, DateTimeOffset.UtcNow, null, ["salary", "bonus"]);
+
+        _capitalRepositoryMock.GetAsync(Arg.Any<CapitalByIdSpecification>()).Returns(capital);
+        _tagRepositoryMock.GetAsync(Arg.Any<ISpecification<Tag>>()).Returns((Tag?)null);
+
+        // Act
+        var result = await _handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        _tagRepositoryMock.Received(2).Create(Arg.Any<Tag>());
     }
 }

@@ -6,14 +6,16 @@ namespace Deed.Application.Incomes;
 
 internal static class IncomesExtensions
 {
-    internal static IncomeResponse ToResponse(this Income entity)
+    internal static IncomeResponse ToResponse(this Income i)
         => new(
-            entity.Id,
-            entity.CategoryId,
-            entity.Amount,
-            entity.Purpose,
-            entity.CreatedAt,
-            entity.CapitalId);
+            i.Id,
+            i.CapitalId,
+            i.CategoryId,
+            i.Amount,
+            i.PaymentDate,
+            i.Purpose,
+            [.. i.Tags.Select(t => t.Tag.Name)]
+        );
 
     internal static IEnumerable<IncomeResponse> ToResponses(this IEnumerable<Income> entities)
         => entities.Select(e => e.ToResponse());

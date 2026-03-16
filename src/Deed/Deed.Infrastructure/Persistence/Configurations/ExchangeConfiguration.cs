@@ -11,12 +11,13 @@ internal sealed class ExchangeConfiguration : IEntityTypeConfiguration<Exchange>
     {
         builder.ToTable(TableConfigurationConstants.Exchanges);
 
-        builder.HasQueryFilter(c =>
-            !c.IsDeleted.HasValue ||
-            c.IsDeleted.HasValue && !c.IsDeleted.Value);
+        builder.Property(c => c.IsDeleted)
+            .HasDefaultValue(false);
 
-        builder.HasIndex(t => t.IsDeleted)
-            .HasFilter("IsDeleted = 0");
+        builder.HasQueryFilter(c => !c.IsDeleted);
+
+        builder.HasIndex(c => c.IsDeleted)
+            .HasFilter("[IsDeleted] = 0");
 
         builder.HasKey(ex => ex.Id);
 
@@ -33,6 +34,13 @@ internal sealed class ExchangeConfiguration : IEntityTypeConfiguration<Exchange>
 
         builder.Property(x => x.Sale)
             .HasPrecision(18, 4);
+
+        builder.Property(x => x.CreatedBy)
+            .IsRequired()
+            .HasMaxLength(256);
+
+        builder.Property(x => x.UpdatedBy)
+            .HasMaxLength(256);
 
         builder.HasIndex(x => new { x.NationalCurrencyCode, x.TargetCurrencyCode })
             .IsUnique();

@@ -3,6 +3,7 @@ using Deed.Domain.Entities;
 
 namespace Deed.Application.Capitals.Specifications;
 
-internal sealed class CapitalByNameSpecification(string name)
+internal sealed class CapitalByNameSpecification(string name, string? createdBy = null)
     : BaseSpecification<Capital>(
-        c => StringComparer.CurrentCultureIgnoreCase.Compare(c.Name, name) == 0);
+        c => c.Name == name
+          && (createdBy == null || c.CreatedBy == createdBy));

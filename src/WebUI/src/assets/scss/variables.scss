@@ -1,27 +1,30 @@
-$primary-color: #3498db;
-$primary-background-color: #282828;
+// ── Legacy SCSS vars — Blue Moon Black Prestige ────────────────────────────────
+$primary-color:           #4f8cf7;
+$primary-background-color:#07090f;
 
-$secondary-color: #2ecc71;
-$font-stack: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+$secondary-color:         #22c55e;
+$font-stack:              'Inter', 'Roboto', sans-serif;
+
 $breakpoints: (
-    'xs': 320px,
-    's': 470px,
-    'sm': 576px,
-    'md': 768px,
-    'lg': 992px,
-    'xl': 1200px
+  'xs':  320px,
+  's':   470px,
+  'sm':  576px,
+  'md':  768px,
+  'lg':  992px,
+  'xl':  1200px
 );
-$header-background: #ffffff;
-$header-border-color: #efefef;
 
-$text-color-wh: #ffffff;
-$text-color: #000000;
-$text-shadow: 1px 1px 2px #ccc;
+$header-background:       #0d1526;
+$header-border-color:     #1c2e50;
 
-$exchange-border-color: #7a7979;
-$navigation-item-hover-color: #efefef;
-$button-active-color: #f4ca93;
-$button-save-color: #377e21;
-$button-save-hover: #47a42b;
-$button-remove-color: #e15240;
-$button-remove-hover: #f26243;
+$text-color-wh:           #ffffff;
+$text-color:              #e2e8f5;
+$text-shadow:             none;
+
+$exchange-border-color:   #274068;
+$navigation-item-hover-color: #111e38;
+$button-active-color:     #4f8cf7;
+$button-save-color:       #22c55e;
+$button-save-hover:       #4ade80;
+$button-remove-color:     #ef4444;
+$button-remove-hover:     #f87171;

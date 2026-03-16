@@ -1,3 +1,4 @@
+using Deed.Application.Auth;
 using Deed.Application.Capitals.Commands.Update;
 using Deed.Application.Capitals.Specifications;
 using Deed.Domain.Entities;
@@ -13,12 +14,14 @@ public sealed class UpdateCapitalCommandHandlerTests
 {
     private readonly ICapitalRepository _repositoryMock = Substitute.For<ICapitalRepository>();
     private readonly IUnitOfWork _unitOfWorkMock = Substitute.For<IUnitOfWork>();
+    private readonly IUser _userMock = Substitute.For<IUser>();
 
     private readonly UpdateCapitalCommandHandler _handler;
 
     public UpdateCapitalCommandHandlerTests()
     {
-        _handler = new UpdateCapitalCommandHandler(_repositoryMock, _unitOfWorkMock);
+        _userMock.Name.Returns("testuser");
+        _handler = new UpdateCapitalCommandHandler(_repositoryMock, _unitOfWorkMock, _userMock);
     }
 
     [Fact]

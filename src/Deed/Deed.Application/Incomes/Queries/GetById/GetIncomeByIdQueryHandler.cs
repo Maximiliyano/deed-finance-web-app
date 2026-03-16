@@ -1,4 +1,5 @@
 using Deed.Application.Abstractions.Messaging;
+using Deed.Application.Auth;
 using Deed.Application.Incomes.Responses;
 using Deed.Application.Incomes.Specifications;
 using Deed.Domain.Errors;
@@ -8,12 +9,13 @@ using Deed.Domain.Results;
 namespace Deed.Application.Incomes.Queries.GetById;
 
 internal sealed class GetIncomeByIdQueryHandler(
-    IIncomeRepository repository)
+    IIncomeRepository repository,
+    IUser user)
     : IQueryHandler<GetIncomeByIdQuery, IncomeResponse>
 {
     public async Task<Result<IncomeResponse>> Handle(GetIncomeByIdQuery query, CancellationToken cancellationToken)
     {
-        var income = await repository.GetAsync(new IncomeByIdSpecification(query.Id)).ConfigureAwait(false);
+        var income = await repository.GetAsync(new IncomeByIdSpecification(query.Id, user.Name), cancellationToken).ConfigureAwait(false);
 
         if (income is null)
         {

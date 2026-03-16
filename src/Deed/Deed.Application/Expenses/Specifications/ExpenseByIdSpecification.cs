@@ -5,8 +5,8 @@ namespace Deed.Application.Expenses.Specifications;
 
 internal sealed class ExpenseByIdSpecification : BaseSpecification<Expense>
 {
-    public ExpenseByIdSpecification(int id, bool includeCapital = false, bool includeCategory = false, bool includeTags = false, bool enableTracking = false)
-        : base(x => x.Id == id)
+    public ExpenseByIdSpecification(int id, string? createdBy = null, bool includeCapital = false, bool includeCategory = false, bool includeTags = false, bool enableTracking = false)
+        : base(x => x.Id == id && (createdBy == null || x.CreatedBy == createdBy))
     {
         if (includeCapital)
         {

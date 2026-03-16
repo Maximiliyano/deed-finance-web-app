@@ -1,22 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
+﻿using System.Globalization;
 using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
 using Deed.Application.Abstractions;
 using Deed.Domain.Constants;
 using Deed.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace Deed.Application.Capitals.Specifications;
 
 internal sealed class CapitalsByQueryParamsSpecification : BaseSpecification<Capital>
 {
-    public CapitalsByQueryParamsSpecification(string? searchTerm, string? sortBy, string? sortDirection, string? filterBy)
-        : base(GetCriteria(filterBy, searchTerm))
+    public CapitalsByQueryParamsSpecification(string? createdBy, string? searchTerm = null, string? sortBy = null, string? sortDirection = null, string? filterBy = null, bool disableIncludes = false)
+        : base(GetCriteria(createdBy, filterBy, searchTerm))
     {
         var keySelector = GetSortProperties(sortBy);
 
@@ -30,25 +24,38 @@ internal sealed class CapitalsByQueryParamsSpecification : BaseSpecification<Cap
                 break;
         }
 
-        AddInclude(c => c.Expenses);
-        AddInclude(c => c.Incomes);
-        AddInclude(c => c.TransfersIn);
-        AddInclude(c => c.TransfersOut);
-    }
-
-    private static Expression<Func<Capital, bool>>? GetCriteria(string? filterBy, string? searchTerm)
-    {
-        if (!string.IsNullOrWhiteSpace(searchTerm))
+        if (!disableIncludes)
         {
-            return c => EF.Functions.Like(c.Name, $"%{searchTerm}%");
+            AddInclude(c => c.Expenses);
+            AddInclude(c => c.Incomes);
+            AddInclude(c => c.TransfersIn);
+            AddInclude(c => c.TransfersOut);
         }
-
-        return filterBy switch
-        {
-            FilterKeysConstants.OnlyForSavings => c => !c.OnlyForSavings,
-            _ => null
-        };
     }
+
+    private static Expression<Func<Capital, bool>>? GetCriteria(string? createdBy, string? filterBy, string? searchTerm)
+    {
+        Expression<Func<Capital, bool>>? userFilter = !string.IsNullOrEmpty(createdBy)
+            ? c => c.CreatedBy == createdBy
+            : null;
+
+        Expression<Func<Capital, bool>>? additionalFilter = !string.IsNullOrWhiteSpace(searchTerm)
+            ? c => EF.Functions.Like(c.Name, $"%{EscapeLikePattern(searchTerm)}%")
+            : filterBy switch
+            {
+                FilterKeysConstants.OnlyForSavings => c => !c.OnlyForSavings,
+                _ => null
+            };
+
+#pragma warning disable CA1508 // Avoid dead conditional code — both nullable vars are conditionally assigned
+        return userFilter is not null && additionalFilter is not null
+            ? ExpressionExtension.Combine(userFilter, additionalFilter)
+            : userFilter ?? additionalFilter;
+#pragma warning restore CA1508
+    }
+
+    private static string EscapeLikePattern(string value)
+        => value.Replace("[", "[[]").Replace("%", "[%]").Replace("_", "[_]");
 
     private static Expression<Func<Capital, object>> GetSortProperties(string? sortBy)
     {

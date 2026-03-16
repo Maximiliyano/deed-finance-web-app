@@ -4,9 +4,9 @@ namespace Deed.Domain.Repositories;
 
 public interface IIncomeRepository
 {
-    Task<IEnumerable<Income>> GetAllAsync(ISpecification<Income> specification);
+    Task<IEnumerable<Income>> GetAllAsync(ISpecification<Income> specification, CancellationToken cancellationToken = default);
 
-    Task<Income?> GetAsync(ISpecification<Income> specification);
+    Task<Income?> GetAsync(ISpecification<Income> specification, CancellationToken cancellationToken = default);
 
     void Create(Income income);
 

@@ -14,9 +14,17 @@ internal static class TableConfigurationConstants
 
     public const string Categories = nameof(Categories);
 
-    public const string DatabaseConnection = nameof(DatabaseConnection);
-
     public const string Tags = nameof(Tags);
 
     public const string ExpenseTags = nameof(ExpenseTags);
+
+    public const string IncomeTags = nameof(IncomeTags);
+
+    public const string UserSettings = nameof(UserSettings);
+
+    public const string BudgetEstimations = nameof(BudgetEstimations);
+
+    public const string Goals = nameof(Goals);
+
+    public const string Debts = nameof(Debts);
 }

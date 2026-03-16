@@ -1,5 +1,6 @@
 using Deed.Application.Capitals.Specifications;
 using Deed.Application.Abstractions;
+using Deed.Application.Auth;
 using Deed.Domain.Constants;
 using Deed.Domain.Enums;
 using Deed.Domain.Errors;
@@ -10,14 +11,14 @@ namespace Deed.Application.Capitals.Commands.Create;
 
 internal sealed class CreateCapitalCommandValidator : AbstractValidator<CreateCapitalCommand>
 {
-    public CreateCapitalCommandValidator(ICapitalRepository repository)
+    public CreateCapitalCommandValidator(ICapitalRepository repository, IUser user)
     {
         RuleFor(c => c.Name)
-            .MustAsync(async (name, _) => !await repository
-                .AnyAsync(new CapitalByNameSpecification(name)).ConfigureAwait(false))
+            .MustAsync(async (name, ct) => !await repository
+                .AnyAsync(new CapitalByNameSpecification(name, user.Name), ct).ConfigureAwait(false))
             .WithError(ValidationErrors.Capital.AlreadyExists)
             .NotEmpty()
-            .MaximumLength(ValidationConstants.MaxLenghtName);
+            .MaximumLength(ValidationConstants.MaxLengthName);
 
         RuleFor(c => c.Balance)
             .GreaterThanOrEqualTo(ValidationConstants.ZeroValue)

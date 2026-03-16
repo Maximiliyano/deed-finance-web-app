@@ -1,0 +1,26 @@
+.qt-dialog { display: flex; flex-direction: column; }
+
+.qt-header {
+  display: flex; align-items: center; gap: 0.5rem;
+  padding: 0.875rem 1.25rem; font-size: 0.9375rem; font-weight: 600;
+  border-bottom: 1px solid var(--border);
+  i { font-size: 0.875rem; }
+  &--expense { color: var(--danger); background: var(--danger-bg); }
+  &--income { color: var(--success-text); background: var(--success-bg); }
+}
+
+.qt-body { padding: 1.25rem; display: flex; flex-direction: column; gap: 1rem; }
+.qt-row { display: flex; gap: 0.75rem; }
+
+.qt-footer {
+  display: flex; justify-content: flex-end; gap: 0.5rem;
+  padding: 0.875rem 1.25rem; border-top: 1px solid var(--border); background: var(--surface-2);
+}
+
+.qt-new-cat-btn {
+  background: none; border: none; color: var(--primary); cursor: pointer;
+  font-size: 0.65rem; margin-left: 0.25rem; padding: 0;
+  &:hover { color: var(--primary-hover); }
+}
+
+.qt-new-cat { display: flex; gap: 0.375rem; }

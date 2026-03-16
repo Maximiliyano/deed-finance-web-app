@@ -12,6 +12,8 @@ internal sealed class Restore : IEndpoint
         app.MapPost("api/categories/{id:int}/restore", async (int id, ISender sender, CancellationToken cancellationToken) =>
             (await sender
                 .Send(new RestoreCategoryCommand(id), cancellationToken))
-                .Process());
+                .Process())
+            .RequireAuthorization()
+            .WithTags(nameof(Categories));
     }
 }

@@ -12,11 +12,11 @@ internal sealed class UpdateIncomeCommandValidator : AbstractValidator<UpdateInc
     public UpdateIncomeCommandValidator(ICategoryRepository categoryRepository)
     {
         RuleFor(e => e.CategoryId)
-            .MustAsync(async (categoryId, _) => await categoryRepository
-                .AnyAsync(new CategoryByIdSpecification(categoryId!.Value)).ConfigureAwait(false))
+            .MustAsync(async (categoryId, ct) => await categoryRepository
+                .AnyAsync(new CategoryByIdSpecification(categoryId!.Value), ct).ConfigureAwait(false))
             .WithError(ValidationErrors.General.NotFound("category"))
-            .MustAsync(async (categoryId, _) => (await categoryRepository
-                .GetAsync(new CategoryByIdSpecification(categoryId!.Value)).ConfigureAwait(false))?.Type == CategoryType.Expenses)
+            .MustAsync(async (categoryId, ct) => (await categoryRepository
+                .GetAsync(new CategoryByIdSpecification(categoryId!.Value), ct).ConfigureAwait(false))?.Type == CategoryType.Expenses)
             .WithError(ValidationErrors.Category.InvalidType)
             .When(e => e.CategoryId.HasValue);
     }

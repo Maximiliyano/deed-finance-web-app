@@ -7,5 +7,6 @@ public sealed record UpdateIncomeCommand(
     int? CategoryId = null,
     decimal? Amount = null,
     string? Purpose = null,
-    DateTimeOffset? PaymentDate = null)
+    DateTimeOffset? PaymentDate = null,
+    List<string>? TagNames = null)
     : ICommand;

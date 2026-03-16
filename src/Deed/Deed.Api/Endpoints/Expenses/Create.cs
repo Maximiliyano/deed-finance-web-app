@@ -12,13 +12,14 @@ internal sealed class Create : IEndpoint
         app.MapPost("api/expenses", async (CreateExpenseRequest request, ISender sender, CancellationToken ct) =>
             (await sender
                 .Send(new CreateExpenseCommand(
-                    request.CapitalId,
-                    request.CategoryId,
+                    request.CapitalId ?? 0,
+                    request.CategoryId ?? 0,
                     request.Amount,
                     request.PaymentDate,
                     request.Purpose,
-                    request.TagNames), ct))
+                    request.TagNames ?? []), ct))
                 .Process())
+            .RequireAuthorization()
             .WithTags(nameof(Expenses));
     }
 }

@@ -1,4 +1,5 @@
 using Deed.Application.Abstractions.Messaging;
+using Deed.Application.Auth;
 using Deed.Application.Expenses.Specifications;
 using Deed.Domain.Entities;
 using Deed.Domain.Errors;
@@ -9,12 +10,13 @@ namespace Deed.Application.Expenses.Commands.Update;
 
 internal sealed class UpdateExpenseCommandHandler(
     IExpenseRepository expenseRepository,
-    IUnitOfWork unitOfWork)
+    IUnitOfWork unitOfWork,
+    IUser user)
     : ICommandHandler<UpdateExpenseCommand>
 {
     public async Task<Result> Handle(UpdateExpenseCommand command, CancellationToken cancellationToken)
     {
-        var expense = await expenseRepository.GetAsync(new ExpenseByIdSpecification(command.Id, true, true, true, enableTracking: true)).ConfigureAwait(false);
+        var expense = await expenseRepository.GetAsync(new ExpenseByIdSpecification(command.Id, user.Name, includeCapital: true, includeCategory: true, includeTags: true, enableTracking: true), cancellationToken).ConfigureAwait(false);
 
         if (expense?.Capital is null || expense?.Category is null)
         {

@@ -8,6 +8,7 @@ import { noFutureDate } from '../../../../shared/components/forms/validators/noF
 import { SharedModule } from "../../../../shared/shared.module";
 import { DIALOG_DATA } from '../../../../shared/components/dialogs/models/dialog-consts';
 import { DialogRef } from '../../../../shared/components/dialogs/models/dialog-ref';
+import { todayDateString } from '../../../../core/utils/date.utils';
 import { FormComponent } from '../../../../shared/components/forms/form.component';
 import { Tag } from '../../models/tag';
 
@@ -92,7 +93,7 @@ export class AddExpenseDialogComponent implements OnInit {
       CapitalId: new FormControl({ value: '', disabled: this.data.capitalsOptions.length === 0 }, [Validators.required]),
       CategoryId: new FormControl({ value: '', disabled: this.data.categoryOptions.length === 0 }, [Validators.required]),
       TagNames: new FormControl(null),
-      PaymentDate: new FormControl(new Date().toISOString().split('T')[0], [Validators.required, noFutureDate]), // TODO move into function
+      PaymentDate: new FormControl(todayDateString(), [Validators.required, noFutureDate]),
       Purpose: new FormControl(null, [Validators.minLength(1)])
     });
   }

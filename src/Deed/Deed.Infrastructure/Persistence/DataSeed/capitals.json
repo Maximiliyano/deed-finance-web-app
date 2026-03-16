@@ -7,7 +7,8 @@
     "orderIndex": 0,
     "includeInTotal": true,
     "onlyForSavings": false,
-    "createdAt": "2025-09-02T12:00:00Z"
+    "createdAt": "2025-09-02T12:00:00Z",
+    "createdBy": "System"
   },
   {
     "id": 2,
@@ -17,7 +18,8 @@
     "orderIndex": 1,
     "includeInTotal": true,
     "onlyForSavings": false,
-    "createdAt": "2025-09-02T12:00:00Z"
+    "createdAt": "2025-09-02T12:00:00Z",
+    "createdBy": "System"
   },
   {
     "id": 3,
@@ -27,7 +29,8 @@
     "orderIndex": 2,
     "includeInTotal": true,
     "onlyForSavings": true,
-    "createdAt": "2025-09-02T12:00:00Z"
+    "createdAt": "2025-09-02T12:00:00Z",
+    "createdBy": "System"
   },
   {
     "id": 4,
@@ -37,6 +40,7 @@
     "orderIndex": 3,
     "includeInTotal": true,
     "onlyForSavings": true,
-    "createdAt": "2025-09-02T12:00:00Z"
+    "createdAt": "2025-09-02T12:00:00Z",
+    "createdBy": "System"
   }
 ]

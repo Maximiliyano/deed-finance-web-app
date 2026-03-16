@@ -1,3 +1,4 @@
+using Deed.Application.Auth;
 using Deed.Application.Expenses;
 using Deed.Application.Expenses.Queries.GetById;
 using Deed.Application.Expenses.Specifications;
@@ -12,12 +13,14 @@ namespace Deed.Tests.Unit.Expenses.Queries;
 public sealed class GetExpenseByIdQueryHandlerTests
 {
     private readonly IExpenseRepository _expenseRepositoryMock = Substitute.For<IExpenseRepository>();
+    private readonly IUser _userMock = Substitute.For<IUser>();
 
     private readonly GetExpenseByIdQueryHandler _handler;
 
     public GetExpenseByIdQueryHandlerTests()
     {
-        _handler = new GetExpenseByIdQueryHandler(_expenseRepositoryMock);
+        _userMock.Name.Returns("testuser");
+        _handler = new GetExpenseByIdQueryHandler(_expenseRepositoryMock, _userMock);
     }
 
     [Fact]
