@@ -23,7 +23,9 @@ internal sealed class DeleteTransferCommandHandler(
             .ConfigureAwait(false);
 
         if (transfer is null)
+        {
             return Result.Failure(DomainErrors.General.NotFound("transfer"));
+        }
 
         var source = await capitalRepository
             .GetAsync(new CapitalByIdSpecification(transfer.SourceCapitalId), cancellationToken)
