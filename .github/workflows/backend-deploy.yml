@@ -31,14 +31,11 @@ jobs:
         with:
           dotnet-version: 9.0.x
 
-      - name: Restore
-        run: dotnet restore
-
-      - name: Build
-        run: dotnet build -c Release --no-restore
+      - name: Restore & Build
+        run: dotnet build tests/Deed.Tests.Unit/ -c Release
 
       - name: Unit Tests
-        run: dotnet test tests/Deed.Tests.Unit/ -c Release --no-restore --verbosity normal
+        run: dotnet test tests/Deed.Tests.Unit/ -c Release --no-build --verbosity normal
 
   deploy:
     name: Deploy to Fly.io
