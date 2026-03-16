@@ -56,7 +56,7 @@ app.UseSerilogRequestLogging();
 app.MapHealthChecks("health", new HealthCheckOptions
 {
     ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
-}).RequireAuthorization();
+}).AllowAnonymous();
 
 app.MapEndpoints();
 
