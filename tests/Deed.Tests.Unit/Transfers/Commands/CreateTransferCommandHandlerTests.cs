@@ -27,16 +27,6 @@ public sealed class CreateTransferCommandHandlerTests
         // Arrange
         Capital source = new() { Name = "Cash", Balance = 1000m, Currency = CurrencyType.UAH };
         Capital dest = new() { Name = "Bank", Balance = 500m, Currency = CurrencyType.USD };
-        _capitalRepository.GetAsync(Arg.Is<ISpecification<Capital>>(s => true), Arg.Any<CancellationToken>())
-            .Returns(call =>
-            {
-                // First call = source, second = destination
-                return _capitalRepository.ReceivedCalls().Count(c => c.GetMethodInfo().Name == "GetAsync") <= 1
-                    ? Task.FromResult<Capital?>(source)
-                    : Task.FromResult<Capital?>(dest);
-            });
-
-        // Simpler approach: use sequential returns
         _capitalRepository.GetAsync(Arg.Any<ISpecification<Capital>>(), Arg.Any<CancellationToken>())
             .Returns(source, dest);
 
