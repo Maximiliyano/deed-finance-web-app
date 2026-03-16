@@ -61,3 +61,5 @@ app.MapHealthChecks("health", new HealthCheckOptions
 app.MapEndpoints();
 
 await app.RunAsync();
+
+public partial class Program;

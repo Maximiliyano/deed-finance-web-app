@@ -8,11 +8,15 @@
         <UserSecretsId>a3c76756-9bf7-4e4d-8cd2-3b64bdcdbea6</UserSecretsId>
         <DockerComposeProjectPath>..\docker-compose.dcproj</DockerComposeProjectPath>
         <LangVersion>latestmajor</LangVersion>
-        <NoWarn>NU1903</NoWarn>
+        <NoWarn>NU1903;CA1515</NoWarn>
 		<OutputType>Exe</OutputType>
     </PropertyGroup>
 
-	<ItemGroup>
+    <ItemGroup>
+        <InternalsVisibleTo Include="Deed.Tests.Integration"/>
+    </ItemGroup>
+
+    <ItemGroup>
 		<PackageReference Include="AspNetCore.HealthChecks.UI.Client" Version="9.0.0" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.8">
 			<PrivateAssets>all</PrivateAssets>
