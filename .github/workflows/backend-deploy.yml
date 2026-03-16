@@ -38,7 +38,7 @@ jobs:
         run: dotnet build -c Release --no-restore
 
       - name: Unit Tests
-        run: dotnet test tests/Deed.Tests.Unit/ -c Release --no-build --verbosity normal
+        run: dotnet test tests/Deed.Tests.Unit/ -c Release --no-restore --verbosity normal
 
   deploy:
     name: Deploy to Fly.io
