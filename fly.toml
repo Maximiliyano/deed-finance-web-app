@@ -6,12 +6,16 @@ build-target = "final"
 dockerfile = "src/Deed/Deed.Api/Dockerfile"
 ignorefile = ".dockerignore"
 
+[deploy]
+strategy = "rolling"
+
 [checks.health_check]
-interval = "2m0s"
+interval = "30s"
 method = "GET"
 path = "/health"
 port = 8080
-timeout = "5s"
+timeout = "10s"
+grace_period = "30s"
 type = "http"
 
 [http_service]
@@ -19,7 +23,7 @@ auto_start_machines = true
 auto_stop_machines = true
 force_https = true
 internal_port = 8080
-processes = [ "app" ]
+processes = ["app"]
 
 [[vm]]
 cpu_kind = "shared"
