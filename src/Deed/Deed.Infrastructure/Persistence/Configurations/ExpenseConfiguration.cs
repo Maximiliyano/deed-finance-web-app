@@ -11,12 +11,13 @@ internal sealed class ExpenseConfiguration : IEntityTypeConfiguration<Expense>
     {
         builder.ToTable(TableConfigurationConstants.Expenses);
 
-        builder.HasQueryFilter(c =>
-            !c.IsDeleted.HasValue ||
-            c.IsDeleted.HasValue && !c.IsDeleted.Value);
+        builder.Property(c => c.IsDeleted)
+            .HasDefaultValue(false);
 
-        builder.HasIndex(t => t.IsDeleted)
-            .HasFilter("IsDeleted = 0");
+        builder.HasQueryFilter(c => !c.IsDeleted);
+
+        builder.HasIndex(c => c.IsDeleted)
+            .HasFilter("[IsDeleted] = 0");
 
         builder.HasKey(e => e.Id);
 
@@ -29,6 +30,13 @@ internal sealed class ExpenseConfiguration : IEntityTypeConfiguration<Expense>
 
         builder.Property(e => e.Purpose)
             .HasMaxLength(255);
+
+        builder.Property(e => e.CreatedBy)
+            .IsRequired()
+            .HasMaxLength(256);
+
+        builder.Property(e => e.UpdatedBy)
+            .HasMaxLength(256);
 
         builder.HasOne(e => e.Category)
             .WithMany(c => c.Expenses)

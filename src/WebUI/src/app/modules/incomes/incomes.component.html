@@ -1,0 +1,54 @@
+<div class="page">
+  <div class="page-header">
+    <h1 class="page-title">Incomes</h1>
+    <button class="btn btn-primary btn-sm" (click)="openCreateIncomeDialog()">
+      <i class="fas fa-plus"></i>
+      Add income
+    </button>
+  </div>
+
+  <div class="card">
+    @if (result().incomes.length > 0) {
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Amount</th>
+            <th>Category</th>
+            <th>Capital</th>
+            <th>Purpose</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (item of result().incomes; track item.id) {
+            <tr>
+              <td class="inc-date">{{ item.paymentDate | date: 'dd MMM yyyy' }}</td>
+              <td class="inc-amount">{{ item.amount | number:'1.2-2' }}</td>
+              <td>
+                @if (item.categoryId) {
+                  <span class="badge badge-primary">{{ categoryName(item.categoryId) }}</span>
+                } @else {
+                  <span class="inc-empty">—</span>
+                }
+              </td>
+              <td>
+                @if (item.capitalId) {
+                  <span class="badge badge-neutral">{{ capitalName(item.capitalId) }}</span>
+                } @else {
+                  <span class="inc-empty">—</span>
+                }
+              </td>
+              <td class="inc-purpose">{{ item.purpose ?? '—' }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    } @else {
+      <div class="empty">
+        <i class="fas fa-hand-holding-dollar"></i>
+        <p>No incomes yet</p>
+        <span>Click <strong>Add income</strong> to record your first income</span>
+      </div>
+    }
+  </div>
+</div>

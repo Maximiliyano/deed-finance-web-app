@@ -20,10 +20,12 @@ internal sealed class ValidationPipelineBehavior<TRequest, TResponse>(
             return await next(cancellationToken);
         }
 
-        var errors = validators
-            .Select(async validator => await validator.ValidateAsync(request, cancellationToken))
-            .SelectMany(validationResult => validationResult.Result.Errors)
-            .Where(validationFailure => validationFailure is not null)
+        var validationResults = await Task.WhenAll(
+            validators.Select(validator => validator.ValidateAsync(request, cancellationToken)));
+
+        var errors = validationResults
+            .SelectMany(result => result.Errors)
+            .Where(failure => failure is not null)
             .Select(failure => Error.Validation(
                 failure.ErrorCode,
                 failure.ErrorMessage))

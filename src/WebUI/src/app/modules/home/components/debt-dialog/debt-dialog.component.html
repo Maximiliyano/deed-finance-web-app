@@ -1,0 +1,100 @@
+<form [formGroup]="form" (ngSubmit)="submit()" class="debt-dialog">
+  <div class="debt-header">
+    <i class="fas fa-hand-holding-dollar"></i>
+    {{ isEdit ? 'Edit Debt' : 'Add Debt' }}
+  </div>
+
+  <div class="debt-body">
+    <div class="form-group">
+      <label class="form-label">Item</label>
+      <input type="text" class="input" formControlName="item" placeholder="e.g. Laptop, Rent…" autocomplete="off">
+    </div>
+
+    <div class="debt-row">
+      <div class="form-group" style="flex:1">
+        <label class="form-label">Amount</label>
+        <input type="number" class="input" formControlName="amount" min="0.01" step="0.01" autocomplete="off">
+      </div>
+      <div class="form-group" style="min-width:100px">
+        <label class="form-label">Currency</label>
+        <select class="input" formControlName="currency">
+          @for (c of currencies; track c) {
+            <option [value]="c">{{ c }}</option>
+          }
+        </select>
+      </div>
+    </div>
+
+    <div class="debt-row">
+      <div class="form-group" style="flex:1">
+        <label class="form-label">Source (lender)</label>
+        <input type="text" class="input" formControlName="source" placeholder="Who provided the money" autocomplete="off">
+      </div>
+      <div class="form-group" style="flex:1">
+        <label class="form-label">Recipient (borrower)</label>
+        <input type="text" class="input" formControlName="recipient" placeholder="Who received the money" autocomplete="off">
+      </div>
+    </div>
+
+    <div class="debt-row">
+      <div class="form-group" style="flex:1">
+        <label class="form-label">Borrowed At</label>
+        <input type="date" class="input" formControlName="borrowedAt">
+      </div>
+      <div class="form-group" style="flex:1">
+        <label class="form-label">Deadline (optional)</label>
+        <input type="date" class="input" formControlName="deadlineAt">
+      </div>
+    </div>
+
+    @if (!wasPaid) {
+      <div class="form-group">
+        <label class="form-label">{{ isEdit ? 'Linked capital' : 'Deposit into capital' }} (optional)</label>
+        <select class="input" formControlName="capitalId" [attr.disabled]="isEdit ? true : null">
+          <option [ngValue]="null">None</option>
+          @for (cap of capitals; track cap.id) {
+            <option [ngValue]="cap.id">{{ cap.name }} ({{ cap.balance | number:'1.2-2' }} {{ cap.currency }})</option>
+          }
+        </select>
+        @if (!isEdit) {
+          <span class="form-hint">The borrowed amount will be added to this capital's balance</span>
+        }
+      </div>
+    }
+
+    <div class="form-group">
+      <label class="form-label">Note (optional)</label>
+      <textarea class="input textarea" formControlName="note" placeholder="Any notes…"></textarea>
+    </div>
+
+    @if (isEdit && !wasPaid) {
+      <label class="checkbox-row" (change)="onPaidChange()">
+        <input type="checkbox" formControlName="isPaid" class="checkbox">
+        <span class="checkbox-label">Mark as paid</span>
+      </label>
+
+      @if (showPayConfirm) {
+        <div class="pay-confirm">
+          <div class="pay-confirm-header">
+            <i class="fas fa-circle-info"></i>
+            <span>Confirm payment</span>
+          </div>
+          <p class="pay-confirm-text">Select a capital to deduct <strong>{{ form.get('amount')?.value | number:'1.2-2' }} {{ form.get('currency')?.value }}</strong> from:</p>
+          <select class="input" formControlName="payFromCapitalId">
+            <option [ngValue]="null">Don't deduct from any capital</option>
+            @for (cap of capitals; track cap.id) {
+              <option [ngValue]="cap.id">{{ cap.name }} ({{ cap.balance | number:'1.2-2' }} {{ cap.currency }})</option>
+            }
+          </select>
+        </div>
+      }
+    }
+  </div>
+
+  <div class="debt-footer">
+    <button type="button" class="btn btn-secondary btn-sm" (click)="cancel()">Cancel</button>
+    <button type="submit" class="btn btn-primary btn-sm" [disabled]="form.invalid">
+      {{ isEdit ? 'Save' : 'Add Debt' }}
+    </button>
+  </div>
+</form>

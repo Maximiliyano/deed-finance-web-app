@@ -18,6 +18,10 @@ internal abstract class BaseSpecification<TEntity>(
 
     public List<Func<IQueryable<TEntity>, IQueryable<TEntity>>> Includes { get; } = [];
 
+    public int? Skip { get; protected set; }
+
+    public int? Take { get; protected set; }
+
     public bool? IgnoreQueryFilter { get; protected set; }
 
     public bool? Tracking { get; protected set; }
@@ -35,5 +39,11 @@ internal abstract class BaseSpecification<TEntity>(
     protected void ApplyOrderBy(Expression<Func<TEntity, object>> expression)
     {
         OrderBy = expression;
+    }
+
+    protected void ApplyPaging(int skip, int take)
+    {
+        Skip = skip;
+        Take = take;
     }
 }

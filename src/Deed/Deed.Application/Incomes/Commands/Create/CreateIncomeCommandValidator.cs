@@ -13,18 +13,15 @@ internal sealed class CreateIncomeCommandValidator : AbstractValidator<CreateInc
     public CreateIncomeCommandValidator(ICategoryRepository categoryRepository)
     {
         RuleFor(e => e.CategoryId)
-            .MustAsync(async (categoryId, _) => await categoryRepository
-                .AnyAsync(new CategoryByIdSpecification(categoryId)).ConfigureAwait(false))
+            .MustAsync(async (categoryId, ct) => await categoryRepository
+                .AnyAsync(new CategoryByIdSpecification(categoryId), ct).ConfigureAwait(false))
             .WithError(ValidationErrors.General.NotFound("category"))
-            .MustAsync(async (categoryId, _) => (await categoryRepository
-                .GetAsync(new CategoryByIdSpecification(categoryId)).ConfigureAwait(false))?.Type == CategoryType.Expenses)
+            .MustAsync(async (categoryId, ct) => (await categoryRepository
+                .GetAsync(new CategoryByIdSpecification(categoryId), ct).ConfigureAwait(false))?.Type == CategoryType.Incomes)
             .WithError(ValidationErrors.Category.InvalidType);
 
         RuleFor(i => i.Amount)
             .GreaterThanOrEqualTo(ValidationConstants.ZeroValue)
             .WithError(ValidationErrors.General.AmountMustBeGreaterThanZero);
-
-        RuleFor(i => i.Purpose)
-            .NotEmpty();
     }
 }

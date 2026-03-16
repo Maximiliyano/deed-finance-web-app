@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Deed.Domain.Entities;
+﻿using Deed.Domain.Entities;
 using Deed.Infrastructure.Persistence.Constants;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -18,6 +13,9 @@ internal sealed class ExpenseTagConfiguration : IEntityTypeConfiguration<Expense
 
         builder.HasKey(et => new { et.Id, et.TagId });
 
+        builder.Property(et => et.IsDeleted)
+            .HasDefaultValue(false);
+
         builder.HasOne(et => et.Expense)
                .WithMany(e => e.Tags)
                .HasForeignKey(et => et.Id);
@@ -26,9 +24,6 @@ internal sealed class ExpenseTagConfiguration : IEntityTypeConfiguration<Expense
                .WithMany(t => t.ExpenseTags)
                .HasForeignKey(et => et.TagId);
 
-        builder.HasQueryFilter(et =>
-            (!et.IsDeleted.HasValue || et.IsDeleted.HasValue && !et.IsDeleted.Value) &&
-            (!et.Expense.IsDeleted.HasValue || et.Expense.IsDeleted.HasValue && !et.Expense.IsDeleted.Value)
-        );
+        builder.HasQueryFilter(et => !et.IsDeleted && !et.Expense.IsDeleted);
     }
 }

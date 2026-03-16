@@ -1,21 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Deed.Application.Abstractions.Messaging;
+using Deed.Application.Auth;
 using Deed.Domain.Errors;
 using Deed.Domain.Repositories;
 using Deed.Domain.Results;
 
 namespace Deed.Application.Capitals.Commands.PatchIncludeInTotal;
 
-internal sealed class PatchCapitalIncludeInTotalCommandHandler(ICapitalRepository repository)
+internal sealed class PatchCapitalIncludeInTotalCommandHandler(ICapitalRepository repository, IUser user)
     : ICommandHandler<PatchCapitalIncludeInTotalCommand>
 {
     public async Task<Result> Handle(PatchCapitalIncludeInTotalCommand request, CancellationToken cancellationToken)
     {
-        var isUpdateSuccessfull = await repository.PatchIncludeInTotalAsync(request.Id, request.IncludeInTotal, cancellationToken);
+        ArgumentNullException.ThrowIfNullOrEmpty(user.Name);
+
+        var isUpdateSuccessfull = await repository.PatchIncludeInTotalAsync(request.Id, request.IncludeInTotal, user.Name, cancellationToken);
 
         if (!isUpdateSuccessfull)
         {

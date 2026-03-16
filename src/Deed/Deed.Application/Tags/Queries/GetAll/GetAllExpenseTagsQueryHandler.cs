@@ -21,7 +21,7 @@ internal sealed class GetAllExpenseTagsQueryHandler(IExpenseTagRepository expens
         CancellationToken cancellationToken)
     {
         var expenseTags = await expenseTagRepository
-            .GetAllAsync(new ExpenseTagsByQuerySpefication(query.Term))
+            .GetAllAsync(new ExpenseTagsByQuerySpefication(query.Term), cancellationToken)
             .ConfigureAwait(false);
 
         return TagExtensions.ToResponse(expenseTags);

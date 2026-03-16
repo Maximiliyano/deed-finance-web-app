@@ -1,23 +1,21 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Deed.Application.Abstractions.Messaging;
+using Deed.Application.Auth;
 using Deed.Domain.Repositories;
 using Deed.Domain.Results;
-using MediatR;
 
 namespace Deed.Application.Capitals.Commands.UpdateOrders;
 
 internal sealed class UpdateCapitalOrdersCommandHandler(
     ICapitalRepository repository,
-    IUnitOfWork unitOfWork)
+    IUnitOfWork unitOfWork,
+    IUser user)
     : ICommandHandler<UpdateCapitalOrdersCommand>
 {
     public async Task<Result> Handle(UpdateCapitalOrdersCommand request, CancellationToken cancellationToken)
     {
-        await repository.UpdateOrderIndexesAsync([.. request.Capitals.Select(c => (c.Id, c.OrderIndex))], cancellationToken).ConfigureAwait(false);
+        ArgumentNullException.ThrowIfNullOrEmpty(user.Name);
+
+        await repository.UpdateOrderIndexesAsync([.. request.Capitals.Select(c => (c.Id, c.OrderIndex))], user.Name, cancellationToken).ConfigureAwait(false);
         await unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         return Result.Success();

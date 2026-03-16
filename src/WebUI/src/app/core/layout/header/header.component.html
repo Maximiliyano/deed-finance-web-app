@@ -1,91 +1,139 @@
 <header class="header">
-  <div class="header-container">
-    <div class="header-inner">
-      <div class="head">
-        <button class="burger-menu" (click)="isSidebarExpanded = true" aria-label="Open menu">
-          <app-icon [name]="'fa-bars'"></app-icon>
-        </button>
+  <div class="header-inner">
 
-        <a class="logo" routerLink="/">
-          <img alt="DeedLogo" src="../../../../favicon.ico">
-        </a>
+    <!-- Logo -->
+    <a class="logo" routerLink="/">
+      <img alt="Deed" src="../../../../favicon.ico" class="logo-icon">
+      <span class="logo-text">Deed</span>
+    </a>
 
-        <button class="home" routerLink="/" aria-label="Home">
-          <app-icon [name]="'fa-home'"></app-icon>
-        </button>
-
-        <button class="exchange-button" (click)="openExchangeDialog()" aria-label="Open exchange dialog">
-          <app-icon [name]="'fa-money-bill-wave'"></app-icon>
-        </button>
-      </div>
-
-      <div class="exchanges">
-        @for (exchange of exchanges; track exchange.sale) {
-          <div class="exchange">
-            <div class="prices">
-              <span>{{ exchange?.buy || '0' | number: '1.2-2' }}</span>
-              <span>{{ exchange?.sale || '0' | number: '1.2-2' }}</span>
-            </div>
-            <div class="currencies">
-              <span>{{ exchange?.targetCurrency || 'None' }}</span>
-              <span>{{ exchange?.nationalCurrency || 'None' }}</span>
-            </div>
-          </div>
-        }
-        @if (exchanges.length > 3) {
-          <div class="exchange more-btn">
-            <button (click)="openExchangeDialog()"></button>
-          </div>
-        }
-        <span class="text-sm opacity-50 font-thin italic xl:block hidden">Last sync: {{exchangeUpdatedAt | date }}</span>
-      </div>
-
-      <nav class="navigation">
-        <ul class="list">
-          @for (item of navItems; track item.label) {
-            <li class="item" [routerLink]="item.link">
-              <app-icon [name]="item.icon"></app-icon>
+    <nav class="nav" (document:click)="closeDropdowns()">
+      @for (item of navItems; track item.label) {
+        @if (item.children) {
+          <div class="nav-dropdown">
+            <button class="nav-item" [class.nav-active]="openDropdown === item.label"
+                    (click)="toggleDropdown(item.label, $event)">
+              <i class="fas {{ item.icon }}"></i>
               {{ item.label }}
-            </li>
-          }
-        </ul>
-      </nav>
-
-      <div class="profile">
-        @if (user) {
-          <button class="account-button" (click)="profile()" title="Profile">
-            <img class="h-7 w-7 rounded" [src]="user.pictureUrl" alt="Avatar" />
-            <span class="profile-text truncate max-w-40">{{ user.fullname }}</span>
-          </button>
+              <i class="fas fa-chevron-down nav-chevron" [class.nav-chevron-open]="openDropdown === item.label"></i>
+            </button>
+            @if (openDropdown === item.label) {
+              <div class="dropdown-menu" (click)="$event.stopPropagation()">
+                @for (child of item.children; track child.label) {
+                  <button class="dropdown-item" (click)="navigateTo(child)">
+                    <i class="fas {{ child.icon }}"></i>
+                    {{ child.label }}
+                  </button>
+                }
+              </div>
+            }
+          </div>
         } @else {
-          <button class="account-button" (click)="login()" title="Login">
-            <app-icon name="fa-user-circle"></app-icon>
-            <span class="profile-text">Log in</span>
-          </button>
+          <a class="nav-item" [routerLink]="item.link" routerLinkActive="nav-active">
+            <i class="fas {{ item.icon }}"></i>
+            {{ item.label }}
+          </a>
         }
-      </div>
-    </div>
-  </div>
+      }
+    </nav>
 
-  <div class="sidebar" [ngClass]="{'expanded': isSidebarExpanded}">
-    <div class="sidebar-header">
-      <button class="sidebar-btn-close" (click)="isSidebarExpanded = false" aria-label="Close menu">
-        <app-icon [name]="'fa-times'"></app-icon>
+    <div class="exchanges">
+      @for (exchange of exchanges; track exchange.targetCurrency) {
+        <button class="exchange-chip" (click)="openExchangeDialog()"
+                [title]="'Buy ' + (exchange.buy | number:'1.2-2') + ' / Sell ' + (exchange.sale | number:'1.2-2')">
+          <span class="exc-vals">
+            <span>{{ exchange.buy | number:'1.2-2' }}</span>
+            <span class="exc-div">/</span>
+            <span>{{ exchange.sale | number:'1.2-2' }}</span>
+          </span>
+          <span class="exc-pair">{{ exchange.targetCurrency }}/{{ exchange.nationalCurrency }}</span>
+        </button>
+      }
+    </div>
+
+    <!-- Right actions -->
+    <div class="header-right">
+      <button class="btn btn-ghost btn-icon exc-mob-btn" (click)="openExchangeDialog()" title="Exchange rates">
+        <i class="fas fa-money-bill-wave"></i>
       </button>
-      <span>Menu</span>
-    </div>
 
-    <div class="sidebar-content">
-      <nav class="sidebar-nav">
-        <ul class="sidebar-nav-list">
-          @for (item of navItems; track item.label) {
-            <a class="sidebar-nav-item" [routerLink]="item.link" (click)="isSidebarExpanded = false">
-              <app-icon [name]="item.icon"></app-icon>
-              {{ item.label }}
-            </a>
-          }
-        </ul>
-      </nav>
+      <button class="btn btn-ghost btn-icon burger-btn" (click)="isSidebarExpanded = true" aria-label="Menu">
+        <i class="fas fa-bars"></i>
+      </button>
+
+      @if (user) {
+        <button class="profile-btn" (click)="profile()" title="Profile">
+          <img class="avatar" [src]="user.pictureUrl" alt="Avatar" />
+          <span class="profile-name">{{ user.fullname }}</span>
+          <i class="fas fa-chevron-down chevron"></i>
+        </button>
+      } @else {
+        <button class="btn btn-primary btn-sm" (click)="login()">
+          <i class="fas fa-right-to-bracket"></i>
+          Log in
+        </button>
+      }
     </div>
   </div>
 </header>
+
+<div class="sidebar-backdrop" [class.backdrop-visible]="isSidebarExpanded" (click)="isSidebarExpanded = false"></div>
+
+<aside class="sidebar" [class.sidebar-open]="isSidebarExpanded">
+  <div class="sidebar-top">
+    <div class="sidebar-logo">
+      <img alt="Deed" ngSrc="../../../../favicon.ico" width="32" height="32" class="logo-icon">
+      <span class="logo-text">Deed</span>
+    </div>
+    <button class="btn btn-ghost btn-icon" (click)="isSidebarExpanded = false" aria-label="Close">
+      <i class="fas fa-xmark"></i>
+    </button>
+  </div>
+
+  @if (user) {
+    <div class="sidebar-user">
+      <img class="sidebar-avatar" [ngSrc]="user.pictureUrl" width="40" height="40" alt="Avatar" />
+      <div class="sidebar-user-info">
+        <p class="sidebar-user-name">{{ user.fullname }}</p>
+      </div>
+    </div>
+  }
+
+  <nav class="sidebar-nav">
+    @for (item of navItems; track item.label) {
+      @if (item.children) {
+        <button class="sidebar-group-toggle" (click)="toggleSidebarGroup(item.label)">
+          <span class="sidebar-group-left">
+            <i class="fas {{ item.icon }} sidebar-item-icon"></i>
+            {{ item.label }}
+          </span>
+          <i class="fas fa-chevron-down sidebar-chevron" [class.sidebar-chevron-open]="expandedSidebarGroup === item.label"></i>
+        </button>
+        @if (expandedSidebarGroup === item.label) {
+          <div class="sidebar-submenu">
+            @for (child of item.children; track child.label) {
+              <button class="sidebar-item sidebar-subitem" (click)="navigateTo(child)">
+                <i class="fas {{ child.icon }} sidebar-item-icon"></i>
+                {{ child.label }}
+              </button>
+            }
+          </div>
+        }
+      } @else {
+        <a class="sidebar-item" [routerLink]="item.link" routerLinkActive="sidebar-item-active"
+           (click)="isSidebarExpanded = false">
+          <i class="fas {{ item.icon }} sidebar-item-icon"></i>
+          {{ item.label }}
+        </a>
+      }
+    }
+  </nav>
+
+  @if (!user) {
+    <div class="sidebar-footer">
+      <button class="btn btn-primary" style="width:100%" (click)="login()">
+        <i class="fas fa-right-to-bracket"></i> Log in
+      </button>
+    </div>
+  }
+</aside>

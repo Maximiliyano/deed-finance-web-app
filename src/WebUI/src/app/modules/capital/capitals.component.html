@@ -1,163 +1,166 @@
 <app-layout text="Capitals">
-  <div class="cp-lh ">
-    <div class="ta">
-      <span class="ta-text">Total balance:</span>
-      <span class="ta-sum">
-        {{ totalCapitalBalance | currencySymbol: mainCurrency }}
-      </span>
-    </div>
+  <div class="card">
 
-    <div class="cp-bar">
-      <input class="cp-search" placeholder="Search for..." maxlength="24" [(ngModel)]="searchTerm" (ngModelChange)="onSearchChange()" />
+    @if (capitals.length > 0) {
+      <div class="toolbar flex-wrap">
+        <div class="total-balance">
+          <span class="total-label">Total balance</span>
+          <span class="total-value">{{ totalCapitalBalance | currencySymbol: mainCurrency }}</span>
+        </div>
 
-      <div
-        class="sm:flex hidden bg-white p-1 border border-gray-300 rounded gap-1 items-center"
-        title="Filters"
-      >
-        <app-icon name="fa-sliders" />
-        <select [(ngModel)]="filterBy" (change)="onFilterChange()">
-          <option [ngValue]="null">Select a filter...</option>
-          <option value="onlyForSavings">Only For Savings</option>
-        </select>
-      </div>
+        <div class="toolbar-divider"></div>
 
-      <div class="cp-sort">
-        <button class="sort-direction" (click)="onSortDirectionChange()" [title]="sortDirection === 'asc' ? 'Ascending' : 'Descending'">
-          <app-icon [name]="sortDirection === 'asc' ? 'fa-arrow-up' : 'fa-arrow-down'"></app-icon>
+        <input
+          class="input toolbar-search"
+          placeholder="Search capitals…"
+          maxlength="24"
+          [(ngModel)]="searchTerm"
+          (ngModelChange)="onSearchChange()"
+        />
+
+        <div class="toolbar-ctrl">
+          <i class="fas fa-sliders toolbar-ctrl-icon"></i>
+          <select [(ngModel)]="filterBy" (change)="onFilterChange()" class="toolbar-select">
+            <option [ngValue]="null">All capitals</option>
+            <option value="onlyForSavings">Savings only</option>
+          </select>
+        </div>
+
+        <!-- Sort -->
+        <div class="toolbar-ctrl">
+          <button class="btn btn-ghost btn-icon sort-dir-btn" (click)="onSortDirectionChange()"
+                  [title]="sortDirection === 'asc' ? 'Ascending' : 'Descending'">
+            <i class="fas" [ngClass]="sortDirection === 'asc' ? 'fa-arrow-up-short-wide' : 'fa-arrow-down-wide-short'"></i>
+          </button>
+          <select [(ngModel)]="selectedSortOption" (change)="onSortChange()" class="toolbar-select">
+            @for (option of sortOptions; track option.key) {
+              <option [value]="option.key">{{ option.label }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="toolbar-ctrl">
+          <i class="fas fa-coins toolbar-ctrl-icon"></i>
+          <select [(ngModel)]="mainCurrencyVal" (change)="onCurrencyChange($event)" class="toolbar-select">
+            @for (option of currencyOptions; track option.value) {
+              <option [value]="option.value">{{ option.key }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="toolbar-spacer"></div>
+
+        <button class="btn btn-primary btn-sm" (click)="openToCreateCapitalDialog()" title="Create capital">
+          <i class="fas fa-plus"></i>
+          Add capital
         </button>
-
-        <span>Sort by:</span>
-        <select [(ngModel)]="selectedSortOption" (change)="onSortChange()">
-          @for (option of sortOptions; track option.key) {
-            <option [value]="option.key">{{ option.label }}</option>
-          }
-        </select>
       </div>
 
-      <div class="cp-currency">
-        <span>Default:</span>
-        <select [(ngModel)]="mainCurrencyVal" (change)="onCurrencyChange($event)">
-           @for (option of currencyOptions; track `${option.key}:${option.value}`) {
-            <option [value]="option.value">{{ option.key }}</option>
-          }
-        </select>
-      </div>
+      <div cdkDropList (cdkDropListDropped)="drop($event)" class="cp-list">
+        @for (capital of capitals; track capital.id) {
+          <div
+            class="cp-card"
+            cdkDrag
+            [@slideRemove]
+            [ngClass]="{
+              'cp-card--savings': capital.onlyForSavings,
+              'cp-card--excluded': !capital.includeInTotal && !capital.onlyForSavings
+            }"
+          >
+            <!-- Drag handle -->
+            <div class="cp-drag-handle" cdkDragHandle title="Drag to reorder">
+              <i class="fas fa-grip-vertical"></i>
+            </div>
 
-      @if (capitals.length > 0) {
-        <button (click)="openToCreateCapitalDialog()" title="Create new">
-          <app-icon class="btn-create-icon" [name]="'fa-circle-plus'"></app-icon>
-        </button>
-      }
-    </div>
-  </div>
+            <!-- Name + meta -->
+            <div class="cp-identity">
+              <button class="cp-name" (click)="toggleEditDialog(capital)">{{ capital.name }}</button>
+              <span class="cp-meta">{{ capital.createdAt | date }} · {{ capital.createdBy }}</span>
+            </div>
 
-  @if (capitals.length > 0) {
-    <div cdkDropList (cdkDropListDropped)="drop($event)" class="cp-list p-2">
-      @for (capital of capitals; track capital.id) {
-        <div
-          cdkDrag
-          [@slideRemove]
-          [ngClass]="capitalBackgroundClass(capital.includeInTotal, capital.onlyForSavings)"
-        >
-          <div class="cp-name-balance">
-            <div class="relative">
-              <button
-                class="cp-name"
-                (click)="toggleEditDialog(capital)"
-                (keydown.enter)="toggleEditDialog(capital)"
-                (keydown.space)="toggleEditDialog(capital)"
-              >
-                {{ capital.name }}
-              </button>
-
-              <div
-                class="absolute sm:static right-2 top-2 hidden sm:flex sm:flex-col 
-                      text-xs text-gray-500 dark:text-gray-400 italic"
-              >
-                <span>
-                  Created {{ capital.createdAt | date }}
-                </span>
-
-                <span
-                  [title]="capital.createdBy"
-                  class="font-semibold text-gray-700 dark:text-gray-300 
-                        inline-block max-w-[150px] truncate"
-                >
-                  by {{ capital.createdBy }}
-                </span>
+            <!-- Stats (desktop) -->
+            @if (!capital.onlyForSavings) {
+              <div class="cp-stats">
+                @for (stat of capitalStatItems; track stat.key) {
+                  <a class="cp-stat-item" [ngClass]="stat.style"
+                     [href]="stat.url ? stat.url + '?capitalId=' + capital.id : '#'"
+                     [title]="stat.title + ': ' + capital[stat.key]">
+                    <i class="fas {{ stat.icon }} cp-stat-icon"></i>
+                    <span class="cp-stat-val">{{ capital[stat.key] }}</span>
+                  </a>
+                }
               </div>
-            </div>
+            }
 
-            <div class="cp-balance" title="Balance">
-              {{ capital.balance | currencySymbol: capital.currency }}
-            </div>
-          </div>
-    
-          @if (!capital.onlyForSavings) {
-            <div [class]="capital.includeInTotal ? 'cp-stats bg-white border-slate-300 border-2 rounded-xl py-1' : 'cp-stats bg-white rounded-xl py-1'">
-              @for (propsItem of capitalStatItems; track propsItem.key) {
-                <a
-                  class="cp-stats-item"
-                  [title]="propsItem.title + ' ' + capital[propsItem.key]"
-                  [ngClass]="propsItem.style"
-                  [href]="propsItem.url ? propsItem.url + '?capitalId=' + capital.id : 'capitals'"
-                >
-                  <app-icon [name]="propsItem.icon"></app-icon>
-                  <span class="cp-stats-value">
-                    {{ capital[propsItem.key] }}
-                  </span>
-                </a>
-          
+            <!-- Balance -->
+            <div class="cp-balance">
+              <span class="cp-balance-val">{{ capital.balance | currencySymbol: capital.currency }}</span>
+              @if (borrowedAmount(capital.id); as borrowed) {
+                <span class="badge badge-warning cp-badge" title="Includes borrowed money">
+                  <i class="fas fa-hand-holding-dollar"></i> {{ borrowed | currencySymbol: capital.currency }} borrowed
+                </span>
+              }
+              @if (capital.onlyForSavings) {
+                <span class="badge badge-primary cp-badge">Savings</span>
+              } @else if (!capital.includeInTotal) {
+                <span class="badge badge-neutral cp-badge">Excluded</span>
               }
             </div>
-          }
 
-          <div class="cp-actions-compact">
-            <button class="menu" (click)="toggleMenu(capital.id)">
-              <app-icon [name]="isCapitalActionsOpen && openMenuId === capital.id ? 'fa-solid fa-caret-left' : 'fa-solid fa-caret-down'"></app-icon>
-            </button>
-    
-            <ul class="actions" [ngClass]="{'open': isCapitalActionsOpen && openMenuId === capital.id}">
-              <li title="Include into total" [class]="'cp-d-act cp-visible ' + (capital.includeInTotal ? 'text-blue-500' : 'opacity-55')" (click)="toggleIncludeInTotal(capital.id)">
-                <app-icon [name]="capital.includeInTotal ? 'fa-eye' : 'fa-eye-slash'"></app-icon>
-              </li>
-              <li title="Toggle savings only" [class]="capital.onlyForSavings ? 'text-green-600 hover:text-green-500' : 'opacity-55'" (click)="toggleSavingsOnly(capital.id)">
-                <app-icon name="fa-piggy-bank"></app-icon>
-              </li>
-              <li title="Remove" class="cp-d-act cp-delete" (click)="deleteCapital(capital.id)">
-                <app-icon name="fa-trash"></app-icon>
-              </li>
-            </ul>
+            <!-- Actions (desktop) -->
+            <div class="cp-actions">
+              <button class="cp-action-btn"
+                      [ngClass]="capital.includeInTotal ? 'cp-action-active' : ''"
+                      (click)="toggleIncludeInTotal(capital.id)"
+                      [title]="capital.includeInTotal ? 'Included in total' : 'Excluded from total'">
+                <i class="fas" [ngClass]="capital.includeInTotal ? 'fa-eye' : 'fa-eye-slash'"></i>
+              </button>
+              <button class="cp-action-btn"
+                      [ngClass]="capital.onlyForSavings ? 'cp-action-savings' : ''"
+                      (click)="toggleSavingsOnly(capital.id)"
+                      title="Toggle savings only">
+                <i class="fas fa-piggy-bank"></i>
+              </button>
+              <button class="cp-action-btn cp-action-danger"
+                      (click)="deleteCapital(capital.id)"
+                      title="Delete capital">
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>
+
+            <!-- Actions (compact / mobile) -->
+            <div class="cp-actions-compact">
+              <button class="cp-compact-item" [ngClass]="capital.includeInTotal ? 'text-primary' : ''"
+                      (click)="toggleIncludeInTotal(capital.id)" title="Toggle in total">
+                <i class="fas" [ngClass]="capital.includeInTotal ? 'fa-eye' : 'fa-eye-slash'"></i>
+              </button>
+              <button class="cp-compact-item" [ngClass]="capital.onlyForSavings ? 'text-success' : ''"
+                      (click)="toggleSavingsOnly(capital.id)" title="Savings only">
+                <i class="fas fa-piggy-bank"></i>
+              </button>
+              <button class="cp-compact-item text-danger" (click)="deleteCapital(capital.id)" title="Delete">
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>
+
           </div>
+        }
+      </div>
 
-          <div class="cp-actions">
-            <button title="Include in total" [class]="'cp-visible ' + (capital.includeInTotal ? 'text-blue-500' : 'opacity-55')" (click)="toggleIncludeInTotal(capital.id)">
-              <app-icon [name]="capital.includeInTotal ? 'fa-eye' : 'fa-eye-slash'"></app-icon>
-            </button>
+      <div class="cp-footer">
+        <span>{{ capitals.length }} capital{{ capitals.length !== 1 ? 's' : '' }}</span>
+      </div>
 
-            <button title="Toggle savings only" [class]="capital.onlyForSavings ? 'text-green-600 hover:text-green-500' : 'opacity-55'" (click)="toggleSavingsOnly(capital.id)">
-              <app-icon name="fa-piggy-bank"></app-icon>
-            </button>
-    
-            <button title="Remove" class="cp-delete text-red-600 hover:text-red-500" (click)="deleteCapital(capital.id)">
-              <app-icon name='fa-trash'></app-icon>
-            </button>
-          </div>
-        </div>
-      }
-    </div>
-
-    <span class="text-sm text-gray-400 flex justify-center">In total {{ capitals.length }} capitals</span>
-  }
-  @else {
-    <button
-      type="button"
-      class="no-capittals"
-      (click)="openToCreateCapitalDialog()"
-    >
-      Create your first capital...
-      <app-icon class="btn-create-icon" name="fa-circle-plus" />
-    </button>
-  }
+    } @else {
+      <div class="empty cp-empty">
+        <i class="fas fa-wallet"></i>
+        <p>No capitals yet</p>
+        <span>Add your first capital to start tracking your finances</span>
+        <button class="btn btn-primary" style="margin-top:1rem" (click)="openToCreateCapitalDialog()">
+          <i class="fas fa-plus"></i>
+          Add capital
+        </button>
+      </div>
+    }
+  </div>
 </app-layout>
-

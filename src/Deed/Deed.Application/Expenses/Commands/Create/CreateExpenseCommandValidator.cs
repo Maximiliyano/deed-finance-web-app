@@ -18,16 +18,16 @@ internal sealed class CreateExpenseCommandValidator : AbstractValidator<CreateEx
         IDateTimeProvider provider)
     {
         RuleFor(e => e.CapitalId)
-            .MustAsync(async (capitalId, _) => await capitalRepository
-                .AnyAsync(new CapitalByIdSpecification(capitalId)).ConfigureAwait(false))
+            .MustAsync(async (capitalId, ct) => await capitalRepository
+                .AnyAsync(new CapitalByIdSpecification(capitalId), ct).ConfigureAwait(false))
             .WithError(ValidationErrors.General.NotFound("capital"));
 
         RuleFor(e => e.CategoryId)
-            .MustAsync(async (categoryId, _) => await categoryRepository
-                .AnyAsync(new CategoryByIdSpecification(categoryId)).ConfigureAwait(false))
+            .MustAsync(async (categoryId, ct) => await categoryRepository
+                .AnyAsync(new CategoryByIdSpecification(categoryId), ct).ConfigureAwait(false))
             .WithError(ValidationErrors.General.NotFound("category"))
-            .MustAsync(async (categoryId, _) => (await categoryRepository
-                .GetAsync(new CategoryByIdSpecification(categoryId)).ConfigureAwait(false))?.Type == CategoryType.Expenses)
+            .MustAsync(async (categoryId, ct) => (await categoryRepository
+                .GetAsync(new CategoryByIdSpecification(categoryId), ct).ConfigureAwait(false))?.Type == CategoryType.Expenses)
             .WithError(ValidationErrors.Category.InvalidType);
 
         RuleFor(i => i.Amount)

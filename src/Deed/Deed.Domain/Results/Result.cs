@@ -30,10 +30,6 @@ public class Result
 
     public static Result<TValue> Failure<TValue>(IList<Error> errors) => new(default!, false, errors);
 
-    public static Result Failure(object restoreFailed)
-    {
-        throw new NotImplementedException();
-    }
 }
 
 public class Result<TValue> : Result

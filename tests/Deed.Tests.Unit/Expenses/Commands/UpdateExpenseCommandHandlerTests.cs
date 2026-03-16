@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Collections.Generic;
+using Deed.Application.Auth;
 using Deed.Application.Expenses.Commands.Update;
 using Deed.Application.Expenses.Specifications;
 using Deed.Domain.Entities;
@@ -16,12 +17,14 @@ public sealed class UpdateExpenseCommandHandlerTests
 {
     private readonly IExpenseRepository _expenseRepository = Substitute.For<IExpenseRepository>();
     private readonly IUnitOfWork _unitOfWork = Substitute.For<IUnitOfWork>();
+    private readonly IUser _userMock = Substitute.For<IUser>();
 
     private readonly UpdateExpenseCommandHandler _handler;
 
     public UpdateExpenseCommandHandlerTests()
     {
-        _handler = new UpdateExpenseCommandHandler(_expenseRepository, _unitOfWork);
+        _userMock.Name.Returns("testuser");
+        _handler = new UpdateExpenseCommandHandler(_expenseRepository, _unitOfWork, _userMock);
     }
 
     [Fact]

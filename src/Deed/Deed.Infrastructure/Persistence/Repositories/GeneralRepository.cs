@@ -12,13 +12,13 @@ internal abstract class GeneralRepository<TEntity>(IDeedDbContext context)
     protected IDeedDbContext DbContext { get; } = context;
     protected readonly DbSet<TEntity> DbSet = context.Set<TEntity>();
 
-    public async Task<IEnumerable<TEntity>> GetAllAsync(ISpecification<TEntity> specification) =>
+    public async Task<IEnumerable<TEntity>> GetAllAsync(ISpecification<TEntity> specification, CancellationToken cancellationToken = default) =>
         await ApplySpecification(specification)
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
 
-    public async Task<TEntity?> GetAsync(ISpecification<TEntity> specification) =>
+    public async Task<TEntity?> GetAsync(ISpecification<TEntity> specification, CancellationToken cancellationToken = default) =>
         await ApplySpecification(specification)
-            .SingleOrDefaultAsync();
+            .SingleOrDefaultAsync(cancellationToken);
 
     public void Create(TEntity entity) =>
         DbSet.Add(entity);
@@ -35,9 +35,9 @@ internal abstract class GeneralRepository<TEntity>(IDeedDbContext context)
     public void Delete(TEntity entity) => 
         DbSet.Remove(entity);
 
-    public async Task<bool> AnyAsync(ISpecification<TEntity> specification) =>
+    public async Task<bool> AnyAsync(ISpecification<TEntity> specification, CancellationToken cancellationToken = default) =>
         await ApplySpecification(specification)
-            .AnyAsync();
+            .AnyAsync(cancellationToken);
 
     private IQueryable<TEntity> ApplySpecification(ISpecification<TEntity>? specification)
         => SpecificationEvaluator.GetQuery(DbSet, specification);

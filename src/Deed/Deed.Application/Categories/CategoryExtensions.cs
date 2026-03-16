@@ -16,7 +16,7 @@ internal static class CategoryExtensions
                     category.Type,
                     category.Period,
                     category.PlannedPeriodAmount,
-                    category.IsDeleted ?? false
+                    category.IsDeleted
         );
     }
 

@@ -12,12 +12,14 @@ internal sealed class Create : IEndpoint
         app.MapPost("api/incomes", async (CreateIncomeRequest request, ISender sender, CancellationToken ct) =>
             (await sender
                 .Send(new CreateIncomeCommand(
-                    request.CapitalId,
-                    request.CategoryId,
+                    request.CapitalId ?? 0,
+                    request.CategoryId ?? 0,
                     request.Amount,
                     request.PaymentDate,
-                    request.Purpose), ct))
+                    request.Purpose,
+                    request.Tags ?? []), ct))
                 .Process())
+            .RequireAuthorization()
             .WithTags(nameof(Incomes));
     }
 }

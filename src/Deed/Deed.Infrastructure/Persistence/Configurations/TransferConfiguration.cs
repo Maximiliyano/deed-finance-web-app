@@ -11,18 +11,29 @@ internal sealed class TransferConfiguration : IEntityTypeConfiguration<Transfer>
     {
         builder.ToTable(TableConfigurationConstants.Transfers);
 
-        builder.HasQueryFilter(c =>
-            !c.IsDeleted.HasValue ||
-            c.IsDeleted.HasValue && !c.IsDeleted.Value);
+        builder.Property(c => c.IsDeleted)
+            .HasDefaultValue(false);
 
-        builder.HasIndex(t => t.IsDeleted)
-            .HasFilter("IsDeleted = 0");
+        builder.HasQueryFilter(c => !c.IsDeleted);
+
+        builder.HasIndex(c => c.IsDeleted)
+            .HasFilter("[IsDeleted] = 0");
 
         builder.HasKey(t => t.Id);
 
         builder.Property(x => x.Amount)
             .IsRequired()
             .HasPrecision(18, 2);
+
+        builder.Property(x => x.DestinationAmount)
+            .HasPrecision(18, 2);
+
+        builder.Property(x => x.CreatedBy)
+            .IsRequired()
+            .HasMaxLength(256);
+
+        builder.Property(x => x.UpdatedBy)
+            .HasMaxLength(256);
 
         builder.HasOne(x => x.SourceCapital)
             .WithMany(x => x.TransfersOut)

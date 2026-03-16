@@ -11,12 +11,13 @@ internal sealed class IncomeConfiguration : IEntityTypeConfiguration<Income>
     {
         builder.ToTable(TableConfigurationConstants.Incomes);
 
-        builder.HasQueryFilter(c =>
-            !c.IsDeleted.HasValue ||
-            c.IsDeleted.HasValue && !c.IsDeleted.Value);
+        builder.Property(c => c.IsDeleted)
+            .HasDefaultValue(false);
 
-        builder.HasIndex(t => t.IsDeleted)
-            .HasFilter("IsDeleted = 0");
+        builder.HasQueryFilter(c => !c.IsDeleted);
+
+        builder.HasIndex(c => c.IsDeleted)
+            .HasFilter("[IsDeleted] = 0");
 
         builder.HasKey(i => i.Id);
 
@@ -30,6 +31,13 @@ internal sealed class IncomeConfiguration : IEntityTypeConfiguration<Income>
         builder.Property(x => x.Purpose)
             .HasMaxLength(255);
 
+        builder.Property(i => i.CreatedBy)
+            .IsRequired()
+            .HasMaxLength(256);
+
+        builder.Property(i => i.UpdatedBy)
+            .HasMaxLength(256);
+
         builder.HasOne(i => i.Category)
             .WithMany(c => c.Incomes)
             .HasForeignKey(i => i.CategoryId)
@@ -39,5 +47,10 @@ internal sealed class IncomeConfiguration : IEntityTypeConfiguration<Income>
             .WithMany(c => c.Incomes)
             .HasForeignKey(i => i.CapitalId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasMany(i => i.Tags)
+            .WithOne(it => it.Income)
+            .HasForeignKey(it => it.Id)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

@@ -1,6 +1,6 @@
 <hr />
 
-# WebApi
+# DB
 
 <h2>Creating migrations</h2>
 
@@ -11,13 +11,25 @@
 dotnet ef migrations add Initial --startup-project src/Deed/Deed.Api --project src/Deed/Deed.Infrastructure --output-dir Persistence/Migrations
 </code>', instead of '<b>Initial</b>' specify the desired name. After that, a new folder '<b>Migrations</b>' will appear with the current date and a snapshot of the database.
 
+<h2>DB update via migrations</h2>
+
+'<code>
+dotnet ef database update --project src\Deed\Deed.Infrastructure\Deed.Infrastructure.csproj --startup-project src\Deed\Deed.Api\Deed.Api.csproj --context src\Deed\Deed.Infrastructure.Persistence.DeedDbContext
+</code>'
+
+<h2>Project overview</h2>
+
 - Backend > fly.io
 - Frontend > netlify
 - Database > FreeAspNetHosting
 
 # Tests
 
-<h2>Unit test</h2>
+- Unit tests
+
+# API
+
+- CQRS + Mediatr
 
 # Web UI
 

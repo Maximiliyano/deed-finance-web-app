@@ -8,5 +8,5 @@ public interface IExchangeRepository
 
     void UpdateRange(IEnumerable<Exchange> entities);
 
-    Task<IEnumerable<Exchange>> GetAllAsync(ISpecification<Exchange> specification);
+    Task<IEnumerable<Exchange>> GetAllAsync(ISpecification<Exchange> specification, CancellationToken cancellationToken = default);
 }

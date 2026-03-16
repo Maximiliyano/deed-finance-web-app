@@ -10,23 +10,25 @@ import { SelectiveInputComponent } from "../inputs/selective-input.component/sel
 @Component({
     selector: 'app-form',
     templateUrl: './form.component.html',
+    styleUrl: './form.component.scss',
     imports: [ReactiveFormsModule, FormErrorComponent, DatePickerComponent, SelectiveInputComponent],
     standalone: true
 })
 export class FormComponent implements OnInit, OnDestroy {
   @Input() headerText: string = 'Default form';
+  @Input() headerIcon: string = '';
   @Input({ required: true }) form: FormGroup = new FormGroup({});
   @Input({ required: true }) fields: FormField[] = [];
   @Input() buttons: FormButton[] = [
     {
       type: 'submit',
       text: 'Save',
-      styles: `bg-blue-600 text-white hover:bg-blue-700`
+      styles: 'btn-primary'
     },
     {
       type: 'button',
       text: 'Cancel',
-      styles: 'bg-gray-300 hover:bg-gray-400',
+      styles: 'btn-secondary',
       onClick: () => this.onCancel()
     }
   ];

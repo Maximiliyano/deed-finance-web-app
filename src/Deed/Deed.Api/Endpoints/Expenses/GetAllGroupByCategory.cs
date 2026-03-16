@@ -12,6 +12,7 @@ internal sealed class GetAllGroupByCategory : IEndpoint
             (await sender
                 .Send(new GetExpensesByCategoryQuery(capitalId), ct))
                 .Process())
+            .RequireAuthorization()
             .WithTags(nameof(Expenses));
     }
 }

@@ -7,6 +7,15 @@ import { Router } from '@angular/router';
 import { DialogService } from '../../../shared/components/dialogs/services/dialog.service';
 import { AuthService } from '../../../modules/auth/services/auth-service';
 import { User } from '../../../modules/auth/models/user';
+import { ViewportScroller } from '@angular/common';
+
+export interface NavItem {
+  label: string;
+  icon: string;
+  link?: string;
+  fragment?: string;
+  children?: NavItem[];
+}
 
 @Component({
     selector: 'app-header',
@@ -17,26 +26,40 @@ import { User } from '../../../modules/auth/models/user';
 export class HeaderComponent implements OnInit, OnDestroy {
   exchanges: Exchange[] = [];
   exchangeUpdatedAt: Date | null = null;
-  isSidebarExpanded: boolean;
-  navItems = [
-    { label: 'Capitals', icon: 'fa-wallet', link: '/capitals' },
-    { label: 'Expenses', icon: 'fa-money-bill-wave', link: '/expenses' },
-    { label: 'Incomes', icon: 'fa-dollar-sign', link: '/incomes' },
-    { label: 'Goals', icon: 'fa-star', link: '/goals' },
-    { label: 'Transfers', icon: 'fa-exchange-alt', link: '/transfers' },
+  isSidebarExpanded = false;
+  openDropdown: string | null = null;
+  expandedSidebarGroup: string | null = null;
+
+  navItems: NavItem[] = [
+    {
+      label: 'Dashboard', icon: 'fa-gauge-high', children: [
+        { label: 'Overview', icon: 'fa-house', link: '/' },
+        { label: 'Budget Planner', icon: 'fa-compass-drafting', link: '/', fragment: 'estimations' },
+        { label: 'Goals', icon: 'fa-star', link: '/', fragment: 'goals' },
+        { label: 'Debts', icon: 'fa-hand-holding-dollar', link: '/', fragment: 'debts' },
+      ]
+    },
+    {
+      label: 'Finance', icon: 'fa-coins', children: [
+        { label: 'Capitals', icon: 'fa-wallet', link: '/capitals' },
+        { label: 'Expenses', icon: 'fa-money-bill-wave', link: '/expenses' },
+        { label: 'Incomes', icon: 'fa-dollar-sign', link: '/incomes' }
+      ]
+    },
   ];
   user: User | null;
 
   private unsubscribe = new Subject<void>();
-  
-  trackByLabel: TrackByFunction<{ label: string; icon: string; link: string; }>;
+
+  trackByLabel: TrackByFunction<NavItem>;
   trackBySale: TrackByFunction<Exchange>;
 
   constructor(
     private readonly router: Router,
     private readonly authService: AuthService,
     private readonly dialogService: DialogService,
-    private readonly exchangeService: ExchangeService) {}
+    private readonly exchangeService: ExchangeService,
+    private readonly viewportScroller: ViewportScroller) {}
 
   ngOnInit(): void {
     this.authService.user$
@@ -61,6 +84,37 @@ export class HeaderComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.unsubscribe.next();
     this.unsubscribe.complete();
+  }
+
+  navigateTo(item: NavItem): void {
+    this.openDropdown = null;
+    this.isSidebarExpanded = false;
+
+    if (item.fragment) {
+      this.router.navigate([item.link ?? '/'], { fragment: item.fragment }).then(() => {
+        setTimeout(() => {
+          const el = document.getElementById(item.fragment!);
+          if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        }, 100);
+      });
+    } else if (item.link) {
+      this.router.navigate([item.link]);
+    }
+  }
+
+  toggleDropdown(label: string, event: MouseEvent): void {
+    event.stopPropagation();
+    this.openDropdown = this.openDropdown === label ? null : label;
+  }
+
+  closeDropdowns(): void {
+    this.openDropdown = null;
+  }
+
+  toggleSidebarGroup(label: string): void {
+    this.expandedSidebarGroup = this.expandedSidebarGroup === label ? null : label;
   }
 
   openExchangeDialog(): void {

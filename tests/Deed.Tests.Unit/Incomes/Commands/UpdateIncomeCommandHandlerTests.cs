@@ -1,3 +1,4 @@
+using Deed.Application.Auth;
 using Deed.Application.Incomes.Commands.Update;
 using Deed.Application.Incomes.Specifications;
 using Deed.Domain.Entities;
@@ -15,12 +16,14 @@ public sealed class UpdateIncomeCommandHandlerTests
     private readonly ICapitalRepository _capitalRepository = Substitute.For<ICapitalRepository>();
     private readonly ICategoryRepository _categoryRepository = Substitute.For<ICategoryRepository>();
     private readonly IUnitOfWork _unitOfWork = Substitute.For<IUnitOfWork>();
+    private readonly IUser _userMock = Substitute.For<IUser>();
 
     private readonly UpdateIncomeCommandHandler _handler;
 
     public UpdateIncomeCommandHandlerTests()
     {
-        _handler = new UpdateIncomeCommandHandler(_incomeRepository, _capitalRepository, _categoryRepository, _unitOfWork);
+        _userMock.Name.Returns("testuser");
+        _handler = new UpdateIncomeCommandHandler(_incomeRepository, _capitalRepository, _categoryRepository, _unitOfWork, _userMock);
     }
 
     [Theory]

@@ -7,10 +7,10 @@ public static class DomainErrors
     public static class General
     {
         public static Error Exception
-            => Error.Failure(nameof(Exception), "An unexcepted error occured.");
+            => Error.Failure(nameof(Exception), "An unexpected error occurred.");
 
         public static Error NotFound(string name)
-            => Error.NotFound(nameof(NotFound), $"The specific {name} was not found.");
+            => Error.NotFound(nameof(NotFound), $"The specified {name} was not found.");
 
         public static Error UpdateFailed
             => Error.Failure(nameof(UpdateFailed), "Update entity failed.");

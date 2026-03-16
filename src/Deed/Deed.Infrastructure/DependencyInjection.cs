@@ -1,10 +1,15 @@
 using Deed.Application.Abstractions.Data;
+using Deed.Application.Abstractions.Services;
 using Deed.Domain.Repositories;
+using Deed.Infrastructure.BackgroundJobs.BalanceReminder;
+using Deed.Infrastructure.BackgroundJobs.DebtReminder;
+using Deed.Infrastructure.BackgroundJobs.ExpenseReminder;
 using Deed.Infrastructure.BackgroundJobs.UpsertLatestExchange;
 using Deed.Infrastructure.Persistence;
 using Deed.Infrastructure.Persistence.Constants;
 using Deed.Infrastructure.Persistence.Interceptors;
 using Deed.Infrastructure.Persistence.Repositories;
+using Deed.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
@@ -23,6 +28,8 @@ public static class DependencyInjection
 
         services.AddBackgroundJobs();
 
+        services.AddScoped<IEmailService, SmtpEmailService>();
+
         return services;
     }
 
@@ -34,6 +41,12 @@ public static class DependencyInjection
             => options.WaitForJobsToComplete = true);
 
         services.ConfigureOptions<UpsertLatestExchangeJobSetup>();
+
+        services.ConfigureOptions<BalanceReminderJobSetup>();
+
+        services.ConfigureOptions<ExpenseReminderJobSetup>();
+
+        services.ConfigureOptions<DebtReminderJobSetup>();
 
         return services;
     }
@@ -54,6 +67,16 @@ public static class DependencyInjection
 
         services.AddScoped<IExpenseTagRepository, ExpenseTagRepository>();
 
+        services.AddScoped<IUserSettingsRepository, UserSettingsRepository>();
+
+        services.AddScoped<IBudgetEstimationRepository, BudgetEstimationRepository>();
+
+        services.AddScoped<IGoalRepository, GoalRepository>();
+
+        services.AddScoped<IDebtRepository, DebtRepository>();
+
+        services.AddScoped<ITransferRepository, TransferRepository>();
+
         return services;
     }
 
@@ -63,7 +86,7 @@ public static class DependencyInjection
 
         services.AddDbContext<DeedDbContext>((sp, options) =>
         {
-            var databaseSettings = sp.GetRequiredService<IConfiguration>().GetValue<string>(TableConfigurationConstants.DatabaseConnection);
+            var databaseSettings = sp.GetRequiredService<IConfiguration>().GetValue<string>(ConfigurationKeys.DatabaseConnection);
             var auditableInterceptor = sp.GetRequiredService<UpdateAuditableEntitiesInterceptor>();
 
             options.UseSqlServer(databaseSettings)

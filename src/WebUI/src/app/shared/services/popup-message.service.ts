@@ -9,6 +9,10 @@ export class PopupMessageService {
 
   constructor(private readonly zone: NgZone) {}
 
+  info(message: string, duration: number = this.defaultDuration): void {
+    this.display(message, 'info', duration);
+  }
+
   warning(message: string, duration: number = this.defaultDuration): void {
     this.display(message, 'warning', duration);
   }
@@ -21,7 +25,7 @@ export class PopupMessageService {
     this.display(message, 'success', duration);
   }
 
-  private display(message: string, type: 'success' | 'warning' | 'error', duration: number): void {
+  private display(message: string, type: 'success' | 'warning' | 'error' | 'info', duration: number): void {
     this.zone.run(() => {
       if (!this.messageContainer) {
         this.createMessageContainer();
@@ -38,7 +42,7 @@ export class PopupMessageService {
     document.body.appendChild(this.messageContainer);
   }
 
-  private addMessage(message: string, type: 'success' | 'warning' | 'error', duration: number): void {
+  private addMessage(message: string, type: 'success' | 'warning' | 'error' | 'info', duration: number): void {
     const messageElement = document.createElement('div');
 
     messageElement.className = `popup-message ${type}`;
@@ -65,7 +69,7 @@ export class PopupMessageService {
     }, duration)
   }
 
-  private getIcon(type: 'success' | 'warning' | 'error'): string {
+  private getIcon(type: 'success' | 'warning' | 'error' | 'info'): string {
     switch (type) {
       case 'success':
         return '✔️';
@@ -73,6 +77,8 @@ export class PopupMessageService {
         return '⚠️';
       case 'error':
         return '❌';
+      case 'info':
+        return 'ℹ️';
       default:
         return '';
     }

@@ -1,5 +1,6 @@
 using Deed.Application.Abstractions.Messaging;
 using Deed.Application.Capitals.Specifications;
+using Deed.Application.Tags.Specifications;
 using Deed.Domain.Errors;
 using Deed.Domain.Repositories;
 using Deed.Domain.Results;
@@ -10,12 +11,13 @@ namespace Deed.Application.Incomes.Commands.Create;
 internal sealed class CreateIncomeCommandHandler(
     ICapitalRepository capitalRepository,
     IIncomeRepository incomeRepository,
+    ITagRepository tagRepository,
     IUnitOfWork unitOfWork)
     : ICommandHandler<CreateIncomeCommand, int>
 {
     public async Task<Result<int>> Handle(CreateIncomeCommand command, CancellationToken cancellationToken)
     {
-        var capital = await capitalRepository.GetAsync(new CapitalByIdSpecification(command.CapitalId)).ConfigureAwait(false);
+        var capital = await capitalRepository.GetAsync(new CapitalByIdSpecification(command.CapitalId), cancellationToken).ConfigureAwait(false);
 
         if (capital is null)
         {
@@ -23,6 +25,23 @@ internal sealed class CreateIncomeCommandHandler(
         }
 
         var income = command.ToEntity();
+
+        foreach (var tagName in command.TagNames ?? [])
+        {
+            var tag = await tagRepository.GetAsync(new TagByNameSpecification(tagName, true), cancellationToken).ConfigureAwait(false);
+
+            if (tag is null)
+            {
+                tagRepository.Create(new()
+                {
+                    Name = tagName,
+                    IncomeTags = [new() { Income = income }]
+                });
+                continue;
+            }
+
+            income.Tags.Add(new() { Tag = tag });
+        }
 
         capital.Balance += command.Amount;
 

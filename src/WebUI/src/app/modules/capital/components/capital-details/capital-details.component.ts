@@ -129,13 +129,13 @@ export class CapitalDetailsComponent implements OnInit, OnDestroy {
       {
         type: 'submit',
         text: 'Update',
-        styles: `bg-[#377e21] enabled:hover:bg-[#47a42b] disabled:cursor-not-allowed text-white`,
+        styles: 'btn-primary',
         disabled: isSubmitBtnDisabled,
       },
       {
         type: 'button',
         text: 'Cancel',
-        styles: 'bg-[#e15240] hover:bg-[#f26243] text-white',
+        styles: 'btn-secondary',
         onClick: () => this.handleCancel()
       }
     ];

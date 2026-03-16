@@ -5,9 +5,9 @@ namespace Deed.Domain.Repositories;
 
 public interface ICategoryRepository
 {
-    Task<IEnumerable<Category>> GetAllAsync(ISpecification<Category> specification);
+    Task<IEnumerable<Category>> GetAllAsync(ISpecification<Category> specification, CancellationToken cancellationToken = default);
 
-    Task<Category?> GetAsync(ISpecification<Category> specification);
+    Task<Category?> GetAsync(ISpecification<Category> specification, CancellationToken cancellationToken = default);
 
     void Create(Category category);
 
@@ -15,5 +15,5 @@ public interface ICategoryRepository
 
     void Delete(Category category);
 
-    Task<bool> AnyAsync(ISpecification<Category> specification);
+    Task<bool> AnyAsync(ISpecification<Category> specification, CancellationToken cancellationToken = default);
 }

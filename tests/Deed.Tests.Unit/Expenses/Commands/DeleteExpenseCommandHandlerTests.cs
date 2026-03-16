@@ -1,3 +1,4 @@
+using Deed.Application.Auth;
 using Deed.Application.Expenses.Commands.Delete;
 using Deed.Application.Expenses.Specifications;
 using Deed.Domain.Entities;
@@ -14,12 +15,14 @@ public sealed class DeleteExpenseCommandHandlerTests
     private readonly ICapitalRepository _capitalRepositoryMock = Substitute.For<ICapitalRepository>();
     private readonly IExpenseRepository _expenseRepositoryMock = Substitute.For<IExpenseRepository>();
     private readonly IUnitOfWork _unitOfWorkMock = Substitute.For<IUnitOfWork>();
+    private readonly IUser _userMock = Substitute.For<IUser>();
 
     private readonly DeleteExpenseCommandHandler _handler;
 
     public DeleteExpenseCommandHandlerTests()
     {
-        _handler = new DeleteExpenseCommandHandler(_capitalRepositoryMock, _expenseRepositoryMock, _unitOfWorkMock);
+        _userMock.Name.Returns("tester");
+        _handler = new DeleteExpenseCommandHandler(_capitalRepositoryMock, _expenseRepositoryMock, _unitOfWorkMock, _userMock);
     }
 
     [Fact]

@@ -18,6 +18,8 @@ import { CapitalDetailsComponent } from './components/capital-details/capital-de
 import { ConfirmDialogComponent } from '../../shared/components/dialogs/confirm-dialog/confirm-dialog.component';
 import { User } from '../auth/models/user';
 import { AuthService } from '../auth/services/auth-service';
+import { Debt } from '../home/models/debt.model';
+import { DebtService } from '../home/services/debt.service';
 
 @Component({
     selector: 'app-capitals',
@@ -26,11 +28,11 @@ import { AuthService } from '../auth/services/auth-service';
     animations: [
         trigger('slideRemove', [
             transition(':leave', [
-                animate('350ms ease', style({ transform: 'traslateY(100%)', opacity: 0 }))
+                animate('200ms ease-out', style({ transform: 'translateY(6px)', opacity: 0 }))
             ]),
             transition(':enter', [
-                style({ transform: 'translateY(-100%)', opacity: 0 }),
-                animate('350ms ease', style({ transform: 'translateY(0)', opacity: 1 }))
+                style({ transform: 'translateY(-6px)', opacity: 0 }),
+                animate('200ms ease-out', style({ transform: 'translateY(0)', opacity: 1 }))
             ])
         ])
     ],
@@ -41,10 +43,11 @@ export class CapitalsComponent implements OnInit, OnDestroy {
   capitalStatItems: CapitalItem[] = [
     { key: 'totalIncome', title: 'Incomes', icon: 'fa-dollar-sign', style: 'cp-incomes' },
     { key: 'totalExpense', title: 'Expenses', icon: 'fa-money-bill-wave', style: 'cp-expenses', url: '/expenses' },
-    { key: 'totalTransferOut', title: 'Transfer Out', icon: 'fa-arrow-up', style: 'text-blue-400' },
-    { key: 'totalTransferIn', title: 'Transfer In', icon: 'fa-arrow-down', style: 'text-pink-400' },
+    { key: 'totalTransferOut', title: 'Transfer Out', icon: 'fa-arrow-up', style: 'cp-transfer-out' },
+    { key: 'totalTransferIn', title: 'Transfer In', icon: 'fa-arrow-down', style: 'cp-transfer-in' },
   ];
   exchanges: Exchange[] = [];
+  debts: Debt[] = [];
 
   searchTerm = '';
   selectedSortOption: string = '';
@@ -55,7 +58,7 @@ export class CapitalsComponent implements OnInit, OnDestroy {
   mainCurrencyVal: CurrencyType;
 
   sortOptions: {label: string; key: string}[] = [
-    { label: 'user order', key: '' },
+    { label: 'custom', key: '' },
     { label: 'name', key: 'name' },
     { label: 'balance', key: 'balance' },
     { label: 'expenses', key: 'totalExpense' },
@@ -81,20 +84,9 @@ export class CapitalsComponent implements OnInit, OnDestroy {
     private readonly popupMessageService: PopupMessageService,
     private readonly exchangeService: ExchangeService,
     private readonly dialogService: DialogService,
-    private readonly authService: AuthService
+    private readonly authService: AuthService,
+    private readonly debtService: DebtService
   ) {
-  }
-
-  capitalBackgroundClass(includeInTotal: boolean, onlyForSavings: boolean) {
-    if (onlyForSavings) {
-      return 'cp bg-gradient-to-r from-white to-yellow-600';
-    }
-    if (!includeInTotal) {
-      return 'cp bg-gradient-to-r from-white to-blue-950';
-    }
-    else {
-      return 'cp bg-gradient-to-r from-white to-gray-100';
-    }
   }
 
   @HostListener('document:click', ['$event.target'])
@@ -134,6 +126,15 @@ export class CapitalsComponent implements OnInit, OnDestroy {
 
     this.fetchCapitals();
     this.fetchExchanges();
+    this.debtService.getAll().pipe(takeUntil(this.unsubcribe$)).subscribe({
+      next: debts => this.debts = debts
+    });
+  }
+
+  borrowedAmount(capitalId: number): number {
+    return this.debts
+      .filter(d => d.capitalId === capitalId && !d.isPaid)
+      .reduce((sum, d) => sum + d.amount, 0);
   }
 
   ngOnDestroy(): void {
@@ -147,7 +148,8 @@ export class CapitalsComponent implements OnInit, OnDestroy {
       .getLatest()
       .pipe(takeUntil(this.unsubcribe$))
       .subscribe({
-        next: (response) => this.exchanges = response
+        next: (response) => this.exchanges = response,
+        error: () => this.popupMessageService.error('Failed to load exchanges')
       });
   }
 
@@ -162,7 +164,8 @@ export class CapitalsComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (response) => {
           this.capitals = response;
-        }
+        },
+        error: () => this.popupMessageService.error('Failed to load capitals')
     });
   }
 
@@ -187,8 +190,9 @@ export class CapitalsComponent implements OnInit, OnDestroy {
     const newCurrency = (event.target as HTMLSelectElement).value;
 
     if (newCurrency) {
-      this.mainCurrency = CurrencyType[Number(newCurrency)];
-      this.popupMessageService.success(`The default currency updated to <b>${this.mainCurrency}</b>`);
+      this.mainCurrencyVal = Number(newCurrency);
+      this.mainCurrency = CurrencyType[this.mainCurrencyVal];
+      this.popupMessageService.success(`Shown currency updated to <b>${this.mainCurrency}</b>`);
     }
   }
 
@@ -213,7 +217,8 @@ export class CapitalsComponent implements OnInit, OnDestroy {
               .update(request.id, request)
               .pipe(takeUntil(this.unsubcribe$))
               .subscribe({
-                next: () => this.capitalUpdated(request)
+                next: () => this.capitalUpdated(request),
+                error: () => this.popupMessageService.error('Failed to update capital')
               });
           }
         }
@@ -245,6 +250,7 @@ export class CapitalsComponent implements OnInit, OnDestroy {
 
     dialogRef
       .afterClosed$
+      .pipe(takeUntil(this.unsubcribe$))
       .subscribe({
         next: (request: AddCapitalRequest | null) => {
           if (request) {
@@ -253,7 +259,8 @@ export class CapitalsComponent implements OnInit, OnDestroy {
               .subscribe({
                 next: (id) => {
                   this.addCapitalToTheList(id, request);
-                }
+                },
+                error: () => this.popupMessageService.error('Failed to create capital')
               });
           }
         }
@@ -291,12 +298,20 @@ export class CapitalsComponent implements OnInit, OnDestroy {
         return accumulator + balance;
       }
 
-      const exchange = this.exchanges?.find(
+      const direct = this.exchanges?.find(
         e => e.nationalCurrency === this.mainCurrency && e.targetCurrency === capital.currency
       );
 
-      return exchange
-        ? accumulator + balance * exchange.sale
+      if (direct) {
+        return accumulator + balance * direct.sale;
+      }
+
+      const reverse = this.exchanges?.find(
+        e => e.nationalCurrency === capital.currency && e.targetCurrency === this.mainCurrency
+      );
+
+      return reverse && reverse.buy > 0
+        ? accumulator + balance / reverse.buy
         : accumulator;
     }, 0) ?? 0;
   }
@@ -322,7 +337,8 @@ export class CapitalsComponent implements OnInit, OnDestroy {
           next: () => {
             capital.includeInTotal = !capital.includeInTotal;
             this.popupMessageService.success(`${capital.name} ${capital.includeInTotal ? 'included into' : 'excluded from'} total balance`);
-          }
+          },
+          error: () => this.popupMessageService.error('Failed to update capital')
         });
     }
   }
@@ -338,7 +354,8 @@ export class CapitalsComponent implements OnInit, OnDestroy {
           next: () => {
             capital.onlyForSavings = !capital.onlyForSavings;
             this.popupMessageService.success(`${capital.name} set to ${capital.onlyForSavings ? 'only for savings' : 'regular'} capital`);
-          }
+          },
+          error: () => this.popupMessageService.error('Failed to update capital')
         });
     }
   }
@@ -356,7 +373,7 @@ export class CapitalsComponent implements OnInit, OnDestroy {
       },
     });
 
-    ref.afterClosed$.subscribe({
+    ref.afterClosed$.pipe(takeUntil(this.unsubcribe$)).subscribe({
       next: (confirmed: boolean) => {
         if (confirmed) {
           this.capitalService
@@ -366,7 +383,9 @@ export class CapitalsComponent implements OnInit, OnDestroy {
               next: () => {
                 this.capitals = this.capitals.filter(x => x.id !== id);
                 this.popupMessageService.success("The capital was successful deleted.");
-              }});
+              },
+              error: () => this.popupMessageService.error('Failed to delete capital')
+            });
         }
       }
     });
@@ -391,7 +410,8 @@ export class CapitalsComponent implements OnInit, OnDestroy {
       .subscribe({
         next: () => {
           this.popupMessageService.success("Sort order is changed.");
-        }
+        },
+        error: () => this.popupMessageService.error('Failed to update sort order')
       });
   }
 }

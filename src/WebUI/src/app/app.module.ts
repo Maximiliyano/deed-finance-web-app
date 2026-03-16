@@ -6,11 +6,13 @@ import { AppRoutingModule } from './app-routing.module';
 import { HeaderComponent } from './core/layout/header/header.component';
 import { FooterComponent } from './core/layout/footer/footer.component';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
+import { credentialsInterceptor } from './core/interceptors/credentials.interceptor';
 import { errorInterceptor } from './core/interceptors/error.interceptor';
 import { loadingInterceptor } from './core/interceptors/loading.interceptor';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { LoadingComponent } from './shared/components/loading/loading.component';
 import { SharedModule } from "./shared/shared.module";
+import {NgOptimizedImage} from "@angular/common";
 
 @NgModule({
   declarations: [
@@ -22,12 +24,13 @@ import { SharedModule } from "./shared/shared.module";
   imports: [
     AppRoutingModule,
     BrowserModule,
-    SharedModule
-],
+    SharedModule,
+    NgOptimizedImage
+  ],
   bootstrap: [AppComponent],
   providers: [
     provideHttpClient(
-      withInterceptors([errorInterceptor, loadingInterceptor])
+      withInterceptors([credentialsInterceptor, errorInterceptor, loadingInterceptor])
     ),
     provideAnimations()
   ]

@@ -17,7 +17,7 @@ internal sealed class CreateExpenseCommandHandler(
 {
     public async Task<Result<int>> Handle(CreateExpenseCommand command, CancellationToken cancellationToken)
     {
-        var capital = await capitalRepository.GetAsync(new CapitalByIdSpecification(command.CapitalId)).ConfigureAwait(false);
+        var capital = await capitalRepository.GetAsync(new CapitalByIdSpecification(command.CapitalId), cancellationToken).ConfigureAwait(false);
 
         if (capital is null)
         {
@@ -31,9 +31,9 @@ internal sealed class CreateExpenseCommandHandler(
 
         var expense = command.ToEntity();
 
-        foreach (var tagName in command.TagNames)
+        foreach (var tagName in command.TagNames ?? [])
         {
-            var tag = await tagRepository.GetAsync(new TagByNameSpecification(tagName, true)).ConfigureAwait(false);
+            var tag = await tagRepository.GetAsync(new TagByNameSpecification(tagName, true), cancellationToken).ConfigureAwait(false);
             if (tag is null)
             {
                 tagRepository.Create(new ()

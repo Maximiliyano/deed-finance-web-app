@@ -1,8 +1,10 @@
 namespace Deed.Application.Incomes.Requests;
 
 public sealed record CreateIncomeRequest(
-    int CapitalId,
-    int CategoryId,
+    int? CapitalId,
+    int? CategoryId,
     decimal Amount,
     DateTimeOffset PaymentDate,
-    string? Purpose);
+    string? Purpose,
+    List<string>? Tags
+);

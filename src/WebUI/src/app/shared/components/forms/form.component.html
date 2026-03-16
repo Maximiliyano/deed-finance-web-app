@@ -1,98 +1,98 @@
-<form [formGroup]="form" (ngSubmit)="onSubmit()">
-    <h2 class="text-xl font-semibold mb-4 text-center">{{ headerText }}</h2>
+<form [formGroup]="form" (ngSubmit)="onSubmit()" class="modal-form">
+  @if (headerText) {
+    <div class="modal-form-header">
+      @if (headerIcon) {
+        <i class="fas {{ headerIcon }}" style="color: var(--text-muted); font-size: 0.875rem"></i>
+      }
+      <h2 class="modal-form-title">{{ headerText }}</h2>
+    </div>
+  }
 
+  <div class="modal-form-body">
     @for (field of fields; track field.controlName) {
-      <div class="mb-4">
+      <div class="form-group">
         @switch (field.input?.type) {
           @case ('checkbox') {
-            <div class="flex items-center justify-between mb-4">
-              <div class="flex items-center">
-                <input
-                  type="checkbox"
-                  [id]="field.controlName"
-                  [formControlName]="field.controlName"
-                  class="h-4 w-4 text-blue-600 border-gray-300 rounded"
-                  autocomplete="off"
-                >
-                <label
-                  [for]="field.controlName"
-                  class="ml-2 text-sm font-medium"
-                >
-                  {{ field.label }}
-                </label>
-              </div>
-            </div>
+            <label class="checkbox-row">
+              <input
+                type="checkbox"
+                [id]="field.controlName"
+                [formControlName]="field.controlName"
+                class="checkbox"
+                autocomplete="off"
+              >
+              <span class="checkbox-label">{{ field.label }}</span>
+            </label>
           }
           @default {
-            <label [for]="field.controlName" class="block mb-1 text-sm font-medium">{{ field.label }}</label>
-    
+            <label [for]="field.controlName" class="form-label">{{ field.label }}</label>
+
             @if (field.input) {
               <input
                 [type]="field.input.type"
-                class="w-full border rounded px-3 py-2"
+                class="input"
                 [id]="field.controlName"
                 [formControlName]="field.controlName"
-                [placeholder]="field.input.placeholder ?? 'Enter the value'"
+                [placeholder]="field.input.placeholder ?? ''"
                 autocomplete="off"
               />
             }
           }
         }
-  
+
         @if (field.selectiveInput) {
           <app-selective-input
-              [formControlName]="field.controlName"
-              [suggestions]="field.selectiveInput.data"
-              (searchChange)="field.selectiveInput.onSearch($event)"
-              (createChange)="field.selectiveInput.onCreate($event)"
+            [formControlName]="field.controlName"
+            [suggestions]="field.selectiveInput.data"
+            (searchChange)="field.selectiveInput.onSearch($event)"
+            (createChange)="field.selectiveInput.onCreate($event)"
           />
         }
 
         @if (field.select) {
           <select
             [formControlName]="field.controlName"
-            class="w-full border rounded px-3 py-2 {{ formControl(field.controlName)?.disabled ? 'cursor-not-allowed text-gray-300' : 'cursor-pointer' }}"
+            class="input"
+            [class.disabled]="formControl(field.controlName)?.disabled"
           >
             @if (field.select.optionCaption) {
               <option value="">{{ field.select.optionCaption }}</option>
             }
-            @for (option of field.select.options; track `${option.key}:${option.value}`) {
-              <option [value]="option.value">
-                {{ option.key }}
-              </option>
+            @for (option of field.select.options; track option.value) {
+              <option [value]="option.value">{{ option.key }}</option>
             }
           </select>
         }
-  
+
         @if (field.dateTimePicker) {
           <app-date-picker
             [formControlName]="field.controlName"
             [restrictFuture]="field.dateTimePicker.restrictFuture ?? false"
-          >
-          </app-date-picker>
+          ></app-date-picker>
         }
-  
+
         @if (field.textArea) {
           <textarea
             [formControlName]="field.controlName"
-            class="w-full h-32 border border-black rounded px-3 py-2 resize-none"
+            class="input textarea"
           ></textarea>
         }
-  
+
         <app-form-error [form]="form" [controlName]="field.controlName"></app-form-error>
       </div>
     }
+  </div>
 
-    <div class="flex justify-center space-x-2 mt-6">
-      @for (button of buttons; track button.text) {
-        <button
-          [type]="button.type"
-          [disabled]="button.disabled"
-          (click)="button.onClick?.()"
-          class="{{button.styles}} px-4 py-2 rounded disabled:opacity-50"
-        >
-          {{ button.text }}
-        </button>
-      }
-    </div>
-  </form>
+  <div class="modal-form-footer">
+    @for (button of buttons; track button.text) {
+      <button
+        [type]="button.type"
+        [disabled]="button.disabled"
+        (click)="button.onClick?.()"
+        class="btn {{ button.styles }}"
+      >
+        {{ button.text }}
+      </button>
+    }
+  </div>
+</form>

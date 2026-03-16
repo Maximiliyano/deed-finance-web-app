@@ -18,7 +18,7 @@ internal sealed class DeleteTagCommandHandler(
 {
     public async Task<Result> Handle(DeleteTagCommand command, CancellationToken cancellationToken)
     {
-        var tag = await tagRepository.GetAsync(new TagByIdSpecification(command.Id));
+        var tag = await tagRepository.GetAsync(new TagByIdSpecification(command.Id), cancellationToken);
 
         if (tag is null)
         {

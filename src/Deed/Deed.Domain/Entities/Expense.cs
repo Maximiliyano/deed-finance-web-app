@@ -16,7 +16,7 @@ public sealed class Expense
 
     public required DateTimeOffset PaymentDate { get; set; }
 
-    public Category Category { get; init; }
+    public Category Category { get; init; } = null!;
 
     public required int CategoryId { get; set; }
 
@@ -26,15 +26,15 @@ public sealed class Expense
 
     public string? Purpose { get; set; }
 
+    public List<ExpenseTag> Tags { get; init; } = [];
+
     public DateTimeOffset CreatedAt { get; init; }
 
-    public string? CreatedBy { get; init; }
+    public string CreatedBy { get; init; } = string.Empty;
 
     public DateTimeOffset? UpdatedAt { get; init; }
 
     public string? UpdatedBy { get; init; }
 
-    public bool? IsDeleted { get; set; }
-
-    public List<ExpenseTag> Tags { get; init; } = [];
+    public bool IsDeleted { get; set; }
 }

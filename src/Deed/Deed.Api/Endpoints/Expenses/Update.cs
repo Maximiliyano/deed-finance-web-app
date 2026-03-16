@@ -21,6 +21,7 @@ internal sealed class Update : IEndpoint
                     request.TagNames,
                     request.Date), ct))
                 .Process(ResultType.NoContent))
+            .RequireAuthorization()
             .WithTags(nameof(Expenses));
     }
 }

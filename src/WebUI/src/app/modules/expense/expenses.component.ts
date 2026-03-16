@@ -181,7 +181,7 @@ export class ExpensesComponent implements OnInit, OnDestroy {
   }
 
   toggleCategories(): void {
-    // TODO when expense added, add it in categories
+
     const categoriesDialogRef = this.dialogService.open(CategoriesDialogComponent, {
       data: {
         type: "Expense",
@@ -193,26 +193,30 @@ export class ExpensesComponent implements OnInit, OnDestroy {
     
     categoriesDialogRef
       .afterClosed$
+      .pipe(takeUntil(this.$unsubscribe))
       .subscribe({
         next: (responses: CategoryResponse[]) => {
-          if (!responses) return;
-          
-          if (responses.length === 0) return;
+          if (responses?.length) {
+            const normalized = responses.map(c => ({
+              ...c,
+              periodType: Number(c.periodType)
+            }));
 
-          const normalized  = responses.map(c => ({
-            ...c,
-            periodType: Number(c.periodType)
-          }));
-
-          this.categoryService.updateRange(normalized)
-            .pipe(takeUntil(this.$unsubscribe))
-            .subscribe({
-              next: () => {
-                this.popupMessageService.success('Categories successfully updated.');
-              }
-            });
+            this.categoryService.updateRange(normalized)
+              .pipe(takeUntil(this.$unsubscribe))
+              .subscribe({
+                next: () => {
+                  this.popupMessageService.success('Categories successfully updated.');
+                  this.fetchCategories();
+                  this.fetchExpenses();
+                }
+              });
+          } else {
+            this.fetchCategories();
+            this.fetchExpenses();
           }
-        });
+        }
+      });
   }
 
   toggleCreateDialog(): void {
@@ -343,7 +347,6 @@ export class ExpensesComponent implements OnInit, OnDestroy {
   }
 
   updateExpense(update: UpdateExpenseRequest, currentCategoryId: number): void {
-    // TODO handle update in old category
     const currentExpenseCategory = this.expenseCategories.find(ec => ec.categoryId === currentCategoryId);
     if (!currentExpenseCategory) return;
 
@@ -356,7 +359,6 @@ export class ExpensesComponent implements OnInit, OnDestroy {
     currentExpense.purpose = update.purpose ?? null;
     currentExpense.paymentDate = new Date(update.date ?? currentExpense.paymentDate);
 
-    // TODO handle update in old capital
     if (!!update.amount) {
       const difference = update.amount - currentExpense.amount;
       
@@ -366,7 +368,6 @@ export class ExpensesComponent implements OnInit, OnDestroy {
       currentCapital.balance -= difference;
     }
 
-    // TODO handle moving from old category to new, removing from old
     if (!!update.capitalId) {
       const newCapital = this.capitals.find(c => c.id === update.capitalId);
       if (!newCapital) return;
@@ -378,7 +379,6 @@ export class ExpensesComponent implements OnInit, OnDestroy {
       currentExpense.capitalId = update.capitalId;
     }
 
-    // TODO handle update from old capital to new, removing from current
     if (!!update.categoryId && update.categoryId !== currentCategoryId) {
       const newCategory = this.expenseCategories.find(ec => ec.categoryId === update.categoryId);
       
@@ -401,7 +401,7 @@ export class ExpensesComponent implements OnInit, OnDestroy {
           categoryId: category.id,
           name: category.name,
           categorySum: currentExpense.amount,
-          percentage: 0, // TODO
+          percentage: 0,
           plannedPeriodAmount: category.periodAmount,
           periodType: category.periodType,
           expenses: [currentExpense]
@@ -433,9 +433,9 @@ export class ExpensesComponent implements OnInit, OnDestroy {
     }
 
     const capital = this.capitals.find(c => c.id === expense.capitalId);
-    if (!capital) return;
-
-    capital.balance += expense.amount;
+    if (capital) {
+      capital.balance += expense.amount;
+    }
 
     response.categorySum -= expense.amount;
     response.expenses = response.expenses.filter(e => e.id !== id);

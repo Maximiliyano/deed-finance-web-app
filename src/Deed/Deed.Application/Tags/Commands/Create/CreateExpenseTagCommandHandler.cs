@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Deed.Application.Abstractions.Messaging;
+using Deed.Application.Auth;
 using Deed.Application.Expenses.Specifications;
 using Deed.Domain.Entities;
 using Deed.Domain.Errors;
@@ -14,12 +10,13 @@ namespace Deed.Application.Tags.Commands.Create;
 
 internal sealed class CreateExpenseTagCommandHandler(
     IExpenseRepository expenseRepository,
-    IUnitOfWork unitOfWork
+    IUnitOfWork unitOfWork,
+    IUser user
     ) : ICommandHandler<CreateExpenseTagCommand, int>
 {
     public async Task<Result<int>> Handle(CreateExpenseTagCommand command, CancellationToken cancellationToken)
     {
-        var expense = await expenseRepository.GetAsync(new ExpenseByIdSpecification(command.ExpenseId, enableTracking: true));
+        var expense = await expenseRepository.GetAsync(new ExpenseByIdSpecification(command.ExpenseId, user.Name, enableTracking: true), cancellationToken);
 
         if (expense is null)
         {

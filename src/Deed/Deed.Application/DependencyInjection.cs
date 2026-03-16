@@ -4,22 +4,25 @@ using Deed.Application.Auth;
 using Deed.Application.Exchanges.Service;
 using FluentValidation;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 
 namespace Deed.Application;
 
 public static class DependencyInjection
 {
-    public static IServiceCollection AddApplication(this IServiceCollection services)
+    public static IServiceCollection AddApplication(this IServiceCollection services, IConfiguration configuration, IWebHostEnvironment environment)
     {
-        services.AddSettings();
+        services.AddSettings(configuration);
 
-        services.AddAuth();
+        services.AddAuth(environment);
 
         services.AddMediatrDependencies();
 
@@ -30,12 +33,9 @@ public static class DependencyInjection
         return services;
     }
 
-    private static void AddAuth(this IServiceCollection services)
+    private static void AddAuth(this IServiceCollection services, IWebHostEnvironment environment)
     {
-        services.AddSingleton<IUser, User>();
-
-        var authSettings = services.BuildServiceProvider()
-            .GetRequiredService<IOptions<AuthSettings>>().Value;
+        services.AddScoped<IUser, User>();
 
         services.AddAuthentication(options =>
         {
@@ -46,8 +46,11 @@ public static class DependencyInjection
         .AddCookie(options =>
         {
             options.Cookie.HttpOnly = true;
-            options.Cookie.SameSite = SameSiteMode.None;
-            options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+            // In development (HTTP), SameSite=None requires Secure which browsers reject over HTTP.
+            // localhost is same-site regardless of port, so Lax works for dev.
+            // In production the frontend and API are on different domains, so None+Secure is required.
+            options.Cookie.SameSite = environment.IsDevelopment() ? SameSiteMode.Lax : SameSiteMode.None;
+            options.Cookie.SecurePolicy = environment.IsDevelopment() ? CookieSecurePolicy.SameAsRequest : CookieSecurePolicy.Always;
 
             options.ExpireTimeSpan = TimeSpan.FromHours(1);
             options.SlidingExpiration = true;
@@ -65,10 +68,6 @@ public static class DependencyInjection
         })
         .AddOpenIdConnect(AuthConstants.AuthenticationScheme, options =>
         {
-            options.Authority = authSettings.Domain;
-            options.ClientId = authSettings.ClientID;
-            options.ClientSecret = authSettings.ClientSecret;
-
             options.ResponseType = AuthConstants.ResponseType;
             options.SaveTokens = true;
 
@@ -77,8 +76,26 @@ public static class DependencyInjection
             options.Scope.Add("profile");
             options.Scope.Add("email");
 
-            options.CallbackPath = new PathString("/api/auth/callback");
+            options.Events.OnRedirectToIdentityProvider = ctx =>
+            {
+                var isExplicitLogin = ctx.Properties.Items.ContainsKey(AuthConstants.ExplicitLoginKey);
+                if (ctx.Request.Path.StartsWithSegments("/api") && !isExplicitLogin)
+                {
+                    ctx.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                    ctx.HandleResponse();
+                }
+                return Task.CompletedTask;
+            };
         });
+
+        services.AddOptions<OpenIdConnectOptions>(AuthConstants.AuthenticationScheme)
+            .Configure<IOptions<AuthSettings>>((oidcOptions, authSettingsOptions) =>
+            {
+                var authSettings = authSettingsOptions.Value;
+                oidcOptions.Authority = authSettings.Domain;
+                oidcOptions.ClientId = authSettings.ClientID;
+                oidcOptions.ClientSecret = authSettings.ClientSecret;
+            });
 
         services.AddAuthorization();
     }
@@ -97,13 +114,14 @@ public static class DependencyInjection
         return services;
     }
 
-    private static IServiceCollection AddSettings(this IServiceCollection services)
+    private static IServiceCollection AddSettings(this IServiceCollection services, IConfiguration configuration)
     {
-        var configuration = services.BuildServiceProvider().GetRequiredService<IConfiguration>();
-
         services.Configure<ForwardedHeadersOptions>(options =>
         {
             options.ForwardedHeaders = ForwardedHeaders.XForwardedProto;
+            // KnownNetworks and KnownProxies are intentionally cleared so the app trusts
+            // X-Forwarded-Proto from the Fly.io / Azure reverse proxy regardless of its IP.
+            // Ensure the deployment environment is the only network entry point.
             options.KnownNetworks.Clear();
             options.KnownProxies.Clear();
         });
@@ -115,6 +133,8 @@ public static class DependencyInjection
         services.Configure<MemoryCacheSettings>(configuration.GetRequiredSection(nameof(MemoryCacheSettings)));
 
         services.Configure<AuthSettings>(configuration.GetRequiredSection(nameof(AuthSettings)));
+
+        services.Configure<SmtpSettings>(configuration.GetRequiredSection(nameof(SmtpSettings)));
 
         return services;
     }

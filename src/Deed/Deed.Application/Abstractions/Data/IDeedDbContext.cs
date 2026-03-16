@@ -1,14 +1,11 @@
 using Deed.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Deed.Application.Abstractions.Data;
 
 public interface IDeedDbContext
 {
-    DbSet<Capital> Capitals { get; }
-
     DbSet<TEntity> Set<TEntity>()
         where TEntity : Entity;
 

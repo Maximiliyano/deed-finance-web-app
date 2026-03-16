@@ -1,4 +1,5 @@
 using Deed.Application.Abstractions.Messaging;
+using Deed.Application.Auth;
 using Deed.Application.Incomes.Specifications;
 using Deed.Domain.Errors;
 using Deed.Domain.Repositories;
@@ -10,19 +11,20 @@ namespace Deed.Application.Incomes.Commands.Delete;
 internal sealed class DeleteIncomeCommandHandler(
     IIncomeRepository incomeRepository,
     ICapitalRepository capitalRepository,
-    IUnitOfWork unitOfWork)
+    IUnitOfWork unitOfWork,
+    IUser user)
     : ICommandHandler<DeleteIncomeCommand>
 {
     public async Task<Result> Handle(DeleteIncomeCommand command, CancellationToken cancellationToken)
     {
-        var income = await incomeRepository.GetAsync(new IncomeByIdSpecification(command.Id)).ConfigureAwait(false);
+        var income = await incomeRepository.GetAsync(new IncomeByIdSpecification(command.Id, user.Name), cancellationToken).ConfigureAwait(false);
 
-        if (income is null)
+        if (income is null || income.Capital is null)
         {
             return Result.Failure(DomainErrors.General.NotFound(nameof(income)));
         }
 
-        income.Capital!.Balance -= income.Amount;
+        income.Capital.Balance -= income.Amount;
 
         capitalRepository.Update(income.Capital);
 

@@ -7,7 +7,6 @@ using Deed.Domain.Entities;
 using Deed.Domain.Errors;
 using Deed.Domain.Providers;
 using Deed.Domain.Results;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Serilog;
 
@@ -24,9 +23,7 @@ public sealed class ExchangeHttpService(
         PropertyNameCaseInsensitive = true
     };
 
-    private const string LogMessage = "Exception occured while execution.";
-
-    private readonly HashSet<string> AllowedCurrencies = [
+    private static readonly HashSet<string> AllowedCurrencies = [
         "USD",
         "EUR",
         "PLN"
@@ -46,7 +43,7 @@ public sealed class ExchangeHttpService(
 
             if (!response.IsSuccessStatusCode)
             {
-                Log.Warning(LogMessage, response.ReasonPhrase);
+                Log.Warning("HTTP request failed with status {Status}: {Reason}", (int)response.StatusCode, response.ReasonPhrase);
                 return Result.Failure<IEnumerable<Exchange>>(DomainErrors.Exchange.HttpExecution);
             }
 
@@ -55,7 +52,7 @@ public sealed class ExchangeHttpService(
 
             if (exchanges is null)
             {
-                Log.Warning(LogMessage, DomainErrors.Exchange.Serialization);
+                Log.Warning("Failed to deserialize exchange rate response");
                 return Result.Failure<IEnumerable<Exchange>>(DomainErrors.Exchange.Serialization);
             }
             var newExchanges = exchanges.ExchangeRates
@@ -74,7 +71,7 @@ public sealed class ExchangeHttpService(
         }
         catch (Exception e)
         {
-            Log.Warning(e, LogMessage);
+            Log.Warning(e, "Exception occurred while fetching exchange rates");
             return Result.Failure<IEnumerable<Exchange>>(DomainErrors.Exchange.HttpExecution);
         }
     }

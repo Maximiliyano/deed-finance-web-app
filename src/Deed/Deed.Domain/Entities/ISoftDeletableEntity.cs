@@ -2,5 +2,5 @@ namespace Deed.Domain.Entities;
 
 public interface ISoftDeletableEntity
 {
-    bool? IsDeleted { get; set; }
+    bool IsDeleted { get; set; }
 }

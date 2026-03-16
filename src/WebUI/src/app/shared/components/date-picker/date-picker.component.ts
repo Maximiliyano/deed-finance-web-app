@@ -3,6 +3,7 @@ import {
   ControlValueAccessor,
   NG_VALUE_ACCESSOR
 } from '@angular/forms';
+import { todayDateString } from '../../../core/utils/date.utils';
 
 @Component({
     selector: 'app-date-picker',
@@ -19,7 +20,7 @@ import {
 export class DatePickerComponent implements ControlValueAccessor {
   @Input() restrictFuture: boolean;
 
-  today = new Date().toISOString().split('T')[0]; // TODO move into function
+  today = todayDateString();
 
   value: string | null = null;
   disabled = false;
