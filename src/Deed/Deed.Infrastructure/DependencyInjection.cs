@@ -10,6 +10,7 @@ using Deed.Infrastructure.Persistence.Constants;
 using Deed.Infrastructure.Persistence.Interceptors;
 using Deed.Infrastructure.Persistence.Repositories;
 using Deed.Infrastructure.Services;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
@@ -23,6 +24,9 @@ public static class DependencyInjection
     public static IServiceCollection AddInfrastructure(this IServiceCollection services)
     {
         services.AddDbDependencies();
+
+        services.AddDataProtection()
+            .PersistKeysToDbContext<DeedDbContext>();
 
         services.AddRepositories();
 

@@ -119,10 +119,7 @@ public static class DependencyInjection
     {
         services.Configure<ForwardedHeadersOptions>(options =>
         {
-            options.ForwardedHeaders = ForwardedHeaders.XForwardedProto;
-            // KnownNetworks and KnownProxies are intentionally cleared so the app trusts
-            // X-Forwarded-Proto from the Fly.io / Azure reverse proxy regardless of its IP.
-            // Ensure the deployment environment is the only network entry point.
+            options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
             options.KnownNetworks.Clear();
             options.KnownProxies.Clear();
         });

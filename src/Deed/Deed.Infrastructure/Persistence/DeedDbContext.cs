@@ -1,6 +1,7 @@
 using Deed.Application.Abstractions.Data;
 using Deed.Domain.Entities;
 using Deed.Domain.Repositories;
+using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 
@@ -9,8 +10,11 @@ namespace Deed.Infrastructure.Persistence;
 public sealed class DeedDbContext(DbContextOptions<DeedDbContext> options)
     : DbContext(options),
         IDeedDbContext,
-        IUnitOfWork
+        IUnitOfWork,
+        IDataProtectionKeyContext
 {
+    public DbSet<DataProtectionKey> DataProtectionKeys { get; set; }
+
     public DbSet<Capital> Capitals { get; set; }
 
     public DbSet<Expense> Expenses { get; set; }
