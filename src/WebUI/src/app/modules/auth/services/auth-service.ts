@@ -8,8 +8,8 @@ import {User} from '../models/user';
   providedIn: 'root'
 })
 export class AuthService {
-  userSubject = new BehaviorSubject<User | null>(null);
-  user$ = this.userSubject.asObservable();
+  private readonly userSubject = new BehaviorSubject<User | null>(null);
+  readonly user$ = this.userSubject.asObservable();
 
   private loaded = false;
   private pending$: Observable<User | null> | null = null;

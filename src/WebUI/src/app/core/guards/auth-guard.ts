@@ -14,9 +14,6 @@ export const authGuard: CanActivateFn = () => {
       }
       return true;
     }),
-    catchError(() => {
-      authService.login();
-      return of(false);
-    })
+    catchError(() => of(false))
   );
 };

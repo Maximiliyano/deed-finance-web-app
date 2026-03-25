@@ -11,12 +11,15 @@ internal sealed class Logout : IEndpoint
     {
         app.MapGet("/api/auth/logout", async (HttpContext context, IOptions<WebUrlSettings> webUrlSettings, IOptions<AuthSettings> authSettings) =>
         {
-            await context.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            if (context.User.Identity?.IsAuthenticated == true)
+            {
+                await context.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            }
 
             var logoutUri = $"{authSettings.Value.Domain.TrimEnd('/')}/v2/logout?client_id={authSettings.Value.ClientID}&returnTo={Uri.EscapeDataString(webUrlSettings.Value.UIUrl)}";
             context.Response.Redirect(logoutUri);
         })
-        .RequireAuthorization()
+        .AllowAnonymous()
         .WithTags(nameof(User));
     }
 }
