@@ -1,12 +1,11 @@
-import { HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
-import { inject } from '@angular/core';
-import { catchError, throwError } from 'rxjs';
-import { Result } from '../models/result-model';
-import { Router } from '@angular/router';
-import { ErrorService } from '../../shared/services/error.service';
-import { PopupMessageService } from '../../shared/services/popup-message.service';
-import { AppError } from '../models/error-model';
-import { AuthService } from '../../modules/auth/services/auth-service';
+import {HttpErrorResponse, HttpInterceptorFn} from '@angular/common/http';
+import {inject} from '@angular/core';
+import {catchError, throwError} from 'rxjs';
+import {Result} from '../models/result-model';
+import {ErrorService} from '../../shared/services/error.service';
+import {PopupMessageService} from '../../shared/services/popup-message.service';
+import {AppError} from '../models/error-model';
+import {AuthService} from '../../modules/auth/services/auth-service';
 
 export const errorInterceptor: HttpInterceptorFn = (req, next) => {
   const errorService = inject(ErrorService);
@@ -18,10 +17,7 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
       const result: Result | null = response.error;
 
       if (response.status === 401) {
-        if (!req.url.endsWith('/api/users/me')) {
-          authService.invalidate();
-          authService.login();
-        }
+        authService.invalidate();
         return throwError(() => response);
       }
 
