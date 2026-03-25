@@ -55,15 +55,15 @@ public static class DependencyInjection
             options.ExpireTimeSpan = TimeSpan.FromHours(1);
             options.SlidingExpiration = true;
 
-            options.Events.OnRedirectToLogin = ctx =>
+            options.Events.OnRedirectToLogin = async ctx =>
             {
                 if (ctx.Request.Path.StartsWithSegments("/api"))
                 {
                     ctx.Response.StatusCode = StatusCodes.Status401Unauthorized;
-                    return Task.CompletedTask;
+                    await ctx.Response.CompleteAsync();
+                    return;
                 }
                 ctx.Response.Redirect(ctx.RedirectUri);
-                return Task.CompletedTask;
             };
         })
         .AddOpenIdConnect(AuthConstants.AuthenticationScheme, options =>
