@@ -26,6 +26,7 @@ public static class DependencyInjection
         services.AddDbDependencies();
 
         services.AddDataProtection()
+            .SetApplicationName("Deed")
             .PersistKeysToDbContext<DeedDbContext>();
 
         services.AddRepositories();
