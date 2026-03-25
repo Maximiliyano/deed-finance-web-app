@@ -1,41 +1,50 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
-import { forkJoin, Subject, takeUntil } from 'rxjs';
-import { ActivatedRoute } from '@angular/router';
-import { moveItemInArray } from '@angular/cdk/drag-drop';
-import { AuthService } from '../auth/services/auth-service';
-import { User } from '../auth/models/user';
-import { Debt } from './models/debt.model';
-import { BudgetEstimation } from './models/budget-estimation.model';
-import { Goal } from './models/goal.model';
-import { UserSettings } from './models/user-settings.model';
-import { BudgetEstimationService, CreateBudgetEstimationRequest, UpdateBudgetEstimationRequest } from './services/budget-estimation.service';
-import { GoalService, UpdateGoalRequest } from './services/goal.service';
-import { CreateDebtRequest, DebtService, UpdateDebtRequest } from './services/debt.service';
-import { UserSettingsService } from './services/user-settings.service';
-import { DashboardLayoutService, PanelId } from './services/dashboard-layout.service';
-import { DialogService } from '../../shared/components/dialogs/services/dialog.service';
-import { CapitalService } from '../capital/services/capital.service';
-import { CapitalResponse } from '../capital/models/capital-response';
-import { ExpenseService } from '../expense/services/expense.service';
-import { ExpenseCategoryResponse } from '../expense/models/expense-category-response';
-import { IncomeService } from '../incomes/services/income.service';
-import { IncomeResponse } from '../incomes/models/income-response';
-import { CategoryService } from '../category/services/category.service';
-import { CategoryResponse } from '../category/models/category-model';
-import { CategoryType } from '../../core/types/category-type';
-import { BudgetEstimationDialogComponent, BudgetEstimationDialogData } from './components/budget-estimation-dialog/budget-estimation-dialog.component';
-import { GoalDialogComponent, GoalDialogData } from './components/goal-dialog/goal-dialog.component';
-import { DebtDialogComponent, DebtDialogData } from './components/debt-dialog/debt-dialog.component';
-import { PopupMessageService } from '../../shared/services/popup-message.service';
-import { QuickTransactionDialogComponent } from './components/quick-transaction-dialog/quick-transaction-dialog.component';
-import { ExchangeService } from '../../shared/services/exchange.service';
-import { TransferResponse, TransferService } from '../../shared/services/transfer.service';
-import { TransferDialogComponent, TransferDialogData } from './components/transfer-dialog/transfer-dialog.component';
-import { Exchange } from '../../core/models/exchange-model';
-import { CurrencyType } from '../../core/types/currency-type';
-import { CapitalDetailsComponent } from '../capital/components/capital-details/capital-details.component';
-import { getCurrencies } from '../../shared/components/currency/functions/get-currencies.component';
-import { UpdateCapitalRequest } from '../capital/models/update-capital-request';
+import {Component, OnDestroy, OnInit} from '@angular/core';
+import {Subject, takeUntil} from 'rxjs';
+import {ActivatedRoute} from '@angular/router';
+import {moveItemInArray} from '@angular/cdk/drag-drop';
+import {AuthService} from '../auth/services/auth-service';
+import {User} from '../auth/models/user';
+import {Debt} from './models/debt.model';
+import {BudgetEstimation} from './models/budget-estimation.model';
+import {Goal} from './models/goal.model';
+import {UserSettings} from './models/user-settings.model';
+import {
+  BudgetEstimationService,
+  CreateBudgetEstimationRequest,
+  UpdateBudgetEstimationRequest
+} from './services/budget-estimation.service';
+import {GoalService, UpdateGoalRequest} from './services/goal.service';
+import {CreateDebtRequest, DebtService, UpdateDebtRequest} from './services/debt.service';
+import {UserSettingsService} from './services/user-settings.service';
+import {DashboardLayoutService, PanelId} from './services/dashboard-layout.service';
+import {DialogService} from '../../shared/components/dialogs/services/dialog.service';
+import {CapitalService} from '../capital/services/capital.service';
+import {CapitalResponse} from '../capital/models/capital-response';
+import {ExpenseService} from '../expense/services/expense.service';
+import {ExpenseCategoryResponse} from '../expense/models/expense-category-response';
+import {IncomeService} from '../incomes/services/income.service';
+import {IncomeResponse} from '../incomes/models/income-response';
+import {CategoryService} from '../category/services/category.service';
+import {CategoryResponse} from '../category/models/category-model';
+import {
+  BudgetEstimationDialogComponent,
+  BudgetEstimationDialogData
+} from './components/budget-estimation-dialog/budget-estimation-dialog.component';
+import {GoalDialogComponent, GoalDialogData} from './components/goal-dialog/goal-dialog.component';
+import {DebtDialogComponent, DebtDialogData} from './components/debt-dialog/debt-dialog.component';
+import {PopupMessageService} from '../../shared/services/popup-message.service';
+import {
+  QuickTransactionDialogComponent
+} from './components/quick-transaction-dialog/quick-transaction-dialog.component';
+import {ExchangeService} from '../../shared/services/exchange.service';
+import {TransferResponse, TransferService} from '../../shared/services/transfer.service';
+import {TransferDialogComponent, TransferDialogData} from './components/transfer-dialog/transfer-dialog.component';
+import {Exchange} from '../../core/models/exchange-model';
+import {CurrencyType} from '../../core/types/currency-type';
+import {CapitalDetailsComponent} from '../capital/components/capital-details/capital-details.component';
+import {getCurrencies} from '../../shared/components/currency/functions/get-currencies.component';
+import {UpdateCapitalRequest} from '../capital/models/update-capital-request';
+import {DashboardService} from './services/dashboard.service';
 
 @Component({
     selector: 'app-home',
@@ -56,6 +65,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   expenseCategoriesList: CategoryResponse[] = [];
   userSettings: UserSettings | null = null;
   exchanges: Exchange[] = [];
+  loading = true;
   isEditMode = false;
   isEditingSalary = false;
   editSalary: number = 0;
@@ -82,6 +92,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     private readonly popup: PopupMessageService,
     private readonly exchangeService: ExchangeService,
     private readonly transferService: TransferService,
+    private readonly dashboardService: DashboardService,
     readonly layoutService: DashboardLayoutService
   ) {}
 
@@ -286,7 +297,7 @@ export class HomeComponent implements OnInit, OnDestroy {
         this.goalService.update(goal.id, req).subscribe({
           next: () => {
             this.popup.success('Goal updated');
-            this.loadGoals();
+            this.loadData();
           },
           error: () => this.popup.error('Failed to update goal')
         });
@@ -294,7 +305,7 @@ export class HomeComponent implements OnInit, OnDestroy {
         this.goalService.create(result).subscribe({
           next: () => {
             this.popup.success('Goal added');
-            this.loadGoals();
+            this.loadData();
           },
           error: () => this.popup.error('Failed to add goal')
         });
@@ -522,42 +533,25 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   private loadData(): void {
-    forkJoin({
-      estimations: this.estimationService.getAll(),
-      settings: this.userSettingsService.get(),
-      capitals: this.capitalService.getAll({ searchTerm: null, sortBy: null, sortDirection: null, filterBy: null }),
-      exchanges: this.exchangeService.getLatest(),
-      expenses: this.expenseService.getAllByCategories(),
-      incomeData: this.incomeService.getAll(),
-      expenseCategories: this.categoryService.getAll(CategoryType.Expenses),
-      incomeCategoriesAll: this.categoryService.getAll(CategoryType.Incomes),
-      transfersData: this.transferService.getAll()
-    }).pipe(takeUntil(this.unsubscribe$)).subscribe({
-      next: ({ estimations, settings, capitals, exchanges, expenses, incomeData, expenseCategories, incomeCategoriesAll, transfersData }) => {
-        this.estimations = estimations;
-        this.userSettings = settings;
-        this.capitals = capitals;
-        this.exchanges = exchanges;
-        this.expenseCategories = expenses;
-        this.incomes = incomeData.incomes;
-        this.incomeCategories = incomeData.categories;
-        this.expenseCategoriesList = expenseCategories;
-        this.transfers = transfersData;
+    this.loading = true;
+    this.dashboardService.get().pipe(takeUntil(this.unsubscribe$)).subscribe({
+      next: data => {
+        this.userSettings = data.settings;
+        this.capitals = data.capitals;
+        this.exchanges = data.exchanges;
+        this.estimations = data.estimations;
+        this.goals = data.goals;
+        this.debts = data.debts;
+        this.expenseCategories = data.expenseCategories;
+        this.incomes = data.incomes;
+        this.incomeCategories = data.incomeCategories;
+        this.expenseCategoriesList = data.expenseCategoriesList;
+        this.transfers = data.transfers;
+        this.loading = false;
+      },
+      error: () => {
+        this.loading = false;
       }
-    });
-    this.loadGoals();
-    this.loadDebts();
-  }
-
-  private loadGoals(): void {
-    this.goalService.getAll().pipe(takeUntil(this.unsubscribe$)).subscribe({
-      next: goals => { this.goals = goals; }
-    });
-  }
-
-  private loadDebts(): void {
-    this.debtService.getAll().pipe(takeUntil(this.unsubscribe$)).subscribe({
-      next: debts => { this.debts = debts; }
     });
   }
 

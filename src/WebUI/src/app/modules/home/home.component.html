@@ -47,6 +47,15 @@
 
         <!-- KPI -->
         @case ('kpi') {
+        @if (loading) {
+          <div class="kpi-grid" id="kpi">
+            @for (_ of [1, 2, 3, 4]; track $index) {
+              <div class="kpi-card">
+                <div class="section-spinner"><i class="fas fa-spinner fa-spin"></i></div>
+              </div>
+            }
+          </div>
+        } @else {
           <div id="kpi" class="kpi-grid">
             <div class="kpi-card kpi-link" (click)="!isEditingSalary && startEditSalary()" [title]="isEditingSalary ? '' : 'Click to edit salary'">
               <div class="kpi-icon wallet-icon"><i class="fas fa-wallet"></i></div>
@@ -127,6 +136,7 @@
             </div>
           </div>
         }
+        }
 
         <!-- Capitals -->
         @case ('capitals') {
@@ -142,7 +152,9 @@
                 </a>
               </div>
             </div>
-            @if (capitals.length === 0) {
+            @if (loading) {
+              <div class="section-spinner"><i class="fas fa-spinner fa-spin"></i></div>
+            } @else if (capitals.length === 0) {
               <div class="empty-state">
                 <i class="fas fa-wallet empty-icon"></i>
                 <p class="empty-title">No capitals yet</p>
@@ -214,7 +226,9 @@
                 </a>
               </div>
             </div>
-            @if (expenseCategories.length === 0) {
+            @if (loading) {
+              <div class="section-spinner"><i class="fas fa-spinner fa-spin"></i></div>
+            } @else if (expenseCategories.length === 0) {
               <div class="empty-state">
                 <i class="fas fa-money-bill-wave empty-icon"></i>
                 <p class="empty-title">No expenses yet</p>
@@ -273,7 +287,9 @@
                 </a>
               </div>
             </div>
-            @if (incomes.length === 0) {
+            @if (loading) {
+              <div class="section-spinner"><i class="fas fa-spinner fa-spin"></i></div>
+            } @else if (incomes.length === 0) {
               <div class="empty-state">
                 <i class="fas fa-arrow-trend-up empty-icon"></i>
                 <p class="empty-title">No incomes yet</p>
@@ -341,7 +357,9 @@
                 </button>
               </div>
             </div>
-            @if (estimations.length === 0) {
+            @if (loading) {
+              <div class="section-spinner"><i class="fas fa-spinner fa-spin"></i></div>
+            } @else if (estimations.length === 0) {
               <div class="empty-state">
                 <i class="fas fa-compass-drafting empty-icon"></i>
                 <p class="empty-title">No budget items yet</p>
@@ -445,7 +463,9 @@
                 </button>
               </div>
             </div>
-            @if (goals.length === 0) {
+            @if (loading) {
+              <div class="section-spinner"><i class="fas fa-spinner fa-spin"></i></div>
+            } @else if (goals.length === 0) {
               <div class="empty-state">
                 <i class="fas fa-star empty-icon"></i>
                 <p class="empty-title">No goals yet</p>
@@ -516,7 +536,9 @@
                 </button>
               </div>
             </div>
-            @if (debts.length === 0) {
+            @if (loading) {
+              <div class="section-spinner"><i class="fas fa-spinner fa-spin"></i></div>
+            } @else if (debts.length === 0) {
               <div class="empty-state">
                 <i class="fas fa-circle-check empty-icon text-success"></i>
                 <p class="empty-title text-success">You're debt-free!</p>
