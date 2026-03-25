@@ -1,7 +1,7 @@
-import { Component, HostListener, OnInit } from '@angular/core';
-import { AuthService } from './modules/auth/services/auth-service';
-import { NotificationService } from './shared/services/notification.service';
-import { ThemeService } from './core/services/theme.service';
+import {Component, NgZone, OnDestroy, OnInit} from '@angular/core';
+import {AuthService} from './modules/auth/services/auth-service';
+import {NotificationService} from './shared/services/notification.service';
+import {ThemeService} from './core/services/theme.service';
 
 @Component({
     selector: 'app-root',
@@ -9,13 +9,15 @@ import { ThemeService } from './core/services/theme.service';
     styleUrl: './app.component.scss',
     standalone: false
 })
-export class AppComponent implements OnInit {
+export class AppComponent implements OnInit, OnDestroy {
     showScrollTop = false;
+  private scrollListener: (() => void) | null = null;
 
     constructor(
         private readonly authService: AuthService,
         private readonly notificationService: NotificationService,
-        private readonly _theme: ThemeService
+        private readonly _theme: ThemeService,
+        private readonly zone: NgZone
     ) {
         authService.me().subscribe();
     }
@@ -24,11 +26,22 @@ export class AppComponent implements OnInit {
         if (this.notificationService.isSupported()) {
             this.notificationService.requestPermission();
         }
+
+      this.zone.runOutsideAngular(() => {
+        this.scrollListener = () => {
+          const show = window.scrollY > 400;
+          if (show !== this.showScrollTop) {
+            this.zone.run(() => this.showScrollTop = show);
+          }
+        };
+        window.addEventListener('scroll', this.scrollListener, {passive: true});
+      });
     }
 
-    @HostListener('window:scroll')
-    onScroll(): void {
-        this.showScrollTop = window.scrollY > 400;
+  ngOnDestroy(): void {
+    if (this.scrollListener) {
+      window.removeEventListener('scroll', this.scrollListener);
+    }
     }
 
     scrollToTop(): void {

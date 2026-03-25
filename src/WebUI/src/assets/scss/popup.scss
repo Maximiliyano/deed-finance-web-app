@@ -24,7 +24,7 @@
   min-height: 48px;
   word-wrap: break-word;
   pointer-events: all;
-  animation: toast-in 0.22s cubic-bezier(.34,1.56,.64,1);
+  animation: toast-in .15s ease-out;
   position: relative;
 
   &.success { border-left: 3px solid var(--success);  .popup-icon { color: var(--success-text); } }

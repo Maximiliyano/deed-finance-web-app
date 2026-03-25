@@ -1,4 +1,4 @@
-import { Injectable, NgZone } from '@angular/core';
+import {Injectable, NgZone} from '@angular/core';
 
 @Injectable({
   providedIn: 'root'
@@ -62,11 +62,8 @@ export class PopupMessageService {
 
     setTimeout(() => {
       messageElement.classList.add('fade-out');
-
-      setTimeout(() => {
-        this.removePopup(messageElement);
-      }, duration);
-    }, duration)
+      setTimeout(() => this.removePopup(messageElement), 200);
+    }, duration);
   }
 
   private getIcon(type: 'success' | 'warning' | 'error' | 'info'): string {
