@@ -23,6 +23,15 @@ var app = builder.Build();
 
 app.UseForwardedHeaders();
 
+app.Use(async (context, next) =>
+{
+    Log.Information("Scheme={Scheme} Host={Host} XFP={Proto}",
+        context.Request.Scheme,
+        context.Request.Host,
+        context.Request.Headers["X-Forwarded-Proto"].ToString());
+    await next();
+});
+
 if (app.Environment.IsDevelopment())
 {
     await app.ApplyMigrationsAsync();
