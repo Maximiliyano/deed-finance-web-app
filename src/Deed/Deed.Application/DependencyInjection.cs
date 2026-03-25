@@ -28,7 +28,8 @@ public static class DependencyInjection
 
         services.AddValidatorsFromAssembly(AssemblyReference.Assembly, includeInternalTypes: true);
 
-        services.AddHttpClient<IExchangeHttpService, ExchangeHttpService>();
+        services.AddHttpClient<IExchangeHttpService, ExchangeHttpService>()
+            .AddStandardResilienceHandler();
 
         return services;
     }
