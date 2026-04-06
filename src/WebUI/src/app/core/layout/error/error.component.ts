@@ -1,11 +1,12 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { ErrorService } from '../../../shared/services/error.service';
 
 @Component({
     selector: 'app-error',
     templateUrl: './error.component.html',
-    standalone: true
+    standalone: true,
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ErrorComponent implements OnInit {
     statusCode = 500;

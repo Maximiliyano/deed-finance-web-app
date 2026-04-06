@@ -19,6 +19,10 @@ internal sealed class IncomeConfiguration : IEntityTypeConfiguration<Income>
         builder.HasIndex(c => c.IsDeleted)
             .HasFilter("[IsDeleted] = 0");
 
+        builder.HasIndex(i => new { i.CreatedBy, i.IsDeleted });
+        builder.HasIndex(i => new { i.CapitalId, i.IsDeleted });
+        builder.HasIndex(i => new { i.CategoryId, i.IsDeleted });
+
         builder.HasKey(i => i.Id);
 
         builder.Property(e => e.PaymentDate)

@@ -22,6 +22,8 @@ internal sealed class CapitalConfiguration : IEntityTypeConfiguration<Capital>
         builder.HasIndex(c => c.IsDeleted)
             .HasFilter("[IsDeleted] = 0");
 
+        builder.HasIndex(c => new { c.CreatedBy, c.IsDeleted });
+
         builder.HasKey(c => c.Id);
 
         builder.Property(c => c.Name)

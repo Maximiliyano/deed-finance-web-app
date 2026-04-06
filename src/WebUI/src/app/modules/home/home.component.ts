@@ -1,4 +1,4 @@
-import {Component, OnDestroy, OnInit} from '@angular/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit} from '@angular/core';
 import {Subject, takeUntil} from 'rxjs';
 import {ActivatedRoute} from '@angular/router';
 import {moveItemInArray} from '@angular/cdk/drag-drop';
@@ -50,7 +50,8 @@ import {DashboardService} from './services/dashboard.service';
     selector: 'app-home',
     templateUrl: './home.component.html',
     styleUrl: './home.component.scss',
-    standalone: false
+    standalone: false,
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class HomeComponent implements OnInit, OnDestroy {
   user: User | null = null;
@@ -93,7 +94,8 @@ export class HomeComponent implements OnInit, OnDestroy {
     private readonly exchangeService: ExchangeService,
     private readonly transferService: TransferService,
     private readonly dashboardService: DashboardService,
-    readonly layoutService: DashboardLayoutService
+    readonly layoutService: DashboardLayoutService,
+    private readonly cdr: ChangeDetectorRef
   ) {}
 
   get currency(): string {
@@ -234,6 +236,7 @@ export class HomeComponent implements OnInit, OnDestroy {
         },
         error: () => {
           this.savingSalary = false;
+          this.cdr.markForCheck();
           this.popup.error('Failed to save salary');
         }
       });
@@ -257,7 +260,7 @@ export class HomeComponent implements OnInit, OnDestroy {
       if (!result) return;
       if (estimation) {
         const req: UpdateBudgetEstimationRequest = result;
-        this.estimationService.update(estimation.id, req).subscribe({
+        this.estimationService.update(estimation.id, req).pipe(takeUntil(this.unsubscribe$)).subscribe({
           next: () => {
             this.popup.success('Estimation updated');
             this.loadData();
@@ -266,7 +269,7 @@ export class HomeComponent implements OnInit, OnDestroy {
         });
       } else {
         const req: CreateBudgetEstimationRequest = result;
-        this.estimationService.create(req).subscribe({
+        this.estimationService.create(req).pipe(takeUntil(this.unsubscribe$)).subscribe({
           next: () => {
             this.popup.success('Estimation added');
             this.loadData();
@@ -278,10 +281,11 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   deleteEstimation(estimation: BudgetEstimation): void {
-    this.estimationService.delete(estimation.id).subscribe({
+    this.estimationService.delete(estimation.id).pipe(takeUntil(this.unsubscribe$)).subscribe({
       next: () => {
         this.estimations = this.estimations.filter(e => e.id !== estimation.id);
         this.popup.success('Estimation deleted');
+        this.cdr.markForCheck();
       },
       error: () => this.popup.error('Failed to delete estimation')
     });
@@ -294,7 +298,7 @@ export class HomeComponent implements OnInit, OnDestroy {
       if (!result) return;
       if (goal) {
         const req: UpdateGoalRequest = { ...result, isCompleted: result.isCompleted ?? goal.isCompleted };
-        this.goalService.update(goal.id, req).subscribe({
+        this.goalService.update(goal.id, req).pipe(takeUntil(this.unsubscribe$)).subscribe({
           next: () => {
             this.popup.success('Goal updated');
             this.loadData();
@@ -302,7 +306,7 @@ export class HomeComponent implements OnInit, OnDestroy {
           error: () => this.popup.error('Failed to update goal')
         });
       } else {
-        this.goalService.create(result).subscribe({
+        this.goalService.create(result).pipe(takeUntil(this.unsubscribe$)).subscribe({
           next: () => {
             this.popup.success('Goal added');
             this.loadData();
@@ -314,10 +318,11 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   deleteGoal(goal: Goal): void {
-    this.goalService.delete(goal.id).subscribe({
+    this.goalService.delete(goal.id).pipe(takeUntil(this.unsubscribe$)).subscribe({
       next: () => {
         this.goals = this.goals.filter(g => g.id !== goal.id);
         this.popup.success('Goal deleted');
+        this.cdr.markForCheck();
       },
       error: () => this.popup.error('Failed to delete goal')
     });
@@ -341,7 +346,7 @@ export class HomeComponent implements OnInit, OnDestroy {
           isPaid: result.isPaid ?? debt.isPaid,
           payFromCapitalId: result.payFromCapitalId ?? null
         };
-        this.debtService.update(debt.id, req).subscribe({
+        this.debtService.update(debt.id, req).pipe(takeUntil(this.unsubscribe$)).subscribe({
           next: () => {
             this.popup.success('Debt updated');
             this.loadData();
@@ -360,7 +365,7 @@ export class HomeComponent implements OnInit, OnDestroy {
           note: result.note,
           capitalId: result.capitalId ?? null
         };
-        this.debtService.create(req).subscribe({
+        this.debtService.create(req).pipe(takeUntil(this.unsubscribe$)).subscribe({
           next: () => {
             this.popup.success('Debt added');
             this.loadData();
@@ -372,10 +377,11 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   deleteDebt(debt: Debt): void {
-    this.debtService.delete(debt.id).subscribe({
+    this.debtService.delete(debt.id).pipe(takeUntil(this.unsubscribe$)).subscribe({
       next: () => {
         this.debts = this.debts.filter(d => d.id !== debt.id);
         this.popup.success('Debt deleted');
+        this.cdr.markForCheck();
       },
       error: () => this.popup.error('Failed to delete debt')
     });
@@ -388,14 +394,14 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   deleteExpense(id: number): void {
-    this.expenseService.delete(id).subscribe({
+    this.expenseService.delete(id).pipe(takeUntil(this.unsubscribe$)).subscribe({
       next: () => { this.popup.success('Expense deleted'); this.loadData(); },
       error: () => this.popup.error('Failed to delete expense')
     });
   }
 
   deleteIncome(id: number): void {
-    this.incomeService.delete(id).subscribe({
+    this.incomeService.delete(id).pipe(takeUntil(this.unsubscribe$)).subscribe({
       next: () => { this.popup.success('Income deleted'); this.loadData(); },
       error: () => this.popup.error('Failed to delete income')
     });
@@ -407,7 +413,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     });
     ref.afterClosed$.pipe(takeUntil(this.unsubscribe$)).subscribe((result: UpdateCapitalRequest | null) => {
       if (!result) return;
-      this.capitalService.update(result.id, result).subscribe({
+      this.capitalService.update(result.id, result).pipe(takeUntil(this.unsubscribe$)).subscribe({
         next: () => { this.popup.success('Capital updated'); this.loadData(); },
         error: () => this.popup.error('Failed to update capital')
       });
@@ -415,7 +421,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   deleteTransfer(id: number): void {
-    this.transferService.delete(id).subscribe({
+    this.transferService.delete(id).pipe(takeUntil(this.unsubscribe$)).subscribe({
       next: () => { this.popup.success('Transfer reversed and deleted'); this.loadData(); },
       error: () => this.popup.error('Failed to delete transfer')
     });
@@ -430,12 +436,14 @@ export class HomeComponent implements OnInit, OnDestroy {
     const ref = this.dialogService.open(TransferDialogComponent, { data });
     ref.afterClosed$.pipe(takeUntil(this.unsubscribe$)).subscribe(result => {
       if (!result) return;
-      this.transferService.create(result).subscribe({
+      this.transferService.create(result).pipe(takeUntil(this.unsubscribe$)).subscribe({
         next: () => { this.popup.success('Transfer completed'); this.loadData(); },
         error: () => this.popup.error('Failed to create transfer')
       });
     });
   }
+
+  incomeByCategoryList: { name: string; total: number; count: number; items: IncomeResponse[] }[] = [];
 
   expandedCapitalId: number | null = null;
   expandedExpenseCats = new Set<number>();
@@ -461,18 +469,6 @@ export class HomeComponent implements OnInit, OnDestroy {
     return this.incomes.reduce((sum, i) => sum + i.amount, 0);
   }
 
-  incomesByCategory(): { name: string; total: number; count: number; items: IncomeResponse[] }[] {
-    const map = new Map<number, { name: string; total: number; count: number; items: IncomeResponse[] }>();
-    for (const inc of this.incomes) {
-      const cat = this.incomeCategories.find(c => c.id === inc.categoryId);
-      const entry = map.get(inc.categoryId) ?? { name: cat?.name ?? 'Unknown', total: 0, count: 0, items: [] };
-      entry.total += inc.amount;
-      entry.count++;
-      entry.items.push(inc);
-      map.set(inc.categoryId, entry);
-    }
-    return [...map.values()].sort((a, b) => b.total - a.total);
-  }
 
   openQuickExpense(editItem?: any): void {
     const ref = this.dialogService.open(QuickTransactionDialogComponent, {
@@ -481,12 +477,12 @@ export class HomeComponent implements OnInit, OnDestroy {
     ref.afterClosed$.pipe(takeUntil(this.unsubscribe$)).subscribe(result => {
       if (!result) return;
       if (result._edit) {
-        this.expenseService.update({ id: result.id, categoryId: result.categoryId, amount: result.amount, purpose: result.purpose, date: result.date }).subscribe({
+        this.expenseService.update({ id: result.id, categoryId: result.categoryId, amount: result.amount, purpose: result.purpose, date: result.date }).pipe(takeUntil(this.unsubscribe$)).subscribe({
           next: () => { this.popup.success('Expense updated'); this.loadData(); },
           error: () => this.popup.error('Failed to update expense')
         });
       } else {
-        this.expenseService.create(result).subscribe({
+        this.expenseService.create(result).pipe(takeUntil(this.unsubscribe$)).subscribe({
           next: () => { this.popup.success('Expense added'); this.loadData(); },
           error: () => this.popup.error('Failed to add expense')
         });
@@ -501,12 +497,12 @@ export class HomeComponent implements OnInit, OnDestroy {
     ref.afterClosed$.pipe(takeUntil(this.unsubscribe$)).subscribe(result => {
       if (!result) return;
       if (result._edit) {
-        this.incomeService.update({ id: result.id, categoryId: result.categoryId, amount: result.amount, purpose: result.purpose, paymentDate: result.date }).subscribe({
+        this.incomeService.update({ id: result.id, categoryId: result.categoryId, amount: result.amount, purpose: result.purpose, paymentDate: result.date }).pipe(takeUntil(this.unsubscribe$)).subscribe({
           next: () => { this.popup.success('Income updated'); this.loadData(); },
           error: () => this.popup.error('Failed to update income')
         });
       } else {
-        this.incomeService.create(result).subscribe({
+        this.incomeService.create(result).pipe(takeUntil(this.unsubscribe$)).subscribe({
           next: () => { this.popup.success('Income added'); this.loadData(); },
           error: () => this.popup.error('Failed to add income')
         });
@@ -548,11 +544,27 @@ export class HomeComponent implements OnInit, OnDestroy {
         this.expenseCategoriesList = data.expenseCategoriesList;
         this.transfers = data.transfers;
         this.loading = false;
+        this.incomeByCategoryList = this.computeIncomesByCategory();
+        this.cdr.markForCheck();
       },
       error: () => {
         this.loading = false;
+        this.cdr.markForCheck();
       }
     });
+  }
+
+  private computeIncomesByCategory(): { name: string; total: number; count: number; items: IncomeResponse[] }[] {
+    const map = new Map<number, { name: string; total: number; count: number; items: IncomeResponse[] }>();
+    for (const inc of this.incomes) {
+      const cat = this.incomeCategories.find(c => c.id === inc.categoryId);
+      const entry = map.get(inc.categoryId) ?? { name: cat?.name ?? 'Unknown', total: 0, count: 0, items: [] };
+      entry.total += inc.amount;
+      entry.count++;
+      entry.items.push(inc);
+      map.set(inc.categoryId, entry);
+    }
+    return [...map.values()].sort((a, b) => b.total - a.total);
   }
 
   ngOnDestroy(): void {

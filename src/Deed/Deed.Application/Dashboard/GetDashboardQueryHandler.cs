@@ -65,10 +65,10 @@ internal sealed class GetDashboardQueryHandler(
             .GetAllAsync(new ExpenseByQueriesSpecification(user.Name), ct).ConfigureAwait(false);
         IEnumerable<Income> incomeList = await incomeRepository
             .GetAllAsync(new IncomesByQuerySpecification(user.Name), ct).ConfigureAwait(false);
-        IEnumerable<Category> expenseCats = await categoryRepository
-            .GetAllAsync(new CategoriesByQuerySpecification([], type: CategoryType.Expenses), ct).ConfigureAwait(false);
-        IEnumerable<Category> incomeCats = await categoryRepository
-            .GetAllAsync(new CategoriesByQuerySpecification([], type: CategoryType.Incomes), ct).ConfigureAwait(false);
+        IEnumerable<Category> allCategories = await categoryRepository
+            .GetAllAsync(new CategoriesByQuerySpecification([]), ct).ConfigureAwait(false);
+        IEnumerable<Category> expenseCats = allCategories.Where(c => c.Type == CategoryType.Expenses);
+        IEnumerable<Category> incomeCats = allCategories.Where(c => c.Type == CategoryType.Incomes);
         IEnumerable<Transfer> transferList = await transferRepository
             .GetAllAsync(new TransfersByUserSpecification(user.Name), ct).ConfigureAwait(false);
 

@@ -47,9 +47,6 @@ public static class DependencyInjection
         .AddCookie(options =>
         {
             options.Cookie.HttpOnly = true;
-            // In development (HTTP), SameSite=None requires Secure which browsers reject over HTTP.
-            // localhost is same-site regardless of port, so Lax works for dev.
-            // In production the frontend and API are on different domains, so None+Secure is required.
             options.Cookie.SameSite = environment.IsDevelopment() ? SameSiteMode.Lax : SameSiteMode.None;
             options.Cookie.SecurePolicy = environment.IsDevelopment() ? CookieSecurePolicy.SameAsRequest : CookieSecurePolicy.Always;
 
