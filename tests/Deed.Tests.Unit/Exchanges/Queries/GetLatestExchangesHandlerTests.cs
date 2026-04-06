@@ -1,17 +1,12 @@
+using Deed.Application.Abstractions.Caching;
 using Deed.Application.Abstractions.Settings;
 using Deed.Application.Exchanges;
 using Deed.Application.Exchanges.Queries.GetLatest;
 using Deed.Application.Exchanges.Responses;
-using Deed.Application.Exchanges.Service;
 using Deed.Application.Exchanges.Specifications;
 using Deed.Domain.Entities;
-using Deed.Domain.Enums;
-using Deed.Domain.Errors;
-using Deed.Domain.Providers;
 using Deed.Domain.Repositories;
-using Deed.Domain.Results;
 using FluentAssertions;
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 using NSubstitute;
 
@@ -20,7 +15,7 @@ namespace Deed.Tests.Unit.Exchanges.Queries;
 public sealed class GetLatestExchangesHandlerTests
 {
     private readonly IExchangeRepository _repositoryMock = Substitute.For<IExchangeRepository>();
-    private readonly IMemoryCache _memoryCacheMock = Substitute.For<IMemoryCache>();
+    private readonly ICacheService _cacheServiceMock = Substitute.For<ICacheService>();
     private readonly IOptions<MemoryCacheSettings> _settings;
 
     private readonly GetLatestExchangeQueryHandler _handler;
@@ -31,7 +26,7 @@ public sealed class GetLatestExchangesHandlerTests
         {
             ExchangesTimespanInHours = 1
         });
-        _handler = new GetLatestExchangeQueryHandler(_settings, _repositoryMock, _memoryCacheMock);
+        _handler = new GetLatestExchangeQueryHandler(_settings, _repositoryMock, _cacheServiceMock);
     }
 
     [Fact]
@@ -93,7 +88,8 @@ public sealed class GetLatestExchangesHandlerTests
         var query = new GetLatestExchangeQuery();
 
         _repositoryMock.GetAllAsync(Arg.Any<ExchangesByQuerySpecification>()).Returns(exchanges);
-        _memoryCacheMock.Set(nameof(Exchange), exchanges, TimeSpan.FromHours(3));
+        _cacheServiceMock.GetAsync<List<ExchangeResponse>>(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(exchanges.ToResponses().ToList());
 
         // Act
         var result = await _handler.Handle(query, CancellationToken.None);
@@ -102,6 +98,6 @@ public sealed class GetLatestExchangesHandlerTests
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().BeEquivalentTo(responses);
 
-        await _repositoryMock.Received(1).GetAllAsync(Arg.Any<ExchangesByQuerySpecification>());
+        await _repositoryMock.DidNotReceive().GetAllAsync(Arg.Any<ExchangesByQuerySpecification>());
     }
 }

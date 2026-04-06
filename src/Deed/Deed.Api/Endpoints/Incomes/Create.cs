@@ -19,7 +19,7 @@ internal sealed class Create : IEndpoint
                     request.Purpose,
                     request.Tags ?? []), ct))
                 .Process())
-            .RequireAuthorization()
+            .AllowAnonymous()
             .WithTags(nameof(Incomes));
     }
 }

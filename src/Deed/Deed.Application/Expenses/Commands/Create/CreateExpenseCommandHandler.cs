@@ -1,5 +1,7 @@
 ﻿using Deed.Application.Abstractions.Messaging;
+using Deed.Application.Auth;
 using Deed.Application.Capitals.Specifications;
+using Deed.Application.Expenses.Specifications;
 using Deed.Application.Tags.Specifications;
 using Deed.Domain.Errors;
 using Deed.Domain.Repositories;
@@ -9,6 +11,7 @@ using Serilog;
 namespace Deed.Application.Expenses.Commands.Create;
 
 internal sealed class CreateExpenseCommandHandler(
+    IUser user,
     ICapitalRepository capitalRepository,
     IExpenseRepository expenseRepository,
     ITagRepository tagRepository,
@@ -17,6 +20,16 @@ internal sealed class CreateExpenseCommandHandler(
 {
     public async Task<Result<int>> Handle(CreateExpenseCommand command, CancellationToken cancellationToken)
     {
+        if (!user.IsAuthenticated)
+        {
+            var count = await expenseRepository.CountAsync(
+                new ExpenseByQueriesSpecification(user.Name!), cancellationToken).ConfigureAwait(false);
+            if (count >= AnonymousConstants.EntityLimit)
+            {
+                return Result.Failure<int>(DomainErrors.Anonymous.LimitReached);
+            }
+        }
+
         var capital = await capitalRepository.GetAsync(new CapitalByIdSpecification(command.CapitalId), cancellationToken).ConfigureAwait(false);
 
         if (capital is null)

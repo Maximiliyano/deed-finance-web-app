@@ -15,4 +15,6 @@ public interface IExpenseRepository
     void Delete(Expense expense);
 
     Task<bool> AnyAsync(ISpecification<Expense> specification, CancellationToken cancellationToken = default);
+
+    Task<int> CountAsync(ISpecification<Expense> specification, CancellationToken cancellationToken = default);
 }

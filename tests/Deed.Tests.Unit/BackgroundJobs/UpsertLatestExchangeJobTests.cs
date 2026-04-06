@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Deed.Application.Abstractions.Caching;
 using Deed.Application.Exchanges.Service;
 using Deed.Application.Exchanges.Specifications;
 using Deed.Domain.Entities;
@@ -20,13 +21,14 @@ public sealed class UpsertLatestExchangeJobTests
     private readonly IUnitOfWork _unitOfWork = Substitute.For<IUnitOfWork>();
     private readonly IExchangeRepository _repository = Substitute.For<IExchangeRepository>();
     private readonly IExchangeHttpService _service = Substitute.For<IExchangeHttpService>();
+    private readonly ICacheService _cacheService = Substitute.For<ICacheService>();
     private readonly IJobExecutionContext _context = Substitute.For<IJobExecutionContext>();
 
     private readonly UpsertLatestExchangeJob _job;
 
     public UpsertLatestExchangeJobTests()
     {
-        _job = new UpsertLatestExchangeJob(_unitOfWork, _repository, _service);
+        _job = new UpsertLatestExchangeJob(_unitOfWork, _repository, _service, _cacheService);
     }
 
     [Fact]

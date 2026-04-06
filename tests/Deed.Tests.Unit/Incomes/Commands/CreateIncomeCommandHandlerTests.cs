@@ -1,3 +1,4 @@
+using Deed.Application.Auth;
 using Deed.Application.Capitals.Specifications;
 using Deed.Application.Incomes.Commands.Create;
 using Deed.Domain.Entities;
@@ -11,6 +12,7 @@ namespace Deed.Tests.Unit.Incomes.Commands;
 
 public sealed class CreateIncomeCommandHandlerTests
 {
+    private readonly IUser _userMock = Substitute.For<IUser>();
     private readonly ICapitalRepository _capitalRepositoryMock = Substitute.For<ICapitalRepository>();
     private readonly IIncomeRepository _incomeRepositoryMock = Substitute.For<IIncomeRepository>();
     private readonly ITagRepository _tagRepositoryMock = Substitute.For<ITagRepository>();
@@ -20,7 +22,8 @@ public sealed class CreateIncomeCommandHandlerTests
 
     public CreateIncomeCommandHandlerTests()
     {
-        _handler = new CreateIncomeCommandHandler(_capitalRepositoryMock, _incomeRepositoryMock, _tagRepositoryMock, _unitOfWorkMock);
+        _userMock.IsAuthenticated.Returns(true);
+        _handler = new CreateIncomeCommandHandler(_userMock, _capitalRepositoryMock, _incomeRepositoryMock, _tagRepositoryMock, _unitOfWorkMock);
     }
 
     [Fact]

@@ -7,9 +7,26 @@ services:
     depends_on:
       deed.db:
         condition: service_healthy
+      deed.redis:
+        condition: service_healthy
+    environment:
+      - ConnectionStrings__Redis=deed.redis:6379
     ports:
       - "8000:8000"
       - "8001:8001"
+
+  deed.redis:
+    image: redis:7-alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    volumes:
+      - redis-data:/data
 
   deed.db:
     image: mcr.microsoft.com/mssql/server:2022-latest
@@ -31,3 +48,4 @@ services:
 
 volumes:
   mssql-data:
+  redis-data:

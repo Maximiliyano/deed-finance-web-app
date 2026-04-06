@@ -1,3 +1,4 @@
+using Deed.Application.Abstractions.Caching;
 using Deed.Application.Abstractions.Settings;
 using Deed.Application.Auth;
 using Deed.Application.Dashboard;
@@ -9,7 +10,6 @@ using Deed.Domain.Enums;
 using Deed.Domain.Repositories;
 using Deed.Domain.Results;
 using FluentAssertions;
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 using NSubstitute;
 using DomainUserSettings = Deed.Domain.Entities.UserSettings;
@@ -29,7 +29,7 @@ public sealed class GetDashboardQueryHandlerTests
     private readonly ICategoryRepository _categoryRepoMock = Substitute.For<ICategoryRepository>();
     private readonly IUserSettingsRepository _settingsRepoMock = Substitute.For<IUserSettingsRepository>();
     private readonly ITransferRepository _transferRepoMock = Substitute.For<ITransferRepository>();
-    private readonly IMemoryCache _memoryCacheMock = Substitute.For<IMemoryCache>();
+    private readonly ICacheService _cacheServiceMock = Substitute.For<ICacheService>();
 
     private readonly GetDashboardQueryHandler _handler;
 
@@ -55,7 +55,7 @@ public sealed class GetDashboardQueryHandlerTests
             _categoryRepoMock,
             _settingsRepoMock,
             _transferRepoMock,
-            _memoryCacheMock,
+            _cacheServiceMock,
             cacheSettings);
 
         SetupEmptyDefaults();

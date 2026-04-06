@@ -1,3 +1,4 @@
+using Deed.Application.Abstractions.Caching;
 using Deed.Application.Exchanges.Service;
 using Deed.Application.Exchanges.Specifications;
 using Deed.Domain.Entities;
@@ -11,7 +12,8 @@ namespace Deed.Infrastructure.BackgroundJobs.UpsertLatestExchange;
 public sealed class UpsertLatestExchangeJob(
     IUnitOfWork unitOfWork,
     IExchangeRepository repository,
-    IExchangeHttpService service)
+    IExchangeHttpService service,
+    ICacheService cacheService)
     : IJob
 {
     public async Task Execute(IJobExecutionContext context)
@@ -68,6 +70,7 @@ public sealed class UpsertLatestExchangeJob(
         if (entitiesToAdd.Count > 0 || entitiesToUpdate.Count > 0)
         {
             await unitOfWork.SaveChangesAsync(context.CancellationToken).ConfigureAwait(false);
+            await cacheService.RemoveAsync(CacheKeys.Exchanges, context.CancellationToken).ConfigureAwait(false);
         }
 
         Log.Information("Job finished: {Name}", nameof(UpsertLatestExchangeJob));

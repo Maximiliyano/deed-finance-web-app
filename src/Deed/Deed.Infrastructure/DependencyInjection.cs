@@ -1,3 +1,4 @@
+using Deed.Application.Abstractions.Caching;
 using Deed.Application.Abstractions.Data;
 using Deed.Application.Abstractions.Services;
 using Deed.Domain.Repositories;
@@ -5,6 +6,7 @@ using Deed.Infrastructure.BackgroundJobs.BalanceReminder;
 using Deed.Infrastructure.BackgroundJobs.DebtReminder;
 using Deed.Infrastructure.BackgroundJobs.ExpenseReminder;
 using Deed.Infrastructure.BackgroundJobs.UpsertLatestExchange;
+using Deed.Infrastructure.Caching;
 using Deed.Infrastructure.Persistence;
 using Deed.Infrastructure.Persistence.Constants;
 using Deed.Infrastructure.Persistence.Interceptors;
@@ -21,9 +23,11 @@ namespace Deed.Infrastructure;
 
 public static class DependencyInjection
 {
-    public static IServiceCollection AddInfrastructure(this IServiceCollection services)
+    public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddDbDependencies();
+
+        services.AddRedisCaching(configuration);
 
         services.AddDataProtection()
             .SetApplicationName("Deed")
@@ -34,6 +38,25 @@ public static class DependencyInjection
         services.AddBackgroundJobs();
 
         services.AddScoped<IEmailService, SmtpEmailService>();
+
+        return services;
+    }
+
+    private static IServiceCollection AddRedisCaching(this IServiceCollection services, IConfiguration configuration)
+    {
+        string redisConnection = configuration.GetConnectionString("Redis")
+            ?? throw new InvalidOperationException("Redis connection string is not configured.");
+
+        services.AddStackExchangeRedisCache(options =>
+        {
+            options.Configuration = redisConnection;
+            options.InstanceName = "deed:";
+        });
+
+        services.AddHealthChecks()
+            .AddRedis(redisConnection, name: "deed_redis", tags: ["cache", "redis"]);
+
+        services.AddSingleton<ICacheService, RedisCacheService>();
 
         return services;
     }
