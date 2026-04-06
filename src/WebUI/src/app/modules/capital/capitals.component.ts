@@ -1,4 +1,4 @@
-import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, HostListener, OnDestroy, OnInit } from '@angular/core';
 import { debounceTime, Subject, takeUntil } from 'rxjs';
 import { Exchange } from '../../core/models/exchange-model';
 import { DialogService } from '../../shared/components/dialogs/services/dialog.service';
@@ -25,6 +25,7 @@ import { DebtService } from '../home/services/debt.service';
     selector: 'app-capitals',
     templateUrl: './capitals.component.html',
     styleUrl: './capitals.component.scss',
+    changeDetection: ChangeDetectionStrategy.OnPush,
     animations: [
         trigger('slideRemove', [
             transition(':leave', [
@@ -85,7 +86,8 @@ export class CapitalsComponent implements OnInit, OnDestroy {
     private readonly exchangeService: ExchangeService,
     private readonly dialogService: DialogService,
     private readonly authService: AuthService,
-    private readonly debtService: DebtService
+    private readonly debtService: DebtService,
+    private readonly cdr: ChangeDetectorRef
   ) {
   }
 
@@ -109,6 +111,7 @@ export class CapitalsComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.unsubcribe$))
       .subscribe(user => {
         this.user = user;
+        this.cdr.markForCheck();
       });
 
     const mainCurrency = this.capitalService.getMainCurrency();
@@ -127,7 +130,7 @@ export class CapitalsComponent implements OnInit, OnDestroy {
     this.fetchCapitals();
     this.fetchExchanges();
     this.debtService.getAll().pipe(takeUntil(this.unsubcribe$)).subscribe({
-      next: debts => this.debts = debts
+      next: debts => { this.debts = debts; this.cdr.markForCheck(); }
     });
   }
 
@@ -148,7 +151,7 @@ export class CapitalsComponent implements OnInit, OnDestroy {
       .getLatest()
       .pipe(takeUntil(this.unsubcribe$))
       .subscribe({
-        next: (response) => this.exchanges = response,
+        next: (response) => { this.exchanges = response; this.cdr.markForCheck(); },
         error: () => this.popupMessageService.error('Failed to load exchanges')
       });
   }
@@ -164,6 +167,7 @@ export class CapitalsComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (response) => {
           this.capitals = response;
+          this.cdr.markForCheck();
         },
         error: () => this.popupMessageService.error('Failed to load capitals')
     });

@@ -297,7 +297,7 @@
               </div>
             } @else {
               <div class="expense-summary-list">
-                @for (item of incomesByCategory(); track item.name) {
+                @for (item of incomeByCategoryList; track item.name) {
                   <div class="expense-summary-row clickable-row" (click)="toggleIncomeCat(item.name)">
                     <div class="expense-summary-info">
                       <i class="fas expand-icon" [ngClass]="expandedIncomeCats.has(item.name) ? 'fa-chevron-down' : 'fa-chevron-right'"></i>

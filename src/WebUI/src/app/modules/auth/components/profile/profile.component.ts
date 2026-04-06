@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { AuthService } from '../../services/auth-service';
 import { Subject, takeUntil } from 'rxjs';
 import { SharedModule } from "../../../../shared/shared.module";
@@ -17,7 +17,8 @@ import { ThemeService } from '../../../../core/services/theme.service';
   templateUrl: './profile.component.html',
   standalone: true,
   styleUrl: './profile.component.scss',
-  imports: [SharedModule]
+  imports: [SharedModule],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ProfileComponent implements OnInit, OnDestroy {
   user: User | null;
@@ -43,7 +44,8 @@ export class ProfileComponent implements OnInit, OnDestroy {
     private readonly popupMessageService: PopupMessageService,
     private readonly userSettingsService: UserSettingsService,
     private readonly fb: FormBuilder,
-    readonly themeService: ThemeService
+    readonly themeService: ThemeService,
+    private readonly cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -67,6 +69,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
       .subscribe(user => {
         this.user = user;
         document.title = `Deed - ${this.user?.fullname ?? ''} profile`;
+        this.cdr.markForCheck();
       });
 
     this.userSettingsService.get()
@@ -83,6 +86,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
             debtReminderCron: settings.debtReminderCron ?? '0 0 9 * * ?',
             emailNotificationsEnabled: settings.emailNotificationsEnabled ?? false
           });
+          this.cdr.markForCheck();
         }
       });
   }

@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { ExpenseCategoryResponse } from './models/expense-category-response';
 import { DialogService } from '../../shared/components/dialogs/services/dialog.service';
 import { AddExpenseDialogComponent } from './components/add-expense-dialog/add-expense-dialog.component';
@@ -26,7 +26,8 @@ import { Tag } from './models/tag';
     selector: 'app-expenses',
     templateUrl: './expenses.component.html',
     styleUrl: './expenses.component.scss',
-    standalone: false
+    standalone: false,
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ExpensesComponent implements OnInit, OnDestroy {
   expenseCategories: ExpenseCategoryResponse[] = [];
@@ -52,7 +53,8 @@ export class ExpensesComponent implements OnInit, OnDestroy {
     private readonly capitalService: CapitalService,
     private readonly tagService: TagService,
     private readonly dialogService: DialogService,
-    private readonly popupMessageService: PopupMessageService
+    private readonly popupMessageService: PopupMessageService,
+    private readonly cdr: ChangeDetectorRef
   ) {}
 
   get capitalOptions(): SelectOptionModel[] {
@@ -106,6 +108,7 @@ export class ExpensesComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (tags) => {
           this.tags = tags;
+          this.cdr.markForCheck();
         }
       })
   }
@@ -118,6 +121,7 @@ export class ExpensesComponent implements OnInit, OnDestroy {
         next: (responses) => {
           this.currentCategories = responses.filter(c => !c.isDeleted);
           this.deletedCategories = responses.filter(c => c.isDeleted);
+          this.cdr.markForCheck();
         }
       });
   }
@@ -125,10 +129,9 @@ export class ExpensesComponent implements OnInit, OnDestroy {
   fetchExpenses(): void {
     this.expenseService
       .getAllByCategories(this.selectedCapital?.id)
-      .pipe(
-        takeUntil(this.$unsubscribe))
+      .pipe(takeUntil(this.$unsubscribe))
       .subscribe({
-        next: (responses) => this.expenseCategories = responses
+        next: (responses) => { this.expenseCategories = responses; this.cdr.markForCheck(); }
       });
   }
 
@@ -145,17 +148,18 @@ export class ExpensesComponent implements OnInit, OnDestroy {
         next: (responses) => {
           this.capitals = responses;
           this.handleQueryParams();
+          this.cdr.markForCheck();
         }
       });
   }
 
   handleQueryParams(): void {
-    this.route.queryParamMap.subscribe({
+    this.route.queryParamMap.pipe(takeUntil(this.$unsubscribe)).subscribe({
       next: (params) => {
         const queryCapitalId = params.get('capitalId');
         const capital = this.capitals.find(c => c.id === Number(queryCapitalId));
-        
         this.selectedCapital = capital ?? null;
+        this.cdr.markForCheck();
       }
     })
   }
@@ -230,6 +234,7 @@ export class ExpensesComponent implements OnInit, OnDestroy {
 
     dialogRef
       .afterClosed$
+      .pipe(takeUntil(this.$unsubscribe))
       .subscribe({
         next: (request: CreateExpenseRequest) => {
           if (request) {
@@ -237,7 +242,8 @@ export class ExpensesComponent implements OnInit, OnDestroy {
               .pipe(takeUntil(this.$unsubscribe))
               .subscribe({
                 next: (id) => {
-                  this.addExpenseToList(id, request)
+                  this.addExpenseToList(id, request);
+                  this.cdr.markForCheck();
                 }
               });
           }
@@ -304,6 +310,7 @@ export class ExpensesComponent implements OnInit, OnDestroy {
 
     dialogRef
       .afterClosed$
+      .pipe(takeUntil(this.$unsubscribe))
       .subscribe({
         next: (request: UpdateExpenseRequest | null) => {
           if (request) {
@@ -311,7 +318,7 @@ export class ExpensesComponent implements OnInit, OnDestroy {
               .update(request)
               .pipe(takeUntil(this.$unsubscribe))
               .subscribe({
-                next: () => this.updateExpense(request, oldCategoryId)
+                next: () => { this.updateExpense(request, oldCategoryId); this.cdr.markForCheck(); }
               })
           }
         }
@@ -329,6 +336,7 @@ export class ExpensesComponent implements OnInit, OnDestroy {
 
     dialogRef
       .afterClosed$
+      .pipe(takeUntil(this.$unsubscribe))
       .subscribe({
         next: (result: boolean) => {
           if (result) {
@@ -338,6 +346,7 @@ export class ExpensesComponent implements OnInit, OnDestroy {
               .subscribe({
                 next: () => {
                   this.removeExpenseFromList(id, categoryId);
+                  this.cdr.markForCheck();
                 }
               });
           }

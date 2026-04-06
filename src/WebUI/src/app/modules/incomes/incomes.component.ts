@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnDestroy, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, signal } from '@angular/core';
 import { IncomeService } from './services/income.service';
 import { IncomeResponse, IncomeResponses } from './models/income-response';
 import { Subject, takeUntil } from 'rxjs';
@@ -14,7 +14,8 @@ import { CreateIncomeRequest } from './models/create-income-request';
   imports: [CommonModule],
   templateUrl: './incomes.component.html',
   styleUrl: './incomes.component.scss',
-  standalone: true
+  standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class IncomesComponent implements OnInit, OnDestroy {
   result = signal<IncomeResponses>({

@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, TrackByFunction } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, TrackByFunction } from '@angular/core';
 import { Exchange } from '../../models/exchange-model';
 import { ExchangeService } from '../../../shared/services/exchange.service';
 import { Subject, takeUntil } from 'rxjs';
@@ -21,7 +21,8 @@ export interface NavItem {
     selector: 'app-header',
     templateUrl: './header.component.html',
     styleUrl: './header.component.scss',
-    standalone: false
+    standalone: false,
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class HeaderComponent implements OnInit, OnDestroy {
   exchanges: Exchange[] = [];
@@ -59,13 +60,15 @@ export class HeaderComponent implements OnInit, OnDestroy {
     private readonly authService: AuthService,
     private readonly dialogService: DialogService,
     private readonly exchangeService: ExchangeService,
-    private readonly viewportScroller: ViewportScroller) {}
+    private readonly viewportScroller: ViewportScroller,
+    private readonly cdr: ChangeDetectorRef) {}
 
   ngOnInit(): void {
     this.authService.user$
       .pipe(takeUntil(this.unsubscribe))
       .subscribe(user => {
         this.user = user;
+        this.cdr.markForCheck();
       });
 
     this.exchangeService
@@ -77,6 +80,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
           if (exchanges.length > 0) {
             this.exchangeUpdatedAt = exchanges[0].updatedAt;
           }
+          this.cdr.markForCheck();
         }
       });
   }
