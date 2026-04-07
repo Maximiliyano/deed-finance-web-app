@@ -1,5 +1,5 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit} from '@angular/core';
-import {Subject, takeUntil} from 'rxjs';
+import {forkJoin, Subject, takeUntil} from 'rxjs';
 import {ActivatedRoute} from '@angular/router';
 import {moveItemInArray} from '@angular/cdk/drag-drop';
 import {AuthService} from '../auth/services/auth-service';
@@ -41,10 +41,10 @@ import {TransferResponse, TransferService} from '../../shared/services/transfer.
 import {TransferDialogComponent, TransferDialogData} from './components/transfer-dialog/transfer-dialog.component';
 import {Exchange} from '../../core/models/exchange-model';
 import {CurrencyType} from '../../core/types/currency-type';
+import {CategoryType} from '../../core/types/category-type';
 import {CapitalDetailsComponent} from '../capital/components/capital-details/capital-details.component';
 import {getCurrencies} from '../../shared/components/currency/functions/get-currencies.component';
 import {UpdateCapitalRequest} from '../capital/models/update-capital-request';
-import {DashboardService} from './services/dashboard.service';
 
 @Component({
     selector: 'app-home',
@@ -93,7 +93,6 @@ export class HomeComponent implements OnInit, OnDestroy {
     private readonly popup: PopupMessageService,
     private readonly exchangeService: ExchangeService,
     private readonly transferService: TransferService,
-    private readonly dashboardService: DashboardService,
     readonly layoutService: DashboardLayoutService,
     private readonly cdr: ChangeDetectorRef
   ) {}
@@ -530,7 +529,18 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   private loadData(): void {
     this.loading = true;
-    this.dashboardService.get().pipe(takeUntil(this.unsubscribe$)).subscribe({
+    forkJoin({
+      settings: this.userSettingsService.get(),
+      capitals: this.capitalService.getAll({ searchTerm: null, sortBy: null, sortDirection: null, filterBy: null }),
+      exchanges: this.exchangeService.getLatest(),
+      estimations: this.estimationService.getAll(),
+      goals: this.goalService.getAll(),
+      debts: this.debtService.getAll(),
+      expenseCategories: this.expenseService.getAllByCategories(),
+      incomesResult: this.incomeService.getAll(),
+      expenseCategoriesList: this.categoryService.getAll(CategoryType.Expenses),
+      transfers: this.transferService.getAll()
+    }).pipe(takeUntil(this.unsubscribe$)).subscribe({
       next: data => {
         this.userSettings = data.settings;
         this.capitals = data.capitals;
@@ -539,8 +549,8 @@ export class HomeComponent implements OnInit, OnDestroy {
         this.goals = data.goals;
         this.debts = data.debts;
         this.expenseCategories = data.expenseCategories;
-        this.incomes = data.incomes;
-        this.incomeCategories = data.incomeCategories;
+        this.incomes = data.incomesResult.incomes;
+        this.incomeCategories = data.incomesResult.categories;
         this.expenseCategoriesList = data.expenseCategoriesList;
         this.transfers = data.transfers;
         this.loading = false;

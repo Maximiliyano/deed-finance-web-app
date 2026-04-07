@@ -1,7 +1,6 @@
 using Deed.Application.Abstractions.Data;
 using Deed.Domain.Entities;
 using Deed.Domain.Repositories;
-using Deed.Infrastructure.Persistence.Abstractions;
 using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -48,14 +47,6 @@ public sealed class DeedDbContext(DbContextOptions<DeedDbContext> options)
 
     public async Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken cancellationToken = default)
         => await Database.BeginTransactionAsync(cancellationToken);
-
-    public async Task<List<TEntity>> QueryAsync<TEntity>(ISpecification<TEntity> specification, CancellationToken ct = default)
-        where TEntity : Entity
-        => await SpecificationEvaluator.GetQuery(Set<TEntity>(), specification).ToListAsync(ct);
-
-    public async Task<TEntity?> QuerySingleAsync<TEntity>(ISpecification<TEntity> specification, CancellationToken ct = default)
-        where TEntity : Entity
-        => await SpecificationEvaluator.GetQuery(Set<TEntity>(), specification).SingleOrDefaultAsync(ct);
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
