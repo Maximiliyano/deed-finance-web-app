@@ -10,7 +10,7 @@ internal sealed class GetAll : IEndpoint
     {
         app.MapGet("api/transfers", async (ISender sender, CancellationToken ct) =>
             (await sender.Send(new GetAllTransfersQuery(), ct)).Process())
-            .RequireAuthorization()
+            .AllowAnonymous()
             .WithTags(nameof(Transfers));
     }
 }

@@ -14,7 +14,7 @@ internal sealed class Create : IEndpoint
             (await sender
                 .Send(new CreateExpenseTagCommand(request.ExpenseId, request.Name), ct))
             .Process())
-            .RequireAuthorization()
+            .AllowAnonymous()
             .WithTags(nameof(Tags));
     }
 }

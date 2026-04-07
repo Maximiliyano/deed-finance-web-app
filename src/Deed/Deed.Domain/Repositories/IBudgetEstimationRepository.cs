@@ -15,4 +15,6 @@ public interface IBudgetEstimationRepository
     void Delete(BudgetEstimation estimation);
 
     Task<bool> AnyAsync(ISpecification<BudgetEstimation> specification, CancellationToken cancellationToken = default);
+
+    Task<int> CountAsync(ISpecification<BudgetEstimation> specification, CancellationToken cancellationToken = default);
 }

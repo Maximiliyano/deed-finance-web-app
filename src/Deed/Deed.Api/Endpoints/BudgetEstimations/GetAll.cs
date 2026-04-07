@@ -10,7 +10,7 @@ internal sealed class GetAll : IEndpoint
     {
         app.MapGet("api/budget-estimations", async (ISender sender, CancellationToken ct) =>
             (await sender.Send(new GetAllBudgetEstimationsQuery(), ct)).Process())
-            .RequireAuthorization()
+            .AllowAnonymous()
             .WithTags(nameof(BudgetEstimations));
     }
 }

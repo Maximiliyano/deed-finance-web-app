@@ -15,4 +15,6 @@ public interface IGoalRepository
     void Delete(Goal goal);
 
     Task<bool> AnyAsync(ISpecification<Goal> specification, CancellationToken cancellationToken = default);
+
+    Task<int> CountAsync(ISpecification<Goal> specification, CancellationToken cancellationToken = default);
 }

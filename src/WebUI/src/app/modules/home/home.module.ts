@@ -4,12 +4,10 @@ import { NgModule } from '@angular/core';
 import { SharedModule } from '../../shared/shared.module';
 import { CurrencyComponent } from '../../shared/components/currency/currency.component';
 import { RouterModule } from '@angular/router';
-import { FormsModule } from '@angular/forms';
-
 @NgModule({
   declarations: [
     HomeComponent
   ],
-  imports: [HomeRoutingModule, SharedModule, CurrencyComponent, RouterModule, FormsModule]
+  imports: [HomeRoutingModule, SharedModule, CurrencyComponent, RouterModule]
 })
 export class HomeModule { }

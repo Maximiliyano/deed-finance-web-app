@@ -13,7 +13,7 @@ internal sealed class Restore : IEndpoint
             (await sender
                 .Send(new RestoreCategoryCommand(id), cancellationToken))
                 .Process())
-            .RequireAuthorization()
+            .AllowAnonymous()
             .WithTags(nameof(Categories));
     }
 }

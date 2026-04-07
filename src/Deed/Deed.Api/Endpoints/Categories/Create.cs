@@ -17,7 +17,7 @@ internal sealed class Create : IEndpoint
                     request.PlannedPeriodAmount,
                     request.Period), ct))
                 .Process())
-            .RequireAuthorization()
+            .AllowAnonymous()
             .WithTags(nameof(Categories));
     }
 }

@@ -1,3 +1,4 @@
+using Deed.Application.Auth;
 using Deed.Application.Transfers.Commands.Create;
 using Deed.Domain.Entities;
 using Deed.Domain.Enums;
@@ -11,6 +12,7 @@ namespace Deed.Tests.Unit.Transfers.Commands;
 
 public sealed class CreateTransferCommandHandlerTests
 {
+    private readonly IUser _userMock = Substitute.For<IUser>();
     private readonly ICapitalRepository _capitalRepository = Substitute.For<ICapitalRepository>();
     private readonly ITransferRepository _transferRepository = Substitute.For<ITransferRepository>();
     private readonly IUnitOfWork _unitOfWork = Substitute.For<IUnitOfWork>();
@@ -18,7 +20,8 @@ public sealed class CreateTransferCommandHandlerTests
 
     public CreateTransferCommandHandlerTests()
     {
-        _handler = new CreateTransferCommandHandler(_capitalRepository, _transferRepository, _unitOfWork);
+        _userMock.IsAuthenticated.Returns(true);
+        _handler = new CreateTransferCommandHandler(_userMock, _capitalRepository, _transferRepository, _unitOfWork);
     }
 
     [Fact]

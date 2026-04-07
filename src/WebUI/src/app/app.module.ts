@@ -8,10 +8,9 @@ import {FooterComponent} from './core/layout/footer/footer.component';
 import {provideHttpClient, withInterceptors} from '@angular/common/http';
 import {credentialsInterceptor} from './core/interceptors/credentials.interceptor';
 import {errorInterceptor} from './core/interceptors/error.interceptor';
-import {loadingInterceptor} from './core/interceptors/loading.interceptor';
 import {retryInterceptor} from './core/interceptors/retry.interceptor';
+import {sectionLoadingInterceptor} from './core/interceptors/section-loading.interceptor';
 import {provideAnimations} from '@angular/platform-browser/animations';
-import {LoadingComponent} from './shared/components/loading/loading.component';
 import {SharedModule} from "./shared/shared.module";
 import {NgOptimizedImage} from "@angular/common";
 
@@ -20,7 +19,6 @@ import {NgOptimizedImage} from "@angular/common";
     AppComponent,
     HeaderComponent,
     FooterComponent,
-    LoadingComponent
   ],
   imports: [
     AppRoutingModule,
@@ -31,7 +29,7 @@ import {NgOptimizedImage} from "@angular/common";
   bootstrap: [AppComponent],
   providers: [
     provideHttpClient(
-      withInterceptors([credentialsInterceptor, retryInterceptor, errorInterceptor, loadingInterceptor])
+      withInterceptors([credentialsInterceptor, retryInterceptor, sectionLoadingInterceptor, errorInterceptor])
     ),
     provideAnimations()
   ]

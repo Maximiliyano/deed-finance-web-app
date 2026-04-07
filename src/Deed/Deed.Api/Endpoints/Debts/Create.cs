@@ -15,7 +15,7 @@ internal sealed class Create : IEndpoint
                 request.Source, request.Recipient, request.BorrowedAt,
                 request.DeadlineAt, request.Note, request.CapitalId), ct))
                 .Process())
-            .RequireAuthorization()
+            .AllowAnonymous()
             .WithTags(nameof(Debts));
     }
 }

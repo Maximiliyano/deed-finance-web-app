@@ -12,7 +12,7 @@ internal sealed class Create : IEndpoint
         app.MapPost("api/goals", async (CreateGoalRequest request, ISender sender, CancellationToken ct) =>
             (await sender.Send(new CreateGoalCommand(request.Title, request.TargetAmount, request.Currency, request.CurrentAmount, request.Deadline, request.Note), ct))
                 .Process())
-            .RequireAuthorization()
+            .AllowAnonymous()
             .WithTags(nameof(Goals));
     }
 }

@@ -47,49 +47,30 @@
 
         <!-- KPI -->
         @case ('kpi') {
-        @if (loading) {
+        @if (loading('settings') || loading('exchanges') || loading('estimations')) {
           <div class="kpi-grid" id="kpi">
             @for (_ of [1, 2, 3, 4]; track $index) {
               <div class="kpi-card">
-                <div class="section-spinner"><i class="fas fa-spinner fa-spin"></i></div>
+                <div class="section-spinner"><span class="circle-spinner"></span></div>
               </div>
             }
           </div>
         } @else {
           <div id="kpi" class="kpi-grid">
-            <div class="kpi-card kpi-link" (click)="!isEditingSalary && startEditSalary()" [title]="isEditingSalary ? '' : 'Click to edit salary'">
+            <div class="kpi-card" [ngClass]="isAnonymous ? '' : 'kpi-link'" (click)="isAnonymous || openSalaryDialog()" [title]="isAnonymous ? '' : 'Click to edit salary'">
               <div class="kpi-icon wallet-icon"><i class="fas fa-wallet"></i></div>
               <div class="kpi-body">
-                @if (isEditingSalary) {
-                  <div class="inline-edit" (click)="$event.stopPropagation()">
-                    <div class="inline-edit-row">
-                      <input type="number" class="input inline-input" [(ngModel)]="editSalary" min="0" step="0.01" placeholder="0">
-                      <select class="input inline-select" [(ngModel)]="editCurrency">
-                        @for (c of currencies; track c) {
-                          <option [value]="c">{{ c }}</option>
-                        }
-                      </select>
-                    </div>
-                    <div class="inline-edit-actions">
-                      <button class="btn btn-primary btn-sm" (click)="saveSalary()" [disabled]="savingSalary">
-                        @if (savingSalary) { <i class="fas fa-spinner fa-spin"></i> }
-                        Save
-                      </button>
-                      <button class="btn btn-ghost btn-sm" (click)="cancelEditSalary()">Cancel</button>
-                    </div>
-                  </div>
-                } @else {
-                  <p class="kpi-label">Monthly Salary <i class="fas fa-pen kpi-edit-hint"></i></p>
-                  <p class="kpi-value">
-                    @if (salary) {
-                      {{ salary | currencySymbol: currency }}
-                      @if (showDualCurrency) {
-                        <span class="kpi-alt">{{ salaryInUah | currencySymbol: 'UAH' }}</span>
-                      }
+                <p class="kpi-label">Monthly Salary @if (!isAnonymous) { <i class="fas fa-pen kpi-edit-hint"></i> }</p>
+                <p class="kpi-value">
+                  @if (salary) {
+                    {{ salary | currencySymbol: currency }}
+                    @if (showDualCurrency) {
+                      <span class="kpi-alt">{{ salaryInUah | currencySymbol: 'UAH' }}</span>
                     }
-                    @else { <span class="kpi-empty">Not set — click to configure</span> }
-                  </p>
-                }
+                  }
+                  @else if (isAnonymous) { <span class="kpi-empty">Sign in to configure</span> }
+                  @else { <span class="kpi-empty">Not set — click to configure</span> }
+                </p>
               </div>
             </div>
 
@@ -144,16 +125,18 @@
             <div class="card-header">
               <h2 class="card-title"><i class="fas fa-wallet"></i> Capitals</h2>
               <div class="card-header-actions">
-                <button class="btn btn-primary btn-sm" (click)="openTransferDialog()" title="Transfer between capitals">
-                  <i class="fas fa-exchange-alt"></i> Transfer
-                </button>
+                @if (!isAnonymous) {
+                  <button class="btn btn-primary btn-sm" (click)="openTransferDialog()" title="Transfer between capitals">
+                    <i class="fas fa-exchange-alt"></i> Transfer
+                  </button>
+                }
                 <a class="btn btn-secondary btn-sm" routerLink="/capitals">
                   <i class="fas fa-arrow-up-right-from-square"></i> Open
                 </a>
               </div>
             </div>
-            @if (loading) {
-              <div class="section-spinner"><i class="fas fa-spinner fa-spin"></i></div>
+            @if (loading('capitals')) {
+              <div class="section-spinner"><span class="circle-spinner"></span></div>
             } @else if (capitals.length === 0) {
               <div class="empty-state">
                 <i class="fas fa-wallet empty-icon"></i>
@@ -163,7 +146,7 @@
             } @else {
               <div class="summary-grid">
                 @for (cap of capitals; track cap.id) {
-                  <div class="summary-card clickable-row" (click)="openCapitalDetail(cap)">
+                  <div class="summary-card" [ngClass]="isAnonymous ? '' : 'clickable-row'" (click)="isAnonymous || openCapitalDetail(cap)">
                     <div class="summary-card-header">
                       <span class="summary-card-name">{{ cap.name }}</span>
                       <div class="summary-card-actions">
@@ -195,9 +178,11 @@
                               <span class="txn-purpose"><i class="fas fa-arrow-left"></i> {{ t.sourceCapitalName }} ({{ t.amount | currencySymbol: t.sourceCurrency ?? '' }})</span>
                             }
                             <span class="txn-date">{{ t.createdAt | date: 'dd MMM' }}</span>
-                            <button class="icon-btn icon-btn-danger" title="Delete & reverse" (click)="deleteTransfer(t.id)">
-                              <i class="fas fa-trash-can"></i>
-                            </button>
+                            @if (!isAnonymous) {
+                              <button class="icon-btn icon-btn-danger" title="Delete & reverse" (click)="deleteTransfer(t.id)">
+                                <i class="fas fa-trash-can"></i>
+                              </button>
+                            }
                           </div>
                         } @empty {
                           <span class="txn-purpose">No transfers</span>
@@ -218,16 +203,18 @@
               <h2 class="card-title"><i class="fas fa-money-bill-wave"></i> Expenses</h2>
               <div class="card-header-actions">
                 <span class="badge badge-warning">{{ totalExpenses | currencySymbol: currency }}</span>
-                <button class="btn btn-danger btn-sm" (click)="openQuickExpense()">
-                  <i class="fas fa-plus"></i> Add
-                </button>
+                @if (!isAnonymous) {
+                  <button class="btn btn-danger btn-sm" (click)="openQuickExpense()">
+                    <i class="fas fa-plus"></i> Add
+                  </button>
+                }
                 <a class="btn btn-secondary btn-sm" routerLink="/expenses">
                   <i class="fas fa-arrow-up-right-from-square"></i>
                 </a>
               </div>
             </div>
-            @if (loading) {
-              <div class="section-spinner"><i class="fas fa-spinner fa-spin"></i></div>
+            @if (loading('expenses')) {
+              <div class="section-spinner"><span class="circle-spinner"></span></div>
             } @else if (expenseCategories.length === 0) {
               <div class="empty-state">
                 <i class="fas fa-money-bill-wave empty-icon"></i>
@@ -256,12 +243,14 @@
                           <span class="txn-amount text-danger">{{ exp.amount | currencySymbol: currency }}</span>
                           <span class="txn-purpose">{{ exp.purpose ?? '—' }}</span>
                           <span class="txn-date">{{ exp.paymentDate | date: 'dd MMM' }}</span>
-                          <button class="icon-btn" title="Edit" (click)="openQuickExpense({ id: exp.id, capitalId: exp.capitalId, categoryId: cat.categoryId, amount: exp.amount, paymentDate: exp.paymentDate, purpose: exp.purpose })">
-                            <i class="fas fa-pen"></i>
-                          </button>
-                          <button class="icon-btn icon-btn-danger" title="Delete" (click)="deleteExpense(exp.id)">
-                            <i class="fas fa-trash-can"></i>
-                          </button>
+                          @if (!isAnonymous) {
+                            <button class="icon-btn" title="Edit" (click)="openQuickExpense({ id: exp.id, capitalId: exp.capitalId, categoryId: cat.categoryId, amount: exp.amount, paymentDate: exp.paymentDate, purpose: exp.purpose })">
+                              <i class="fas fa-pen"></i>
+                            </button>
+                            <button class="icon-btn icon-btn-danger" title="Delete" (click)="deleteExpense(exp.id)">
+                              <i class="fas fa-trash-can"></i>
+                            </button>
+                          }
                         </div>
                       }
                     }
@@ -279,16 +268,18 @@
               <h2 class="card-title"><i class="fas fa-arrow-trend-up"></i> Incomes</h2>
               <div class="card-header-actions">
                 <span class="badge badge-ok">{{ totalIncomes | currencySymbol: currency }}</span>
-                <button class="btn btn-success btn-sm" (click)="openQuickIncome()">
-                  <i class="fas fa-plus"></i> Add
-                </button>
+                @if (!isAnonymous) {
+                  <button class="btn btn-success btn-sm" (click)="openQuickIncome()">
+                    <i class="fas fa-plus"></i> Add
+                  </button>
+                }
                 <a class="btn btn-secondary btn-sm" routerLink="/incomes">
                   <i class="fas fa-arrow-up-right-from-square"></i>
                 </a>
               </div>
             </div>
-            @if (loading) {
-              <div class="section-spinner"><i class="fas fa-spinner fa-spin"></i></div>
+            @if (loading('incomes')) {
+              <div class="section-spinner"><span class="circle-spinner"></span></div>
             } @else if (incomes.length === 0) {
               <div class="empty-state">
                 <i class="fas fa-arrow-trend-up empty-icon"></i>
@@ -319,12 +310,14 @@
                           <span class="txn-amount text-success">{{ inc.amount | currencySymbol: currency }}</span>
                           <span class="txn-purpose">{{ inc.purpose ?? '—' }}</span>
                           <span class="txn-date">{{ inc.paymentDate | date: 'dd MMM' }}</span>
-                          <button class="icon-btn" title="Edit" (click)="openQuickIncome({ id: inc.id, capitalId: inc.capitalId, categoryId: inc.categoryId, amount: inc.amount, paymentDate: inc.paymentDate, purpose: inc.purpose })">
-                            <i class="fas fa-pen"></i>
-                          </button>
-                          <button class="icon-btn icon-btn-danger" title="Delete" (click)="deleteIncome(inc.id)">
-                            <i class="fas fa-trash-can"></i>
-                          </button>
+                          @if (!isAnonymous) {
+                            <button class="icon-btn" title="Edit" (click)="openQuickIncome({ id: inc.id, capitalId: inc.capitalId, categoryId: inc.categoryId, amount: inc.amount, paymentDate: inc.paymentDate, purpose: inc.purpose })">
+                              <i class="fas fa-pen"></i>
+                            </button>
+                            <button class="icon-btn icon-btn-danger" title="Delete" (click)="deleteIncome(inc.id)">
+                              <i class="fas fa-trash-can"></i>
+                            </button>
+                          }
                         </div>
                       }
                     }
@@ -341,24 +334,26 @@
             <div class="card-header">
               <h2 class="card-title"><i class="fas fa-compass-drafting"></i> Budget Planner</h2>
               <div class="card-header-actions">
-                @if (salary) {
-                  <button class="card-subtitle card-subtitle-link" (click)="startEditSalary()" title="Edit salary">
-                    {{ salary | currencySymbol: currency }}
-                    @if (showDualCurrency) { <span class="text-muted">({{ salaryInUah | currencySymbol: 'UAH' }})</span> }
-                    / mo <i class="fas fa-pen"></i>
-                  </button>
-                } @else {
-                  <button class="card-subtitle card-subtitle-link text-warning" (click)="startEditSalary()" title="Set salary">
-                    Set salary <i class="fas fa-pen"></i>
+                @if (!isAnonymous) {
+                  @if (salary) {
+                    <button class="card-subtitle card-subtitle-link" (click)="openSalaryDialog()" title="Edit salary">
+                      {{ salary | currencySymbol: currency }}
+                      @if (showDualCurrency) { <span class="text-muted">({{ salaryInUah | currencySymbol: 'UAH' }})</span> }
+                      / mo <i class="fas fa-pen"></i>
+                    </button>
+                  } @else {
+                    <button class="card-subtitle card-subtitle-link text-warning" (click)="openSalaryDialog()" title="Set salary">
+                      Set salary <i class="fas fa-pen"></i>
+                    </button>
+                  }
+                  <button class="btn btn-primary btn-sm" (click)="openEstimationDialog()">
+                    <i class="fas fa-plus"></i> Add
                   </button>
                 }
-                <button class="btn btn-primary btn-sm" (click)="openEstimationDialog()">
-                  <i class="fas fa-plus"></i> Add
-                </button>
               </div>
             </div>
-            @if (loading) {
-              <div class="section-spinner"><i class="fas fa-spinner fa-spin"></i></div>
+            @if (loading('estimations')) {
+              <div class="section-spinner"><span class="circle-spinner"></span></div>
             } @else if (estimations.length === 0) {
               <div class="empty-state">
                 <i class="fas fa-compass-drafting empty-icon"></i>
@@ -384,7 +379,7 @@
               }
               <div class="bp-list">
                 @for (est of estimations; track est.id) {
-                  <div class="bp-item clickable-row" (click)="openEstimationDialog(est)">
+                  <div class="bp-item" [ngClass]="isAnonymous ? '' : 'clickable-row'" (click)="isAnonymous || openEstimationDialog(est)">
                     <div class="bp-item-color" [style.background-color]="barColors[$index % barColors.length]"></div>
                     <div class="bp-item-body">
                       <div class="bp-item-top">
@@ -396,10 +391,12 @@
                               <span class="bp-item-converted">{{ convertToSalaryCurrency(est.budgetAmount, est.budgetCurrency) | currencySymbol: currency }}</span>
                             }
                           </span>
-                          <button class="icon-btn icon-btn-danger" title="Delete"
-                                  (click)="$event.stopPropagation(); deleteEstimation(est)">
-                            <i class="fas fa-trash-can"></i>
-                          </button>
+                          @if (!isAnonymous) {
+                            <button class="icon-btn icon-btn-danger" title="Delete"
+                                    (click)="$event.stopPropagation(); deleteEstimation(est)">
+                              <i class="fas fa-trash-can"></i>
+                            </button>
+                          }
                         </div>
                       </div>
                       <div class="bp-item-bar">
@@ -457,14 +454,16 @@
           <div id="goals" class="card">
             <div class="card-header">
               <h2 class="card-title"><i class="fas fa-star"></i> Goals</h2>
-              <div class="card-header-actions">
-                <button class="btn btn-primary btn-sm" (click)="openGoalDialog()">
-                  <i class="fas fa-plus"></i> Add
-                </button>
-              </div>
+              @if (!isAnonymous) {
+                <div class="card-header-actions">
+                  <button class="btn btn-primary btn-sm" (click)="openGoalDialog()">
+                    <i class="fas fa-plus"></i> Add
+                  </button>
+                </div>
+              }
             </div>
-            @if (loading) {
-              <div class="section-spinner"><i class="fas fa-spinner fa-spin"></i></div>
+            @if (loading('goals')) {
+              <div class="section-spinner"><span class="circle-spinner"></span></div>
             } @else if (goals.length === 0) {
               <div class="empty-state">
                 <i class="fas fa-star empty-icon"></i>
@@ -474,7 +473,7 @@
             } @else {
               <div class="goals-list">
                 @for (goal of goals; track goal.id) {
-                  <div class="goal-item clickable-row" [ngClass]="{ 'goal-completed': goal.isCompleted }" (click)="openGoalDialog(goal)">
+                  <div class="goal-item" [ngClass]="{ 'goal-completed': goal.isCompleted, 'clickable-row': !isAnonymous }" (click)="isAnonymous || openGoalDialog(goal)">
                     <div class="goal-item-header">
                       <span class="goal-item-title">
                         @if (goal.isCompleted) { <i class="fas fa-circle-check text-success"></i> }
@@ -486,9 +485,11 @@
                           <span class="text-muted"> / </span>
                         {{ goal.targetAmount | currencySymbol: goal.currency }}
                         </span>
-                        <button class="icon-btn icon-btn-danger" title="Delete" (click)="$event.stopPropagation(); deleteGoal(goal)">
-                          <i class="fas fa-trash-can"></i>
-                        </button>
+                        @if (!isAnonymous) {
+                          <button class="icon-btn icon-btn-danger" title="Delete" (click)="$event.stopPropagation(); deleteGoal(goal)">
+                            <i class="fas fa-trash-can"></i>
+                          </button>
+                        }
                       </div>
                     </div>
                     <div class="goal-item-bar">
@@ -531,13 +532,15 @@
                 <span class="badge" [ngClass]="debts.length > 0 ? 'badge-warning' : 'badge-ok'">
                   {{ debts.length }} {{ debts.length === 1 ? 'debt' : 'debts' }}
                 </span>
-                <button class="btn btn-primary btn-sm" (click)="openDebtDialog()">
-                  <i class="fas fa-plus"></i> Add
-                </button>
+                @if (!isAnonymous) {
+                  <button class="btn btn-primary btn-sm" (click)="openDebtDialog()">
+                    <i class="fas fa-plus"></i> Add
+                  </button>
+                }
               </div>
             </div>
-            @if (loading) {
-              <div class="section-spinner"><i class="fas fa-spinner fa-spin"></i></div>
+            @if (loading('debts')) {
+              <div class="section-spinner"><span class="circle-spinner"></span></div>
             } @else if (debts.length === 0) {
               <div class="empty-state">
                 <i class="fas fa-circle-check empty-icon text-success"></i>
@@ -557,12 +560,12 @@
                       <th>Borrowed At</th>
                       <th>Deadline</th>
                       <th>Status</th>
-                      <th></th>
+                      @if (!isAnonymous) { <th></th> }
                     </tr>
                   </thead>
                   <tbody>
                     @for (debt of debts; track debt.id) {
-                      <tr class="clickable-row" [ngClass]="{ 'row-paid': debt.isPaid }" (click)="openDebtDialog(debt)">
+                      <tr [ngClass]="{ 'row-paid': debt.isPaid, 'clickable-row': !isAnonymous }" (click)="isAnonymous || openDebtDialog(debt)">
                         <td class="font-medium">
                           @if (debt.isPaid) { <i class="fas fa-circle-check text-success"></i> }
                           {{ debt.item }}
@@ -594,11 +597,13 @@
                             </span>
                           }
                         </td>
-                        <td class="action-cell">
-                          <button class="icon-btn icon-btn-danger" title="Delete" (click)="$event.stopPropagation(); deleteDebt(debt)">
-                            <i class="fas fa-trash-can"></i>
-                          </button>
-                        </td>
+                        @if (!isAnonymous) {
+                          <td class="action-cell">
+                            <button class="icon-btn icon-btn-danger" title="Delete" (click)="$event.stopPropagation(); deleteDebt(debt)">
+                              <i class="fas fa-trash-can"></i>
+                            </button>
+                          </td>
+                        }
                       </tr>
                     }
                   </tbody>

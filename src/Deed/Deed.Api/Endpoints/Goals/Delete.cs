@@ -12,7 +12,7 @@ internal sealed class Delete : IEndpoint
         app.MapDelete("api/goals/{id:int}", async (int id, ISender sender, CancellationToken ct) =>
             (await sender.Send(new DeleteGoalCommand(id), ct))
                 .Process(ResultType.NoContent))
-            .RequireAuthorization()
+            .AllowAnonymous()
             .WithTags(nameof(Goals));
     }
 }

@@ -15,7 +15,7 @@ internal sealed class Create : IEndpoint
                 request.Amount,
                 request.DestinationAmount), ct))
                 .Process())
-            .RequireAuthorization()
+            .AllowAnonymous()
             .WithTags(nameof(Transfers));
     }
 }

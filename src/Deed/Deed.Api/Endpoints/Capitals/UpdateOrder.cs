@@ -14,7 +14,7 @@ internal sealed class UpdateOrder : IEndpoint
             (await sender
                 .Send(new UpdateCapitalOrdersCommand(request.Capitals), ct))
                 .Process())
-            .RequireAuthorization()
+            .AllowAnonymous()
             .WithTags(nameof(Capitals));
     }
 }

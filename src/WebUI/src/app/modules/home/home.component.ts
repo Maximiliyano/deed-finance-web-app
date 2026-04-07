@@ -1,5 +1,5 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit} from '@angular/core';
-import {forkJoin, Subject, takeUntil} from 'rxjs';
+import {Subject, skip, takeUntil} from 'rxjs';
 import {ActivatedRoute} from '@angular/router';
 import {moveItemInArray} from '@angular/cdk/drag-drop';
 import {AuthService} from '../auth/services/auth-service';
@@ -39,12 +39,13 @@ import {
 import {ExchangeService} from '../../shared/services/exchange.service';
 import {TransferResponse, TransferService} from '../../shared/services/transfer.service';
 import {TransferDialogComponent, TransferDialogData} from './components/transfer-dialog/transfer-dialog.component';
+import {SalaryDialogComponent, SalaryDialogData} from './components/salary-dialog/salary-dialog.component';
 import {Exchange} from '../../core/models/exchange-model';
-import {CurrencyType} from '../../core/types/currency-type';
 import {CategoryType} from '../../core/types/category-type';
 import {CapitalDetailsComponent} from '../capital/components/capital-details/capital-details.component';
 import {getCurrencies} from '../../shared/components/currency/functions/get-currencies.component';
 import {UpdateCapitalRequest} from '../capital/models/update-capital-request';
+import {SectionLoadingService} from '../../shared/services/section-loading.service';
 
 @Component({
     selector: 'app-home',
@@ -66,13 +67,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   expenseCategoriesList: CategoryResponse[] = [];
   userSettings: UserSettings | null = null;
   exchanges: Exchange[] = [];
-  loading = true;
   isEditMode = false;
-  isEditingSalary = false;
-  editSalary: number = 0;
-  editCurrency: string = 'UAH';
-  savingSalary = false;
-  currencies = Object.keys(CurrencyType).filter(k => isNaN(Number(k)) && k !== 'None');
 
   readonly barColors = ['#60a5fa', '#f472b6', '#34d399', '#fb923c', '#38bdf8', '#facc15', '#2dd4bf'];
 
@@ -94,8 +89,13 @@ export class HomeComponent implements OnInit, OnDestroy {
     private readonly exchangeService: ExchangeService,
     private readonly transferService: TransferService,
     readonly layoutService: DashboardLayoutService,
+    readonly sectionLoading: SectionLoadingService,
     private readonly cdr: ChangeDetectorRef
   ) {}
+
+  get isAnonymous(): boolean {
+    return !this.user;
+  }
 
   get currency(): string {
     return this.userSettings?.currency ?? 'UAH';
@@ -208,37 +208,18 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.isEditMode = !this.isEditMode;
   }
 
-  startEditSalary(): void {
-    this.editSalary = this.salary;
-    this.editCurrency = this.currency;
-    this.isEditingSalary = true;
-  }
-
-  cancelEditSalary(): void {
-    this.isEditingSalary = false;
-  }
-
-  saveSalary(): void {
-    this.savingSalary = true;
-    const payload = {
-      salary: this.editSalary,
-      currency: CurrencyType[this.editCurrency as keyof typeof CurrencyType] as unknown as number
-    };
-    this.userSettingsService.upsert(payload as unknown as UserSettings)
-      .pipe(takeUntil(this.unsubscribe$))
-      .subscribe({
-        next: () => {
-          this.savingSalary = false;
-          this.isEditingSalary = false;
-          this.popup.success('Salary updated');
-          this.loadData();
-        },
-        error: () => {
-          this.savingSalary = false;
-          this.cdr.markForCheck();
-          this.popup.error('Failed to save salary');
-        }
-      });
+  openSalaryDialog(): void {
+    const data: SalaryDialogData = { salary: this.salary, currency: this.currency };
+    const ref = this.dialogService.open(SalaryDialogComponent, { data });
+    ref.afterClosed$.pipe(takeUntil(this.unsubscribe$)).subscribe(result => {
+      if (!result) return;
+      this.userSettingsService.upsert(result as unknown as UserSettings)
+        .pipe(takeUntil(this.unsubscribe$))
+        .subscribe({
+          next: () => { this.popup.success('Salary updated'); this.loadData(); },
+          error: () => this.popup.error('Failed to save salary')
+        });
+    });
   }
 
   togglePanel(panelId: PanelId): void {
@@ -509,8 +490,32 @@ export class HomeComponent implements OnInit, OnDestroy {
     });
   }
 
+  loading(key: string): boolean {
+    return this.sectionLoading.isLoading(key as any);
+  }
+
   ngOnInit(): void {
     document.title = 'Deed - Home page';
+
+    this.sectionLoading.isLoading$('settings').pipe(skip(1), takeUntil(this.unsubscribe$))
+      .subscribe(() => this.cdr.markForCheck());
+    this.sectionLoading.isLoading$('capitals').pipe(skip(1), takeUntil(this.unsubscribe$))
+      .subscribe(() => this.cdr.markForCheck());
+    this.sectionLoading.isLoading$('estimations').pipe(skip(1), takeUntil(this.unsubscribe$))
+      .subscribe(() => this.cdr.markForCheck());
+    this.sectionLoading.isLoading$('goals').pipe(skip(1), takeUntil(this.unsubscribe$))
+      .subscribe(() => this.cdr.markForCheck());
+    this.sectionLoading.isLoading$('debts').pipe(skip(1), takeUntil(this.unsubscribe$))
+      .subscribe(() => this.cdr.markForCheck());
+    this.sectionLoading.isLoading$('expenses').pipe(skip(1), takeUntil(this.unsubscribe$))
+      .subscribe(() => this.cdr.markForCheck());
+    this.sectionLoading.isLoading$('incomes').pipe(skip(1), takeUntil(this.unsubscribe$))
+      .subscribe(() => this.cdr.markForCheck());
+    this.sectionLoading.isLoading$('transfers').pipe(skip(1), takeUntil(this.unsubscribe$))
+      .subscribe(() => this.cdr.markForCheck());
+    this.sectionLoading.isLoading$('exchanges').pipe(skip(1), takeUntil(this.unsubscribe$))
+      .subscribe(() => this.cdr.markForCheck());
+
     this.authService.me()
       .pipe(takeUntil(this.unsubscribe$))
       .subscribe({ next: user => { this.user = user; } });
@@ -528,39 +533,60 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   private loadData(): void {
-    this.loading = true;
-    forkJoin({
-      settings: this.userSettingsService.get(),
-      capitals: this.capitalService.getAll({ searchTerm: null, sortBy: null, sortDirection: null, filterBy: null }),
-      exchanges: this.exchangeService.getLatest(),
-      estimations: this.estimationService.getAll(),
-      goals: this.goalService.getAll(),
-      debts: this.debtService.getAll(),
-      expenseCategories: this.expenseService.getAllByCategories(),
-      incomesResult: this.incomeService.getAll(),
-      expenseCategoriesList: this.categoryService.getAll(CategoryType.Expenses),
-      transfers: this.transferService.getAll()
-    }).pipe(takeUntil(this.unsubscribe$)).subscribe({
+    this.userSettingsService.get().pipe(takeUntil(this.unsubscribe$)).subscribe({
+      next: data => { this.userSettings = data; this.cdr.markForCheck(); },
+      error: () => this.cdr.markForCheck()
+    });
+
+    this.capitalService.getAll({ searchTerm: null, sortBy: null, sortDirection: null, filterBy: null })
+      .pipe(takeUntil(this.unsubscribe$)).subscribe({
+      next: data => { this.capitals = data; this.cdr.markForCheck(); },
+      error: () => this.cdr.markForCheck()
+    });
+
+    this.exchangeService.getLatest().pipe(takeUntil(this.unsubscribe$)).subscribe({
+      next: data => { this.exchanges = data; this.cdr.markForCheck(); },
+      error: () => this.cdr.markForCheck()
+    });
+
+    this.estimationService.getAll().pipe(takeUntil(this.unsubscribe$)).subscribe({
+      next: data => { this.estimations = data; this.cdr.markForCheck(); },
+      error: () => this.cdr.markForCheck()
+    });
+
+    this.goalService.getAll().pipe(takeUntil(this.unsubscribe$)).subscribe({
+      next: data => { this.goals = data; this.cdr.markForCheck(); },
+      error: () => this.cdr.markForCheck()
+    });
+
+    this.debtService.getAll().pipe(takeUntil(this.unsubscribe$)).subscribe({
+      next: data => { this.debts = data; this.cdr.markForCheck(); },
+      error: () => this.cdr.markForCheck()
+    });
+
+    this.expenseService.getAllByCategories().pipe(takeUntil(this.unsubscribe$)).subscribe({
+      next: data => { this.expenseCategories = data; this.cdr.markForCheck(); },
+      error: () => this.cdr.markForCheck()
+    });
+
+    this.incomeService.getAll().pipe(takeUntil(this.unsubscribe$)).subscribe({
       next: data => {
-        this.userSettings = data.settings;
-        this.capitals = data.capitals;
-        this.exchanges = data.exchanges;
-        this.estimations = data.estimations;
-        this.goals = data.goals;
-        this.debts = data.debts;
-        this.expenseCategories = data.expenseCategories;
-        this.incomes = data.incomesResult.incomes;
-        this.incomeCategories = data.incomesResult.categories;
-        this.expenseCategoriesList = data.expenseCategoriesList;
-        this.transfers = data.transfers;
-        this.loading = false;
+        this.incomes = data.incomes;
+        this.incomeCategories = data.categories;
         this.incomeByCategoryList = this.computeIncomesByCategory();
         this.cdr.markForCheck();
       },
-      error: () => {
-        this.loading = false;
-        this.cdr.markForCheck();
-      }
+      error: () => this.cdr.markForCheck()
+    });
+
+    this.categoryService.getAll(CategoryType.Expenses).pipe(takeUntil(this.unsubscribe$)).subscribe({
+      next: data => { this.expenseCategoriesList = data; this.cdr.markForCheck(); },
+      error: () => this.cdr.markForCheck()
+    });
+
+    this.transferService.getAll().pipe(takeUntil(this.unsubscribe$)).subscribe({
+      next: data => { this.transfers = data; this.cdr.markForCheck(); },
+      error: () => this.cdr.markForCheck()
     });
   }
 

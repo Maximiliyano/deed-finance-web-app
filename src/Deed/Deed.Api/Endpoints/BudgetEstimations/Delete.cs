@@ -12,7 +12,7 @@ internal sealed class Delete : IEndpoint
         app.MapDelete("api/budget-estimations/{id:int}", async (int id, ISender sender, CancellationToken ct) =>
             (await sender.Send(new DeleteBudgetEstimationCommand(id), ct))
                 .Process(ResultType.NoContent))
-            .RequireAuthorization()
+            .AllowAnonymous()
             .WithTags(nameof(BudgetEstimations));
     }
 }

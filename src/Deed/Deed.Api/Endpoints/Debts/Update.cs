@@ -17,7 +17,7 @@ internal sealed class Update : IEndpoint
                 request.DeadlineAt, request.Note, request.IsPaid,
                 request.PayFromCapitalId), ct))
                 .Process(ResultType.NoContent))
-            .RequireAuthorization()
+            .AllowAnonymous()
             .WithTags(nameof(Debts));
     }
 }

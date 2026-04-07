@@ -1,5 +1,7 @@
 using Deed.Application.Abstractions.Messaging;
+using Deed.Application.Auth;
 using Deed.Application.Capitals.Specifications;
+using Deed.Application.Debts.Specifications;
 using Deed.Domain.Errors;
 using Deed.Domain.Repositories;
 using Deed.Domain.Results;
@@ -8,6 +10,7 @@ using Serilog;
 namespace Deed.Application.Debts.Commands.Create;
 
 internal sealed class CreateDebtCommandHandler(
+    IUser user,
     IDebtRepository repository,
     ICapitalRepository capitalRepository,
     IUnitOfWork unitOfWork)
@@ -15,6 +18,17 @@ internal sealed class CreateDebtCommandHandler(
 {
     public async Task<Result<int>> Handle(CreateDebtCommand command, CancellationToken cancellationToken)
     {
+        if (!user.IsAuthenticated)
+        {
+            var count = await repository.CountAsync(
+                new DebtsByUserSpecification(user.Name!), cancellationToken).ConfigureAwait(false);
+
+            if (count >= AnonymousConstants.EntityLimit)
+            {
+                return Result.Failure<int>(DomainErrors.Anonymous.LimitReached);
+            }
+        }
+
         var debt = command.ToEntity();
 
         if (command.CapitalId.HasValue)

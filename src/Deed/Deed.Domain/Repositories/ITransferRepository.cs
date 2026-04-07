@@ -13,4 +13,6 @@ public interface ITransferRepository
     void Delete(Transfer transfer);
 
     Task<bool> AnyAsync(ISpecification<Transfer> specification, CancellationToken cancellationToken = default);
+
+    Task<int> CountAsync(ISpecification<Transfer> specification, CancellationToken cancellationToken = default);
 }

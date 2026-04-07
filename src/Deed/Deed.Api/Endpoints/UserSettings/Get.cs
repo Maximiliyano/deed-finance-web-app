@@ -10,7 +10,7 @@ internal sealed class Get : IEndpoint
     {
         app.MapGet("api/user-settings", async (ISender sender, CancellationToken ct) =>
             (await sender.Send(new GetUserSettingsQuery(), ct)).Process())
-            .RequireAuthorization()
+            .AllowAnonymous()
             .WithTags(nameof(UserSettings));
     }
 }

@@ -13,7 +13,7 @@ internal sealed class Delete : IEndpoint
             (await sender
                 .Send(new DeleteCapitalCommand(id), ct))
                 .Process(ResultType.NoContent))
-            .RequireAuthorization()
+            .AllowAnonymous()
             .WithTags(nameof(Capitals));
     }
 }

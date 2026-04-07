@@ -21,7 +21,7 @@ internal sealed class Upsert : IEndpoint
                 request.DebtReminderCron,
                 request.EmailNotificationsEnabled), ct))
                 .Process(ResultType.NoContent))
-            .RequireAuthorization()
+            .AllowAnonymous()
             .WithTags(nameof(UserSettings));
     }
 }

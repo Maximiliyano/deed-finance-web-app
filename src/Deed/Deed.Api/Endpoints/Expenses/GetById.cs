@@ -12,7 +12,7 @@ internal sealed class GetById : IEndpoint
             (await sender
                 .Send(new GetExpenseByIdQuery(id), ct))
                 .Process())
-            .RequireAuthorization()
+            .AllowAnonymous()
             .WithTags(nameof(Expenses));
     }
 }

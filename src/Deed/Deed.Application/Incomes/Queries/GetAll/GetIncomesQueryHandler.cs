@@ -25,7 +25,7 @@ internal sealed class GetIncomesQueryHandler(
 
         var incomes = (await incomeRepository.GetAllAsync(new IncomesByQuerySpecification(user.Name), cancellationToken).ConfigureAwait(false)).ToResponses();
         var categories = (await categoryRepository.GetAllAsync(new CategoriesByQuerySpecification([], type: CategoryType.Incomes), cancellationToken).ConfigureAwait(false)).ToResponses();
-        var capitals = (await capitalRepository.GetAllAsync(new CapitalsByQueryParamsSpecification(user.Name), cancellationToken).ConfigureAwait(false)).ToResponses();
+        var capitals = (await capitalRepository.GetAllAsync(new CapitalsByQueryParamsSpecification(user.Name, disableIncludes: true), cancellationToken).ConfigureAwait(false)).ToResponses();
 
         return Result.Success(new IncomesResponse(incomes, categories, capitals));
     }

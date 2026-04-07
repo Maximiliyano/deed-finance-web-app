@@ -18,7 +18,7 @@ internal sealed class Update : IEndpoint
                     request.Purpose,
                     request.PaymentDate), ct))
                 .Process())
-            .RequireAuthorization()
+            .AllowAnonymous()
             .WithTags(nameof(Incomes));
     }
 }

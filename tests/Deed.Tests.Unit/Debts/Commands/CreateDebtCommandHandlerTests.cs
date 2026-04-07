@@ -1,3 +1,4 @@
+using Deed.Application.Auth;
 using Deed.Application.Debts.Commands.Create;
 using Deed.Domain.Entities;
 using Deed.Domain.Enums;
@@ -10,6 +11,7 @@ namespace Deed.Tests.Unit.Debts.Commands;
 
 public sealed class CreateDebtCommandHandlerTests
 {
+    private readonly IUser _userMock = Substitute.For<IUser>();
     private readonly IDebtRepository _debtRepository = Substitute.For<IDebtRepository>();
     private readonly ICapitalRepository _capitalRepository = Substitute.For<ICapitalRepository>();
     private readonly IUnitOfWork _unitOfWorkMock = Substitute.For<IUnitOfWork>();
@@ -18,7 +20,8 @@ public sealed class CreateDebtCommandHandlerTests
 
     public CreateDebtCommandHandlerTests()
     {
-        _handler = new CreateDebtCommandHandler(_debtRepository, _capitalRepository, _unitOfWorkMock);
+        _userMock.IsAuthenticated.Returns(true);
+        _handler = new CreateDebtCommandHandler(_userMock, _debtRepository, _capitalRepository, _unitOfWorkMock);
     }
 
     [Fact]

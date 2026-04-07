@@ -11,7 +11,7 @@ internal sealed class Create : IEndpoint
         app.MapPost("api/budget-estimations", async (CreateBudgetEstimationRequest request, ISender sender, CancellationToken ct) =>
             (await sender.Send(new CreateBudgetEstimationCommand(request.Description, request.BudgetAmount, request.BudgetCurrency, request.CapitalId), ct))
                 .Process())
-            .RequireAuthorization()
+            .AllowAnonymous()
             .WithTags(nameof(BudgetEstimations));
     }
 }

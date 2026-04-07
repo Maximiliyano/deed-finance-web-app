@@ -11,20 +11,17 @@ const routes: Routes = [
   {
     path: 'capitals',
     loadChildren: () =>
-      import('./modules/capital/capital.module').then((x) => x.CapitalModule),
-    canActivate: [authGuard]
+      import('./modules/capital/capital.module').then((x) => x.CapitalModule)
   },
   {
     path: 'expenses',
     loadChildren: () =>
-      import('./modules/expense/expense.module').then((x) => x.ExpenseModule),
-    canActivate: [authGuard]
+      import('./modules/expense/expense.module').then((x) => x.ExpenseModule)
   },
   {
     path: 'incomes',
     loadComponent: () =>
-      import('./modules/incomes/incomes.component').then((x) => x.IncomesComponent),
-    canActivate: [authGuard]
+      import('./modules/incomes/incomes.component').then((x) => x.IncomesComponent)
   },
   {
     path: 'profile',

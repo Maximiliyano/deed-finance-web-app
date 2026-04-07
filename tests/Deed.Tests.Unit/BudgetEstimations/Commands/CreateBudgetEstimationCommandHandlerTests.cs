@@ -1,3 +1,4 @@
+using Deed.Application.Auth;
 using Deed.Application.BudgetEstimations.Commands.Create;
 using Deed.Domain.Entities;
 using Deed.Domain.Enums;
@@ -10,6 +11,7 @@ namespace Deed.Tests.Unit.BudgetEstimations.Commands;
 
 public sealed class CreateBudgetEstimationCommandHandlerTests
 {
+    private readonly IUser _userMock = Substitute.For<IUser>();
     private readonly IBudgetEstimationRepository _repositoryMock = Substitute.For<IBudgetEstimationRepository>();
     private readonly IUnitOfWork _unitOfWorkMock = Substitute.For<IUnitOfWork>();
 
@@ -17,7 +19,8 @@ public sealed class CreateBudgetEstimationCommandHandlerTests
 
     public CreateBudgetEstimationCommandHandlerTests()
     {
-        _handler = new CreateBudgetEstimationCommandHandler(_repositoryMock, _unitOfWorkMock);
+        _userMock.IsAuthenticated.Returns(true);
+        _handler = new CreateBudgetEstimationCommandHandler(_userMock, _repositoryMock, _unitOfWorkMock);
     }
 
     [Fact]

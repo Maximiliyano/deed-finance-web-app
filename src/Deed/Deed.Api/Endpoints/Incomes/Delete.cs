@@ -12,7 +12,7 @@ internal sealed class Delete : IEndpoint
             (await sender
                 .Send(new DeleteIncomeCommand(id), ct))
                 .Process())
-            .RequireAuthorization()
+            .AllowAnonymous()
             .WithTags(nameof(Incomes));
     }
 }

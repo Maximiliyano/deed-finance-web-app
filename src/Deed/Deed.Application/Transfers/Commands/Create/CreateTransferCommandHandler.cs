@@ -1,5 +1,7 @@
 using Deed.Application.Abstractions.Messaging;
+using Deed.Application.Auth;
 using Deed.Application.Capitals.Specifications;
+using Deed.Application.Transfers.Specifications;
 using Deed.Domain.Entities;
 using Deed.Domain.Errors;
 using Deed.Domain.Repositories;
@@ -9,6 +11,7 @@ using Serilog;
 namespace Deed.Application.Transfers.Commands.Create;
 
 internal sealed class CreateTransferCommandHandler(
+    IUser user,
     ICapitalRepository capitalRepository,
     ITransferRepository transferRepository,
     IUnitOfWork unitOfWork)
@@ -16,6 +19,17 @@ internal sealed class CreateTransferCommandHandler(
 {
     public async Task<Result<int>> Handle(CreateTransferCommand command, CancellationToken cancellationToken)
     {
+        if (!user.IsAuthenticated)
+        {
+            var count = await transferRepository.CountAsync(
+                new TransfersByUserSpecification(user.Name!), cancellationToken).ConfigureAwait(false);
+
+            if (count >= AnonymousConstants.EntityLimit)
+            {
+                return Result.Failure<int>(DomainErrors.Anonymous.LimitReached);
+            }
+        }
+
         if (command.SourceCapitalId == command.DestinationCapitalId)
         {
             return Result.Failure<int>(DomainErrors.Exchange.InvalidOperation);

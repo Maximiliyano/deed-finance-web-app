@@ -14,7 +14,7 @@ internal sealed class GetAll : IEndpoint
             (await sender
                 .Send(new GetAllCategoryQuery(type, includeDeleted), ct))
                 .Process())
-            .RequireAuthorization()
+            .AllowAnonymous()
             .WithTags(nameof(Categories));
     }
 }

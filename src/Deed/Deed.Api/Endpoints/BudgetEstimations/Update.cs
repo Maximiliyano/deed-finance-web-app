@@ -12,7 +12,7 @@ internal sealed class Update : IEndpoint
         app.MapPut("api/budget-estimations/{id:int}", async (int id, UpdateBudgetEstimationRequest request, ISender sender, CancellationToken ct) =>
             (await sender.Send(new UpdateBudgetEstimationCommand(id, request.Description, request.BudgetAmount, request.BudgetCurrency, request.CapitalId), ct))
                 .Process(ResultType.NoContent))
-            .RequireAuthorization()
+            .AllowAnonymous()
             .WithTags(nameof(BudgetEstimations));
     }
 }

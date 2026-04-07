@@ -12,7 +12,7 @@ internal sealed class Update : IEndpoint
         app.MapPut("api/goals/{id:int}", async (int id, UpdateGoalRequest request, ISender sender, CancellationToken ct) =>
             (await sender.Send(new UpdateGoalCommand(id, request.Title, request.TargetAmount, request.Currency, request.CurrentAmount, request.Deadline, request.Note, request.IsCompleted), ct))
                 .Process(ResultType.NoContent))
-            .RequireAuthorization()
+            .AllowAnonymous()
             .WithTags(nameof(Goals));
     }
 }

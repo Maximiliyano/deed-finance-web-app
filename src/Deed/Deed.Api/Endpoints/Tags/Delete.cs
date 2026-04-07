@@ -14,7 +14,7 @@ internal sealed class Delete : IEndpoint
             (await sender
                 .Send(new DeleteTagCommand(id), token))
                 .Process(ResultType.NoContent))
-            .RequireAuthorization()
+            .AllowAnonymous()
             .WithTags(nameof(Tags));
     }
 }

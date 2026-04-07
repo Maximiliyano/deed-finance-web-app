@@ -15,4 +15,6 @@ public interface IDebtRepository
     void Delete(Debt debt);
 
     Task<bool> AnyAsync(ISpecification<Debt> specification, CancellationToken cancellationToken = default);
+
+    Task<int> CountAsync(ISpecification<Debt> specification, CancellationToken cancellationToken = default);
 }

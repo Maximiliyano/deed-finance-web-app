@@ -1,3 +1,4 @@
+using Deed.Application.Auth;
 using Deed.Application.Goals.Commands.Create;
 using Deed.Domain.Entities;
 using Deed.Domain.Enums;
@@ -10,6 +11,7 @@ namespace Deed.Tests.Unit.Goals.Commands;
 
 public sealed class CreateGoalCommandHandlerTests
 {
+    private readonly IUser _userMock = Substitute.For<IUser>();
     private readonly IGoalRepository _repositoryMock = Substitute.For<IGoalRepository>();
     private readonly IUnitOfWork _unitOfWorkMock = Substitute.For<IUnitOfWork>();
 
@@ -17,7 +19,8 @@ public sealed class CreateGoalCommandHandlerTests
 
     public CreateGoalCommandHandlerTests()
     {
-        _handler = new CreateGoalCommandHandler(_repositoryMock, _unitOfWorkMock);
+        _userMock.IsAuthenticated.Returns(true);
+        _handler = new CreateGoalCommandHandler(_userMock, _repositoryMock, _unitOfWorkMock);
     }
 
     [Fact]
