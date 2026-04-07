@@ -47,14 +47,16 @@ public static class DependencyInjection
         string redisConnection = configuration.GetConnectionString("Redis")
             ?? throw new InvalidOperationException("Redis connection string is not configured.");
 
+        string redisConfig = ParseRedisConnection(redisConnection);
+
         services.AddStackExchangeRedisCache(options =>
         {
-            options.Configuration = redisConnection;
+            options.Configuration = redisConfig;
             options.InstanceName = "deed:";
         });
 
         services.AddHealthChecks()
-            .AddRedis(redisConnection, name: "deed_redis", tags: ["cache", "redis"]);
+            .AddRedis(redisConfig, name: "deed_redis", tags: ["cache", "redis"]);
 
         services.AddSingleton<ICacheService, RedisCacheService>();
 
@@ -106,6 +108,34 @@ public static class DependencyInjection
         services.AddScoped<ITransferRepository, TransferRepository>();
 
         return services;
+    }
+
+    private static string ParseRedisConnection(string connection)
+    {
+        if (!Uri.TryCreate(connection, UriKind.Absolute, out var uri) ||
+            uri.Scheme is not ("redis" or "rediss"))
+        {
+            return connection;
+        }
+
+        int port = uri.Port > 0 ? uri.Port : 6379;
+        string config = $"{uri.Host}:{port}";
+
+        string password = uri.UserInfo.Contains(':')
+            ? uri.UserInfo.Split(':', 2)[1]
+            : uri.UserInfo;
+
+        if (!string.IsNullOrEmpty(password))
+        {
+            config += $",password={password}";
+        }
+
+        if (uri.Scheme == "rediss")
+        {
+            config += ",ssl=true";
+        }
+
+        return config;
     }
 
     private static IServiceCollection AddDbDependencies(this IServiceCollection services)
