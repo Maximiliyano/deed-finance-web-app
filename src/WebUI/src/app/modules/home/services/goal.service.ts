@@ -44,4 +44,8 @@ export class GoalService {
   delete(id: number): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/${id}`, { withCredentials: true });
   }
+
+  updateOrder(goals: { id: number; orderIndex: number }[]): Observable<void> {
+    return this.http.put<void>(`${this.baseUrl}/orders`, { goals }, { withCredentials: true });
+  }
 }

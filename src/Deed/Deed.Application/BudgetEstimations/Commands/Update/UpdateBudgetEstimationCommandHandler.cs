@@ -25,6 +25,14 @@ internal sealed class UpdateBudgetEstimationCommandHandler(
             return Result.Failure(DomainErrors.General.NotFound("budget estimation"));
         }
 
+        if (estimation.Description == command.Description.Trim() &&
+            estimation.BudgetAmount == command.BudgetAmount &&
+            estimation.BudgetCurrency == command.BudgetCurrency &&
+            estimation.CapitalId == command.CapitalId)
+        {
+            return Result.Success();
+        }
+
         estimation.ApplyUpdate(command);
 
         repository.Update(estimation);

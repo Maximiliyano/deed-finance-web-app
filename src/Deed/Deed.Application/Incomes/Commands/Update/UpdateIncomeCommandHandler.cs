@@ -27,6 +27,16 @@ internal sealed class UpdateIncomeCommandHandler(
             return Result.Failure(DomainErrors.General.NotFound(nameof(income)));
         }
 
+        if ((command.CategoryId is null || command.CategoryId == income.CategoryId) &&
+            (command.Amount is null || command.Amount == income.Amount) &&
+            (command.Purpose is null || command.Purpose == income.Purpose) &&
+            (command.PaymentDate is null || command.PaymentDate == income.PaymentDate) &&
+            (command.TagNames is null || !command.TagNames.Any() ||
+             command.TagNames.All(name => income.Tags.Exists(t => t.Tag.Name.Equals(name, StringComparison.OrdinalIgnoreCase)))))
+        {
+            return Result.Success();
+        }
+
         if (command.Amount.HasValue)
         {
             var difference = (decimal)(command.Amount - income.Amount);

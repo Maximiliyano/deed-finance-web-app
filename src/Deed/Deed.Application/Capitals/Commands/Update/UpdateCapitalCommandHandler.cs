@@ -19,6 +19,15 @@ internal sealed class UpdateCapitalCommandHandler(ICapitalRepository repository,
             return Result.Failure(DomainErrors.General.NotFound(nameof(capital)));
         }
 
+        if ((command.Name is null || command.Name.Trim() == capital.Name) &&
+            (command.Balance is null || command.Balance == capital.Balance) &&
+            (command.Currency is null || command.Currency == capital.Currency) &&
+            (command.IncludeInTotal is null || command.IncludeInTotal == capital.IncludeInTotal) &&
+            (command.OnlyForSavings is null || command.OnlyForSavings == capital.OnlyForSavings))
+        {
+            return Result.Success();
+        }
+
         capital.Name = command.Name?.Trim() ?? capital.Name;
         capital.Balance = command.Balance ?? capital.Balance;
         capital.Currency = command.Currency ?? capital.Currency;

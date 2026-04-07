@@ -50,4 +50,8 @@ export class DebtService {
   delete(id: number): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/${id}`, { withCredentials: true });
   }
+
+  updateOrder(debts: { id: number; orderIndex: number }[]): Observable<void> {
+    return this.http.put<void>(`${this.baseUrl}/orders`, { debts }, { withCredentials: true });
+  }
 }

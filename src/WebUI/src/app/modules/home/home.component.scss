@@ -206,4 +206,5 @@
   &--overdue { background: var(--danger-bg); color: var(--danger-text); }
 }
 .goal-tip-extra { font-weight: 400; opacity: .85; }
+.drag-cell { width: 1.5rem; padding: .375rem .25rem !important; text-align: center; cursor: grab; &:active { cursor: grabbing; } .bp-drag-handle { padding: 0; } }
 .status-badge { display: inline-flex; align-items: center; gap: .3rem; font-size: .75rem; font-weight: 500; padding: .2rem .6rem; border-radius: 9999px; white-space: nowrap; &.status-overdue { background: var(--danger-bg); color: var(--danger); } &.status-soon { background: var(--warning-bg); color: var(--warning-text); } &.status-ok { background: var(--success-bg); color: var(--success-text); } }
