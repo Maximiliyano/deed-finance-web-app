@@ -1,3 +1,4 @@
+using Deed.Application.Auth;
 using Deed.Application.Capitals.Specifications;
 using Deed.Application.Expenses.Commands.Create;
 using Deed.Domain.Entities;
@@ -12,6 +13,7 @@ namespace Deed.Tests.Unit.Expenses.Commands;
 // TODO write tests for tags
 public sealed class CreateExpenseCommandHandlerTests
 {
+    private readonly IUser _userMock = Substitute.For<IUser>();
     private readonly IExpenseRepository _expenseRepositoryMock = Substitute.For<IExpenseRepository>();
     private readonly ICapitalRepository _capitalRepositoryMock = Substitute.For<ICapitalRepository>();
     private readonly ITagRepository _tagRepositoryMock = Substitute.For<ITagRepository>();
@@ -21,7 +23,8 @@ public sealed class CreateExpenseCommandHandlerTests
 
     public CreateExpenseCommandHandlerTests()
     {
-        _handler = new CreateExpenseCommandHandler(_capitalRepositoryMock, _expenseRepositoryMock, _tagRepositoryMock, _unitOfWorkMock);
+        _userMock.IsAuthenticated.Returns(true);
+        _handler = new CreateExpenseCommandHandler(_userMock, _capitalRepositoryMock, _expenseRepositoryMock, _tagRepositoryMock, _unitOfWorkMock);
     }
 
     [Fact]

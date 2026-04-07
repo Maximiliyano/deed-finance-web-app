@@ -1,20 +1,32 @@
-using System.Collections.Generic;
-using System.Linq;
 using Deed.Application.Abstractions.Messaging;
+using Deed.Application.Auth;
+using Deed.Application.Capitals.Specifications;
+using Deed.Domain.Errors;
 using Deed.Domain.Repositories;
 using Deed.Domain.Results;
-using Microsoft.Extensions.Logging;
 using Serilog;
 
 namespace Deed.Application.Capitals.Commands.Create;
 
 internal sealed class CreateCapitalCommandHandler(
+    IUser user,
     ICapitalRepository repository,
     IUnitOfWork unitOfWork)
     : ICommandHandler<CreateCapitalCommand, int>
 {
     public async Task<Result<int>> Handle(CreateCapitalCommand command, CancellationToken cancellationToken)
     {
+        if (!user.IsAuthenticated)
+        {
+            var count = await repository.CountAsync(
+                new CapitalsByQueryParamsSpecification(user.Name!, disableIncludes: true), cancellationToken).ConfigureAwait(false);
+            
+            if (count >= AnonymousConstants.EntityLimit)
+            {
+                return Result.Failure<int>(DomainErrors.Anonymous.LimitReached);
+            }
+        }
+
         var capital = command.ToEntity();
 
         repository.Create(capital);

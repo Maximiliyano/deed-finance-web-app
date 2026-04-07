@@ -1,3 +1,4 @@
+using Deed.Application.Abstractions.Caching;
 using Deed.Application.Abstractions.Messaging;
 using Deed.Application.Abstractions.Settings;
 using Deed.Application.Auth;
@@ -26,7 +27,6 @@ using Deed.Domain.Entities;
 using Deed.Domain.Enums;
 using Deed.Domain.Repositories;
 using Deed.Domain.Results;
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 
 namespace Deed.Application.Dashboard;
@@ -43,7 +43,7 @@ internal sealed class GetDashboardQueryHandler(
     ICategoryRepository categoryRepository,
     IUserSettingsRepository userSettingsRepository,
     ITransferRepository transferRepository,
-    IMemoryCache memoryCache,
+    ICacheService cacheService,
     IOptions<MemoryCacheSettings> cacheSettings)
     : IQueryHandler<GetDashboardQuery, DashboardResponse>
 {
@@ -72,10 +72,16 @@ internal sealed class GetDashboardQueryHandler(
         IEnumerable<Transfer> transferList = await transferRepository
             .GetAllAsync(new TransfersByUserSpecification(user.Name), ct).ConfigureAwait(false);
 
-        IEnumerable<ExchangeResponse> exchanges = GetCachedExchanges()
-                                                  ?? CacheExchanges((await exchangeRepository
-                                                      .GetAllAsync(new ExchangesByQuerySpecification(), ct)
-                                                      .ConfigureAwait(false)).ToResponses());
+        List<ExchangeResponse>? cached = await cacheService.GetAsync<List<ExchangeResponse>>(CacheKeys.Exchanges, ct).ConfigureAwait(false);
+        if (cached is null)
+        {
+            cached = (await exchangeRepository.GetAllAsync(new ExchangesByQuerySpecification(), ct).ConfigureAwait(false)).ToResponses().ToList();
+            if (cached.Count > 0)
+            {
+                await cacheService.SetAsync(CacheKeys.Exchanges, cached, TimeSpan.FromHours(cacheSettings.Value.ExchangesTimespanInHours), ct).ConfigureAwait(false);
+            }
+        }
+        IEnumerable<ExchangeResponse> exchanges = cached;
 
         decimal totalSum = expenseList.Sum(e => e.Amount);
         const decimal epsilon = 0.0001m;
@@ -120,20 +126,4 @@ internal sealed class GetDashboardQueryHandler(
         return Result.Success(response);
     }
 
-    private IEnumerable<ExchangeResponse>? GetCachedExchanges()
-    {
-        return memoryCache.TryGetValue(nameof(Exchanges), out IEnumerable<ExchangeResponse>? cached) ? cached : null;
-    }
-
-    private List<ExchangeResponse> CacheExchanges(IEnumerable<ExchangeResponse> exchanges)
-    {
-        List<ExchangeResponse> list = exchanges.ToList();
-        if (list.Count > 0)
-        {
-            memoryCache.Set(nameof(Exchanges), (IEnumerable<ExchangeResponse>)list,
-                TimeSpan.FromHours(cacheSettings.Value.ExchangesTimespanInHours));
-        }
-
-        return list;
-    }
 }

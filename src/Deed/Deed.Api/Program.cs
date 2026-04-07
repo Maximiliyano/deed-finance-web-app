@@ -15,7 +15,7 @@ builder.Configuration.AddEnvironmentVariables();
 builder.Services
     .AddApplication(builder.Configuration, builder.Environment)
     .AddApi()
-    .AddInfrastructure();
+    .AddInfrastructure(builder.Configuration);
 
 builder.Services.AddEndpoints();
 
@@ -44,6 +44,8 @@ if (!app.Environment.IsDevelopment())
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.UseAnonymousSession();
 
 app.UseRequestContextLogging();
 

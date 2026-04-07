@@ -7,7 +7,10 @@ public sealed class User(IHttpContextAccessor accessor)
 {
     public string? Email => GetValue(AuthClaimTypes.Email);
     public bool? IsEmailVerified => bool.TryParse(GetValue(AuthClaimTypes.EmailVerified), out var v) && v;
-    public string? Name => GetValue(AuthClaimTypes.Name);
+    public string? Name => IsAuthenticated
+        ? GetValue(AuthClaimTypes.Name)
+        : accessor.HttpContext?.Items[AnonymousConstants.HttpContextItemKey] as string
+          ?? accessor.HttpContext?.Request.Cookies[AnonymousConstants.SessionCookieName];
     public Uri? PictureUrl
     {
         get

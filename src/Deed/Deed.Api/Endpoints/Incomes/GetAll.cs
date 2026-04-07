@@ -12,7 +12,7 @@ internal sealed class GetAll : IEndpoint
             (await sender
                 .Send(new GetIncomesQuery(), ct))
                 .Process())
-            .RequireAuthorization()
+            .AllowAnonymous()
             .WithTags(nameof(Incomes));
     }
 }

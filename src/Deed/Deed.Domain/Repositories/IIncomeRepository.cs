@@ -13,4 +13,6 @@ public interface IIncomeRepository
     void Update(Income income);
 
     void Delete(Income income);
+
+    Task<int> CountAsync(ISpecification<Income> specification, CancellationToken cancellationToken = default);
 }

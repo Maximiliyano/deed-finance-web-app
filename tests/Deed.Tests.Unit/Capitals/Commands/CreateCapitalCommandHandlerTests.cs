@@ -1,3 +1,4 @@
+using Deed.Application.Auth;
 using Deed.Application.Capitals.Commands.Create;
 using Deed.Domain.Entities;
 using Deed.Domain.Enums;
@@ -10,6 +11,7 @@ namespace Deed.Tests.Unit.Capitals.Commands;
 
 public sealed class CreateCapitalCommandHandlerTests
 {
+    private readonly IUser _userMock = Substitute.For<IUser>();
     private readonly ICapitalRepository _repositoryMock = Substitute.For<ICapitalRepository>();
     private readonly IUnitOfWork _unitOfWorkMock = Substitute.For<IUnitOfWork>();
 
@@ -17,7 +19,8 @@ public sealed class CreateCapitalCommandHandlerTests
 
     public CreateCapitalCommandHandlerTests()
     {
-        _handler = new CreateCapitalCommandHandler(_repositoryMock, _unitOfWorkMock);
+        _userMock.IsAuthenticated.Returns(true);
+        _handler = new CreateCapitalCommandHandler(_userMock, _repositoryMock, _unitOfWorkMock);
     }
 
     [Fact]

@@ -60,4 +60,10 @@ public static class DomainErrors
         public static Error RestoreFailed
             => Error.NotFound("Category.RestoreFailed", "This category is not available for restore.");
     }
+
+    public static class Anonymous
+    {
+        public static Error LimitReached
+            => Error.BadRequest("Anonymous.LimitReached", "Anonymous users can create up to 3 items per entity. Sign in to remove this limit.");
+    }
 }

@@ -30,4 +30,6 @@ public interface ICapitalRepository
     void Delete(Capital capital);
 
     Task<bool> AnyAsync(ISpecification<Capital> specification, CancellationToken cancellationToken = default);
+
+    Task<int> CountAsync(ISpecification<Capital> specification, CancellationToken cancellationToken = default);
 }

@@ -7,9 +7,22 @@ services:
     depends_on:
       deed.db:
         condition: service_healthy
+      deed.redis:
+        condition: service_healthy
     ports:
       - "8000:8000"
       - "8001:8001"
+
+  deed.redis:
+    image: redis:7-alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   deed.db:
     image: mcr.microsoft.com/mssql/server:2022-latest

@@ -1,15 +1,10 @@
+using Deed.Application.Abstractions.Caching;
 using Deed.Application.Abstractions.Messaging;
 using Deed.Application.Abstractions.Settings;
 using Deed.Application.Exchanges.Responses;
-using Deed.Application.Exchanges.Service;
 using Deed.Application.Exchanges.Specifications;
-using Deed.Domain.Entities;
-using Deed.Domain.Errors;
-using Deed.Domain.Providers;
 using Deed.Domain.Repositories;
 using Deed.Domain.Results;
-using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Serilog;
 
@@ -18,26 +13,27 @@ namespace Deed.Application.Exchanges.Queries.GetLatest;
 public sealed class GetLatestExchangeQueryHandler(
     IOptions<MemoryCacheSettings> settings,
     IExchangeRepository repository,
-    IMemoryCache memoryCache)
+    ICacheService cache)
     : IQueryHandler<GetLatestExchangeQuery, IEnumerable<ExchangeResponse>>
 {
     public async Task<Result<IEnumerable<ExchangeResponse>>> Handle(GetLatestExchangeQuery query, CancellationToken cancellationToken)
     {
-        if (!memoryCache.TryGetValue(nameof(Exchanges), out IEnumerable<ExchangeResponse> cachedExchanges))
+        var cached = await cache.GetAsync<List<ExchangeResponse>>(CacheKeys.Exchanges, cancellationToken).ConfigureAwait(false);
+        if (cached is not null)
         {
-            var actualExchanges = (await repository.GetAllAsync(new ExchangesByQuerySpecification(), cancellationToken).ConfigureAwait(false)).ToResponses();
-
-            if (!actualExchanges.Any())
-            {
-                Log.Error("Exchanges list are empty. Probably error happen in exhcange backgroundJob.");
-                return Result.Success(Enumerable.Empty<ExchangeResponse>());
-            }
-
-            memoryCache.Set(nameof(Exchanges), actualExchanges, TimeSpan.FromHours(settings.Value.ExchangesTimespanInHours));
-
-            return Result.Success(actualExchanges);
+            return Result.Success<IEnumerable<ExchangeResponse>>(cached);
         }
 
-        return Result.Success(cachedExchanges!);
+        var actualExchanges = (await repository.GetAllAsync(new ExchangesByQuerySpecification(), cancellationToken).ConfigureAwait(false)).ToResponses().ToList();
+
+        if (actualExchanges.Count == 0)
+        {
+            Log.Error("Exchanges list are empty. Probably error happen in exchange backgroundJob.");
+            return Result.Success(Enumerable.Empty<ExchangeResponse>());
+        }
+
+        await cache.SetAsync(CacheKeys.Exchanges, actualExchanges, TimeSpan.FromHours(settings.Value.ExchangesTimespanInHours), cancellationToken).ConfigureAwait(false);
+
+        return Result.Success<IEnumerable<ExchangeResponse>>(actualExchanges);
     }
 }

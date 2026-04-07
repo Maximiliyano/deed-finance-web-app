@@ -1,5 +1,7 @@
 using Deed.Application.Abstractions.Messaging;
+using Deed.Application.Auth;
 using Deed.Application.Capitals.Specifications;
+using Deed.Application.Incomes.Specifications;
 using Deed.Application.Tags.Specifications;
 using Deed.Domain.Errors;
 using Deed.Domain.Repositories;
@@ -9,6 +11,7 @@ using Serilog;
 namespace Deed.Application.Incomes.Commands.Create;
 
 internal sealed class CreateIncomeCommandHandler(
+    IUser user,
     ICapitalRepository capitalRepository,
     IIncomeRepository incomeRepository,
     ITagRepository tagRepository,
@@ -17,6 +20,16 @@ internal sealed class CreateIncomeCommandHandler(
 {
     public async Task<Result<int>> Handle(CreateIncomeCommand command, CancellationToken cancellationToken)
     {
+        if (!user.IsAuthenticated)
+        {
+            var count = await incomeRepository.CountAsync(
+                new IncomesByQuerySpecification(user.Name!), cancellationToken).ConfigureAwait(false);
+            if (count >= AnonymousConstants.EntityLimit)
+            {
+                return Result.Failure<int>(DomainErrors.Anonymous.LimitReached);
+            }
+        }
+
         var capital = await capitalRepository.GetAsync(new CapitalByIdSpecification(command.CapitalId), cancellationToken).ConfigureAwait(false);
 
         if (capital is null)
@@ -53,6 +66,6 @@ internal sealed class CreateIncomeCommandHandler(
 
         Log.Information("Income {Id} successfully created", income.Id);
 
-        return income.Id;
+        return Result.Success(income.Id);
     }
 }
