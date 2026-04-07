@@ -142,7 +142,7 @@ public static class DependencyInjection
     {
         services.AddSingleton<UpdateAuditableEntitiesInterceptor>();
 
-        services.AddDbContext<DeedDbContext>((sp, options) =>
+        services.AddDbContextFactory<DeedDbContext>((sp, options) =>
         {
             var databaseSettings = sp.GetRequiredService<IConfiguration>().GetValue<string>(ConfigurationKeys.DatabaseConnection);
             var auditableInterceptor = sp.GetRequiredService<UpdateAuditableEntitiesInterceptor>();
@@ -158,6 +158,7 @@ public static class DependencyInjection
 
         services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<DeedDbContext>());
         services.AddScoped<IDeedDbContext>(sp => sp.GetRequiredService<DeedDbContext>());
+        services.AddSingleton<IDeedDbContextFactory, DeedDbContextFactory>();
 
         return services;
     }

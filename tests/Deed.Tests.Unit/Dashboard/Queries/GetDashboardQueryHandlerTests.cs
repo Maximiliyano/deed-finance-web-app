@@ -1,8 +1,9 @@
 using Deed.Application.Abstractions.Caching;
+using Deed.Application.Abstractions.Data;
 using Deed.Application.Abstractions.Settings;
 using Deed.Application.Auth;
 using Deed.Application.Dashboard;
-using Deed.Application.Exchanges.Specifications;
+using Deed.Application.Exchanges.Responses;
 using Deed.Application.Expenses.Responses;
 using Deed.Application.Transfers.Responses;
 using Deed.Domain.Entities;
@@ -19,16 +20,9 @@ namespace Deed.Tests.Unit.Dashboard.Queries;
 public sealed class GetDashboardQueryHandlerTests
 {
     private readonly IUser _userMock = Substitute.For<IUser>();
-    private readonly ICapitalRepository _capitalRepoMock = Substitute.For<ICapitalRepository>();
-    private readonly IExchangeRepository _exchangeRepoMock = Substitute.For<IExchangeRepository>();
-    private readonly IBudgetEstimationRepository _estimationRepoMock = Substitute.For<IBudgetEstimationRepository>();
-    private readonly IGoalRepository _goalRepoMock = Substitute.For<IGoalRepository>();
-    private readonly IDebtRepository _debtRepoMock = Substitute.For<IDebtRepository>();
-    private readonly IExpenseRepository _expenseRepoMock = Substitute.For<IExpenseRepository>();
-    private readonly IIncomeRepository _incomeRepoMock = Substitute.For<IIncomeRepository>();
-    private readonly ICategoryRepository _categoryRepoMock = Substitute.For<ICategoryRepository>();
     private readonly IUserSettingsRepository _settingsRepoMock = Substitute.For<IUserSettingsRepository>();
-    private readonly ITransferRepository _transferRepoMock = Substitute.For<ITransferRepository>();
+    private readonly IDeedDbContextFactory _contextFactoryMock = Substitute.For<IDeedDbContextFactory>();
+    private readonly IDeedDbContext _dbContextMock = Substitute.For<IDeedDbContext>();
     private readonly ICacheService _cacheServiceMock = Substitute.For<ICacheService>();
 
     private readonly GetDashboardQueryHandler _handler;
@@ -36,6 +30,7 @@ public sealed class GetDashboardQueryHandlerTests
     public GetDashboardQueryHandlerTests()
     {
         _userMock.Name.Returns("testuser");
+        _contextFactoryMock.CreateReadOnlyContext().Returns(_dbContextMock);
 
         IOptions<MemoryCacheSettings> cacheSettings = Options.Create(new MemoryCacheSettings
         {
@@ -45,16 +40,8 @@ public sealed class GetDashboardQueryHandlerTests
 
         _handler = new GetDashboardQueryHandler(
             _userMock,
-            _capitalRepoMock,
-            _exchangeRepoMock,
-            _estimationRepoMock,
-            _goalRepoMock,
-            _debtRepoMock,
-            _expenseRepoMock,
-            _incomeRepoMock,
-            _categoryRepoMock,
+            _contextFactoryMock,
             _settingsRepoMock,
-            _transferRepoMock,
             _cacheServiceMock,
             cacheSettings);
 
@@ -77,14 +64,14 @@ public sealed class GetDashboardQueryHandlerTests
         };
 
         _settingsRepoMock.GetAsync("testuser", Arg.Any<CancellationToken>()).Returns(settings);
-        _capitalRepoMock.GetAllAsync(Arg.Any<ISpecification<Capital>>(), Arg.Any<CancellationToken>())
-            .Returns(new[] { capital });
-        _estimationRepoMock.GetAllAsync(Arg.Any<ISpecification<BudgetEstimation>>(), Arg.Any<CancellationToken>())
-            .Returns(new[] { estimation });
-        _goalRepoMock.GetAllAsync(Arg.Any<ISpecification<Goal>>(), Arg.Any<CancellationToken>())
-            .Returns(new[] { goal });
-        _debtRepoMock.GetAllAsync(Arg.Any<ISpecification<Debt>>(), Arg.Any<CancellationToken>())
-            .Returns(new[] { debt });
+        _dbContextMock.QueryAsync(Arg.Any<ISpecification<Capital>>(), Arg.Any<CancellationToken>())
+            .Returns(new List<Capital> { capital });
+        _dbContextMock.QueryAsync(Arg.Any<ISpecification<BudgetEstimation>>(), Arg.Any<CancellationToken>())
+            .Returns(new List<BudgetEstimation> { estimation });
+        _dbContextMock.QueryAsync(Arg.Any<ISpecification<Goal>>(), Arg.Any<CancellationToken>())
+            .Returns(new List<Goal> { goal });
+        _dbContextMock.QueryAsync(Arg.Any<ISpecification<Debt>>(), Arg.Any<CancellationToken>())
+            .Returns(new List<Debt> { debt });
 
         // Act
         Result<DashboardResponse> result = await _handler.Handle(new GetDashboardQuery(), CancellationToken.None);
@@ -138,8 +125,8 @@ public sealed class GetDashboardQueryHandlerTests
         Category category1 = new(1) { Name = "Food", Type = CategoryType.Expenses, Period = PerPeriodType.None };
         Category category2 = new(2) { Name = "Rent", Type = CategoryType.Expenses, Period = PerPeriodType.None };
 
-        List<Expense> expenses = new()
-        {
+        List<Expense> expenses =
+        [
             new Expense
             {
                 Amount = 300m, PaymentDate = DateTimeOffset.UtcNow, CategoryId = 1, CapitalId = 1, Category = category1
@@ -152,9 +139,9 @@ public sealed class GetDashboardQueryHandlerTests
             {
                 Amount = 500m, PaymentDate = DateTimeOffset.UtcNow, CategoryId = 2, CapitalId = 1, Category = category2
             }
-        };
+        ];
 
-        _expenseRepoMock.GetAllAsync(Arg.Any<ISpecification<Expense>>(), Arg.Any<CancellationToken>())
+        _dbContextMock.QueryAsync(Arg.Any<ISpecification<Expense>>(), Arg.Any<CancellationToken>())
             .Returns(expenses);
 
         // Act
@@ -191,8 +178,8 @@ public sealed class GetDashboardQueryHandlerTests
             CreatedAt = DateTimeOffset.UtcNow
         };
 
-        _transferRepoMock.GetAllAsync(Arg.Any<ISpecification<Transfer>>(), Arg.Any<CancellationToken>())
-            .Returns(new[] { transfer });
+        _dbContextMock.QueryAsync(Arg.Any<ISpecification<Transfer>>(), Arg.Any<CancellationToken>())
+            .Returns(new List<Transfer> { transfer });
 
         // Act
         Result<DashboardResponse> result = await _handler.Handle(new GetDashboardQuery(), CancellationToken.None);
@@ -207,19 +194,19 @@ public sealed class GetDashboardQueryHandlerTests
     }
 
     [Fact]
-    public async Task Handle_FetchesExchangesFromRepository_WhenCacheMiss()
+    public async Task Handle_FetchesExchangesFromDb_WhenCacheMiss()
     {
         // Arrange
-        List<Exchange> exchanges = new()
-        {
+        List<Exchange> exchanges =
+        [
             new Exchange
             {
                 NationalCurrencyCode = "UAH", TargetCurrencyCode = "USD", Buy = 41m, Sale = 41.5m,
                 CreatedAt = DateTimeOffset.UtcNow
             }
-        };
+        ];
 
-        _exchangeRepoMock.GetAllAsync(Arg.Any<ExchangesByQuerySpecification>(), Arg.Any<CancellationToken>())
+        _dbContextMock.QueryAsync(Arg.Any<ISpecification<Exchange>>(), Arg.Any<CancellationToken>())
             .Returns(exchanges);
 
         // Act
@@ -234,23 +221,24 @@ public sealed class GetDashboardQueryHandlerTests
     private void SetupEmptyDefaults()
     {
         _settingsRepoMock.GetAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns((DomainUserSettings?)null);
-        _capitalRepoMock.GetAllAsync(Arg.Any<ISpecification<Capital>>(), Arg.Any<CancellationToken>())
-            .Returns(Enumerable.Empty<Capital>());
-        _exchangeRepoMock.GetAllAsync(Arg.Any<ExchangesByQuerySpecification>(), Arg.Any<CancellationToken>())
-            .Returns(Enumerable.Empty<Exchange>());
-        _estimationRepoMock.GetAllAsync(Arg.Any<ISpecification<BudgetEstimation>>(), Arg.Any<CancellationToken>())
-            .Returns(Enumerable.Empty<BudgetEstimation>());
-        _goalRepoMock.GetAllAsync(Arg.Any<ISpecification<Goal>>(), Arg.Any<CancellationToken>())
-            .Returns(Enumerable.Empty<Goal>());
-        _debtRepoMock.GetAllAsync(Arg.Any<ISpecification<Debt>>(), Arg.Any<CancellationToken>())
-            .Returns(Enumerable.Empty<Debt>());
-        _expenseRepoMock.GetAllAsync(Arg.Any<ISpecification<Expense>>(), Arg.Any<CancellationToken>())
-            .Returns(Enumerable.Empty<Expense>());
-        _incomeRepoMock.GetAllAsync(Arg.Any<ISpecification<Income>>(), Arg.Any<CancellationToken>())
-            .Returns(Enumerable.Empty<Income>());
-        _categoryRepoMock.GetAllAsync(Arg.Any<ISpecification<Category>>(), Arg.Any<CancellationToken>())
-            .Returns(Enumerable.Empty<Category>());
-        _transferRepoMock.GetAllAsync(Arg.Any<ISpecification<Transfer>>(), Arg.Any<CancellationToken>())
-            .Returns(Enumerable.Empty<Transfer>());
+
+        _dbContextMock.QueryAsync(Arg.Any<ISpecification<Capital>>(), Arg.Any<CancellationToken>())
+            .Returns(new List<Capital>());
+        _dbContextMock.QueryAsync(Arg.Any<ISpecification<BudgetEstimation>>(), Arg.Any<CancellationToken>())
+            .Returns(new List<BudgetEstimation>());
+        _dbContextMock.QueryAsync(Arg.Any<ISpecification<Goal>>(), Arg.Any<CancellationToken>())
+            .Returns(new List<Goal>());
+        _dbContextMock.QueryAsync(Arg.Any<ISpecification<Debt>>(), Arg.Any<CancellationToken>())
+            .Returns(new List<Debt>());
+        _dbContextMock.QueryAsync(Arg.Any<ISpecification<Expense>>(), Arg.Any<CancellationToken>())
+            .Returns(new List<Expense>());
+        _dbContextMock.QueryAsync(Arg.Any<ISpecification<Income>>(), Arg.Any<CancellationToken>())
+            .Returns(new List<Income>());
+        _dbContextMock.QueryAsync(Arg.Any<ISpecification<Category>>(), Arg.Any<CancellationToken>())
+            .Returns(new List<Category>());
+        _dbContextMock.QueryAsync(Arg.Any<ISpecification<Transfer>>(), Arg.Any<CancellationToken>())
+            .Returns(new List<Transfer>());
+        _dbContextMock.QueryAsync(Arg.Any<ISpecification<Exchange>>(), Arg.Any<CancellationToken>())
+            .Returns(new List<Exchange>());
     }
 }
