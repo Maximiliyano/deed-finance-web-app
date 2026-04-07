@@ -17,4 +17,6 @@ public interface IBudgetEstimationRepository
     Task<bool> AnyAsync(ISpecification<BudgetEstimation> specification, CancellationToken cancellationToken = default);
 
     Task<int> CountAsync(ISpecification<BudgetEstimation> specification, CancellationToken cancellationToken = default);
+
+    Task UpdateOrderIndexesAsync(IList<(int Id, int OrderIndex)> estimations, string createdBy, CancellationToken cancellationToken = default);
 }

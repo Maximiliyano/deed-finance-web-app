@@ -346,6 +346,24 @@
                 }
               </div>
             </div>
+            @if (estimations.length > 1) {
+              <div class="bp-toolbar">
+                <div class="bp-sort-group">
+                  <button class="bp-sort-btn" [ngClass]="{ active: estimationSortBy === 'custom' }" (click)="sortEstimations('custom')" title="Custom order">
+                    <i class="fas fa-grip-vertical"></i>
+                  </button>
+                  <button class="bp-sort-btn" [ngClass]="{ active: estimationSortBy === 'amount-desc' }" (click)="sortEstimations('amount-desc')" title="Highest first">
+                    <i class="fas fa-arrow-down-wide-short"></i>
+                  </button>
+                  <button class="bp-sort-btn" [ngClass]="{ active: estimationSortBy === 'amount-asc' }" (click)="sortEstimations('amount-asc')" title="Lowest first">
+                    <i class="fas fa-arrow-up-short-wide"></i>
+                  </button>
+                  <button class="bp-sort-btn" [ngClass]="{ active: estimationSortBy === 'name' }" (click)="sortEstimations('name')" title="A to Z">
+                    <i class="fas fa-arrow-down-a-z"></i>
+                  </button>
+                </div>
+              </div>
+            }
             @if (loading('estimations')) {
               <div class="section-spinner"><span class="circle-spinner"></span></div>
             } @else if (estimations.length === 0) {
@@ -371,9 +389,12 @@
                   </div>
                 </div>
               }
-              <div class="bp-list">
+              <div class="bp-list" cdkDropList (cdkDropListDropped)="dropEstimation($event)" [cdkDropListDisabled]="estimationSortBy !== 'custom' || isAnonymous">
                 @for (est of estimations; track est.id) {
-                  <div class="bp-item" [ngClass]="isAnonymous ? '' : 'clickable-row'" (click)="isAnonymous || openEstimationDialog(est)">
+                  <div class="bp-item" cdkDrag [cdkDragDisabled]="estimationSortBy !== 'custom' || isAnonymous" [ngClass]="isAnonymous ? '' : 'clickable-row'" (click)="isAnonymous || openEstimationDialog(est)">
+                    @if (estimationSortBy === 'custom' && !isAnonymous) {
+                      <i class="fas fa-grip-vertical bp-drag-handle" cdkDragHandle [style.background-color]="barColors[$index % barColors.length] + '18'"></i>
+                    }
                     <div class="bp-item-color" [style.background-color]="barColors[$index % barColors.length]"></div>
                     <div class="bp-item-body">
                       <div class="bp-item-top">

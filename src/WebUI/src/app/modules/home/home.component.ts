@@ -68,6 +68,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   userSettings: UserSettings | null = null;
   exchanges: Exchange[] = [];
   isEditMode = false;
+  estimationSortBy: 'custom' | 'amount-asc' | 'amount-desc' | 'name' = 'custom';
 
   readonly barColors = ['#60a5fa', '#f472b6', '#34d399', '#fb923c', '#38bdf8', '#facc15', '#2dd4bf'];
 
@@ -230,6 +231,34 @@ export class HomeComponent implements OnInit, OnDestroy {
     if (event.previousIndex !== event.currentIndex) {
       moveItemInArray(this.layoutService.orderedPanels, event.previousIndex, event.currentIndex);
       this.layoutService.saveOrder();
+    }
+  }
+
+  sortEstimations(by: string): void {
+    this.estimationSortBy = by as any;
+    switch (by) {
+      case 'amount-desc':
+        this.estimations = [...this.estimations].sort((a, b) => b.budgetAmount - a.budgetAmount);
+        break;
+      case 'amount-asc':
+        this.estimations = [...this.estimations].sort((a, b) => a.budgetAmount - b.budgetAmount);
+        break;
+      case 'name':
+        this.estimations = [...this.estimations].sort((a, b) => a.description.localeCompare(b.description));
+        break;
+      case 'custom':
+        this.estimations = [...this.estimations].sort((a, b) => a.orderIndex - b.orderIndex);
+        break;
+    }
+    this.cdr.markForCheck();
+  }
+
+  dropEstimation(event: any): void {
+    if (event.previousIndex !== event.currentIndex) {
+      moveItemInArray(this.estimations, event.previousIndex, event.currentIndex);
+      const orders = this.estimations.map((e, i) => ({ id: e.id, orderIndex: i }));
+      this.estimationService.updateOrder(orders).pipe(takeUntil(this.unsubscribe$)).subscribe();
+      this.cdr.markForCheck();
     }
   }
 

@@ -39,4 +39,8 @@ export class BudgetEstimationService {
   delete(id: number): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/${id}`, { withCredentials: true });
   }
+
+  updateOrder(estimations: { id: number; orderIndex: number }[]): Observable<void> {
+    return this.http.put<void>(`${this.baseUrl}/orders`, { estimations }, { withCredentials: true });
+  }
 }
