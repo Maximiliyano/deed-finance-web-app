@@ -19,6 +19,8 @@ internal sealed class GoalConfiguration : IEntityTypeConfiguration<Goal>
         builder.HasIndex(g => g.IsDeleted)
             .HasFilter("[IsDeleted] = 0");
 
+        builder.HasIndex(g => new { g.CreatedBy, g.IsDeleted });
+
         builder.HasKey(g => g.Id);
 
         builder.Property(g => g.Title)

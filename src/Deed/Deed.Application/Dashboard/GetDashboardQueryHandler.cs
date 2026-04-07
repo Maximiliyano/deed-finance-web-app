@@ -54,7 +54,7 @@ internal sealed class GetDashboardQueryHandler(
         Domain.Entities.UserSettings? settings =
             await userSettingsRepository.GetAsync(user.Name, ct).ConfigureAwait(false);
         IEnumerable<Capital> capitals = await capitalRepository
-            .GetAllAsync(new CapitalsByQueryParamsSpecification(user.Name), ct).ConfigureAwait(false);
+            .GetAllAsync(new CapitalsByQueryParamsSpecification(user.Name, disableIncludes: true), ct).ConfigureAwait(false);
         IEnumerable<BudgetEstimation> estimations = await estimationRepository
             .GetAllAsync(new BudgetEstimationsByUserSpecification(user.Name, true), ct).ConfigureAwait(false);
         IEnumerable<Goal> goals = await goalRepository.GetAllAsync(new GoalsByUserSpecification(user.Name), ct)

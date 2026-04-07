@@ -19,6 +19,8 @@ internal sealed class DebtConfiguration : IEntityTypeConfiguration<Debt>
         builder.HasIndex(d => d.IsDeleted)
             .HasFilter("[IsDeleted] = 0");
 
+        builder.HasIndex(d => new { d.CreatedBy, d.IsDeleted });
+
         builder.HasKey(d => d.Id);
 
         builder.Property(d => d.Item)

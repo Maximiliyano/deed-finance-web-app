@@ -19,6 +19,8 @@ internal sealed class BudgetEstimationConfiguration : IEntityTypeConfiguration<B
         builder.HasIndex(e => e.IsDeleted)
             .HasFilter("[IsDeleted] = 0");
 
+        builder.HasIndex(e => new { e.CreatedBy, e.IsDeleted });
+
         builder.HasKey(e => e.Id);
 
         builder.Property(e => e.Description)
