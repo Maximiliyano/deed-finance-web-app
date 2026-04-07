@@ -24,7 +24,7 @@ internal sealed class CreateTransferCommandHandler(
             var count = await transferRepository.CountAsync(
                 new TransfersByUserSpecification(user.Name!), cancellationToken).ConfigureAwait(false);
 
-            if (count >= AnonymousConstants.EntityLimit)
+            if (count >= AuthConstants.EntityLimit)
             {
                 return Result.Failure<int>(DomainErrors.Anonymous.LimitReached);
             }

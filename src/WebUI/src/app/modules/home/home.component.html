@@ -125,11 +125,9 @@
             <div class="card-header">
               <h2 class="card-title"><i class="fas fa-wallet"></i> Capitals</h2>
               <div class="card-header-actions">
-                @if (!isAnonymous) {
-                  <button class="btn btn-primary btn-sm" (click)="openTransferDialog()" title="Transfer between capitals">
-                    <i class="fas fa-exchange-alt"></i> Transfer
-                  </button>
-                }
+                <button class="btn btn-primary btn-sm" (click)="openTransferDialog()" title="Transfer between capitals">
+                  <i class="fas fa-exchange-alt"></i> Transfer
+                </button>
                 <a class="btn btn-secondary btn-sm" routerLink="/capitals">
                   <i class="fas fa-arrow-up-right-from-square"></i> Open
                 </a>
@@ -203,11 +201,9 @@
               <h2 class="card-title"><i class="fas fa-money-bill-wave"></i> Expenses</h2>
               <div class="card-header-actions">
                 <span class="badge badge-warning">{{ totalExpenses | currencySymbol: currency }}</span>
-                @if (!isAnonymous) {
-                  <button class="btn btn-danger btn-sm" (click)="openQuickExpense()">
-                    <i class="fas fa-plus"></i> Add
-                  </button>
-                }
+                <button class="btn btn-danger btn-sm" (click)="openQuickExpense()">
+                  <i class="fas fa-plus"></i> Add
+                </button>
                 <a class="btn btn-secondary btn-sm" routerLink="/expenses">
                   <i class="fas fa-arrow-up-right-from-square"></i>
                 </a>
@@ -268,11 +264,9 @@
               <h2 class="card-title"><i class="fas fa-arrow-trend-up"></i> Incomes</h2>
               <div class="card-header-actions">
                 <span class="badge badge-ok">{{ totalIncomes | currencySymbol: currency }}</span>
-                @if (!isAnonymous) {
-                  <button class="btn btn-success btn-sm" (click)="openQuickIncome()">
-                    <i class="fas fa-plus"></i> Add
-                  </button>
-                }
+                <button class="btn btn-success btn-sm" (click)="openQuickIncome()">
+                  <i class="fas fa-plus"></i> Add
+                </button>
                 <a class="btn btn-secondary btn-sm" routerLink="/incomes">
                   <i class="fas fa-arrow-up-right-from-square"></i>
                 </a>

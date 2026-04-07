@@ -9,10 +9,4 @@ internal static class MiddlewareExtensions
         app.UseMiddleware<RequestContextLoggingMiddleware>();
         return app;
     }
-
-    internal static IApplicationBuilder UseAnonymousSession(this IApplicationBuilder app)
-    {
-        app.UseMiddleware<AnonymousSessionMiddleware>();
-        return app;
-    }
 }

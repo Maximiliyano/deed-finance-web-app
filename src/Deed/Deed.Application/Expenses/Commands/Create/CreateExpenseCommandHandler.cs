@@ -24,7 +24,8 @@ internal sealed class CreateExpenseCommandHandler(
         {
             var count = await expenseRepository.CountAsync(
                 new ExpenseByQueriesSpecification(user.Name!), cancellationToken).ConfigureAwait(false);
-            if (count >= AnonymousConstants.EntityLimit)
+            
+            if (count >= AuthConstants.EntityLimit)
             {
                 return Result.Failure<int>(DomainErrors.Anonymous.LimitReached);
             }

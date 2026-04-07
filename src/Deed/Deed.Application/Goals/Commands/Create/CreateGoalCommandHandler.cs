@@ -21,7 +21,7 @@ internal sealed class CreateGoalCommandHandler(
             var count = await repository.CountAsync(
                 new GoalsByUserSpecification(user.Name!), cancellationToken).ConfigureAwait(false);
 
-            if (count >= AnonymousConstants.EntityLimit)
+            if (count >= AuthConstants.EntityLimit)
             {
                 return Result.Failure<int>(DomainErrors.Anonymous.LimitReached);
             }

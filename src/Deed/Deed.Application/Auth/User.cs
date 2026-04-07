@@ -6,11 +6,13 @@ public sealed class User(IHttpContextAccessor accessor)
     : IUser
 {
     public string? Email => GetValue(AuthClaimTypes.Email);
+
     public bool? IsEmailVerified => bool.TryParse(GetValue(AuthClaimTypes.EmailVerified), out var v) && v;
-    public string? Name => IsAuthenticated
+
+    public string Name => IsAuthenticated
         ? GetValue(AuthClaimTypes.Name)
-        : accessor.HttpContext?.Items[AnonymousConstants.HttpContextItemKey] as string
-          ?? accessor.HttpContext?.Request.Cookies[AnonymousConstants.SessionCookieName];
+        : AuthConstants.DefaultUserName;
+
     public Uri? PictureUrl
     {
         get
@@ -23,6 +25,7 @@ public sealed class User(IHttpContextAccessor accessor)
             return null;
         }
     }
+
     public bool IsAuthenticated => accessor.HttpContext?.User?.Identity?.IsAuthenticated ?? false;
 
     private string? GetValue(string claimType)

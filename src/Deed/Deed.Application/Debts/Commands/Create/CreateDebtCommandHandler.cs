@@ -23,7 +23,7 @@ internal sealed class CreateDebtCommandHandler(
             var count = await repository.CountAsync(
                 new DebtsByUserSpecification(user.Name!), cancellationToken).ConfigureAwait(false);
 
-            if (count >= AnonymousConstants.EntityLimit)
+            if (count >= AuthConstants.EntityLimit)
             {
                 return Result.Failure<int>(DomainErrors.Anonymous.LimitReached);
             }

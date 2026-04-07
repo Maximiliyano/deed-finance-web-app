@@ -45,8 +45,6 @@ if (!app.Environment.IsDevelopment())
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.UseAnonymousSession();
-
 app.UseRequestContextLogging();
 
 app.UseSerilogRequestLogging();

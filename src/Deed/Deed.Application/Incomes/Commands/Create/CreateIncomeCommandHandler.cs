@@ -24,7 +24,8 @@ internal sealed class CreateIncomeCommandHandler(
         {
             var count = await incomeRepository.CountAsync(
                 new IncomesByQuerySpecification(user.Name!), cancellationToken).ConfigureAwait(false);
-            if (count >= AnonymousConstants.EntityLimit)
+            
+            if (count >= AuthConstants.EntityLimit)
             {
                 return Result.Failure<int>(DomainErrors.Anonymous.LimitReached);
             }

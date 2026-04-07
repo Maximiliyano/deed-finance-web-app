@@ -21,7 +21,7 @@ internal sealed class CreateBudgetEstimationCommandHandler(
             var count = await repository.CountAsync(
                 new BudgetEstimationsByUserSpecification(user.Name!, false), cancellationToken).ConfigureAwait(false);
 
-            if (count >= AnonymousConstants.EntityLimit)
+            if (count >= AuthConstants.EntityLimit)
             {
                 return Result.Failure<int>(DomainErrors.Anonymous.LimitReached);
             }

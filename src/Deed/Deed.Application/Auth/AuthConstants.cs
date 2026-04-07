@@ -7,4 +7,8 @@ public static class AuthConstants
     public const string ResponseType = "code";
 
     public const string ExplicitLoginKey = "explicit_login";
+
+    public const string DefaultUserName = "System";
+
+    public const int EntityLimit = 3;
 }
