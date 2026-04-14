@@ -17,4 +17,6 @@ public interface IDebtRepository
     Task<bool> AnyAsync(ISpecification<Debt> specification, CancellationToken cancellationToken = default);
 
     Task<int> CountAsync(ISpecification<Debt> specification, CancellationToken cancellationToken = default);
+
+    Task UpdateOrderIndexesAsync(IList<(int Id, int OrderIndex)> debts, string createdBy, CancellationToken cancellationToken = default);
 }

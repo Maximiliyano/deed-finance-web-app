@@ -133,6 +133,24 @@
                 </a>
               </div>
             </div>
+            @if (capitals.length > 1) {
+              <div class="bp-toolbar">
+                <div class="bp-sort-group">
+                  <button class="bp-sort-btn" [ngClass]="{ active: capitalSortBy === 'custom' }" (click)="sortCapitals('custom')" title="Custom order">
+                    <i class="fas fa-grip-vertical"></i>
+                  </button>
+                  <button class="bp-sort-btn" [ngClass]="{ active: capitalSortBy === 'balance-desc' }" (click)="sortCapitals('balance-desc')" title="Highest balance">
+                    <i class="fas fa-arrow-down-wide-short"></i>
+                  </button>
+                  <button class="bp-sort-btn" [ngClass]="{ active: capitalSortBy === 'balance-asc' }" (click)="sortCapitals('balance-asc')" title="Lowest balance">
+                    <i class="fas fa-arrow-up-short-wide"></i>
+                  </button>
+                  <button class="bp-sort-btn" [ngClass]="{ active: capitalSortBy === 'name' }" (click)="sortCapitals('name')" title="A to Z">
+                    <i class="fas fa-arrow-down-a-z"></i>
+                  </button>
+                </div>
+              </div>
+            }
             @if (loading('capitals')) {
               <div class="section-spinner"><span class="circle-spinner"></span></div>
             } @else if (capitals.length === 0) {
@@ -142,9 +160,12 @@
                 <p class="empty-hint">Add your bank accounts, cash wallets and investment accounts.</p>
               </div>
             } @else {
-              <div class="summary-grid">
+              <div class="summary-grid" cdkDropList (cdkDropListDropped)="dropCapital($event)" [cdkDropListDisabled]="capitalSortBy !== 'custom' || isAnonymous">
                 @for (cap of capitals; track cap.id) {
-                  <div class="summary-card" [ngClass]="isAnonymous ? '' : 'clickable-row'" (click)="isAnonymous || openCapitalDetail(cap)">
+                  <div class="summary-card" cdkDrag [cdkDragDisabled]="capitalSortBy !== 'custom' || isAnonymous" [ngClass]="isAnonymous ? '' : 'clickable-row'" (click)="isAnonymous || openCapitalDetail(cap)">
+                    @if (capitalSortBy === 'custom' && !isAnonymous) {
+                      <i class="fas fa-grip-vertical bp-drag-handle" cdkDragHandle (click)="$event.stopPropagation()"></i>
+                    }
                     <div class="summary-card-header">
                       <span class="summary-card-name">{{ cap.name }}</span>
                       <div class="summary-card-actions">
@@ -209,6 +230,27 @@
                 </a>
               </div>
             </div>
+            @if (expenseCategories.length > 1) {
+              <div class="bp-toolbar">
+                <div class="bp-sort-group">
+                  <button class="bp-sort-btn" [ngClass]="{ active: expenseSortBy === 'custom' }" (click)="sortExpenses('custom')" title="Custom order">
+                    <i class="fas fa-grip-vertical"></i>
+                  </button>
+                  <button class="bp-sort-btn" [ngClass]="{ active: expenseSortBy === 'default' }" (click)="sortExpenses('default')" title="Default order">
+                    <i class="fas fa-percent"></i>
+                  </button>
+                  <button class="bp-sort-btn" [ngClass]="{ active: expenseSortBy === 'amount-desc' }" (click)="sortExpenses('amount-desc')" title="Highest first">
+                    <i class="fas fa-arrow-down-wide-short"></i>
+                  </button>
+                  <button class="bp-sort-btn" [ngClass]="{ active: expenseSortBy === 'amount-asc' }" (click)="sortExpenses('amount-asc')" title="Lowest first">
+                    <i class="fas fa-arrow-up-short-wide"></i>
+                  </button>
+                  <button class="bp-sort-btn" [ngClass]="{ active: expenseSortBy === 'name' }" (click)="sortExpenses('name')" title="A to Z">
+                    <i class="fas fa-arrow-down-a-z"></i>
+                  </button>
+                </div>
+              </div>
+            }
             @if (loading('expenses')) {
               <div class="section-spinner"><span class="circle-spinner"></span></div>
             } @else if (expenseCategories.length === 0) {
@@ -218,10 +260,13 @@
                 <p class="empty-hint">Start tracking your expenses to see a breakdown here.</p>
               </div>
             } @else {
-              <div class="expense-summary-list">
+              <div class="expense-summary-list" cdkDropList (cdkDropListDropped)="dropExpense($event)" [cdkDropListDisabled]="expenseSortBy !== 'custom' || isAnonymous">
                 @for (cat of expenseCategories; track cat.categoryId) {
-                  <div class="expense-summary-row clickable-row" (click)="toggleExpenseCat(cat.categoryId)">
+                  <div class="expense-summary-row clickable-row" cdkDrag [cdkDragDisabled]="expenseSortBy !== 'custom' || isAnonymous" (click)="toggleExpenseCat(cat.categoryId)">
                     <div class="expense-summary-info">
+                      @if (expenseSortBy === 'custom' && !isAnonymous) {
+                        <i class="fas fa-grip-vertical bp-drag-handle" cdkDragHandle (click)="$event.stopPropagation()"></i>
+                      }
                       <i class="fas expand-icon" [ngClass]="expandedExpenseCats.has(cat.categoryId) ? 'fa-chevron-down' : 'fa-chevron-right'"></i>
                       <span class="expense-summary-name">{{ cat.name }}</span>
                       <span class="expense-summary-count">{{ cat.expenses.length }} {{ cat.expenses.length === 1 ? 'transaction' : 'transactions' }}</span>
@@ -272,6 +317,27 @@
                 </a>
               </div>
             </div>
+            @if (incomeByCategoryList.length > 1) {
+              <div class="bp-toolbar">
+                <div class="bp-sort-group">
+                  <button class="bp-sort-btn" [ngClass]="{ active: incomeSortBy === 'custom' }" (click)="sortIncomes('custom')" title="Custom order">
+                    <i class="fas fa-grip-vertical"></i>
+                  </button>
+                  <button class="bp-sort-btn" [ngClass]="{ active: incomeSortBy === 'default' }" (click)="sortIncomes('default')" title="Default order">
+                    <i class="fas fa-percent"></i>
+                  </button>
+                  <button class="bp-sort-btn" [ngClass]="{ active: incomeSortBy === 'amount-desc' }" (click)="sortIncomes('amount-desc')" title="Highest first">
+                    <i class="fas fa-arrow-down-wide-short"></i>
+                  </button>
+                  <button class="bp-sort-btn" [ngClass]="{ active: incomeSortBy === 'amount-asc' }" (click)="sortIncomes('amount-asc')" title="Lowest first">
+                    <i class="fas fa-arrow-up-short-wide"></i>
+                  </button>
+                  <button class="bp-sort-btn" [ngClass]="{ active: incomeSortBy === 'name' }" (click)="sortIncomes('name')" title="A to Z">
+                    <i class="fas fa-arrow-down-a-z"></i>
+                  </button>
+                </div>
+              </div>
+            }
             @if (loading('incomes')) {
               <div class="section-spinner"><span class="circle-spinner"></span></div>
             } @else if (incomes.length === 0) {
@@ -281,10 +347,13 @@
                 <p class="empty-hint">Start tracking your incomes to see a breakdown here.</p>
               </div>
             } @else {
-              <div class="expense-summary-list">
+              <div class="expense-summary-list" cdkDropList (cdkDropListDropped)="dropIncome($event)" [cdkDropListDisabled]="incomeSortBy !== 'custom' || isAnonymous">
                 @for (item of incomeByCategoryList; track item.name) {
-                  <div class="expense-summary-row clickable-row" (click)="toggleIncomeCat(item.name)">
+                  <div class="expense-summary-row clickable-row" cdkDrag [cdkDragDisabled]="incomeSortBy !== 'custom' || isAnonymous" (click)="toggleIncomeCat(item.name)">
                     <div class="expense-summary-info">
+                      @if (incomeSortBy === 'custom' && !isAnonymous) {
+                        <i class="fas fa-grip-vertical bp-drag-handle" cdkDragHandle (click)="$event.stopPropagation()"></i>
+                      }
                       <i class="fas expand-icon" [ngClass]="expandedIncomeCats.has(item.name) ? 'fa-chevron-down' : 'fa-chevron-right'"></i>
                       <span class="expense-summary-name">{{ item.name }}</span>
                       <span class="expense-summary-count">{{ item.count }} {{ item.count === 1 ? 'transaction' : 'transactions' }}</span>
@@ -346,6 +415,24 @@
                 }
               </div>
             </div>
+            @if (estimations.length > 1) {
+              <div class="bp-toolbar">
+                <div class="bp-sort-group">
+                  <button class="bp-sort-btn" [ngClass]="{ active: estimationSortBy === 'custom' }" (click)="sortEstimations('custom')" title="Custom order">
+                    <i class="fas fa-grip-vertical"></i>
+                  </button>
+                  <button class="bp-sort-btn" [ngClass]="{ active: estimationSortBy === 'amount-desc' }" (click)="sortEstimations('amount-desc')" title="Highest first">
+                    <i class="fas fa-arrow-down-wide-short"></i>
+                  </button>
+                  <button class="bp-sort-btn" [ngClass]="{ active: estimationSortBy === 'amount-asc' }" (click)="sortEstimations('amount-asc')" title="Lowest first">
+                    <i class="fas fa-arrow-up-short-wide"></i>
+                  </button>
+                  <button class="bp-sort-btn" [ngClass]="{ active: estimationSortBy === 'name' }" (click)="sortEstimations('name')" title="A to Z">
+                    <i class="fas fa-arrow-down-a-z"></i>
+                  </button>
+                </div>
+              </div>
+            }
             @if (loading('estimations')) {
               <div class="section-spinner"><span class="circle-spinner"></span></div>
             } @else if (estimations.length === 0) {
@@ -371,9 +458,12 @@
                   </div>
                 </div>
               }
-              <div class="bp-list">
+              <div class="bp-list" cdkDropList (cdkDropListDropped)="dropEstimation($event)" [cdkDropListDisabled]="estimationSortBy !== 'custom' || isAnonymous">
                 @for (est of estimations; track est.id) {
-                  <div class="bp-item" [ngClass]="isAnonymous ? '' : 'clickable-row'" (click)="isAnonymous || openEstimationDialog(est)">
+                  <div class="bp-item" cdkDrag [cdkDragDisabled]="estimationSortBy !== 'custom' || isAnonymous" [ngClass]="isAnonymous ? '' : 'clickable-row'" (click)="isAnonymous || openEstimationDialog(est)">
+                    @if (estimationSortBy === 'custom' && !isAnonymous) {
+                      <i class="fas fa-grip-vertical bp-drag-handle" cdkDragHandle [style.background-color]="barColors[$index % barColors.length] + '18'"></i>
+                    }
                     <div class="bp-item-color" [style.background-color]="barColors[$index % barColors.length]"></div>
                     <div class="bp-item-body">
                       <div class="bp-item-top">
@@ -456,6 +546,24 @@
                 </div>
               }
             </div>
+            @if (goals.length > 1) {
+              <div class="bp-toolbar">
+                <div class="bp-sort-group">
+                  <button class="bp-sort-btn" [ngClass]="{ active: goalSortBy === 'custom' }" (click)="sortGoals('custom')" title="Custom order">
+                    <i class="fas fa-grip-vertical"></i>
+                  </button>
+                  <button class="bp-sort-btn" [ngClass]="{ active: goalSortBy === 'progress-desc' }" (click)="sortGoals('progress-desc')" title="Most progress">
+                    <i class="fas fa-arrow-down-wide-short"></i>
+                  </button>
+                  <button class="bp-sort-btn" [ngClass]="{ active: goalSortBy === 'progress-asc' }" (click)="sortGoals('progress-asc')" title="Least progress">
+                    <i class="fas fa-arrow-up-short-wide"></i>
+                  </button>
+                  <button class="bp-sort-btn" [ngClass]="{ active: goalSortBy === 'name' }" (click)="sortGoals('name')" title="A to Z">
+                    <i class="fas fa-arrow-down-a-z"></i>
+                  </button>
+                </div>
+              </div>
+            }
             @if (loading('goals')) {
               <div class="section-spinner"><span class="circle-spinner"></span></div>
             } @else if (goals.length === 0) {
@@ -465,9 +573,12 @@
                 <p class="empty-hint">Set financial goals and track your progress toward them.</p>
               </div>
             } @else {
-              <div class="goals-list">
+              <div class="goals-list" cdkDropList (cdkDropListDropped)="dropGoal($event)" [cdkDropListDisabled]="goalSortBy !== 'custom' || isAnonymous">
                 @for (goal of goals; track goal.id) {
-                  <div class="goal-item" [ngClass]="{ 'goal-completed': goal.isCompleted, 'clickable-row': !isAnonymous }" (click)="isAnonymous || openGoalDialog(goal)">
+                  <div class="goal-item" cdkDrag [cdkDragDisabled]="goalSortBy !== 'custom' || isAnonymous" [ngClass]="{ 'goal-completed': goal.isCompleted, 'clickable-row': !isAnonymous }" (click)="isAnonymous || openGoalDialog(goal)">
+                    @if (goalSortBy === 'custom' && !isAnonymous) {
+                      <i class="fas fa-grip-vertical bp-drag-handle" cdkDragHandle (click)="$event.stopPropagation()"></i>
+                    }
                     <div class="goal-item-header">
                       <span class="goal-item-title">
                         @if (goal.isCompleted) { <i class="fas fa-circle-check text-success"></i> }
@@ -533,6 +644,24 @@
                 }
               </div>
             </div>
+            @if (debts.length > 1) {
+              <div class="bp-toolbar">
+                <div class="bp-sort-group">
+                  <button class="bp-sort-btn" [ngClass]="{ active: debtSortBy === 'custom' }" (click)="sortDebts('custom')" title="Custom order">
+                    <i class="fas fa-grip-vertical"></i>
+                  </button>
+                  <button class="bp-sort-btn" [ngClass]="{ active: debtSortBy === 'amount-desc' }" (click)="sortDebts('amount-desc')" title="Highest first">
+                    <i class="fas fa-arrow-down-wide-short"></i>
+                  </button>
+                  <button class="bp-sort-btn" [ngClass]="{ active: debtSortBy === 'amount-asc' }" (click)="sortDebts('amount-asc')" title="Lowest first">
+                    <i class="fas fa-arrow-up-short-wide"></i>
+                  </button>
+                  <button class="bp-sort-btn" [ngClass]="{ active: debtSortBy === 'name' }" (click)="sortDebts('name')" title="A to Z">
+                    <i class="fas fa-arrow-down-a-z"></i>
+                  </button>
+                </div>
+              </div>
+            }
             @if (loading('debts')) {
               <div class="section-spinner"><span class="circle-spinner"></span></div>
             } @else if (debts.length === 0) {
@@ -546,6 +675,7 @@
                 <table class="data-table">
                   <thead>
                     <tr>
+                      @if (debtSortBy === 'custom' && !isAnonymous) { <th></th> }
                       <th>Item</th>
                       <th>Amount</th>
                       <th>Capital</th>
@@ -557,9 +687,14 @@
                       @if (!isAnonymous) { <th></th> }
                     </tr>
                   </thead>
-                  <tbody>
+                  <tbody cdkDropList (cdkDropListDropped)="dropDebt($event)" [cdkDropListDisabled]="debtSortBy !== 'custom' || isAnonymous">
                     @for (debt of debts; track debt.id) {
-                      <tr [ngClass]="{ 'row-paid': debt.isPaid, 'clickable-row': !isAnonymous }" (click)="isAnonymous || openDebtDialog(debt)">
+                      <tr cdkDrag [cdkDragDisabled]="debtSortBy !== 'custom' || isAnonymous" [ngClass]="{ 'row-paid': debt.isPaid, 'clickable-row': !isAnonymous }" (click)="isAnonymous || openDebtDialog(debt)">
+                        @if (debtSortBy === 'custom' && !isAnonymous) {
+                          <td class="drag-cell" cdkDragHandle (click)="$event.stopPropagation()">
+                            <i class="fas fa-grip-vertical bp-drag-handle"></i>
+                          </td>
+                        }
                         <td class="font-medium">
                           @if (debt.isPaid) { <i class="fas fa-circle-check text-success"></i> }
                           {{ debt.item }}

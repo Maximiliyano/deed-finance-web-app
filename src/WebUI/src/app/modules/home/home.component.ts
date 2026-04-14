@@ -68,6 +68,12 @@ export class HomeComponent implements OnInit, OnDestroy {
   userSettings: UserSettings | null = null;
   exchanges: Exchange[] = [];
   isEditMode = false;
+  estimationSortBy: 'custom' | 'amount-asc' | 'amount-desc' | 'name' = 'custom';
+  capitalSortBy: 'custom' | 'balance-desc' | 'balance-asc' | 'name' = 'custom';
+  goalSortBy: 'custom' | 'progress-desc' | 'progress-asc' | 'name' = 'custom';
+  debtSortBy: 'custom' | 'amount-desc' | 'amount-asc' | 'name' = 'custom';
+  expenseSortBy: 'custom' | 'default' | 'amount-desc' | 'amount-asc' | 'name' = 'default';
+  incomeSortBy: 'custom' | 'default' | 'amount-desc' | 'amount-asc' | 'name' = 'default';
 
   readonly barColors = ['#60a5fa', '#f472b6', '#34d399', '#fb923c', '#38bdf8', '#facc15', '#2dd4bf'];
 
@@ -216,7 +222,7 @@ export class HomeComponent implements OnInit, OnDestroy {
       this.userSettingsService.upsert(result as unknown as UserSettings)
         .pipe(takeUntil(this.unsubscribe$))
         .subscribe({
-          next: () => { this.popup.success('Salary updated'); this.loadData(); },
+          next: () => { this.popup.success('Salary updated'); this.reloadSettings(); },
           error: () => this.popup.error('Failed to save salary')
         });
     });
@@ -233,6 +239,170 @@ export class HomeComponent implements OnInit, OnDestroy {
     }
   }
 
+  sortEstimations(by: string): void {
+    this.estimationSortBy = by as any;
+    switch (by) {
+      case 'amount-desc':
+        this.estimations = [...this.estimations].sort((a, b) => b.budgetAmount - a.budgetAmount);
+        break;
+      case 'amount-asc':
+        this.estimations = [...this.estimations].sort((a, b) => a.budgetAmount - b.budgetAmount);
+        break;
+      case 'name':
+        this.estimations = [...this.estimations].sort((a, b) => a.description.localeCompare(b.description));
+        break;
+      case 'custom':
+        this.estimations = [...this.estimations].sort((a, b) => a.orderIndex - b.orderIndex);
+        break;
+    }
+    this.cdr.markForCheck();
+  }
+
+  dropEstimation(event: any): void {
+    if (event.previousIndex !== event.currentIndex) {
+      moveItemInArray(this.estimations, event.previousIndex, event.currentIndex);
+      const orders = this.estimations.map((e, i) => ({ id: e.id, orderIndex: i }));
+      this.estimationService.updateOrder(orders).pipe(takeUntil(this.unsubscribe$)).subscribe();
+      this.cdr.markForCheck();
+    }
+  }
+
+  sortCapitals(by: string): void {
+    this.capitalSortBy = by as any;
+    switch (by) {
+      case 'balance-desc':
+        this.capitals = [...this.capitals].sort((a, b) => b.balance - a.balance);
+        break;
+      case 'balance-asc':
+        this.capitals = [...this.capitals].sort((a, b) => a.balance - b.balance);
+        break;
+      case 'name':
+        this.capitals = [...this.capitals].sort((a, b) => a.name.localeCompare(b.name));
+        break;
+      case 'custom':
+        this.reloadCapitals();
+        return;
+    }
+    this.cdr.markForCheck();
+  }
+
+  dropCapital(event: any): void {
+    if (event.previousIndex !== event.currentIndex) {
+      moveItemInArray(this.capitals, event.previousIndex, event.currentIndex);
+      const orders = this.capitals.map((c, i) => ({ id: c.id, orderIndex: i }));
+      this.capitalService.updateOrder({ capitals: orders }).pipe(takeUntil(this.unsubscribe$)).subscribe();
+      this.cdr.markForCheck();
+    }
+  }
+
+  sortGoals(by: string): void {
+    this.goalSortBy = by as any;
+    switch (by) {
+      case 'progress-desc':
+        this.goals = [...this.goals].sort((a, b) => this.goalProgress(b) - this.goalProgress(a));
+        break;
+      case 'progress-asc':
+        this.goals = [...this.goals].sort((a, b) => this.goalProgress(a) - this.goalProgress(b));
+        break;
+      case 'name':
+        this.goals = [...this.goals].sort((a, b) => a.title.localeCompare(b.title));
+        break;
+      case 'custom':
+        this.goals = [...this.goals].sort((a, b) => a.orderIndex - b.orderIndex);
+        break;
+    }
+    this.cdr.markForCheck();
+  }
+
+  dropGoal(event: any): void {
+    if (event.previousIndex !== event.currentIndex) {
+      moveItemInArray(this.goals, event.previousIndex, event.currentIndex);
+      const orders = this.goals.map((g, i) => ({ id: g.id, orderIndex: i }));
+      this.goalService.updateOrder(orders).pipe(takeUntil(this.unsubscribe$)).subscribe();
+      this.cdr.markForCheck();
+    }
+  }
+
+  sortDebts(by: string): void {
+    this.debtSortBy = by as any;
+    switch (by) {
+      case 'amount-desc':
+        this.debts = [...this.debts].sort((a, b) => b.amount - a.amount);
+        break;
+      case 'amount-asc':
+        this.debts = [...this.debts].sort((a, b) => a.amount - b.amount);
+        break;
+      case 'name':
+        this.debts = [...this.debts].sort((a, b) => a.item.localeCompare(b.item));
+        break;
+      case 'custom':
+        this.debts = [...this.debts].sort((a, b) => a.orderIndex - b.orderIndex);
+        break;
+    }
+    this.cdr.markForCheck();
+  }
+
+  dropDebt(event: any): void {
+    if (event.previousIndex !== event.currentIndex) {
+      moveItemInArray(this.debts, event.previousIndex, event.currentIndex);
+      const orders = this.debts.map((d, i) => ({ id: d.id, orderIndex: i }));
+      this.debtService.updateOrder(orders).pipe(takeUntil(this.unsubscribe$)).subscribe();
+      this.cdr.markForCheck();
+    }
+  }
+
+  sortExpenses(by: string): void {
+    this.expenseSortBy = by as any;
+    switch (by) {
+      case 'amount-desc':
+        this.expenseCategories = [...this.expenseCategories].sort((a, b) => b.categorySum - a.categorySum);
+        break;
+      case 'amount-asc':
+        this.expenseCategories = [...this.expenseCategories].sort((a, b) => a.categorySum - b.categorySum);
+        break;
+      case 'name':
+        this.expenseCategories = [...this.expenseCategories].sort((a, b) => a.name.localeCompare(b.name));
+        break;
+      case 'default':
+        this.expenseCategories = [...this.expenseCategories].sort((a, b) => b.percentage - a.percentage);
+        break;
+    }
+    this.cdr.markForCheck();
+  }
+
+  dropExpense(event: any): void {
+    if (event.previousIndex !== event.currentIndex) {
+      moveItemInArray(this.expenseCategories, event.previousIndex, event.currentIndex);
+      this.cdr.markForCheck();
+    }
+  }
+
+  sortIncomes(by: string): void {
+    this.incomeSortBy = by as any;
+    switch (by) {
+      case 'amount-desc':
+        this.incomeByCategoryList = [...this.incomeByCategoryList].sort((a, b) => b.total - a.total);
+        break;
+      case 'amount-asc':
+        this.incomeByCategoryList = [...this.incomeByCategoryList].sort((a, b) => a.total - b.total);
+        break;
+      case 'name':
+        this.incomeByCategoryList = [...this.incomeByCategoryList].sort((a, b) => a.name.localeCompare(b.name));
+        break;
+      case 'default':
+        this.incomeByCategoryList = [...this.incomeByCategoryList].sort((a, b) => b.total - a.total);
+        break;
+    }
+    this.cdr.markForCheck();
+  }
+
+  dropIncome(event: any): void {
+    if (event.previousIndex !== event.currentIndex) {
+      moveItemInArray(this.incomeByCategoryList, event.previousIndex, event.currentIndex);
+      this.cdr.markForCheck();
+    }
+  }
+
   openEstimationDialog(estimation?: BudgetEstimation): void {
     const data: BudgetEstimationDialogData = { estimation, capitals: this.capitals };
     const ref = this.dialogService.open(BudgetEstimationDialogComponent, { data });
@@ -243,7 +413,7 @@ export class HomeComponent implements OnInit, OnDestroy {
         this.estimationService.update(estimation.id, req).pipe(takeUntil(this.unsubscribe$)).subscribe({
           next: () => {
             this.popup.success('Estimation updated');
-            this.loadData();
+            this.reloadEstimations();
           },
           error: () => this.popup.error('Failed to update estimation')
         });
@@ -252,7 +422,7 @@ export class HomeComponent implements OnInit, OnDestroy {
         this.estimationService.create(req).pipe(takeUntil(this.unsubscribe$)).subscribe({
           next: () => {
             this.popup.success('Estimation added');
-            this.loadData();
+            this.reloadEstimations();
           },
           error: () => this.popup.error('Failed to add estimation')
         });
@@ -281,7 +451,7 @@ export class HomeComponent implements OnInit, OnDestroy {
         this.goalService.update(goal.id, req).pipe(takeUntil(this.unsubscribe$)).subscribe({
           next: () => {
             this.popup.success('Goal updated');
-            this.loadData();
+            this.reloadGoals();
           },
           error: () => this.popup.error('Failed to update goal')
         });
@@ -289,7 +459,7 @@ export class HomeComponent implements OnInit, OnDestroy {
         this.goalService.create(result).pipe(takeUntil(this.unsubscribe$)).subscribe({
           next: () => {
             this.popup.success('Goal added');
-            this.loadData();
+            this.reloadGoals();
           },
           error: () => this.popup.error('Failed to add goal')
         });
@@ -329,7 +499,7 @@ export class HomeComponent implements OnInit, OnDestroy {
         this.debtService.update(debt.id, req).pipe(takeUntil(this.unsubscribe$)).subscribe({
           next: () => {
             this.popup.success('Debt updated');
-            this.loadData();
+            this.reloadDebts();
           },
           error: () => this.popup.error('Failed to update debt')
         });
@@ -348,7 +518,7 @@ export class HomeComponent implements OnInit, OnDestroy {
         this.debtService.create(req).pipe(takeUntil(this.unsubscribe$)).subscribe({
           next: () => {
             this.popup.success('Debt added');
-            this.loadData();
+            this.reloadDebts();
           },
           error: () => this.popup.error('Failed to add debt')
         });
@@ -375,14 +545,27 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   deleteExpense(id: number): void {
     this.expenseService.delete(id).pipe(takeUntil(this.unsubscribe$)).subscribe({
-      next: () => { this.popup.success('Expense deleted'); this.loadData(); },
+      next: () => {
+        this.expenseCategories = this.expenseCategories
+          .map(cat => ({ ...cat, expenses: cat.expenses.filter((e: any) => e.id !== id) }))
+          .filter(cat => cat.expenses.length > 0);
+        this.popup.success('Expense deleted');
+        this.reloadCapitals();
+        this.cdr.markForCheck();
+      },
       error: () => this.popup.error('Failed to delete expense')
     });
   }
 
   deleteIncome(id: number): void {
     this.incomeService.delete(id).pipe(takeUntil(this.unsubscribe$)).subscribe({
-      next: () => { this.popup.success('Income deleted'); this.loadData(); },
+      next: () => {
+        this.incomes = this.incomes.filter(i => i.id !== id);
+        this.incomeByCategoryList = this.computeIncomesByCategory();
+        this.popup.success('Income deleted');
+        this.reloadCapitals();
+        this.cdr.markForCheck();
+      },
       error: () => this.popup.error('Failed to delete income')
     });
   }
@@ -394,7 +577,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     ref.afterClosed$.pipe(takeUntil(this.unsubscribe$)).subscribe((result: UpdateCapitalRequest | null) => {
       if (!result) return;
       this.capitalService.update(result.id, result).pipe(takeUntil(this.unsubscribe$)).subscribe({
-        next: () => { this.popup.success('Capital updated'); this.loadData(); },
+        next: () => { this.popup.success('Capital updated'); this.reloadCapitals(); },
         error: () => this.popup.error('Failed to update capital')
       });
     });
@@ -402,7 +585,12 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   deleteTransfer(id: number): void {
     this.transferService.delete(id).pipe(takeUntil(this.unsubscribe$)).subscribe({
-      next: () => { this.popup.success('Transfer reversed and deleted'); this.loadData(); },
+      next: () => {
+        this.transfers = this.transfers.filter(t => t.id !== id);
+        this.popup.success('Transfer reversed and deleted');
+        this.reloadCapitals();
+        this.cdr.markForCheck();
+      },
       error: () => this.popup.error('Failed to delete transfer')
     });
   }
@@ -417,7 +605,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     ref.afterClosed$.pipe(takeUntil(this.unsubscribe$)).subscribe(result => {
       if (!result) return;
       this.transferService.create(result).pipe(takeUntil(this.unsubscribe$)).subscribe({
-        next: () => { this.popup.success('Transfer completed'); this.loadData(); },
+        next: () => { this.popup.success('Transfer completed'); this.reloadTransfers(); this.reloadCapitals(); },
         error: () => this.popup.error('Failed to create transfer')
       });
     });
@@ -458,12 +646,12 @@ export class HomeComponent implements OnInit, OnDestroy {
       if (!result) return;
       if (result._edit) {
         this.expenseService.update({ id: result.id, categoryId: result.categoryId, amount: result.amount, purpose: result.purpose, date: result.date }).pipe(takeUntil(this.unsubscribe$)).subscribe({
-          next: () => { this.popup.success('Expense updated'); this.loadData(); },
+          next: () => { this.popup.success('Expense updated'); this.reloadExpenses(); },
           error: () => this.popup.error('Failed to update expense')
         });
       } else {
         this.expenseService.create(result).pipe(takeUntil(this.unsubscribe$)).subscribe({
-          next: () => { this.popup.success('Expense added'); this.loadData(); },
+          next: () => { this.popup.success('Expense added'); this.reloadExpenses(); },
           error: () => this.popup.error('Failed to add expense')
         });
       }
@@ -478,12 +666,12 @@ export class HomeComponent implements OnInit, OnDestroy {
       if (!result) return;
       if (result._edit) {
         this.incomeService.update({ id: result.id, categoryId: result.categoryId, amount: result.amount, purpose: result.purpose, paymentDate: result.date }).pipe(takeUntil(this.unsubscribe$)).subscribe({
-          next: () => { this.popup.success('Income updated'); this.loadData(); },
+          next: () => { this.popup.success('Income updated'); this.reloadIncomes(); },
           error: () => this.popup.error('Failed to update income')
         });
       } else {
         this.incomeService.create(result).pipe(takeUntil(this.unsubscribe$)).subscribe({
-          next: () => { this.popup.success('Income added'); this.loadData(); },
+          next: () => { this.popup.success('Income added'); this.reloadIncomes(); },
           error: () => this.popup.error('Failed to add income')
         });
       }
@@ -529,6 +717,60 @@ export class HomeComponent implements OnInit, OnDestroy {
           if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }, 300);
       }
+    });
+  }
+
+  private reloadSettings(): void {
+    this.userSettingsService.get().pipe(takeUntil(this.unsubscribe$)).subscribe({
+      next: data => { this.userSettings = data; this.cdr.markForCheck(); }
+    });
+  }
+
+  private reloadEstimations(): void {
+    this.estimationService.getAll().pipe(takeUntil(this.unsubscribe$)).subscribe({
+      next: data => { this.estimations = data; this.cdr.markForCheck(); }
+    });
+  }
+
+  private reloadGoals(): void {
+    this.goalService.getAll().pipe(takeUntil(this.unsubscribe$)).subscribe({
+      next: data => { this.goals = data; this.cdr.markForCheck(); }
+    });
+  }
+
+  private reloadDebts(): void {
+    this.debtService.getAll().pipe(takeUntil(this.unsubscribe$)).subscribe({
+      next: data => { this.debts = data; this.cdr.markForCheck(); }
+    });
+  }
+
+  private reloadCapitals(): void {
+    this.capitalService.getAll({ searchTerm: null, sortBy: null, sortDirection: null, filterBy: null })
+      .pipe(takeUntil(this.unsubscribe$)).subscribe({
+        next: data => { this.capitals = data; this.cdr.markForCheck(); }
+      });
+  }
+
+  private reloadExpenses(): void {
+    this.expenseService.getAllByCategories().pipe(takeUntil(this.unsubscribe$)).subscribe({
+      next: data => { this.expenseCategories = data; this.cdr.markForCheck(); }
+    });
+  }
+
+  private reloadIncomes(): void {
+    this.incomeService.getAll().pipe(takeUntil(this.unsubscribe$)).subscribe({
+      next: data => {
+        this.incomes = data.incomes;
+        this.incomeCategories = data.categories;
+        this.incomeByCategoryList = this.computeIncomesByCategory();
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  private reloadTransfers(): void {
+    this.transferService.getAll().pipe(takeUntil(this.unsubscribe$)).subscribe({
+      next: data => { this.transfers = data; this.cdr.markForCheck(); }
     });
   }
 

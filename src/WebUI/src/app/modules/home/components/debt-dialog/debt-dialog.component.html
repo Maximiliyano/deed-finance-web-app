@@ -93,7 +93,7 @@
 
   <div class="debt-footer">
     <button type="button" class="btn btn-secondary btn-sm" (click)="cancel()">Cancel</button>
-    <button type="submit" class="btn btn-primary btn-sm" [disabled]="form.invalid">
+    <button type="submit" class="btn btn-primary btn-sm" [disabled]="form.invalid || (isEdit && form.pristine)">
       {{ isEdit ? 'Save' : 'Add Debt' }}
     </button>
   </div>

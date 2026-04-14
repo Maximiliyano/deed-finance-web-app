@@ -24,6 +24,20 @@ internal sealed class UpsertUserSettingsCommandHandler(
         }
         else
         {
+            if (existing.Salary == command.Salary &&
+                existing.Currency == command.Currency &&
+                existing.BalanceReminderEnabled == command.BalanceReminderEnabled &&
+                existing.BalanceReminderCron == command.BalanceReminderCron &&
+                existing.ExpenseReminderEnabled == command.ExpenseReminderEnabled &&
+                existing.ExpenseReminderCron == command.ExpenseReminderCron &&
+                existing.DebtReminderEnabled == command.DebtReminderEnabled &&
+                existing.DebtReminderCron == command.DebtReminderCron &&
+                existing.EmailNotificationsEnabled == command.EmailNotificationsEnabled &&
+                existing.Email == user.Email)
+            {
+                return Result.Success();
+            }
+
             existing.Salary = command.Salary;
             existing.Currency = command.Currency;
             existing.BalanceReminderEnabled = command.BalanceReminderEnabled;
