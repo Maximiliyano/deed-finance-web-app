@@ -233,6 +233,9 @@
             @if (expenseCategories.length > 1) {
               <div class="bp-toolbar">
                 <div class="bp-sort-group">
+                  <button class="bp-sort-btn" [ngClass]="{ active: expenseSortBy === 'custom' }" (click)="sortExpenses('custom')" title="Custom order">
+                    <i class="fas fa-grip-vertical"></i>
+                  </button>
                   <button class="bp-sort-btn" [ngClass]="{ active: expenseSortBy === 'default' }" (click)="sortExpenses('default')" title="Default order">
                     <i class="fas fa-percent"></i>
                   </button>
@@ -257,10 +260,13 @@
                 <p class="empty-hint">Start tracking your expenses to see a breakdown here.</p>
               </div>
             } @else {
-              <div class="expense-summary-list">
+              <div class="expense-summary-list" cdkDropList (cdkDropListDropped)="dropExpense($event)" [cdkDropListDisabled]="expenseSortBy !== 'custom' || isAnonymous">
                 @for (cat of expenseCategories; track cat.categoryId) {
-                  <div class="expense-summary-row clickable-row" (click)="toggleExpenseCat(cat.categoryId)">
+                  <div class="expense-summary-row clickable-row" cdkDrag [cdkDragDisabled]="expenseSortBy !== 'custom' || isAnonymous" (click)="toggleExpenseCat(cat.categoryId)">
                     <div class="expense-summary-info">
+                      @if (expenseSortBy === 'custom' && !isAnonymous) {
+                        <i class="fas fa-grip-vertical bp-drag-handle" cdkDragHandle (click)="$event.stopPropagation()"></i>
+                      }
                       <i class="fas expand-icon" [ngClass]="expandedExpenseCats.has(cat.categoryId) ? 'fa-chevron-down' : 'fa-chevron-right'"></i>
                       <span class="expense-summary-name">{{ cat.name }}</span>
                       <span class="expense-summary-count">{{ cat.expenses.length }} {{ cat.expenses.length === 1 ? 'transaction' : 'transactions' }}</span>
@@ -314,6 +320,9 @@
             @if (incomeByCategoryList.length > 1) {
               <div class="bp-toolbar">
                 <div class="bp-sort-group">
+                  <button class="bp-sort-btn" [ngClass]="{ active: incomeSortBy === 'custom' }" (click)="sortIncomes('custom')" title="Custom order">
+                    <i class="fas fa-grip-vertical"></i>
+                  </button>
                   <button class="bp-sort-btn" [ngClass]="{ active: incomeSortBy === 'default' }" (click)="sortIncomes('default')" title="Default order">
                     <i class="fas fa-percent"></i>
                   </button>
@@ -338,10 +347,13 @@
                 <p class="empty-hint">Start tracking your incomes to see a breakdown here.</p>
               </div>
             } @else {
-              <div class="expense-summary-list">
+              <div class="expense-summary-list" cdkDropList (cdkDropListDropped)="dropIncome($event)" [cdkDropListDisabled]="incomeSortBy !== 'custom' || isAnonymous">
                 @for (item of incomeByCategoryList; track item.name) {
-                  <div class="expense-summary-row clickable-row" (click)="toggleIncomeCat(item.name)">
+                  <div class="expense-summary-row clickable-row" cdkDrag [cdkDragDisabled]="incomeSortBy !== 'custom' || isAnonymous" (click)="toggleIncomeCat(item.name)">
                     <div class="expense-summary-info">
+                      @if (incomeSortBy === 'custom' && !isAnonymous) {
+                        <i class="fas fa-grip-vertical bp-drag-handle" cdkDragHandle (click)="$event.stopPropagation()"></i>
+                      }
                       <i class="fas expand-icon" [ngClass]="expandedIncomeCats.has(item.name) ? 'fa-chevron-down' : 'fa-chevron-right'"></i>
                       <span class="expense-summary-name">{{ item.name }}</span>
                       <span class="expense-summary-count">{{ item.count }} {{ item.count === 1 ? 'transaction' : 'transactions' }}</span>

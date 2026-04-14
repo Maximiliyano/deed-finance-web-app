@@ -72,8 +72,8 @@ export class HomeComponent implements OnInit, OnDestroy {
   capitalSortBy: 'custom' | 'balance-desc' | 'balance-asc' | 'name' = 'custom';
   goalSortBy: 'custom' | 'progress-desc' | 'progress-asc' | 'name' = 'custom';
   debtSortBy: 'custom' | 'amount-desc' | 'amount-asc' | 'name' = 'custom';
-  expenseSortBy: 'default' | 'amount-desc' | 'amount-asc' | 'name' = 'default';
-  incomeSortBy: 'default' | 'amount-desc' | 'amount-asc' | 'name' = 'default';
+  expenseSortBy: 'custom' | 'default' | 'amount-desc' | 'amount-asc' | 'name' = 'default';
+  incomeSortBy: 'custom' | 'default' | 'amount-desc' | 'amount-asc' | 'name' = 'default';
 
   readonly barColors = ['#60a5fa', '#f472b6', '#34d399', '#fb923c', '#38bdf8', '#facc15', '#2dd4bf'];
 
@@ -370,6 +370,13 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.cdr.markForCheck();
   }
 
+  dropExpense(event: any): void {
+    if (event.previousIndex !== event.currentIndex) {
+      moveItemInArray(this.expenseCategories, event.previousIndex, event.currentIndex);
+      this.cdr.markForCheck();
+    }
+  }
+
   sortIncomes(by: string): void {
     this.incomeSortBy = by as any;
     switch (by) {
@@ -387,6 +394,13 @@ export class HomeComponent implements OnInit, OnDestroy {
         break;
     }
     this.cdr.markForCheck();
+  }
+
+  dropIncome(event: any): void {
+    if (event.previousIndex !== event.currentIndex) {
+      moveItemInArray(this.incomeByCategoryList, event.previousIndex, event.currentIndex);
+      this.cdr.markForCheck();
+    }
   }
 
   openEstimationDialog(estimation?: BudgetEstimation): void {
