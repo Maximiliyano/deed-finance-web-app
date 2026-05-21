@@ -5,27 +5,24 @@ namespace Deed.Api.Extensions;
 
 internal static class ApplicationBuilderExtensions
 {
-    extension(IApplicationBuilder builder)
+    internal static IApplicationBuilder UseSwaggerDependencies(this IApplicationBuilder builder)
+        => builder
+            .UseSwagger()
+            .UseSwaggerUI();
+
+    internal static IApplicationBuilder UseCorsPolicy(this IApplicationBuilder builder)
     {
-        internal IApplicationBuilder UseSwaggerDependencies()
-            => builder
-                .UseSwagger()
-                .UseSwaggerUI();
+        using var serviceScope = builder.ApplicationServices.CreateScope();
 
-        internal IApplicationBuilder UseCorsPolicy()
-        {
-            using var serviceScope = builder.ApplicationServices.CreateScope();
+        var webUiSettings = serviceScope.ServiceProvider.GetRequiredService<IOptions<WebUrlSettings>>().Value;
 
-            var webUiSettings = serviceScope.ServiceProvider.GetRequiredService<IOptions<WebUrlSettings>>().Value;
+        builder.UseCors(policyBuilder => policyBuilder
+            .WithOrigins(webUiSettings.UIUrl)
+            .WithHeaders(webUiSettings.AllowedHeaders)
+            .WithMethods(webUiSettings.AllowedMethods)
+            .AllowCredentials()
+        );
 
-            builder.UseCors(policyBuilder => policyBuilder
-                .WithOrigins(webUiSettings.UIUrl)
-                .WithHeaders(webUiSettings.AllowedHeaders)
-                .WithMethods(webUiSettings.AllowedMethods)
-                .AllowCredentials()
-            );
-
-            return builder;
-        }
+        return builder;
     }
 }
