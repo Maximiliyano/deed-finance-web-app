@@ -27,4 +27,6 @@ internal static class TableConfigurationConstants
     public const string Goals = nameof(Goals);
 
     public const string Debts = nameof(Debts);
+
+    public const string UtilityBills = nameof(UtilityBills);
 }

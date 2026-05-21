@@ -107,6 +107,8 @@ public static class DependencyInjection
 
         services.AddScoped<ITransferRepository, TransferRepository>();
 
+        services.AddScoped<IUtilityBillRepository, UtilityBillRepository>();
+
         return services;
     }
 

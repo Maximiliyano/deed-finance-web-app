@@ -1,4 +1,14 @@
 <app-layout text="Expenses">
+  <div class="exp-tabs">
+    <button class="exp-tab" [class.exp-tab--active]="activeTab === 'expenses'" (click)="setTab('expenses')">
+      <i class="fas fa-receipt"></i> Expenses
+    </button>
+    <button class="exp-tab" [class.exp-tab--active]="activeTab === 'bills'" (click)="setTab('bills')">
+      <i class="fas fa-bolt"></i> Utility Bills
+    </button>
+  </div>
+
+  @if (activeTab === 'expenses') {
   <div class="exp-toolbar">
     <button class="btn btn-primary btn-sm" (click)="toggleCreateDialog()">
       <i class="fas fa-plus"></i>
@@ -94,5 +104,104 @@
       <p>No expenses yet</p>
       <span>Click <strong>New expense</strong> to add your first one</span>
     </div>
+  }
+  }
+
+  @if (activeTab === 'bills') {
+    <div class="exp-toolbar">
+      <button class="btn btn-primary btn-sm" (click)="openUtilityBillDialog()">
+        <i class="fas fa-plus"></i>
+        New utility bill
+      </button>
+    </div>
+
+    @if (utilityBills.length === 0) {
+      <div class="empty" style="margin-top:1.5rem">
+        <i class="fas fa-bolt"></i>
+        <p>No utility bills yet</p>
+        <span>Click <strong>New utility bill</strong> to add a recurring bill template (e.g. Electric, Water)</span>
+      </div>
+    } @else {
+      @if (pendingBills.length > 0) {
+        <h3 class="ub-section-title">
+          <i class="fas fa-clock"></i>
+          Due this month ({{ pendingBills.length }})
+        </h3>
+        <div class="ub-grid">
+          @for (b of pendingBills; track b.id) {
+            <div class="ub-card ub-card--pending">
+              <div class="ub-card-header">
+                <span class="ub-card-name">{{ b.name }}</span>
+                <span class="badge badge-warning">Due {{ b.dueDayOfMonth }}</span>
+              </div>
+              <p class="ub-card-amount">~{{ b.estimatedAmount | currencySymbol: b.currency }}</p>
+              <p class="ub-card-meta">{{ b.capitalName }} · {{ b.categoryName }}</p>
+              <div class="ub-card-actions">
+                <button class="btn btn-success btn-sm" (click)="payUtilityBill(b)">
+                  <i class="fas fa-check"></i> Pay
+                </button>
+                <button class="icon-btn" title="Edit" (click)="openUtilityBillDialog(b)">
+                  <i class="fas fa-pen"></i>
+                </button>
+                <button class="icon-btn icon-btn-danger" title="Delete" (click)="deleteUtilityBill(b)">
+                  <i class="fas fa-trash-can"></i>
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+      }
+
+      @if (paidBills.length > 0) {
+        <h3 class="ub-section-title">
+          <i class="fas fa-circle-check text-success"></i>
+          Paid this month ({{ paidBills.length }})
+        </h3>
+        <div class="ub-grid">
+          @for (b of paidBills; track b.id) {
+            <div class="ub-card ub-card--paid">
+              <div class="ub-card-header">
+                <span class="ub-card-name">{{ b.name }}</span>
+                <span class="badge badge-success">Paid</span>
+              </div>
+              <p class="ub-card-amount">{{ (b.paidAmount ?? 0) | currencySymbol: b.currency }}</p>
+              <p class="ub-card-meta">{{ b.paidAt | date: 'dd MMM' }} · {{ b.capitalName }}</p>
+              <div class="ub-card-actions">
+                <button class="icon-btn" title="Edit template" (click)="openUtilityBillDialog(b)">
+                  <i class="fas fa-pen"></i>
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+      }
+
+      @if (inactiveBills.length > 0) {
+        <h3 class="ub-section-title">
+          <i class="fas fa-pause"></i>
+          Inactive ({{ inactiveBills.length }})
+        </h3>
+        <div class="ub-grid">
+          @for (b of inactiveBills; track b.id) {
+            <div class="ub-card ub-card--inactive">
+              <div class="ub-card-header">
+                <span class="ub-card-name">{{ b.name }}</span>
+                <span class="badge badge-neutral">Inactive</span>
+              </div>
+              <p class="ub-card-amount">~{{ b.estimatedAmount | currencySymbol: b.currency }}</p>
+              <p class="ub-card-meta">{{ b.capitalName }} · {{ b.categoryName }}</p>
+              <div class="ub-card-actions">
+                <button class="icon-btn" title="Edit" (click)="openUtilityBillDialog(b)">
+                  <i class="fas fa-pen"></i>
+                </button>
+                <button class="icon-btn icon-btn-danger" title="Delete" (click)="deleteUtilityBill(b)">
+                  <i class="fas fa-trash-can"></i>
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    }
   }
 </app-layout>

@@ -21,6 +21,10 @@ import { CategoriesDialogComponent } from '../category/category-details-dialog/c
 import { CategoryResponse } from '../category/models/category-model';
 import { TagService } from './components/tag.service';
 import { Tag } from './models/tag';
+import { UtilityBillService } from './services/utility-bill.service';
+import { CreateUtilityBillRequest, PayUtilityBillRequest, UtilityBillResponse } from './models/utility-bill';
+import { UtilityBillDialogComponent, UtilityBillDialogData } from './components/utility-bill-dialog/utility-bill-dialog.component';
+import { PayUtilityBillDialogComponent, PayUtilityBillDialogData } from './components/pay-utility-bill-dialog/pay-utility-bill-dialog.component';
 
 @Component({
     selector: 'app-expenses',
@@ -43,6 +47,9 @@ export class ExpensesComponent implements OnInit, OnDestroy {
   defaultCurrency: string;
   PerPeriodType=  PerPeriodType;
 
+  activeTab: 'expenses' | 'bills' = 'expenses';
+  utilityBills: UtilityBillResponse[] = [];
+
   private $unsubscribe = new Subject<void>();
 
   constructor(
@@ -52,10 +59,104 @@ export class ExpensesComponent implements OnInit, OnDestroy {
     private readonly categoryService: CategoryService,
     private readonly capitalService: CapitalService,
     private readonly tagService: TagService,
+    private readonly utilityBillService: UtilityBillService,
     private readonly dialogService: DialogService,
     private readonly popupMessageService: PopupMessageService,
     private readonly cdr: ChangeDetectorRef
   ) {}
+
+  get pendingBills(): UtilityBillResponse[] {
+    return this.utilityBills.filter(b => b.isActive && !b.isPaidThisMonth);
+  }
+
+  get paidBills(): UtilityBillResponse[] {
+    return this.utilityBills.filter(b => b.isPaidThisMonth);
+  }
+
+  get inactiveBills(): UtilityBillResponse[] {
+    return this.utilityBills.filter(b => !b.isActive);
+  }
+
+  setTab(tab: 'expenses' | 'bills'): void {
+    this.activeTab = tab;
+    if (tab === 'bills' && this.utilityBills.length === 0) {
+      this.fetchUtilityBills();
+    }
+  }
+
+  fetchUtilityBills(): void {
+    this.utilityBillService.getAll()
+      .pipe(takeUntil(this.$unsubscribe))
+      .subscribe({
+        next: (bills) => { this.utilityBills = bills; this.cdr.markForCheck(); }
+      });
+  }
+
+  openUtilityBillDialog(bill?: UtilityBillResponse): void {
+    const data: UtilityBillDialogData = {
+      bill,
+      capitals: this.capitals,
+      categories: this.currentCategories
+    };
+    const ref = this.dialogService.open(UtilityBillDialogComponent, { data });
+    ref.afterClosed$.pipe(takeUntil(this.$unsubscribe)).subscribe((result: CreateUtilityBillRequest | null) => {
+      if (!result) return;
+      if (bill) {
+        this.utilityBillService.update(bill.id, result).pipe(takeUntil(this.$unsubscribe)).subscribe({
+          next: () => {
+            this.popupMessageService.success('Utility bill updated');
+            this.fetchUtilityBills();
+          }
+        });
+      } else {
+        this.utilityBillService.create(result).pipe(takeUntil(this.$unsubscribe)).subscribe({
+          next: () => {
+            this.popupMessageService.success('Utility bill added');
+            this.fetchUtilityBills();
+          }
+        });
+      }
+    });
+  }
+
+  payUtilityBill(bill: UtilityBillResponse): void {
+    const data: PayUtilityBillDialogData = { bill };
+    const ref = this.dialogService.open(PayUtilityBillDialogComponent, { data });
+    ref.afterClosed$.pipe(takeUntil(this.$unsubscribe)).subscribe((result: PayUtilityBillRequest | null) => {
+      if (!result) return;
+      this.utilityBillService.pay(bill.id, result)
+        .pipe(takeUntil(this.$unsubscribe))
+        .subscribe({
+          next: () => {
+            this.popupMessageService.success(`${bill.name} marked paid`);
+            this.fetchUtilityBills();
+            this.fetchExpenses();
+            this.fetchCapitals();
+          }
+        });
+    });
+  }
+
+  deleteUtilityBill(bill: UtilityBillResponse): void {
+    const dialogRef = this.dialogService.open(ConfirmDialogComponent, {
+      data: {
+        title: 'Delete utility bill',
+        message: `Delete "${bill.name}"? This won't affect already-paid expenses.`,
+        icon: 'danger'
+      }
+    });
+    dialogRef.afterClosed$.pipe(takeUntil(this.$unsubscribe)).subscribe({
+      next: (confirmed: boolean) => {
+        if (!confirmed) return;
+        this.utilityBillService.delete(bill.id).pipe(takeUntil(this.$unsubscribe)).subscribe({
+          next: () => {
+            this.popupMessageService.success('Utility bill deleted');
+            this.fetchUtilityBills();
+          }
+        });
+      }
+    });
+  }
 
   get capitalOptions(): SelectOptionModel[] {
     return this.capitals.map(x => { return { key: x.name, value: x.id } })

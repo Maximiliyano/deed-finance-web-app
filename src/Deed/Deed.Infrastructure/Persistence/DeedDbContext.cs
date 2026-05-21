@@ -41,6 +41,8 @@ public sealed class DeedDbContext(DbContextOptions<DeedDbContext> options)
 
     public DbSet<Debt> Debts { get; set; }
 
+    public DbSet<UtilityBill> UtilityBills { get; set; }
+
     public new DbSet<TEntity> Set<TEntity>()
         where TEntity : Entity
             => base.Set<TEntity>();

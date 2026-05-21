@@ -1,0 +1,52 @@
+.ub-dialog { display: flex; flex-direction: column; }
+
+.ub-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.875rem 1.25rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--text);
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--border);
+  i { color: var(--text-muted); font-size: 0.875rem; }
+}
+
+.ub-body {
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.ub-row { display: flex; gap: 0.75rem; }
+
+.ub-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  padding: 0.875rem 1.25rem;
+  border-top: 1px solid var(--border);
+  background: var(--surface-2);
+}
+
+.checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+
+.checkbox {
+  width: 1rem;
+  height: 1rem;
+  accent-color: var(--primary);
+  cursor: pointer;
+}
+
+.checkbox-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text);
+}
