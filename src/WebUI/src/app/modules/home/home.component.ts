@@ -602,6 +602,19 @@ export class HomeComponent implements OnInit, OnDestroy {
     });
   }
 
+  copyEstimation(source: BudgetEstimation): void {
+    const data: BudgetEstimationDialogData = { estimation: source, capitals: this.capitals, mode: 'copy' };
+    const ref = this.dialogService.open(BudgetEstimationDialogComponent, { data });
+    ref.afterClosed$.pipe(takeUntil(this.unsubscribe$)).subscribe(result => {
+      if (!result) return;
+      const req: CreateBudgetEstimationRequest = result;
+      this.estimationService.create(req).pipe(takeUntil(this.unsubscribe$)).subscribe({
+        next: () => this.popup.success('Estimation copied'),
+        error: () => this.popup.error('Failed to copy estimation')
+      });
+    });
+  }
+
   deleteEstimation(estimation: BudgetEstimation): void {
     this.estimationService.delete(estimation.id).pipe(takeUntil(this.unsubscribe$)).subscribe({
       next: () => this.popup.success('Estimation deleted'),

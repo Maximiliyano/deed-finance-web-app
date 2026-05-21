@@ -665,6 +665,10 @@
                                      [checked]="est.isCompleted"
                                      (change)="toggleEstimationCompleted(est, $event)" />
                             </label>
+                            <button class="icon-btn" title="Duplicate"
+                                    (click)="$event.stopPropagation(); copyEstimation(est)">
+                              <i class="fas fa-copy"></i>
+                            </button>
                             <button class="icon-btn icon-btn-danger" title="Delete"
                                     (click)="$event.stopPropagation(); deleteEstimation(est)">
                               <i class="fas fa-trash-can"></i>
