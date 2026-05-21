@@ -62,10 +62,10 @@ public sealed class UpdateCapitalCommandHandlerTests
         // Assert
         result.IsSuccess.Should().BeTrue();
 
-        _repositoryMock.Received(1).Update(capital);
+        _repositoryMock.DidNotReceive().Update(Arg.Any<Capital>());
 
         await _repositoryMock.Received(1).GetAsync(Arg.Any<CapitalByIdSpecification>());
-        await _unitOfWorkMock.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
+        await _unitOfWorkMock.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 
     [Theory]

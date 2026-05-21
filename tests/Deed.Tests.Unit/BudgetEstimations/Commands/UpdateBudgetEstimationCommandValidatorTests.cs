@@ -9,7 +9,7 @@ public sealed class UpdateBudgetEstimationCommandValidatorTests
     private readonly UpdateBudgetEstimationCommandValidator _validator = new();
 
     private static UpdateBudgetEstimationCommand ValidCommand => new(
-        1, "Rent", 500m, CurrencyType.UAH, null);
+        1, "Rent", 500m, CurrencyType.UAH, null, false);
 
     [Fact]
     public async Task Validate_ValidCommand_PassesValidation()

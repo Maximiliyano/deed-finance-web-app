@@ -35,6 +35,13 @@
       </select>
     </div>
 
+    @if (isEdit) {
+      <label class="checkbox-row">
+        <input type="checkbox" formControlName="isCompleted" class="checkbox">
+        <span class="checkbox-label">Mark as completed</span>
+      </label>
+    }
+
     @if (selectedCapital) {
       <div class="est-summary">
         <div class="est-summary-row">
@@ -53,7 +60,7 @@
 
   <div class="est-footer">
     <button type="button" class="btn btn-secondary btn-sm" (click)="cancel()">Cancel</button>
-    <button type="submit" class="btn btn-primary btn-sm" [disabled]="form.invalid">
+    <button type="submit" class="btn btn-primary btn-sm" [disabled]="form.invalid || (isEdit && form.pristine)">
       {{ isEdit ? 'Save' : 'Add' }}
     </button>
   </div>

@@ -57,7 +57,7 @@
 
   <div class="qt-footer">
     <button type="button" class="btn btn-secondary btn-sm" (click)="cancel()">Cancel</button>
-    <button type="submit" class="btn btn-sm" [ngClass]="isExpense ? 'btn-danger' : 'btn-success'" [disabled]="form.invalid">
+    <button type="submit" class="btn btn-sm" [ngClass]="isExpense ? 'btn-danger' : 'btn-success'" [disabled]="form.invalid || (isEdit && form.pristine)">
       {{ isEdit ? 'Save' : (isExpense ? 'Add Expense' : 'Add Income') }}
     </button>
   </div>

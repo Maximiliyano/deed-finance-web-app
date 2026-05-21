@@ -17,4 +17,6 @@ public interface IGoalRepository
     Task<bool> AnyAsync(ISpecification<Goal> specification, CancellationToken cancellationToken = default);
 
     Task<int> CountAsync(ISpecification<Goal> specification, CancellationToken cancellationToken = default);
+
+    Task UpdateOrderIndexesAsync(IList<(int Id, int OrderIndex)> goals, string createdBy, CancellationToken cancellationToken = default);
 }

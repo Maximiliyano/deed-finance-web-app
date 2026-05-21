@@ -10,5 +10,6 @@ public sealed record BudgetEstimationResponse(
     decimal CapitalBalance,
     decimal CapitalTotalExpense,
     string? CapitalCurrency,
-    int OrderIndex
+    int OrderIndex,
+    bool IsCompleted
 );

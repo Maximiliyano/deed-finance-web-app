@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { BehaviorSubject, Observable, catchError, tap, throwError } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { UserSettings } from '../models/user-settings.model';
 
@@ -8,13 +8,31 @@ import { UserSettings } from '../models/user-settings.model';
 export class UserSettingsService {
   private readonly baseUrl = `${environment.apiUrl}/api/user-settings`;
 
+  private readonly state$ = new BehaviorSubject<UserSettings | null>(null);
+  readonly settings$ = this.state$.asObservable();
+
   constructor(private readonly http: HttpClient) {}
 
-  get(): Observable<UserSettings | null> {
-    return this.http.get<UserSettings | null>(this.baseUrl, { withCredentials: true });
+  get current(): UserSettings | null { return this.state$.value; }
+
+  load(): Observable<UserSettings | null> {
+    return this.http.get<UserSettings | null>(this.baseUrl, { withCredentials: true })
+      .pipe(tap(settings => this.state$.next(settings)));
   }
 
+  refresh(): void { this.load().subscribe(); }
+
+  get(): Observable<UserSettings | null> { return this.load(); }
+
   upsert(settings: UserSettings): Observable<void> {
-    return this.http.put<void>(this.baseUrl, settings, { withCredentials: true });
+    const previous = this.state$.value;
+    this.state$.next({ ...(previous ?? {} as UserSettings), ...settings });
+    return this.http.put<void>(this.baseUrl, settings, { withCredentials: true }).pipe(
+      tap(() => this.refresh()),
+      catchError(err => {
+        this.state$.next(previous);
+        return throwError(() => err);
+      })
+    );
   }
 }

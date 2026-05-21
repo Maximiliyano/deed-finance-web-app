@@ -38,6 +38,9 @@ internal sealed class BudgetEstimationConfiguration : IEntityTypeConfiguration<B
         builder.Property(e => e.OrderIndex)
             .HasDefaultValue(0);
 
+        builder.Property(e => e.IsCompleted)
+            .HasDefaultValue(false);
+
         builder.Property(e => e.CreatedBy)
             .IsRequired()
             .HasMaxLength(256);

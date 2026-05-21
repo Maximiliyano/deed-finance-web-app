@@ -9,7 +9,6 @@ internal static class UserSettingsExtensions
 {
     internal static UserSettingsResponse ToResponse(this DomainUserSettings settings)
         => new(
-            settings.Salary,
             settings.Currency.ToString(),
             settings.BalanceReminderEnabled,
             settings.BalanceReminderCron,
@@ -22,7 +21,6 @@ internal static class UserSettingsExtensions
     internal static DomainUserSettings ToEntity(this UpsertUserSettingsCommand command)
         => new()
         {
-            Salary = command.Salary,
             Currency = command.Currency,
             BalanceReminderEnabled = command.BalanceReminderEnabled,
             BalanceReminderCron = command.BalanceReminderCron,

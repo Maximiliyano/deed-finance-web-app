@@ -27,7 +27,7 @@ export class BudgetEstimationDialogComponent implements OnInit {
 
   constructor(
     private readonly fb: FormBuilder,
-    private readonly dialogRef: DialogRef<{ description: string; budgetAmount: number; budgetCurrency: number; capitalId: number | null } | null>,
+    private readonly dialogRef: DialogRef<{ description: string; budgetAmount: number; budgetCurrency: number; capitalId: number | null; isCompleted: boolean } | null>,
     @Inject(DIALOG_DATA) private readonly data: BudgetEstimationDialogData
   ) {}
 
@@ -39,7 +39,8 @@ export class BudgetEstimationDialogComponent implements OnInit {
       description: [this.data.estimation?.description ?? '', [Validators.required, Validators.maxLength(64)]],
       budgetAmount: [this.data.estimation?.budgetAmount ?? 0, [Validators.required, Validators.min(0)]],
       budgetCurrency: [this.data.estimation?.budgetCurrency ?? 'UAH', Validators.required],
-      capitalId: [this.data.estimation?.capitalId ?? '']
+      capitalId: [this.data.estimation?.capitalId ?? ''],
+      isCompleted: [this.data.estimation?.isCompleted ?? false]
     });
   }
 
@@ -68,7 +69,8 @@ export class BudgetEstimationDialogComponent implements OnInit {
       description: val.description,
       budgetAmount: val.budgetAmount,
       budgetCurrency: this.currencyIndex(val.budgetCurrency),
-      capitalId: val.capitalId ? Number(val.capitalId) : null
+      capitalId: val.capitalId ? Number(val.capitalId) : null,
+      isCompleted: val.isCompleted
     });
   }
 

@@ -23,6 +23,6 @@
 
   <div class="salary-footer">
     <button type="button" class="btn btn-secondary btn-sm" (click)="cancel()">Cancel</button>
-    <button type="submit" class="btn btn-primary btn-sm" [disabled]="form.invalid">Save</button>
+    <button type="submit" class="btn btn-primary btn-sm" [disabled]="form.invalid || form.pristine">Save</button>
   </div>
 </form>

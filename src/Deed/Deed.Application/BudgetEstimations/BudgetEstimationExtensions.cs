@@ -18,7 +18,8 @@ internal static class BudgetEstimationExtensions
             est.Capital?.Balance ?? 0m,
             est.Capital?.TotalExpense ?? 0m,
             est.Capital?.Currency.ToString(),
-            est.OrderIndex
+            est.OrderIndex,
+            est.IsCompleted
         );
 
     internal static IEnumerable<BudgetEstimationResponse> ToResponses(this IEnumerable<BudgetEstimation> list)
@@ -39,5 +40,6 @@ internal static class BudgetEstimationExtensions
         est.BudgetAmount = cmd.BudgetAmount;
         est.BudgetCurrency = cmd.BudgetCurrency;
         est.CapitalId = cmd.CapitalId;
+        est.IsCompleted = cmd.IsCompleted;
     }
 }

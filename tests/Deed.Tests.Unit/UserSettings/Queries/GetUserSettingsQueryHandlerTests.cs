@@ -26,7 +26,7 @@ public sealed class GetUserSettingsQueryHandlerTests
     {
         // Arrange
         var query = new GetUserSettingsQuery();
-        var settings = new DomainUserSettings(1) { Salary = 5000m, Currency = CurrencyType.UAH };
+        var settings = new DomainUserSettings(1) { Currency = CurrencyType.UAH };
 
         _repositoryMock.GetAsync("testuser", Arg.Any<CancellationToken>()).Returns(settings);
 
@@ -36,7 +36,6 @@ public sealed class GetUserSettingsQueryHandlerTests
         // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().NotBeNull();
-        result.Value!.Salary.Should().Be(5000m);
         result.Value.Currency.Should().Be("UAH");
     }
 

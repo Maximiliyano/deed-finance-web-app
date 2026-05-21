@@ -27,6 +27,19 @@ internal sealed class UpdateDebtCommandHandler(
             return Result.Failure(DomainErrors.General.NotFound("debt"));
         }
 
+        if (debt.Item == command.Item.Trim() &&
+            debt.Amount == command.Amount &&
+            debt.Currency == command.Currency &&
+            debt.Source == command.Source.Trim() &&
+            debt.Recipient == command.Recipient.Trim() &&
+            debt.BorrowedAt == command.BorrowedAt &&
+            debt.DeadlineAt == command.DeadlineAt &&
+            debt.Note == command.Note?.Trim() &&
+            debt.IsPaid == command.IsPaid)
+        {
+            return Result.Success();
+        }
+
         var becomingPaid = command.IsPaid && !debt.IsPaid;
 
         if (becomingPaid && command.PayFromCapitalId.HasValue)

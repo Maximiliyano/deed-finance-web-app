@@ -6,4 +6,5 @@ internal sealed record UpdateBudgetEstimationRequest(
     string Description,
     decimal BudgetAmount,
     CurrencyType BudgetCurrency,
-    int? CapitalId);
+    int? CapitalId,
+    bool IsCompleted);

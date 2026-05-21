@@ -10,29 +10,13 @@ public sealed class UpsertUserSettingsCommandValidatorTests
     private readonly UpsertUserSettingsCommandValidator _validator = new();
 
     private static UpsertUserSettingsCommand ValidCommand => new(
-        5000m, CurrencyType.UAH, false, null, false, null, false, null, false);
+        CurrencyType.UAH, false, null, false, null, false, null, false);
 
     [Fact]
     public async Task Validate_ValidCommand_PassesValidation()
     {
         var result = await _validator.TestValidateAsync(ValidCommand);
         result.ShouldNotHaveAnyValidationErrors();
-    }
-
-    [Fact]
-    public async Task Validate_NegativeSalary_FailsValidation()
-    {
-        var command = ValidCommand with { Salary = -1m };
-        var result = await _validator.TestValidateAsync(command);
-        result.ShouldHaveValidationErrorFor(c => c.Salary);
-    }
-
-    [Fact]
-    public async Task Validate_ZeroSalary_PassesValidation()
-    {
-        var command = ValidCommand with { Salary = 0m };
-        var result = await _validator.TestValidateAsync(command);
-        result.ShouldNotHaveValidationErrorFor(c => c.Salary);
     }
 
     [Fact]

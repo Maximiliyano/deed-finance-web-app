@@ -8,9 +8,6 @@ internal sealed class UpsertUserSettingsCommandValidator : AbstractValidator<Ups
 {
     public UpsertUserSettingsCommandValidator()
     {
-        RuleFor(c => c.Salary)
-            .GreaterThanOrEqualTo(ValidationConstants.ZeroValue);
-
         RuleFor(c => c.Currency)
             .Must(c => c != CurrencyType.None)
             .WithMessage("Currency must be set.");

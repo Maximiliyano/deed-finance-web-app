@@ -25,6 +25,17 @@ internal sealed class UpdateGoalCommandHandler(
             return Result.Failure(DomainErrors.General.NotFound("goal"));
         }
 
+        if (goal.Title == command.Title.Trim() &&
+            goal.TargetAmount == command.TargetAmount &&
+            goal.Currency == command.Currency &&
+            goal.CurrentAmount == command.CurrentAmount &&
+            goal.Deadline == command.Deadline &&
+            goal.Note == command.Note?.Trim() &&
+            goal.IsCompleted == command.IsCompleted)
+        {
+            return Result.Success();
+        }
+
         goal.ApplyUpdate(command);
 
         repository.Update(goal);
