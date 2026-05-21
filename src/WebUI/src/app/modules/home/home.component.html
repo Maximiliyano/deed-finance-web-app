@@ -246,15 +246,15 @@
                     </div>
                     @if (expandedExpenseCats.has(cat.categoryId)) {
                       @for (exp of cat.expenses; track exp.id) {
-                        <div class="txn-row" (click)="$event.stopPropagation()">
+                        <div class="txn-row"
+                             [ngClass]="{ 'clickable-row': !isAnonymous }"
+                             [title]="isAnonymous ? null : 'Edit expense'"
+                             (click)="$event.stopPropagation(); isAnonymous || openQuickExpense({ id: exp.id, capitalId: exp.capitalId, categoryId: cat.categoryId, amount: exp.amount, paymentDate: exp.paymentDate, purpose: exp.purpose })">
                           <span class="txn-amount text-danger">{{ exp.amount | currencySymbol: currency }}</span>
                           <span class="txn-purpose">{{ exp.purpose ?? '—' }}</span>
                           <span class="txn-date">{{ exp.paymentDate | date: 'dd MMM' }}</span>
                           @if (!isAnonymous) {
-                            <button class="icon-btn" title="Edit" (click)="openQuickExpense({ id: exp.id, capitalId: exp.capitalId, categoryId: cat.categoryId, amount: exp.amount, paymentDate: exp.paymentDate, purpose: exp.purpose })">
-                              <i class="fas fa-pen"></i>
-                            </button>
-                            <button class="icon-btn icon-btn-danger" title="Delete" (click)="deleteExpense(exp.id)">
+                            <button class="icon-btn icon-btn-danger" title="Delete" (click)="$event.stopPropagation(); deleteExpense(exp.id)">
                               <i class="fas fa-trash-can"></i>
                             </button>
                           }
@@ -335,15 +335,15 @@
                     </div>
                     @if (expandedIncomeCats.has(item.name)) {
                       @for (inc of item.items; track inc.id) {
-                        <div class="txn-row" (click)="$event.stopPropagation()">
+                        <div class="txn-row"
+                             [ngClass]="{ 'clickable-row': !isAnonymous }"
+                             [title]="isAnonymous ? null : 'Edit income'"
+                             (click)="$event.stopPropagation(); isAnonymous || openQuickIncome({ id: inc.id, capitalId: inc.capitalId, categoryId: inc.categoryId, amount: inc.amount, paymentDate: inc.paymentDate, purpose: inc.purpose })">
                           <span class="txn-amount text-success">{{ inc.amount | currencySymbol: currency }}</span>
                           <span class="txn-purpose">{{ inc.purpose ?? '—' }}</span>
                           <span class="txn-date">{{ inc.paymentDate | date: 'dd MMM' }}</span>
                           @if (!isAnonymous) {
-                            <button class="icon-btn" title="Edit" (click)="openQuickIncome({ id: inc.id, capitalId: inc.capitalId, categoryId: inc.categoryId, amount: inc.amount, paymentDate: inc.paymentDate, purpose: inc.purpose })">
-                              <i class="fas fa-pen"></i>
-                            </button>
-                            <button class="icon-btn icon-btn-danger" title="Delete" (click)="deleteIncome(inc.id)">
+                            <button class="icon-btn icon-btn-danger" title="Delete" (click)="$event.stopPropagation(); deleteIncome(inc.id)">
                               <i class="fas fa-trash-can"></i>
                             </button>
                           }
