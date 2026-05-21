@@ -20,6 +20,8 @@ public sealed class BudgetEstimation : Entity, IAuditableEntity, ISoftDeletableE
 
     public int OrderIndex { get; set; }
 
+    public bool IsCompleted { get; set; }
+
     public DateTimeOffset CreatedAt { get; init; }
 
     public string CreatedBy { get; init; } = string.Empty;

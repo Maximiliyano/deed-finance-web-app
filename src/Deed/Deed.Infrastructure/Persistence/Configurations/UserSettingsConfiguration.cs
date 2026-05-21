@@ -13,10 +13,6 @@ internal sealed class UserSettingsConfiguration : IEntityTypeConfiguration<UserS
 
         builder.HasKey(s => s.Id);
 
-        builder.Property(s => s.Salary)
-            .IsRequired()
-            .HasPrecision(18, 2);
-
         builder.Property(s => s.Currency)
             .IsRequired()
             .HasConversion<int>();

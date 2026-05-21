@@ -11,7 +11,6 @@ internal sealed class Upsert : IEndpoint
     {
         app.MapPut("api/user-settings", async (UpsertUserSettingsRequest request, ISender sender, CancellationToken ct) =>
             (await sender.Send(new UpsertUserSettingsCommand(
-                request.Salary,
                 request.Currency,
                 request.BalanceReminderEnabled,
                 request.BalanceReminderCron,

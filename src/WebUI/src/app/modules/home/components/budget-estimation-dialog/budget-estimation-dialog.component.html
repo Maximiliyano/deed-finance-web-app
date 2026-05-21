@@ -35,6 +35,13 @@
       </select>
     </div>
 
+    @if (isEdit) {
+      <label class="checkbox-row">
+        <input type="checkbox" formControlName="isCompleted" class="checkbox">
+        <span class="checkbox-label">Mark as completed</span>
+      </label>
+    }
+
     @if (selectedCapital) {
       <div class="est-summary">
         <div class="est-summary-row">

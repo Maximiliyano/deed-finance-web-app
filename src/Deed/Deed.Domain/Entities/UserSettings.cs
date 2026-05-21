@@ -8,8 +8,6 @@ public sealed class UserSettings : Entity, IAuditableEntity
 
     public UserSettings(int id) : base(id) { }
 
-    public decimal Salary { get; set; }
-
     public CurrencyType Currency { get; set; }
 
     public bool BalanceReminderEnabled { get; set; }

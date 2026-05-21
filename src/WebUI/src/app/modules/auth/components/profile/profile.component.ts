@@ -50,7 +50,6 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.settingsForm = this.fb.group({
-      salary: [0, [Validators.required, Validators.min(0)]],
       currency: ['UAH', Validators.required]
     });
 
@@ -76,7 +75,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.$unsubscribe))
       .subscribe(settings => {
         if (settings) {
-          this.settingsForm.patchValue({ salary: settings.salary, currency: settings.currency });
+          this.settingsForm.patchValue({ currency: settings.currency });
           this.notificationForm.patchValue({
             balanceReminderEnabled: settings.balanceReminderEnabled ?? false,
             balanceReminderCron: settings.balanceReminderCron ?? '0 0 9 * * ?',
@@ -102,7 +101,6 @@ export class ProfileComponent implements OnInit, OnDestroy {
     const val = this.settingsForm.value;
     const notif = this.notificationForm.value;
     const payload = {
-      salary: val.salary,
       currency: CurrencyType[val.currency as keyof typeof CurrencyType] as unknown as number,
       balanceReminderEnabled: notif.balanceReminderEnabled,
       balanceReminderCron: notif.balanceReminderCron,
@@ -117,10 +115,12 @@ export class ProfileComponent implements OnInit, OnDestroy {
       .subscribe({
         next: () => {
           this.savingSettings = false;
+          this.cdr.markForCheck();
           this.popupMessageService.success('Settings saved');
         },
         error: () => {
           this.savingSettings = false;
+          this.cdr.markForCheck();
           this.popupMessageService.error('Failed to save settings');
         }
       });

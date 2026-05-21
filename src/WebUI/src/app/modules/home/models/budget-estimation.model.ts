@@ -9,4 +9,5 @@ export interface BudgetEstimation {
   capitalTotalExpense: number;
   capitalCurrency: string | null;
   orderIndex: number;
+  isCompleted: boolean;
 }

@@ -1,7 +1,6 @@
 namespace Deed.Application.UserSettings.Responses;
 
 public sealed record UserSettingsResponse(
-    decimal Salary,
     string Currency,
     bool BalanceReminderEnabled,
     string? BalanceReminderCron,

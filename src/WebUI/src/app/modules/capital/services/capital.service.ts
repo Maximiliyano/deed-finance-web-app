@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { BehaviorSubject, Observable, catchError, tap, throwError } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
 import { AddCapitalRequest } from '../models/add-capital-request';
@@ -15,10 +15,25 @@ import { CurrencyType } from '../../../core/types/currency-type';
 export class CapitalService {
   private baseApiUrl = environment.apiUrl + '/api/capitals';
 
+  private readonly state$ = new BehaviorSubject<CapitalResponse[]>([]);
+  readonly capitals$ = this.state$.asObservable();
+
   constructor(private readonly httpClient: HttpClient) { }
 
+  get current(): CapitalResponse[] { return this.state$.value; }
+
+  load(params: QueryParams): Observable<CapitalResponse[]> {
+    return this.httpClient.post<CapitalResponse[]>(`${this.baseApiUrl}/all`, params, { withCredentials: true })
+      .pipe(tap(items => this.state$.next(items)));
+  }
+
+  refresh(params: QueryParams = { searchTerm: null, sortBy: null, sortDirection: null, filterBy: null }): void {
+    this.load(params).subscribe();
+  }
+
+  // Kept for any non-store callers (e.g. dialogs that fetch directly).
   getAll(params: QueryParams): Observable<CapitalResponse[]> {
-      return this.httpClient.post<CapitalResponse[]>(`${this.baseApiUrl}/all`, params, {withCredentials: true});
+    return this.load(params);
   }
 
   getById(id: number): Observable<CapitalResponse> {
@@ -26,27 +41,101 @@ export class CapitalService {
   }
 
   create(request: AddCapitalRequest): Observable<number> {
-    return this.httpClient.post<number>(this.baseApiUrl, request, { withCredentials: true });
+    const tempId = -Date.now();
+    const optimistic = {
+      id: tempId,
+      name: request.name,
+      balance: request.balance,
+      currency: CurrencyType[request.currency] as string,
+      onlyForSavings: request.onlyForSavings,
+      includeInTotal: request.includeInTotal,
+      totalIncome: 0,
+      totalExpense: 0,
+      totalTransferIn: 0,
+      totalTransferOut: 0,
+      createdAt: new Date(),
+      createdBy: null
+    } as CapitalResponse;
+
+    const previous = this.state$.value;
+    this.state$.next([...previous, optimistic]);
+
+    return this.httpClient.post<number>(this.baseApiUrl, request, { withCredentials: true }).pipe(
+      tap(realId => {
+        this.state$.next(this.state$.value.map(c => c.id === tempId ? { ...c, id: realId } : c));
+        this.refresh();
+      }),
+      catchError(err => {
+        this.state$.next(previous);
+        return throwError(() => err);
+      })
+    );
   }
 
   update(id: number, request: UpdateCapitalRequest): Observable<void> {
-    return this.httpClient.put<void>(`${this.baseApiUrl}/${id}`, request, { withCredentials: true });
+    const previous = this.state$.value;
+    this.state$.next(previous.map(c => c.id === id
+      ? { ...c, name: (request as any).name ?? c.name, balance: (request as any).balance ?? c.balance, includeInTotal: (request as any).includeInTotal ?? c.includeInTotal, onlyForSavings: (request as any).onlyForSavings ?? c.onlyForSavings }
+      : c));
+    return this.httpClient.put<void>(`${this.baseApiUrl}/${id}`, request, { withCredentials: true }).pipe(
+      tap(() => this.refresh()),
+      catchError(err => {
+        this.state$.next(previous);
+        return throwError(() => err);
+      })
+    );
   }
 
   updateOrder(request: UpdateCapitalOrderRequest): Observable<void> {
-    return this.httpClient.put<void>(`${this.baseApiUrl}/orders`, request, { withCredentials: true });
+    const previous = this.state$.value;
+    const orderMap = new Map(request.capitals.map(o => [o.id, o.orderIndex]));
+    const indexFallback = new Map(previous.map((c, i) => [c.id, i]));
+    this.state$.next(
+      [...previous].sort((a, b) => {
+        const ai = orderMap.get(a.id) ?? indexFallback.get(a.id) ?? 0;
+        const bi = orderMap.get(b.id) ?? indexFallback.get(b.id) ?? 0;
+        return ai - bi;
+      })
+    );
+    return this.httpClient.put<void>(`${this.baseApiUrl}/orders`, request, { withCredentials: true }).pipe(
+      catchError(err => {
+        this.state$.next(previous);
+        return throwError(() => err);
+      })
+    );
   }
 
   patchSavingsOnly(id: number, value: boolean): Observable<void> {
-    return this.httpClient.patch<void>(`${this.baseApiUrl}/${id}/savings-only`, value, { withCredentials: true });
+    const previous = this.state$.value;
+    this.state$.next(previous.map(c => c.id === id ? { ...c, onlyForSavings: value } : c));
+    return this.httpClient.patch<void>(`${this.baseApiUrl}/${id}/savings-only`, value, { withCredentials: true }).pipe(
+      catchError(err => {
+        this.state$.next(previous);
+        return throwError(() => err);
+      })
+    );
   }
 
   patchIncludeTotal(id: number, value: boolean): Observable<void> {
-    return this.httpClient.patch<void>(`${this.baseApiUrl}/${id}/include-in-total`, value, { withCredentials: true });
+    const previous = this.state$.value;
+    this.state$.next(previous.map(c => c.id === id ? { ...c, includeInTotal: value } : c));
+    return this.httpClient.patch<void>(`${this.baseApiUrl}/${id}/include-in-total`, value, { withCredentials: true }).pipe(
+      catchError(err => {
+        this.state$.next(previous);
+        return throwError(() => err);
+      })
+    );
   }
 
   delete(id: number): Observable<void> {
-    return this.httpClient.delete<void>(`${this.baseApiUrl}/${id}`, { withCredentials: true });
+    const previous = this.state$.value;
+    this.state$.next(previous.filter(c => c.id !== id));
+    return this.httpClient.delete<void>(`${this.baseApiUrl}/${id}`, { withCredentials: true }).pipe(
+      catchError(err => {
+        this.state$.next(previous);
+        return throwError(() => err);
+      })
+    );
   }
 
   getMainCurrency(): { str: string; val: CurrencyType } {

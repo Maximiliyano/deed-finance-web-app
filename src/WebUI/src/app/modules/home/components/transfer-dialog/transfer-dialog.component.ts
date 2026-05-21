@@ -9,6 +9,7 @@ import { Exchange } from '../../../../core/models/exchange-model';
 export interface TransferDialogData {
   capitals: CapitalResponse[];
   exchanges: Exchange[];
+  sourceCapitalId?: number | null;
 }
 
 @Component({
@@ -33,8 +34,9 @@ export class TransferDialogComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    const presetSource = this.data.sourceCapitalId ?? null;
     this.form = this.fb.group({
-      sourceCapitalId: [null, Validators.required],
+      sourceCapitalId: [presetSource, Validators.required],
       destinationCapitalId: [null, Validators.required],
       amount: [null, [Validators.required, Validators.min(0.01)]],
       destinationAmount: [null, [Validators.required, Validators.min(0.01)]]

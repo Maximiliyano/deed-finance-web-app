@@ -4,7 +4,6 @@ using Deed.Domain.Enums;
 namespace Deed.Application.UserSettings.Commands.Upsert;
 
 public sealed record UpsertUserSettingsCommand(
-    decimal Salary,
     CurrencyType Currency,
     bool BalanceReminderEnabled,
     string? BalanceReminderCron,

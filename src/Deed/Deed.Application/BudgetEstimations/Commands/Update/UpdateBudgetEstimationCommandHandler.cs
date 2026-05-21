@@ -28,7 +28,8 @@ internal sealed class UpdateBudgetEstimationCommandHandler(
         if (estimation.Description == command.Description.Trim() &&
             estimation.BudgetAmount == command.BudgetAmount &&
             estimation.BudgetCurrency == command.BudgetCurrency &&
-            estimation.CapitalId == command.CapitalId)
+            estimation.CapitalId == command.CapitalId &&
+            estimation.IsCompleted == command.IsCompleted)
         {
             return Result.Success();
         }

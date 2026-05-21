@@ -24,8 +24,7 @@ internal sealed class UpsertUserSettingsCommandHandler(
         }
         else
         {
-            if (existing.Salary == command.Salary &&
-                existing.Currency == command.Currency &&
+            if (existing.Currency == command.Currency &&
                 existing.BalanceReminderEnabled == command.BalanceReminderEnabled &&
                 existing.BalanceReminderCron == command.BalanceReminderCron &&
                 existing.ExpenseReminderEnabled == command.ExpenseReminderEnabled &&
@@ -38,7 +37,6 @@ internal sealed class UpsertUserSettingsCommandHandler(
                 return Result.Success();
             }
 
-            existing.Salary = command.Salary;
             existing.Currency = command.Currency;
             existing.BalanceReminderEnabled = command.BalanceReminderEnabled;
             existing.BalanceReminderCron = command.BalanceReminderCron;
@@ -48,6 +46,7 @@ internal sealed class UpsertUserSettingsCommandHandler(
             existing.DebtReminderCron = command.DebtReminderCron;
             existing.EmailNotificationsEnabled = command.EmailNotificationsEnabled;
             existing.Email = user.Email;
+            
             repository.Update(existing);
         }
 
