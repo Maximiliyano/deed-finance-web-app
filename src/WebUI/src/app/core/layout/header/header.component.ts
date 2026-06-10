@@ -3,6 +3,7 @@ import { Exchange } from '../../models/exchange-model';
 import { ExchangeService } from '../../../shared/services/exchange.service';
 import { Subject, takeUntil } from 'rxjs';
 import { ExchangeDialogComponent } from '../../../shared/components/dialogs/exchange-dialog/exchange-dialog.component';
+import { ProfileComponent } from '../../../modules/auth/components/profile/profile.component';
 import { Router } from '@angular/router';
 import { DialogService } from '../../../shared/components/dialogs/services/dialog.service';
 import { AuthService } from '../../../modules/auth/services/auth-service';
@@ -132,6 +133,6 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   profile(): void {
-    this.router.navigate(['./profile']);
+    this.dialogService.open(ProfileComponent);
   }
 }

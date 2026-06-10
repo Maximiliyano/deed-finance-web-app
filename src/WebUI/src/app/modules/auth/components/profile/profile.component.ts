@@ -1,8 +1,9 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, Optional } from '@angular/core';
 import { AuthService } from '../../services/auth-service';
 import { Subject, takeUntil } from 'rxjs';
 import { SharedModule } from "../../../../shared/shared.module";
 import { DialogService } from '../../../../shared/components/dialogs/services/dialog.service';
+import { DialogRef } from '../../../../shared/components/dialogs/models/dialog-ref';
 import { ConfirmDialogComponent } from '../../../../shared/components/dialogs/confirm-dialog/confirm-dialog.component';
 import { PopupMessageService } from '../../../../shared/services/popup-message.service';
 import { User } from '../../models/user';
@@ -45,7 +46,8 @@ export class ProfileComponent implements OnInit, OnDestroy {
     private readonly userSettingsService: UserSettingsService,
     private readonly fb: FormBuilder,
     readonly themeService: ThemeService,
-    private readonly cdr: ChangeDetectorRef
+    private readonly cdr: ChangeDetectorRef,
+    @Optional() private readonly dialogRef: DialogRef<void> | null
   ) {}
 
   ngOnInit(): void {
@@ -145,6 +147,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
           if (submit) {
             this.authService.logout();
             this.popupMessageService.warning('You logged out your account.');
+            this.dialogRef?.close();
           }
         }
       });
