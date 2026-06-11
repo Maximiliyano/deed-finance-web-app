@@ -15,5 +15,7 @@ public interface ITagRepository
 
     Task<Tag?> GetAsync(ISpecification<Tag> specification, CancellationToken cancellationToken = default);
 
+    Task<IEnumerable<Tag>> GetAllAsync(ISpecification<Tag> specification, CancellationToken cancellationToken = default);
+
     Task<bool> AnyAsync(ISpecification<Tag> specification, CancellationToken cancellationToken = default);
 }

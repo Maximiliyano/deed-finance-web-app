@@ -10,8 +10,7 @@ using NSubstitute;
 
 namespace Deed.Tests.Unit.Expenses.Commands;
 
-// TODO write tests for tags
-public sealed class CreateExpenseCommandHandlerTests
+internal sealed class CreateExpenseCommandHandlerTests
 {
     private readonly IUser _userMock = Substitute.For<IUser>();
     private readonly IExpenseRepository _expenseRepositoryMock = Substitute.For<IExpenseRepository>();
@@ -117,5 +116,62 @@ public sealed class CreateExpenseCommandHandlerTests
 
         await _capitalRepositoryMock.Received(1).GetAsync(Arg.Any<CapitalByIdSpecification>());
         await _unitOfWorkMock.DidNotReceive().SaveChangesAsync();
+    }
+
+    [Fact]
+    public async Task Handle_ShouldCreateTags_WhenTagNamesProvidedAndNoneExist()
+    {
+        // Arrange
+        var capital = new Capital(1)
+        {
+            Name = "TestCapital",
+            Balance = 100,
+            Currency = CurrencyType.UAH
+        };
+
+        var command = new CreateExpenseCommand(capital.Id, 1, 10m, DateTimeOffset.UtcNow, null, ["food", "fun"]);
+
+        _capitalRepositoryMock.GetAsync(Arg.Any<CapitalByIdSpecification>()).Returns(capital);
+        _tagRepositoryMock.GetAllAsync(Arg.Any<ISpecification<Tag>>()).Returns([]);
+
+        // Act
+        var result = await _handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        _tagRepositoryMock.Received(2).Create(Arg.Any<Tag>());
+    }
+
+    [Fact]
+    public async Task Handle_ShouldLinkExistingTagAndCreateOnlyNewOnes_WhenTagAlreadyExists()
+    {
+        // Arrange
+        var capital = new Capital(1)
+        {
+            Name = "TestCapital",
+            Balance = 100,
+            Currency = CurrencyType.UAH
+        };
+
+        var existingTag = new Tag { Name = "food" };
+
+        var command = new CreateExpenseCommand(capital.Id, 1, 10m, DateTimeOffset.UtcNow, null, ["food", "fun"]);
+
+        Expense? createdExpense = null;
+
+        _capitalRepositoryMock.GetAsync(Arg.Any<CapitalByIdSpecification>()).Returns(capital);
+        _tagRepositoryMock.GetAllAsync(Arg.Any<ISpecification<Tag>>()).Returns([existingTag]);
+        _expenseRepositoryMock.When(r => r.Create(Arg.Any<Expense>())).Do(ci => createdExpense = ci.Arg<Expense>());
+
+        // Act
+        var result = await _handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+
+        _tagRepositoryMock.Received(1).Create(Arg.Any<Tag>());
+
+        createdExpense.Should().NotBeNull();
+        createdExpense!.Tags.Should().ContainSingle(t => t.Tag == existingTag);
     }
 }

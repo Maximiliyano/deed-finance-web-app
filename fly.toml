@@ -12,7 +12,7 @@ strategy = "rolling"
 [checks.health_check]
 interval = "30s"
 method = "GET"
-path = "/health"
+path = "/health/live"
 port = 8080
 timeout = "10s"
 grace_period = "30s"

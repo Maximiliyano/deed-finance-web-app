@@ -40,21 +40,29 @@ internal sealed class CreateIncomeCommandHandler(
 
         var income = command.ToEntity();
 
-        foreach (var tagName in command.TagNames ?? [])
-        {
-            var tag = await tagRepository.GetAsync(new TagByNameSpecification(tagName, true), cancellationToken).ConfigureAwait(false);
+        var tagNames = (command.TagNames ?? []).Distinct(StringComparer.CurrentCultureIgnoreCase).ToList();
 
-            if (tag is null)
+        if (tagNames.Count > 0)
+        {
+            var existingByName = (await tagRepository
+                    .GetAllAsync(new TagsByNamesSpecification(tagNames, tracking: true), cancellationToken)
+                    .ConfigureAwait(false))
+                .ToDictionary(t => t.Name, StringComparer.CurrentCultureIgnoreCase);
+
+            foreach (var tagName in tagNames)
             {
+                if (existingByName.TryGetValue(tagName, out var tag))
+                {
+                    income.Tags.Add(new() { Tag = tag });
+                    continue;
+                }
+
                 tagRepository.Create(new()
                 {
                     Name = tagName,
                     IncomeTags = [new() { Income = income }]
                 });
-                continue;
             }
-
-            income.Tags.Add(new() { Tag = tag });
         }
 
         capital.Balance += command.Amount;

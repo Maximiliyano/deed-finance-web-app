@@ -9,6 +9,7 @@ internal sealed class UserSettingsRepository(IDeedDbContext context) : IUserSett
 {
     public async Task<UserSettings?> GetAsync(string createdBy, CancellationToken cancellationToken = default)
         => await context.Set<UserSettings>()
+            .AsNoTracking()
             .SingleOrDefaultAsync(s => s.CreatedBy == createdBy, cancellationToken);
 
     public async Task<IReadOnlyList<UserSettings>> GetAllWithRemindersEnabledAsync(CancellationToken cancellationToken = default)

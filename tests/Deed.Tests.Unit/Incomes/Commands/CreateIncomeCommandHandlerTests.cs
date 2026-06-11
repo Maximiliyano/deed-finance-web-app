@@ -94,7 +94,7 @@ public sealed class CreateIncomeCommandHandlerTests
         var command = new CreateIncomeCommand(capital.Id, 1, 200m, DateTimeOffset.UtcNow, null, ["salary", "bonus"]);
 
         _capitalRepositoryMock.GetAsync(Arg.Any<CapitalByIdSpecification>()).Returns(capital);
-        _tagRepositoryMock.GetAsync(Arg.Any<ISpecification<Tag>>()).Returns((Tag?)null);
+        _tagRepositoryMock.GetAllAsync(Arg.Any<ISpecification<Tag>>()).Returns([]);
 
         // Act
         var result = await _handler.Handle(command, CancellationToken.None);
@@ -102,5 +102,39 @@ public sealed class CreateIncomeCommandHandlerTests
         // Assert
         result.IsSuccess.Should().BeTrue();
         _tagRepositoryMock.Received(2).Create(Arg.Any<Tag>());
+    }
+
+    [Fact]
+    public async Task Handle_ShouldLinkExistingTagAndCreateOnlyNewOnes_WhenTagAlreadyExists()
+    {
+        // Arrange
+        var capital = new Capital(1)
+        {
+            Name = "TestCapital",
+            Balance = 500,
+            Currency = CurrencyType.USD
+        };
+
+        var existingTag = new Tag { Name = "salary" };
+
+        var command = new CreateIncomeCommand(capital.Id, 1, 200m, DateTimeOffset.UtcNow, null, ["salary", "bonus"]);
+
+        Income? createdIncome = null;
+
+        _capitalRepositoryMock.GetAsync(Arg.Any<CapitalByIdSpecification>()).Returns(capital);
+        _tagRepositoryMock.GetAllAsync(Arg.Any<ISpecification<Tag>>()).Returns([existingTag]);
+        _incomeRepositoryMock.When(r => r.Create(Arg.Any<Income>())).Do(ci => createdIncome = ci.Arg<Income>());
+
+        // Act
+        var result = await _handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+
+        // Only "bonus" is created; "salary" is linked to the existing tag.
+        _tagRepositoryMock.Received(1).Create(Arg.Any<Tag>());
+
+        createdIncome.Should().NotBeNull();
+        createdIncome!.Tags.Should().ContainSingle(t => t.Tag == existingTag);
     }
 }

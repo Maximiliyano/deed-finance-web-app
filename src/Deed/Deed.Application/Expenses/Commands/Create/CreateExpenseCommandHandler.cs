@@ -45,11 +45,26 @@ internal sealed class CreateExpenseCommandHandler(
 
         var expense = command.ToEntity();
 
-        foreach (var tagName in command.TagNames ?? [])
+        var tagNames = (command.TagNames ?? []).Distinct(StringComparer.CurrentCultureIgnoreCase).ToList();
+
+        if (tagNames.Count > 0)
         {
-            var tag = await tagRepository.GetAsync(new TagByNameSpecification(tagName, true), cancellationToken).ConfigureAwait(false);
-            if (tag is null)
+            var existingByName = (await tagRepository
+                    .GetAllAsync(new TagsByNamesSpecification(tagNames, tracking: true), cancellationToken)
+                    .ConfigureAwait(false))
+                .ToDictionary(t => t.Name, StringComparer.CurrentCultureIgnoreCase);
+
+            foreach (var tagName in tagNames)
             {
+                if (existingByName.TryGetValue(tagName, out var tag))
+                {
+                    expense.Tags.Add(new ()
+                    {
+                        Tag = tag
+                    });
+                    continue;
+                }
+
                 tagRepository.Create(new ()
                 {
                     Name = tagName,
@@ -61,12 +76,7 @@ internal sealed class CreateExpenseCommandHandler(
                         }
                     ]
                 });
-                continue;
             }
-            expense.Tags.Add(new ()
-            {
-                Tag = tag
-            });
         }
 
 
