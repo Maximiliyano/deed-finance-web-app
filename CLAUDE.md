@@ -67,8 +67,14 @@ cd src/WebUI && npx ng build
 # Tests
 dotnet test tests/Deed.Tests.Unit
 
-# Docker (SQL Server + API)
+# Docker (SQL Server + API + Redis only)
 docker compose up -d
+
+# Docker (full stack — nginx-served Angular + API + DB + Redis)
+docker compose --profile prod up --build
+
+# Docker (full stack — ng serve HMR + API + DB + Redis)
+docker compose --profile dev up --build
 
 # EF Migrations
 dotnet ef migrations add <Name> --project src/Deed/Deed.Infrastructure --startup-project src/Deed/Deed.Api --output-dir Persistence/Migrations
