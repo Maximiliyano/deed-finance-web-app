@@ -10,7 +10,7 @@ using NSubstitute;
 
 namespace Deed.Tests.Unit.Expenses.Commands;
 
-internal sealed class CreateExpenseCommandHandlerTests
+public sealed class CreateExpenseCommandHandlerTests
 {
     private readonly IUser _userMock = Substitute.For<IUser>();
     private readonly IExpenseRepository _expenseRepositoryMock = Substitute.For<IExpenseRepository>();

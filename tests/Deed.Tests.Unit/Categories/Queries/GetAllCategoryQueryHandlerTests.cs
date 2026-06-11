@@ -12,7 +12,7 @@ using NSubstitute;
 
 namespace Deed.Tests.Unit.Categories.Queries;
 
-internal sealed class GetAllCategoryQueryHandlerTests
+public sealed class GetAllCategoryQueryHandlerTests
 {
     private readonly ICategoryRepository _repositoryMock = Substitute.For<ICategoryRepository>();
 
