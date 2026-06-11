@@ -46,6 +46,31 @@ services:
     ports:
       - "8002:1433"
 
+  deed.webui:
+    image: ${DOCKER_REGISTRY-}deedwebui
+    profiles: ["prod"]
+    build:
+      context: ./src/WebUI
+      dockerfile: Dockerfile
+    depends_on:
+      - deed.api
+    ports:
+      - "4200:80"
+
+  deed.webui.dev:
+    image: ${DOCKER_REGISTRY-}deedwebui-dev
+    profiles: ["dev"]
+    build:
+      context: ./src/WebUI
+      dockerfile: Dockerfile.dev
+    depends_on:
+      - deed.api
+    ports:
+      - "4200:4200"
+    volumes:
+      - ./src/WebUI:/app
+      - /app/node_modules
+
 volumes:
   mssql-data:
   redis-data:
