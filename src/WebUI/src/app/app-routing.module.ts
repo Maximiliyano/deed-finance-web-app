@@ -1,6 +1,5 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import { authGuard } from './core/guards/auth-guard';
 
 const routes: Routes = [
   {
@@ -22,12 +21,6 @@ const routes: Routes = [
     path: 'incomes',
     loadComponent: () =>
       import('./modules/incomes/incomes.component').then((x) => x.IncomesComponent)
-  },
-  {
-    path: 'profile',
-    loadComponent: () =>
-      import('./modules/auth/components/profile/profile.component').then(x => x.ProfileComponent),
-    canActivate: [authGuard]
   },
   {
     path: 'error',
