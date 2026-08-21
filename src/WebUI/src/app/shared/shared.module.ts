@@ -18,14 +18,12 @@ import { IconComponent } from './components/icon/icon.component';
     CommonModule,
     FormsModule,
     ReactiveFormsModule,
-
     IconComponent
 ],
   exports: [
     CommonModule,
     FormsModule,
     ReactiveFormsModule,
-
     LayoutComponent,
     IconComponent,
     CurrencySymbolPipe,

@@ -3,10 +3,11 @@
 
 // ── Header bar ────────────────────────────────────────────────────────────────
 .header {
-  position: sticky;
+  position: fixed;
   top: 0;
   z-index: 200;
-  height: var(--header-h, 60px);
+  height: var(--header-h);
+  width: 100%;
   background: var(--surface);
   border-bottom: 1px solid var(--border);
   box-shadow: var(--shadow-sm);
@@ -388,3 +389,20 @@
   border-top: 1px solid var(--border);
 }
 
+// ── Toggle Switch ───────────────────────────────────────────────────────────
+
+.theme-btn {
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  background-color: transparent;
+  transition: color 0.25s ease, border-color 0.25s ease, color 0.25s ease;
+  color: var(--warning);
+
+  &.theme-dark {
+    color: var(--primary-light);
+
+    &:hover {
+      color: var(--warning);
+    }
+  }
+}

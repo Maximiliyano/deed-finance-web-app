@@ -1,3 +1,4 @@
+import { UserSettingsService } from './../home/services/user-settings.service';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { ExpenseCategoryResponse } from './models/expense-category-response';
 import { DialogService } from '../../shared/components/dialogs/services/dialog.service';
@@ -25,6 +26,7 @@ import { UtilityBillService } from './services/utility-bill.service';
 import { CreateUtilityBillRequest, PayUtilityBillRequest, UtilityBillResponse } from './models/utility-bill';
 import { UtilityBillDialogComponent, UtilityBillDialogData } from './components/utility-bill-dialog/utility-bill-dialog.component';
 import { PayUtilityBillDialogComponent, PayUtilityBillDialogData } from './components/pay-utility-bill-dialog/pay-utility-bill-dialog.component';
+import { CurrencyType } from '../../core/types/currency-type';
 
 @Component({
     selector: 'app-expenses',
@@ -60,6 +62,7 @@ export class ExpensesComponent implements OnInit, OnDestroy {
     private readonly capitalService: CapitalService,
     private readonly tagService: TagService,
     private readonly utilityBillService: UtilityBillService,
+    private readonly userSettingsService: UserSettingsService,
     private readonly dialogService: DialogService,
     private readonly popupMessageService: PopupMessageService,
     private readonly cdr: ChangeDetectorRef
@@ -181,7 +184,9 @@ export class ExpensesComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     document.title = "Deed - Expenses";
 
-    this.defaultCurrency = this.capitalService.getMainCurrency().str;
+    this.userSettingsService.load().subscribe({
+      next: (v) => this.defaultCurrency = v?.currency ?? CurrencyType.UAH.toString()
+    })
 
     this.fetchExpenses();
     this.fetchCapitals();
@@ -295,7 +300,7 @@ export class ExpensesComponent implements OnInit, OnDestroy {
         deletedCategories: this.deletedCategories
       },
     });
-    
+
     categoriesDialogRef
       .afterClosed$
       .pipe(takeUntil(this.$unsubscribe))
@@ -465,13 +470,13 @@ export class ExpensesComponent implements OnInit, OnDestroy {
 
     const currentCapital = this.capitals.find(c => c.id === currentExpense.capitalId);
     if (!currentCapital) return;
-    
+
     currentExpense.purpose = update.purpose ?? null;
     currentExpense.paymentDate = new Date(update.date ?? currentExpense.paymentDate);
 
     if (!!update.amount) {
       const difference = update.amount - currentExpense.amount;
-      
+
       currentExpense.amount = update.amount;
 
       currentExpenseCategory.categorySum += difference;
@@ -491,7 +496,7 @@ export class ExpensesComponent implements OnInit, OnDestroy {
 
     if (!!update.categoryId && update.categoryId !== currentCategoryId) {
       const newCategory = this.expenseCategories.find(ec => ec.categoryId === update.categoryId);
-      
+
       currentExpenseCategory.categorySum -= currentExpense.amount;
       currentExpenseCategory.expenses = currentExpenseCategory.expenses.filter(e => e.id !== update.id);
 

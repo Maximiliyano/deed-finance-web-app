@@ -8,7 +8,7 @@ import { Router } from '@angular/router';
 import { DialogService } from '../../../shared/components/dialogs/services/dialog.service';
 import { AuthService } from '../../../modules/auth/services/auth-service';
 import { User } from '../../../modules/auth/models/user';
-import { ViewportScroller } from '@angular/common';
+import { ThemeService } from '../../services/theme.service';
 
 export interface NavItem {
   label: string;
@@ -35,7 +35,6 @@ export class HeaderComponent implements OnInit, OnDestroy {
   navItems: NavItem[] = [
     {
       label: 'Dashboard', icon: 'fa-gauge-high', children: [
-        { label: 'Overview', icon: 'fa-house', link: '/' },
         { label: 'Budget Planner', icon: 'fa-compass-drafting', link: '/', fragment: 'estimations' },
         { label: 'Goals', icon: 'fa-star', link: '/', fragment: 'goals' },
         { label: 'Debts', icon: 'fa-hand-holding-dollar', link: '/', fragment: 'debts' },
@@ -61,7 +60,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
     private readonly authService: AuthService,
     private readonly dialogService: DialogService,
     private readonly exchangeService: ExchangeService,
-    private readonly viewportScroller: ViewportScroller,
+    readonly themeService: ThemeService,
     private readonly cdr: ChangeDetectorRef) {}
 
   ngOnInit(): void {

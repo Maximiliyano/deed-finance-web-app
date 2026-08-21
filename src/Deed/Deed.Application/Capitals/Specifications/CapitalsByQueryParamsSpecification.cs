@@ -9,7 +9,7 @@ namespace Deed.Application.Capitals.Specifications;
 
 internal sealed class CapitalsByQueryParamsSpecification : BaseSpecification<Capital>
 {
-    public CapitalsByQueryParamsSpecification(string? createdBy, string? searchTerm = null, string? sortBy = null, string? sortDirection = null, string? filterBy = null, bool disableIncludes = false)
+    public CapitalsByQueryParamsSpecification(string? createdBy, string? searchTerm = null, string? sortBy = null, string? sortDirection = null, string? filterBy = null, bool toggleIncludes = false)
         : base(GetCriteria(createdBy, filterBy, searchTerm))
     {
         var keySelector = GetSortProperties(sortBy);
@@ -24,7 +24,7 @@ internal sealed class CapitalsByQueryParamsSpecification : BaseSpecification<Cap
                 break;
         }
 
-        if (!disableIncludes)
+        if (toggleIncludes)
         {
             AddInclude(c => c.Expenses);
             AddInclude(c => c.Incomes);

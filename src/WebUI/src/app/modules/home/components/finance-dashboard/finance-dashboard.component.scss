@@ -1,0 +1,23 @@
+.kpi-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem;
+  @media (max-width: 900px) { grid-template-columns: repeat(2, 1fr); }
+  @media (max-width: 480px) { grid-template-columns: 1fr; }
+  &.kpi-grid-single { grid-template-columns: 1fr; max-width: 28rem; }
+}
+.kpi-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.125rem; display: flex; align-items: flex-start; gap: .875rem; box-shadow: var(--shadow); transition: box-shadow .15s; &:hover { box-shadow: var(--shadow-md); } }
+.kpi-icon {
+  width: 2.75rem; height: 2.75rem; border-radius: var(--radius); display: flex; align-items: center; justify-content: center; font-size: 1rem; flex-shrink: 0;
+  &.wallet-icon { background: var(--primary-light); color: var(--primary); }
+  &.profit-icon { background: #f1d9ff; color: #9d00ff; }
+  &.expense-icon, &.deficit-icon { background: var(--danger-bg); color: var(--danger); }
+  &.income-icon { background: var(--success-bg); color: var(--success-text); }
+  &.alloc-icon { background: var(--primary-light); color: var(--primary); }
+}
+.kpi-body { flex: 1; min-width: 0; }
+.kpi-label { font-size: .7rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: .06em; margin-bottom: .125rem; }
+.kpi-value { font-size: 1.1rem; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.kpi-empty { font-size: .875rem; font-weight: 400; color: var(--text-light); font-style: italic; }
+.kpi-alt { display: block; font-size: .75rem; font-weight: 500; color: var(--text-muted); margin-top: .0625rem; }
+.kpi-link { text-decoration: none; &:hover .kpi-edit-hint { opacity: 1; } }
+.kpi-edit-hint { font-size: .55rem; opacity: 0; transition: opacity .15s; margin-left: .25rem; }
+

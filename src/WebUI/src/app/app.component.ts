@@ -1,7 +1,6 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, NgZone, OnDestroy, OnInit} from '@angular/core';
 import {AuthService} from './modules/auth/services/auth-service';
 import {NotificationService} from './shared/services/notification.service';
-import {ThemeService} from './core/services/theme.service';
 import {Subject, takeUntil} from 'rxjs';
 
 @Component({
@@ -19,7 +18,6 @@ export class AppComponent implements OnInit, OnDestroy {
     constructor(
         private readonly authService: AuthService,
         private readonly notificationService: NotificationService,
-        private readonly _theme: ThemeService,
         private readonly zone: NgZone,
         private readonly cdr: ChangeDetectorRef
     ) {}

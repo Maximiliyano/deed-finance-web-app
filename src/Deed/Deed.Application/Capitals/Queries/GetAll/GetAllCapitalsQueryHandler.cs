@@ -15,7 +15,7 @@ internal sealed class GetAllCapitalsQueryHandler(
     public async Task<Result<IEnumerable<CapitalResponse>>> Handle(GetAllCapitalsQuery query, CancellationToken cancellationToken)
     {
         var capitals = await repository
-            .GetAllAsync(new CapitalsByQueryParamsSpecification(user?.Name, query.SearchTerm, query.SortBy, query.SortDirection, query.FilterBy, disableIncludes: true), cancellationToken)
+            .GetAllAsync(new CapitalsByQueryParamsSpecification(user?.Name, query.SearchTerm, query.SortBy, query.SortDirection, query.FilterBy, toggleIncludes: true), cancellationToken)
             .ConfigureAwait(false);
 
         var capitalResponses = capitals.ToResponses();

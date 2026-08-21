@@ -8,7 +8,6 @@ import { AddCapitalRequest } from './models/add-capital-request';
 import { CapitalItem } from './models/capital-item';
 import { CapitalResponse } from './models/capital-response';
 import { CapitalService } from './services/capital.service';
-import { animate, style, transition, trigger } from '@angular/animations';
 import { CurrencyType } from '../../core/types/currency-type';
 import { getCurrencies } from '../../shared/components/currency/functions/get-currencies.component';
 import { UpdateCapitalRequest } from './models/update-capital-request';
@@ -26,17 +25,6 @@ import { DebtService } from '../home/services/debt.service';
     templateUrl: './capitals.component.html',
     styleUrl: './capitals.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
-    animations: [
-        trigger('slideRemove', [
-            transition(':leave', [
-                animate('200ms ease-out', style({ transform: 'translateY(6px)', opacity: 0 }))
-            ]),
-            transition(':enter', [
-                style({ transform: 'translateY(-6px)', opacity: 0 }),
-                animate('200ms ease-out', style({ transform: 'translateY(0)', opacity: 1 }))
-            ])
-        ])
-    ],
     standalone: false
 })
 export class CapitalsComponent implements OnInit, OnDestroy {
@@ -114,9 +102,9 @@ export class CapitalsComponent implements OnInit, OnDestroy {
         this.cdr.markForCheck();
       });
 
-    const mainCurrency = this.capitalService.getMainCurrency();
-    this.mainCurrency = mainCurrency.str;
-    this.mainCurrencyVal = mainCurrency.val;
+      // TODO refactor to userSettings
+    this.mainCurrency = CurrencyType.UAH.toString();
+    this.mainCurrencyVal = CurrencyType.UAH;
 
     this.queryParams$
       .pipe(

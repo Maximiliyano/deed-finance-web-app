@@ -47,8 +47,9 @@ import {AddCapitalDialogComponent} from '../capital/components/capital-dialog/ad
 import {AddCapitalRequest} from '../capital/models/add-capital-request';
 import {getCurrencies} from '../../shared/components/currency/functions/get-currencies.component';
 import {UpdateCapitalRequest} from '../capital/models/update-capital-request';
-import {SectionLoadingService} from '../../shared/services/section-loading.service';
+import {SectionKey, SectionLoadingService} from '../../shared/services/section-loading.service';
 import {convertCurrency} from '../../shared/utils/currency-conversion.util';
+import { NavItem } from '../../core/layout/header/header.component';
 
 @Component({
     selector: 'app-home',
@@ -85,6 +86,9 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   readonly barColors = ['#60a5fa', '#f472b6', '#34d399', '#fb923c', '#38bdf8', '#facc15', '#2dd4bf'];
 
+  readonly capitalObservable = this.capitalService
+    .load({ searchTerm: null, sortBy: null, sortDirection: null, filterBy: null });
+
   private unsubscribe$ = new Subject<void>();
 
   constructor(
@@ -111,13 +115,13 @@ export class HomeComponent implements OnInit, OnDestroy {
     return !this.user;
   }
 
-  get currency(): string {
+  get userCurrency(): string {
     return this.userSettings?.currency ?? 'UAH';
   }
 
   get loss(): number {
     return this.estimations.reduce(
-      (sum, e) => sum + this.convertToSalaryCurrency(e.budgetAmount, e.budgetCurrency), 0
+      (sum, e) => sum + convertCurrency(e.budgetAmount, e.budgetCurrency, this.userCurrency, this.exchanges), 0
     );
   }
 
@@ -139,31 +143,28 @@ export class HomeComponent implements OnInit, OnDestroy {
     return Math.max(0, 100 - this.lossPercent);
   }
 
+  navItems: NavItem[] = [
+      { label: 'Budget Planner', icon: 'fa-compass-drafting', link: '/', fragment: 'estimations' },
+      { label: 'Capitals', icon: 'fa-wallet', link: '/capitals' },
+      { label: 'Expenses', icon: 'fa-money-bill-wave', link: '/expenses' },
+      { label: 'Incomes', icon: 'fa-dollar-sign', link: '/incomes' },
+      { label: 'Goals', icon: 'fa-star', link: '/', fragment: 'goals' },
+      { label: 'Debts', icon: 'fa-hand-holding-dollar', link: '/', fragment: 'debts' },
+    ];
+
   budgetPercent(amount: number, fromCurrency?: string): number {
     if (this.totalCapitalAmount <= 0) return 0;
-    const converted = fromCurrency ? this.convertToSalaryCurrency(amount, fromCurrency) : amount;
+    const converted = fromCurrency ? convertCurrency(amount, fromCurrency, this.userCurrency, this.exchanges) : amount;
     return Math.min(100, Math.round((converted / this.totalCapitalAmount) * 100));
   }
 
-  convertToSalaryCurrency(amount: number, fromCurrency: string): number {
-    return this.convertCurrency(amount, fromCurrency, this.currency);
-  }
-
-  convertCurrency(amount: number, fromCurrency: string, toCurrency: string): number {
-    return convertCurrency(amount, fromCurrency, toCurrency, this.exchanges);
-  }
-
   get showDualCurrency(): boolean {
-    return this.currency !== 'UAH';
-  }
-
-  convertToUah(amount: number, fromCurrency: string): number {
-    return convertCurrency(amount, fromCurrency, 'UAH', this.exchanges);
+    return this.userCurrency !== 'UAH';
   }
 
   get lossInUah(): number {
     return this.estimations.reduce(
-      (sum, e) => sum + this.convertToUah(e.budgetAmount, e.budgetCurrency), 0
+      (sum, e) => sum + convertCurrency(e.budgetAmount, e.budgetCurrency, 'UAH', this.exchanges), 0
     );
   }
 
@@ -174,13 +175,13 @@ export class HomeComponent implements OnInit, OnDestroy {
   get totalCapitalAmount(): number {
     return this.capitals
       .filter(c => c.includeInTotal)
-      .reduce((sum, c) => sum + this.convertToSalaryCurrency(c.balance, c.currency), 0);
+      .reduce((sum, c) => sum + convertCurrency(c.balance, c.currency, this.userCurrency, this.exchanges), 0);
   }
 
   get totalCapitalAmountInUah(): number {
     return this.capitals
       .filter(c => c.includeInTotal)
-      .reduce((sum, c) => sum + this.convertToUah(c.balance, c.currency), 0);
+      .reduce((sum, c) => sum + convertCurrency(c.balance, c.currency, CurrencyType.UAH.toString(), this.exchanges), 0);
   }
 
   private get planFactor(): number {
@@ -200,6 +201,10 @@ export class HomeComponent implements OnInit, OnDestroy {
   get lossCoverage(): number {
     if (this.totalIncomesConverted <= 0) return 0;
     return Math.min(100, Math.round((this.loss / this.totalIncomesConverted) * 100));
+  }
+
+  convertUserCurrency(amount: number, from: string): number {
+    return convertCurrency(amount, from, this.userCurrency, this.exchanges);
   }
 
   toggleCharts(): void {
@@ -251,7 +256,7 @@ export class HomeComponent implements OnInit, OnDestroy {
       const cap = this.capitals.find(c => c.id === id);
       if (cap?.currency) return cap.currency;
     }
-    return this.currency;
+    return this.userCurrency;
   }
 
   private capitalCurrencyOf(capitalId: number | null | undefined): string {
@@ -263,14 +268,14 @@ export class HomeComponent implements OnInit, OnDestroy {
   get filteredTotalIncomes(): number {
     const target = this.chartCurrency;
     return this.filteredIncomes.reduce((s, i) =>
-      s + this.convertCurrency(i.amount, this.capitalCurrencyOf(i.capitalId), target), 0);
+      s + convertCurrency(i.amount, this.capitalCurrencyOf(i.capitalId), target, this.exchanges), 0);
   }
 
   get filteredLoss(): number {
     const target = this.chartCurrency;
     return this.estimations
       .filter(e => this.capitalAllowed(e.capitalId))
-      .reduce((sum, e) => sum + this.convertCurrency(e.budgetAmount, e.budgetCurrency, target), 0);
+      .reduce((sum, e) => sum + convertCurrency(e.budgetAmount, e.budgetCurrency, target, this.exchanges), 0);
   }
 
   get filteredNetProfit(): number {
@@ -296,7 +301,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     for (const inc of this.filteredIncomes) {
       const cat = this.incomeCategories.find(c => c.id === inc.categoryId);
       const name = cat?.name ?? 'Unknown';
-      const converted = this.convertCurrency(inc.amount, this.capitalCurrencyOf(inc.capitalId), target);
+      const converted = convertCurrency(inc.amount, this.capitalCurrencyOf(inc.capitalId), target, this.exchanges);
       byName.set(name, (byName.get(name) ?? 0) + converted);
     }
     const total = [...byName.values()].reduce((s, v) => s + v, 0);
@@ -317,7 +322,7 @@ export class HomeComponent implements OnInit, OnDestroy {
         ? c.expenses.filter((e: any) => this.capitalAllowed(e.capitalId))
         : c.expenses;
       const sum = expenses.reduce((s: number, e: any) =>
-        s + this.convertCurrency(e.amount, this.capitalCurrencyOf(e.capitalId), target), 0);
+        s + convertCurrency(e.amount, this.capitalCurrencyOf(e.capitalId), target, this.exchanges), 0);
       return { name: c.name, sum };
     });
     const total = filtered.reduce((s, c) => s + c.sum, 0);
@@ -341,7 +346,7 @@ export class HomeComponent implements OnInit, OnDestroy {
         ? cat.expenses.filter((e: any) => this.capitalAllowed(e.capitalId))
         : cat.expenses;
       for (const e of expenses) {
-        sum += this.convertCurrency(e.amount, this.capitalCurrencyOf((e as any).capitalId), target);
+        sum += convertCurrency(e.amount, this.capitalCurrencyOf((e as any).capitalId), target, this.exchanges);
       }
     }
     return sum;
@@ -420,7 +425,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   private goalRemaining(goal: Goal): number {
-    return this.convertToSalaryCurrency(goal.targetAmount - goal.currentAmount, goal.currency);
+    return convertCurrency(goal.targetAmount - goal.currentAmount, goal.currency, this.userCurrency, this.exchanges);
   }
 
   get goalBudgetSummary(): { freeBudget: number; reservedForDeadlines: number; availableForOpenGoals: number; openGoalCount: number } {
@@ -474,10 +479,6 @@ export class HomeComponent implements OnInit, OnDestroy {
     if (diffDays < 0) return 'overdue';
     if (diffDays <= 7) return 'soon';
     return 'ok';
-  }
-
-  toggleEditMode(): void {
-    this.isEditMode = !this.isEditMode;
   }
 
   togglePanel(panelId: PanelId): void {
@@ -810,13 +811,13 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   get totalIncomesConverted(): number {
     return this.incomes.reduce(
-      (sum, i) => sum + this.convertToSalaryCurrency(i.amount, this.capitalCurrencyOf(i.capitalId)), 0
+      (sum, i) => sum + convertCurrency(i.amount, this.capitalCurrencyOf(i.capitalId), this.userCurrency, this.exchanges), 0
     );
   }
 
   get totalIncomesInUah(): number {
     return this.incomes.reduce(
-      (sum, i) => sum + this.convertToUah(i.amount, this.capitalCurrencyOf(i.capitalId)), 0
+      (sum, i) => sum + convertCurrency(i.amount, this.capitalCurrencyOf(i.capitalId), CurrencyType.UAH.toString(), this.exchanges), 0
     );
   }
 
@@ -861,8 +862,8 @@ export class HomeComponent implements OnInit, OnDestroy {
     });
   }
 
-  loading(key: string): boolean {
-    return this.sectionLoading.isLoading(key as any);
+  loading(key: SectionKey): boolean {
+    return this.sectionLoading.isLoading(key);
   }
 
   ngOnInit(): void {
@@ -883,10 +884,9 @@ export class HomeComponent implements OnInit, OnDestroy {
 
     this.authService.me()
       .pipe(takeUntil(this.unsubscribe$))
-      .subscribe({ next: user => { this.user = user; } });
+      .subscribe({ next: user => { this.user = user; this.cdr.markForCheck() } });
 
     this.subscribeToStores();
-    this.loadInitialData();
 
     this.route.fragment.pipe(takeUntil(this.unsubscribe$)).subscribe(fragment => {
       if (fragment) {

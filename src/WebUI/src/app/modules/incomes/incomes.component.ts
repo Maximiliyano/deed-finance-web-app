@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, signal } from '@angular/core';
 import { IncomeService } from './services/income.service';
 import { IncomeResponse, IncomeResponses } from './models/income-response';
-import { Subject, takeUntil } from 'rxjs';
+import { Subject, take, takeUntil } from 'rxjs';
 import { DialogService } from '../../shared/components/dialogs/services/dialog.service';
 import { CreateIncomeDialogComponent } from './components/create-income-dialog.component/create-income-dialog.component';
 import { SelectOptionModel } from '../../shared/components/forms/models/select-option-model';
@@ -40,6 +40,12 @@ export class IncomesComponent implements OnInit, OnDestroy {
 
   get categoryOptions(): SelectOptionModel[] {
     return this.result().categories.map(x => ({ key: x.name, value: x.id }));
+  }
+
+  onDelete(id: number) {
+    this.incomeService.delete(id).pipe(takeUntil(this.unsubscribe)).subscribe({
+      next: () => this.popup.success('Removed succ')
+    });
   }
 
   capitalName(id: number | null): string {

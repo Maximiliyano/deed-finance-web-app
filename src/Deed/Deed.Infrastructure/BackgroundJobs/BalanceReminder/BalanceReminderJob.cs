@@ -43,7 +43,7 @@ public sealed class BalanceReminderJob(
             try
             {
                 var capitals = (await capitalRepository
-                    .GetAllAsync(new CapitalsByQueryParamsSpecification(settings.CreatedBy, disableIncludes: true), context.CancellationToken)
+                    .GetAllAsync(new CapitalsByQueryParamsSpecification(settings.CreatedBy, toggleIncludes: true), context.CancellationToken)
                     .ConfigureAwait(false)).ToList();
 
                 var mainCurrency = settings.Currency.ToString();
