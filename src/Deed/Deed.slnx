@@ -7,19 +7,18 @@
     <File Path="../../fly.toml" />
     <File Path="../../README.md" />
   </Folder>
-  <Folder Name="/src/" />
-  <Folder Name="/src/Deed/">
-    <Project Path="../../../../../../../../Projects/deed-finance-web-app/src/Deed/Deed.Api/Deed.Api.csproj" />
-    <Project Path="../../../../../../../../Projects/deed-finance-web-app/src/Deed/Deed.Application/Deed.Application.csproj" />
-    <Project Path="../../../../../../../../Projects/deed-finance-web-app/src/Deed/Deed.Domain/Deed.Domain.csproj" />
-    <Project Path="../../../../../../../../Projects/deed-finance-web-app/src/Deed/Deed.Infrastructure/Deed.Infrastructure.csproj" />
+    <Folder Name="/src/">
+        <Project Path="Deed.Api/Deed.Api.csproj"/>
+        <Project Path="Deed.Application/Deed.Application.csproj"/>
+        <Project Path="Deed.Domain/Deed.Domain.csproj"/>
+        <Project Path="Deed.Infrastructure/Deed.Infrastructure.csproj"/>
   </Folder>
   <Folder Name="/tests/">
-    <Project Path="../../../../../../../../Projects/deed-finance-web-app/tests/Deed.Tests.Common/Deed.Tests.Common.csproj" />
-    <Project Path="../../../../../../../../Projects/deed-finance-web-app/tests/Deed.Tests.Integration/Deed.Tests.Integration.csproj" />
-    <Project Path="../../../../../../../../Projects/deed-finance-web-app/tests/Deed.Tests.Unit/Deed.Tests.Unit.csproj" />
+      <Project Path="../../tests/Deed.Tests.Common/Deed.Tests.Common.csproj"/>
+      <Project Path="../../tests/Deed.Tests.Integration/Deed.Tests.Integration.csproj"/>
+      <Project Path="../../tests/Deed.Tests.Unit/Deed.Tests.Unit.csproj"/>
   </Folder>
-  <Project Path="../../../../../../../../Projects/deed-finance-web-app/src/Deed/docker-compose.dcproj">
+    <Project Path="docker-compose.dcproj">
     <Build />
   </Project>
 </Solution>
