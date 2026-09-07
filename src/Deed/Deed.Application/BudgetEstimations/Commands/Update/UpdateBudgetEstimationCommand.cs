@@ -7,7 +7,7 @@ public sealed record UpdateBudgetEstimationCommand(
     int Id,
     string Description,
     decimal BudgetAmount,
-    CurrencyType BudgetCurrency,
+    string BudgetCurrency,
     int? CapitalId,
     bool IsCompleted)
     : ICommand;

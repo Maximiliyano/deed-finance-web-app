@@ -107,6 +107,8 @@ public static class DependencyInjection
 
         services.AddScoped<ITransferRepository, TransferRepository>();
 
+        services.AddScoped<IUtilityBillRepository, UtilityBillRepository>();
+
         return services;
     }
 
@@ -142,7 +144,7 @@ public static class DependencyInjection
     {
         services.AddSingleton<UpdateAuditableEntitiesInterceptor>();
 
-        services.AddDbContext<DeedDbContext>((sp, options) =>
+        services.AddDbContextPool<DeedDbContext>((sp, options) =>
         {
             var databaseSettings = sp.GetRequiredService<IConfiguration>().GetValue<string>(ConfigurationKeys.DatabaseConnection);
             var auditableInterceptor = sp.GetRequiredService<UpdateAuditableEntitiesInterceptor>();

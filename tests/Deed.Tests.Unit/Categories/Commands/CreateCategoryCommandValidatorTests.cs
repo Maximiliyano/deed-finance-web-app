@@ -19,7 +19,7 @@ public sealed class CreateCategoryCommandValidatorTests
     }
 
     private static CreateCategoryCommand ValidCommand => new(
-        "Food", CategoryType.Expenses, 0m, PerPeriodType.None);
+        "Food", CategoryType.Expenses, 0m, TimePeriodType.None);
 
     [Fact]
     public async Task Validate_ValidCommand_PassesValidation()

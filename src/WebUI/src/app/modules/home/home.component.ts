@@ -1,5 +1,5 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit} from '@angular/core';
-import {Subject, combineLatest, skip, takeUntil} from 'rxjs';
+import {Subject, combineLatest, of, skip, startWith, switchMap, takeUntil} from 'rxjs';
 import {ActivatedRoute} from '@angular/router';
 import {moveItemInArray} from '@angular/cdk/drag-drop';
 import {AuthService} from '../auth/services/auth-service';
@@ -36,19 +36,20 @@ import {PopupMessageService} from '../../shared/services/popup-message.service';
 import {
   QuickTransactionDialogComponent
 } from './components/quick-transaction-dialog/quick-transaction-dialog.component';
-import {ExchangeService} from '../../shared/services/exchange.service';
 import {TransferResponse, TransferService} from '../../shared/services/transfer.service';
 import {TransferDialogComponent, TransferDialogData} from './components/transfer-dialog/transfer-dialog.component';
 import {Exchange} from '../../core/models/exchange-model';
-import {CategoryType} from '../../core/types/category-type';
 import {CurrencyType} from '../../core/types/currency-type';
 import {CapitalDetailsComponent} from '../capital/components/capital-details/capital-details.component';
 import {AddCapitalDialogComponent} from '../capital/components/capital-dialog/add-capital-dialog.component';
 import {AddCapitalRequest} from '../capital/models/add-capital-request';
 import {getCurrencies} from '../../shared/components/currency/functions/get-currencies.component';
 import {UpdateCapitalRequest} from '../capital/models/update-capital-request';
-import {SectionLoadingService} from '../../shared/services/section-loading.service';
+import {SectionKey, SectionLoadingService} from '../../shared/services/section-loading.service';
 import {convertCurrency} from '../../shared/utils/currency-conversion.util';
+import { NavItem } from '../../core/layout/header/header.component';
+import { QueryTimeRange } from './models/query-time-range';
+import { CategoryType } from '../../core/types/category-type';
 
 @Component({
     selector: 'app-home',
@@ -59,38 +60,61 @@ import {convertCurrency} from '../../shared/utils/currency-conversion.util';
 })
 export class HomeComponent implements OnInit, OnDestroy {
   user: User | null = null;
-  estimations: BudgetEstimation[] = [];
   goals: Goal[] = [];
   debts: Debt[] = [];
+  budgetEstimations: BudgetEstimation[] = [];
   capitals: CapitalResponse[] = [];
   transfers: TransferResponse[] = [];
-  expenseCategories: ExpenseCategoryResponse[] = [];
+  expenses: ExpenseCategoryResponse[] = [];
   incomes: IncomeResponse[] = [];
   incomeCategories: CategoryResponse[] = [];
   expenseCategoriesList: CategoryResponse[] = [];
   userSettings: UserSettings | null = null;
   exchanges: Exchange[] = [];
   isEditMode = false;
-  estimationSortBy: 'custom' | 'amount-asc' | 'amount-desc' | 'name' = 'custom';
+  budgetEstimationSortBy: 'custom' | 'amount-asc' | 'amount-desc' | 'name' = 'custom';
   capitalSortBy: 'custom' | 'balance-desc' | 'balance-asc' | 'name' = 'custom';
   goalSortBy: 'custom' | 'progress-desc' | 'progress-asc' | 'name' = 'custom';
   debtSortBy: 'custom' | 'amount-desc' | 'amount-asc' | 'name' = 'custom';
   expenseSortBy: 'custom' | 'default' | 'amount-desc' | 'amount-asc' | 'name' = 'default';
   incomeSortBy: 'custom' | 'default' | 'amount-desc' | 'amount-asc' | 'name' = 'default';
   planFilter: 'day' | 'month' | 'year' = 'month';
-  selectedDate: Date = new Date();
   showCharts = false;
   chartTab: 'general' | 'expenses' | 'incomes' = 'general';
   selectedCapitalIds = new Set<number>();
+  selectedDate = new Date();
+
+  customStartDate?: Date;
+  customEndDate?: Date;
+
+  private readonly reloadBudget$ = new Subject<void>();
 
   readonly barColors = ['#60a5fa', '#f472b6', '#34d399', '#fb923c', '#38bdf8', '#facc15', '#2dd4bf'];
+
+  readonly capitalObservable = this.capitalService
+    .load({ searchTerm: null, sortBy: null, sortDirection: null, filterBy: null });
+
+  readonly budgetEstimationObservable = this.reloadBudget$.pipe(
+    startWith(void 0),
+    switchMap(() => this.budgetEstimationService
+      .load(this.getBudgetEstimationRequest())
+    )
+  );
+
+  readonly expenseObservable = this.expenseService
+    .load();
+  readonly incomeObservable = this.incomeService
+    .load();
+  readonly categoryObservable = this.categoryService.getAll();
+  readonly goalObservable = this.goalService.getAll();
+  readonly debtObservable = this.debtService.getAll();
 
   private unsubscribe$ = new Subject<void>();
 
   constructor(
     private readonly route: ActivatedRoute,
     private readonly authService: AuthService,
-    private readonly estimationService: BudgetEstimationService,
+    private readonly budgetEstimationService: BudgetEstimationService,
     private readonly goalService: GoalService,
     private readonly debtService: DebtService,
     private readonly userSettingsService: UserSettingsService,
@@ -100,24 +124,53 @@ export class HomeComponent implements OnInit, OnDestroy {
     private readonly categoryService: CategoryService,
     private readonly dialogService: DialogService,
     private readonly popup: PopupMessageService,
-    private readonly exchangeService: ExchangeService,
     private readonly transferService: TransferService,
     readonly layoutService: DashboardLayoutService,
     readonly sectionLoading: SectionLoadingService,
     private readonly cdr: ChangeDetectorRef
   ) {}
 
+  ngOnInit(): void {
+    document.title = 'Deed - Home page';
+
+    combineLatest([
+      this.sectionLoading.isLoading$('settings'),
+      this.sectionLoading.isLoading$('capitals'),
+      this.sectionLoading.isLoading$('budgetEstimations'),
+      this.sectionLoading.isLoading$('expenses'),
+      this.sectionLoading.isLoading$('incomes'),
+      this.sectionLoading.isLoading$('goals'),
+      this.sectionLoading.isLoading$('debts'),
+    ]).pipe(skip(1), takeUntil(this.unsubscribe$))
+      .subscribe(() => this.cdr.markForCheck());
+
+    this.authService.me()
+      .pipe(takeUntil(this.unsubscribe$))
+      .subscribe({ next: user => { this.user = user; this.cdr.markForCheck() } });
+
+    this.subscribeToStores();
+
+    this.route.fragment.pipe(takeUntil(this.unsubscribe$)).subscribe(fragment => {
+      if (fragment) {
+        setTimeout(() => {
+          const el = document.getElementById(fragment);
+          if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 300);
+      }
+    });
+  }
+
   get isAnonymous(): boolean {
     return !this.user;
   }
 
-  get currency(): string {
+  get userCurrency(): string {
     return this.userSettings?.currency ?? 'UAH';
   }
 
   get loss(): number {
-    return this.estimations.reduce(
-      (sum, e) => sum + this.convertToSalaryCurrency(e.budgetAmount, e.budgetCurrency), 0
+    return this.budgetEstimations.reduce(
+      (sum, e) => sum + convertCurrency(e.budgetAmount, e.budgetCurrency, this.userCurrency, this.exchanges), 0
     );
   }
 
@@ -139,31 +192,28 @@ export class HomeComponent implements OnInit, OnDestroy {
     return Math.max(0, 100 - this.lossPercent);
   }
 
+  navItems: NavItem[] = [
+    { label: 'Budget Planner', icon: 'fa-compass-drafting', link: '/', fragment: 'estimations' },
+    { label: 'Capitals', icon: 'fa-wallet', link: '/capitals' },
+    { label: 'Expenses', icon: 'fa-money-bill-wave', link: '/expenses' },
+    { label: 'Incomes', icon: 'fa-dollar-sign', link: '/incomes' },
+    { label: 'Goals', icon: 'fa-star', link: '/', fragment: 'goals' },
+    { label: 'Debts', icon: 'fa-hand-holding-dollar', link: '/', fragment: 'debts' },
+  ];
+
   budgetPercent(amount: number, fromCurrency?: string): number {
     if (this.totalCapitalAmount <= 0) return 0;
-    const converted = fromCurrency ? this.convertToSalaryCurrency(amount, fromCurrency) : amount;
+    const converted = fromCurrency ? convertCurrency(amount, fromCurrency, this.userCurrency, this.exchanges) : amount;
     return Math.min(100, Math.round((converted / this.totalCapitalAmount) * 100));
   }
 
-  convertToSalaryCurrency(amount: number, fromCurrency: string): number {
-    return this.convertCurrency(amount, fromCurrency, this.currency);
-  }
-
-  convertCurrency(amount: number, fromCurrency: string, toCurrency: string): number {
-    return convertCurrency(amount, fromCurrency, toCurrency, this.exchanges);
-  }
-
   get showDualCurrency(): boolean {
-    return this.currency !== 'UAH';
-  }
-
-  convertToUah(amount: number, fromCurrency: string): number {
-    return convertCurrency(amount, fromCurrency, 'UAH', this.exchanges);
+    return this.userCurrency !== 'UAH';
   }
 
   get lossInUah(): number {
-    return this.estimations.reduce(
-      (sum, e) => sum + this.convertToUah(e.budgetAmount, e.budgetCurrency), 0
+    return this.budgetEstimations.reduce(
+      (sum, e) => sum + convertCurrency(e.budgetAmount, e.budgetCurrency, 'UAH', this.exchanges), 0
     );
   }
 
@@ -174,13 +224,13 @@ export class HomeComponent implements OnInit, OnDestroy {
   get totalCapitalAmount(): number {
     return this.capitals
       .filter(c => c.includeInTotal)
-      .reduce((sum, c) => sum + this.convertToSalaryCurrency(c.balance, c.currency), 0);
+      .reduce((sum, c) => sum + convertCurrency(c.balance, c.currency, this.userCurrency, this.exchanges), 0);
   }
 
   get totalCapitalAmountInUah(): number {
     return this.capitals
       .filter(c => c.includeInTotal)
-      .reduce((sum, c) => sum + this.convertToUah(c.balance, c.currency), 0);
+      .reduce((sum, c) => sum + convertCurrency(c.balance, c.currency, CurrencyType.UAH.toString(), this.exchanges), 0);
   }
 
   private get planFactor(): number {
@@ -200,6 +250,10 @@ export class HomeComponent implements OnInit, OnDestroy {
   get lossCoverage(): number {
     if (this.totalIncomesConverted <= 0) return 0;
     return Math.min(100, Math.round((this.loss / this.totalIncomesConverted) * 100));
+  }
+
+  convertUserCurrency(amount: number, from: string): number {
+    return convertCurrency(amount, from, this.userCurrency, this.exchanges);
   }
 
   toggleCharts(): void {
@@ -251,7 +305,7 @@ export class HomeComponent implements OnInit, OnDestroy {
       const cap = this.capitals.find(c => c.id === id);
       if (cap?.currency) return cap.currency;
     }
-    return this.currency;
+    return this.userCurrency;
   }
 
   private capitalCurrencyOf(capitalId: number | null | undefined): string {
@@ -263,14 +317,14 @@ export class HomeComponent implements OnInit, OnDestroy {
   get filteredTotalIncomes(): number {
     const target = this.chartCurrency;
     return this.filteredIncomes.reduce((s, i) =>
-      s + this.convertCurrency(i.amount, this.capitalCurrencyOf(i.capitalId), target), 0);
+      s + convertCurrency(i.amount, this.capitalCurrencyOf(i.capitalId), target, this.exchanges), 0);
   }
 
   get filteredLoss(): number {
     const target = this.chartCurrency;
-    return this.estimations
+    return this.budgetEstimations
       .filter(e => this.capitalAllowed(e.capitalId))
-      .reduce((sum, e) => sum + this.convertCurrency(e.budgetAmount, e.budgetCurrency, target), 0);
+      .reduce((sum, e) => sum + convertCurrency(e.budgetAmount, e.budgetCurrency, target, this.exchanges), 0);
   }
 
   get filteredNetProfit(): number {
@@ -296,7 +350,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     for (const inc of this.filteredIncomes) {
       const cat = this.incomeCategories.find(c => c.id === inc.categoryId);
       const name = cat?.name ?? 'Unknown';
-      const converted = this.convertCurrency(inc.amount, this.capitalCurrencyOf(inc.capitalId), target);
+      const converted = convertCurrency(inc.amount, this.capitalCurrencyOf(inc.capitalId), target, this.exchanges);
       byName.set(name, (byName.get(name) ?? 0) + converted);
     }
     const total = [...byName.values()].reduce((s, v) => s + v, 0);
@@ -312,12 +366,12 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   get chartExpensesByCategory(): { name: string; amount: number; pct: number; color: string }[] {
     const target = this.chartCurrency;
-    const filtered = this.expenseCategories.map(c => {
+    const filtered = this.expenses.map(c => {
       const expenses = this.hasCapitalFilter
         ? c.expenses.filter((e: any) => this.capitalAllowed(e.capitalId))
         : c.expenses;
       const sum = expenses.reduce((s: number, e: any) =>
-        s + this.convertCurrency(e.amount, this.capitalCurrencyOf(e.capitalId), target), 0);
+        s + convertCurrency(e.amount, this.capitalCurrencyOf(e.capitalId), target, this.exchanges), 0);
       return { name: c.name, sum };
     });
     const total = filtered.reduce((s, c) => s + c.sum, 0);
@@ -336,12 +390,12 @@ export class HomeComponent implements OnInit, OnDestroy {
   get filteredTotalExpensesConverted(): number {
     const target = this.chartCurrency;
     let sum = 0;
-    for (const cat of this.expenseCategories) {
+    for (const cat of this.expenses) {
       const expenses = this.hasCapitalFilter
         ? cat.expenses.filter((e: any) => this.capitalAllowed(e.capitalId))
         : cat.expenses;
       for (const e of expenses) {
-        sum += this.convertCurrency(e.amount, this.capitalCurrencyOf((e as any).capitalId), target);
+        sum += convertCurrency(e.amount, this.capitalCurrencyOf((e as any).capitalId), target, this.exchanges);
       }
     }
     return sum;
@@ -353,6 +407,7 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   setPlanFilter(scope: 'day' | 'month' | 'year'): void {
     this.planFilter = scope;
+    this.reloadBudget$.next();
     this.cdr.markForCheck();
   }
 
@@ -379,6 +434,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   onDayChange(value: string): void {
+    this.reloadBudget$.next();
     if (!value) return;
     const d = new Date(`${value}T00:00:00`);
     if (!isNaN(d.getTime())) {
@@ -388,6 +444,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   onMonthChange(value: string): void {
+    this.reloadBudget$.next();
     if (!value) return;
     const [y, m] = value.split('-').map(Number);
     if (!Number.isFinite(y) || !Number.isFinite(m)) return;
@@ -400,12 +457,45 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   onYearChange(value: string | number): void {
+    this.reloadBudget$.next();
     const y = typeof value === 'string' ? Number(value) : value;
     if (!Number.isFinite(y) || y < 1900 || y > 2100) return;
     const d = new Date(this.selectedDate);
     d.setFullYear(y);
     this.selectedDate = d;
     this.cdr.markForCheck();
+  }
+
+  setNextPeriod(): void {
+    switch (this.planFilter) {
+      case 'day':
+        this.selectedDate.setDate(this.selectedDate.getDate() + 1);
+        break;
+      case 'month':
+        this.selectedDate.setMonth(this.selectedDate.getMonth() + 1);
+        break;
+      case 'year':
+        this.selectedDate.setFullYear(this.selectedDate.getFullYear() + 1);
+        break;
+    }
+
+    this.reloadBudget$.next();
+  }
+
+  setPreviousPeriod(): void {
+    switch (this.planFilter) {
+      case 'day':
+        this.selectedDate.setDate(this.selectedDate.getDate() - 1);
+        break;
+      case 'month':
+        this.selectedDate.setMonth(this.selectedDate.getMonth() - 1);
+        break;
+      case 'year':
+        this.selectedDate.setFullYear(this.selectedDate.getFullYear() - 1);
+        break;
+    }
+
+    this.reloadBudget$.next();
   }
 
   goalProgress(goal: Goal): number {
@@ -420,7 +510,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   private goalRemaining(goal: Goal): number {
-    return this.convertToSalaryCurrency(goal.targetAmount - goal.currentAmount, goal.currency);
+    return convertCurrency(goal.targetAmount - goal.currentAmount, goal.currency, this.userCurrency, this.exchanges);
   }
 
   get goalBudgetSummary(): { freeBudget: number; reservedForDeadlines: number; availableForOpenGoals: number; openGoalCount: number } {
@@ -476,10 +566,6 @@ export class HomeComponent implements OnInit, OnDestroy {
     return 'ok';
   }
 
-  toggleEditMode(): void {
-    this.isEditMode = !this.isEditMode;
-  }
-
   togglePanel(panelId: PanelId): void {
     this.layoutService.toggle(panelId);
   }
@@ -492,17 +578,17 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   sortEstimations(by: string): void {
-    this.estimationSortBy = by as any;
-    this.estimations = this.applyEstimationSort(this.estimationService.current);
+    this.budgetEstimationSortBy = by as any;
+    this.budgetEstimations = this.applyEstimationSort(this.budgetEstimationService.current);
     this.cdr.markForCheck();
   }
 
   dropEstimation(event: any): void {
     if (event.previousIndex !== event.currentIndex) {
-      const moved = [...this.estimations];
+      const moved = [...this.budgetEstimations];
       moveItemInArray(moved, event.previousIndex, event.currentIndex);
       const orders = moved.map((e, i) => ({ id: e.id, orderIndex: i }));
-      this.estimationService.updateOrder(orders).pipe(takeUntil(this.unsubscribe$)).subscribe();
+      this.budgetEstimationService.updateOrder(orders).pipe(takeUntil(this.unsubscribe$)).subscribe();
     }
   }
 
@@ -553,15 +639,15 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   sortExpenses(by: string): void {
     this.expenseSortBy = by as any;
-    this.expenseCategories = this.applyExpenseSort(this.expenseService.current);
+    this.expenses = this.applyExpenseSort(this.expenseService.objects);
     this.cdr.markForCheck();
   }
 
   dropExpense(event: any): void {
     if (event.previousIndex !== event.currentIndex) {
-      const moved = [...this.expenseCategories];
+      const moved = [...this.expenses];
       moveItemInArray(moved, event.previousIndex, event.currentIndex);
-      this.expenseCategories = moved;
+      this.expenses = moved;
       this.cdr.markForCheck();
     }
   }
@@ -588,13 +674,13 @@ export class HomeComponent implements OnInit, OnDestroy {
       if (!result) return;
       if (estimation) {
         const req: UpdateBudgetEstimationRequest = result;
-        this.estimationService.update(estimation.id, req).pipe(takeUntil(this.unsubscribe$)).subscribe({
+        this.budgetEstimationService.update(estimation.id, req).pipe(takeUntil(this.unsubscribe$)).subscribe({
           next: () => this.popup.success('Estimation updated'),
           error: () => this.popup.error('Failed to update estimation')
         });
       } else {
         const req: CreateBudgetEstimationRequest = result;
-        this.estimationService.create(req).pipe(takeUntil(this.unsubscribe$)).subscribe({
+        this.budgetEstimationService.create(req).pipe(takeUntil(this.unsubscribe$)).subscribe({
           next: () => this.popup.success('Estimation added'),
           error: () => this.popup.error('Failed to add estimation')
         });
@@ -602,8 +688,22 @@ export class HomeComponent implements OnInit, OnDestroy {
     });
   }
 
+  copyEstimation(source: BudgetEstimation): void {
+    const data: BudgetEstimationDialogData = { estimation: source, capitals: this.capitals, mode: 'copy' };
+    const ref = this.dialogService.open(BudgetEstimationDialogComponent, { data });
+
+    ref.afterClosed$.pipe(takeUntil(this.unsubscribe$)).subscribe(result => {
+      if (!result) return;
+      const req: CreateBudgetEstimationRequest = result;
+      this.budgetEstimationService.create(req).pipe(takeUntil(this.unsubscribe$)).subscribe({
+        next: () => this.popup.success('Estimation copied'),
+        error: () => this.popup.error('Failed to copy estimation')
+      });
+    });
+  }
+
   deleteEstimation(estimation: BudgetEstimation): void {
-    this.estimationService.delete(estimation.id).pipe(takeUntil(this.unsubscribe$)).subscribe({
+    this.budgetEstimationService.delete(estimation.id).pipe(takeUntil(this.unsubscribe$)).subscribe({
       next: () => this.popup.success('Estimation deleted'),
       error: () => this.popup.error('Failed to delete estimation')
     });
@@ -615,11 +715,12 @@ export class HomeComponent implements OnInit, OnDestroy {
     const req: UpdateBudgetEstimationRequest = {
       description: estimation.description,
       budgetAmount: estimation.budgetAmount,
-      budgetCurrency: CurrencyType[estimation.budgetCurrency as keyof typeof CurrencyType] as unknown as number,
+      budgetCurrency: estimation.budgetCurrency,
       capitalId: estimation.capitalId,
       isCompleted: checked
     };
-    this.estimationService.update(estimation.id, req).pipe(takeUntil(this.unsubscribe$)).subscribe({
+    this.budgetEstimationService.update(estimation.id, req).pipe(takeUntil(this.unsubscribe$)).subscribe({
+      next: () => this.popup.success('Estimation updated'),
       error: () => this.popup.error('Failed to update estimation')
     });
   }
@@ -788,7 +889,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   get totalExpenses(): number {
-    return this.expenseCategories.reduce((sum, c) => sum + c.categorySum, 0);
+    return this.expenses.reduce((sum, c) => sum + c.categorySum, 0);
   }
 
   get totalIncomes(): number {
@@ -796,17 +897,16 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   get totalIncomesConverted(): number {
-    return this.incomes.reduce(
-      (sum, i) => sum + this.convertToSalaryCurrency(i.amount, this.capitalCurrencyOf(i.capitalId)), 0
-    );
+    return this.incomes.length > 0 ? this.incomes.reduce(
+      (sum, i) => sum + convertCurrency(i.amount, this.capitalCurrencyOf(i.capitalId), this.userCurrency, this.exchanges), 0
+    ) : 0;
   }
 
   get totalIncomesInUah(): number {
-    return this.incomes.reduce(
-      (sum, i) => sum + this.convertToUah(i.amount, this.capitalCurrencyOf(i.capitalId)), 0
-    );
+    return this.incomes.length > 0 ? this.incomes.reduce(
+      (sum, i) => sum + convertCurrency(i.amount, this.capitalCurrencyOf(i.capitalId), CurrencyType.UAH.toString(), this.exchanges), 0
+    ) : 0;
   }
-
 
   openQuickExpense(editItem?: any): void {
     const ref = this.dialogService.open(QuickTransactionDialogComponent, {
@@ -848,111 +948,75 @@ export class HomeComponent implements OnInit, OnDestroy {
     });
   }
 
-  loading(key: string): boolean {
-    return this.sectionLoading.isLoading(key as any);
+  loading(key: SectionKey): boolean {
+    return this.sectionLoading.isLoading(key);
   }
 
-  ngOnInit(): void {
-    document.title = 'Deed - Home page';
-
-    combineLatest([
-      this.sectionLoading.isLoading$('settings'),
-      this.sectionLoading.isLoading$('capitals'),
-      this.sectionLoading.isLoading$('estimations'),
-      this.sectionLoading.isLoading$('goals'),
-      this.sectionLoading.isLoading$('debts'),
-      this.sectionLoading.isLoading$('expenses'),
-      this.sectionLoading.isLoading$('incomes'),
-      this.sectionLoading.isLoading$('transfers'),
-      this.sectionLoading.isLoading$('exchanges')
-    ]).pipe(skip(1), takeUntil(this.unsubscribe$))
-      .subscribe(() => this.cdr.markForCheck());
-
-    this.authService.me()
-      .pipe(takeUntil(this.unsubscribe$))
-      .subscribe({ next: user => { this.user = user; } });
-
-    this.subscribeToStores();
-    this.loadInitialData();
-
-    this.route.fragment.pipe(takeUntil(this.unsubscribe$)).subscribe(fragment => {
-      if (fragment) {
-        setTimeout(() => {
-          const el = document.getElementById(fragment);
-          if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }, 300);
-      }
-    });
+  ngOnDestroy(): void {
+    this.unsubscribe$.next();
+    this.unsubscribe$.complete();
   }
 
   private subscribeToStores(): void {
-    this.userSettingsService.settings$.pipe(takeUntil(this.unsubscribe$)).subscribe(data => {
-      this.userSettings = data;
-      this.cdr.markForCheck();
+    this.userSettingsService.settings$.pipe(takeUntil(this.unsubscribe$)).subscribe({
+      next: data => {
+        this.userSettings = data;
+        this.cdr.markForCheck();
+      }
     });
 
-    this.capitalService.capitals$.pipe(takeUntil(this.unsubscribe$)).subscribe(data => {
-      this.capitals = this.applyCapitalSort(data);
-      this.cdr.markForCheck();
+    this.capitalService.capitals$.pipe(takeUntil(this.unsubscribe$)).subscribe({
+      next: data => {
+        this.capitals = this.applyCapitalSort(data);
+        this.cdr.markForCheck();
+      }
     });
 
-    this.estimationService.estimations$.pipe(takeUntil(this.unsubscribe$)).subscribe(data => {
-      this.estimations = this.applyEstimationSort(data);
-      this.cdr.markForCheck();
+    this.budgetEstimationService.estimations$
+      .pipe(takeUntil(this.unsubscribe$))
+      .subscribe({
+        next: data => {
+          this.budgetEstimations = this.applyEstimationSort(data);
+          this.cdr.markForCheck();
+        },
+        error: () => this.cdr.markForCheck()
+      });
+
+    this.categoryService.categories$.pipe(takeUntil(this.unsubscribe$)).subscribe({
+      next: data => {
+        this.expenseCategoriesList = data.filter(c => c.type === CategoryType.Expenses);
+        this.incomeCategories = data.filter(c => c.type === CategoryType.Incomes);
+        this.cdr.markForCheck();
+      }
     });
 
-    this.goalService.goals$.pipe(takeUntil(this.unsubscribe$)).subscribe(data => {
-      this.goals = this.applyGoalSort(data);
-      this.cdr.markForCheck();
+    this.expenseService.expenses$.pipe(takeUntil(this.unsubscribe$)).subscribe({
+      next: data => {
+        this.expenses = this.applyExpenseSort(data);
+        this.cdr.markForCheck();
+      }
     });
 
-    this.debtService.debts$.pipe(takeUntil(this.unsubscribe$)).subscribe(data => {
-      this.debts = this.applyDebtSort(data);
-      this.cdr.markForCheck();
+    this.incomeService.incomes$.pipe(takeUntil(this.unsubscribe$)).subscribe({
+      next: data => {
+        this.incomes = data;
+        this.incomeByCategoryList = this.applyIncomeSort(this.computeIncomesByCategory()); // TODO refactor to backend as incomes
+        this.cdr.markForCheck();
+      }
     });
 
-    this.expenseService.categories$.pipe(takeUntil(this.unsubscribe$)).subscribe(data => {
-      this.expenseCategories = this.applyExpenseSort(data);
-      this.cdr.markForCheck();
+    this.goalService.goals$.pipe(takeUntil(this.unsubscribe$)).subscribe({
+      next: data => {
+        this.goals = this.applyGoalSort(data);
+        this.cdr.markForCheck();
+      }
     });
 
-    this.incomeService.incomes$.pipe(takeUntil(this.unsubscribe$)).subscribe(data => {
-      this.incomes = data;
-      this.incomeByCategoryList = this.applyIncomeSort(this.computeIncomesByCategory());
-      this.cdr.markForCheck();
-    });
-
-    this.incomeService.categories$.pipe(takeUntil(this.unsubscribe$)).subscribe(data => {
-      this.incomeCategories = data;
-      this.incomeByCategoryList = this.applyIncomeSort(this.computeIncomesByCategory());
-      this.cdr.markForCheck();
-    });
-
-    this.transferService.transfers$.pipe(takeUntil(this.unsubscribe$)).subscribe(data => {
-      this.transfers = data;
-      this.cdr.markForCheck();
-    });
-  }
-
-  private loadInitialData(): void {
-    this.userSettingsService.load().pipe(takeUntil(this.unsubscribe$)).subscribe({ error: () => this.cdr.markForCheck() });
-    this.capitalService.load({ searchTerm: null, sortBy: null, sortDirection: null, filterBy: null })
-      .pipe(takeUntil(this.unsubscribe$)).subscribe({ error: () => this.cdr.markForCheck() });
-    this.estimationService.load().pipe(takeUntil(this.unsubscribe$)).subscribe({ error: () => this.cdr.markForCheck() });
-    this.goalService.load().pipe(takeUntil(this.unsubscribe$)).subscribe({ error: () => this.cdr.markForCheck() });
-    this.debtService.load().pipe(takeUntil(this.unsubscribe$)).subscribe({ error: () => this.cdr.markForCheck() });
-    this.expenseService.load().pipe(takeUntil(this.unsubscribe$)).subscribe({ error: () => this.cdr.markForCheck() });
-    this.incomeService.load().pipe(takeUntil(this.unsubscribe$)).subscribe({ error: () => this.cdr.markForCheck() });
-    this.transferService.load().pipe(takeUntil(this.unsubscribe$)).subscribe({ error: () => this.cdr.markForCheck() });
-
-    this.exchangeService.getLatest().pipe(takeUntil(this.unsubscribe$)).subscribe({
-      next: data => { this.exchanges = data; this.cdr.markForCheck(); },
-      error: () => this.cdr.markForCheck()
-    });
-
-    this.categoryService.getAll(CategoryType.Expenses).pipe(takeUntil(this.unsubscribe$)).subscribe({
-      next: data => { this.expenseCategoriesList = data; this.cdr.markForCheck(); },
-      error: () => this.cdr.markForCheck()
+    this.debtService.debts$.pipe(takeUntil(this.unsubscribe$)).subscribe({
+      next: data => {
+        this.debts = this.applyDebtSort(data);
+        this.cdr.markForCheck();
+      }
     });
   }
 
@@ -968,7 +1032,7 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   private applyEstimationSort(data: BudgetEstimation[]): BudgetEstimation[] {
     const arr = [...data];
-    switch (this.estimationSortBy) {
+    switch (this.budgetEstimationSortBy) {
       case 'amount-desc': return arr.sort((a, b) => b.budgetAmount - a.budgetAmount);
       case 'amount-asc':  return arr.sort((a, b) => a.budgetAmount - b.budgetAmount);
       case 'name':        return arr.sort((a, b) => a.description.localeCompare(b.description));
@@ -1034,8 +1098,23 @@ export class HomeComponent implements OnInit, OnDestroy {
     return [...map.values()].sort((a, b) => b.total - a.total);
   }
 
-  ngOnDestroy(): void {
-    this.unsubscribe$.next();
-    this.unsubscribe$.complete();
+  private getBudgetEstimationRequest(): QueryTimeRange {
+    switch (this.planFilter) {
+      case 'day':
+        return {
+          periodStart: this.selectedDate,
+          periodEnd: this.selectedDate
+        };
+      case 'month':
+        return {
+          periodStart: new Date(this.selectedDate.getFullYear(), this.selectedDate.getMonth(), 1),
+          periodEnd: new Date(this.selectedDate.getFullYear(), this.selectedDate.getMonth() + 1,0)
+        };
+      case 'year':
+        return {
+          periodStart: new Date(this.selectedDate.getFullYear(), 0, 1),
+          periodEnd: new Date(this.selectedDate.getFullYear(), 11, 31)
+        };
+    }
   }
 }

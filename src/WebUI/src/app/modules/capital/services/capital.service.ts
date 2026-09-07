@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, catchError, tap, throwError } from 'rxjs';
+import { BehaviorSubject, Observable, catchError, shareReplay, tap, throwError } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
 import { AddCapitalRequest } from '../models/add-capital-request';
@@ -8,6 +8,8 @@ import { CapitalResponse } from '../models/capital-response';
 import { UpdateCapitalOrderRequest } from '../models/update-capital-order-request';
 import { QueryParams } from '../../../core/models/query-params';
 import { CurrencyType } from '../../../core/types/currency-type';
+import { convertCurrency } from '../../../shared/utils/currency-conversion.util';
+import { Exchange } from '../../../core/models/exchange-model';
 
 @Injectable({
   providedIn: 'root'
@@ -20,18 +22,36 @@ export class CapitalService {
 
   constructor(private readonly httpClient: HttpClient) { }
 
-  get current(): CapitalResponse[] { return this.state$.value; }
+  get current(): CapitalResponse[] {
+    return this.state$.value;
+  }
+
+  getCurrency(capitalId: number): string | null {
+    if (capitalId == null) return null;
+    const cap = this.current.find(c => c.id === capitalId);
+    return cap?.currency ?? null;
+  }
+
+  getTotalAmount(currency: string, exchanges: Exchange[]): number {
+    return this.current
+      .filter(c => c.includeInTotal)
+      .reduce((sum, c) => sum + convertCurrency(c.balance, c.currency, currency, exchanges), 0);
+  }
 
   load(params: QueryParams): Observable<CapitalResponse[]> {
     return this.httpClient.post<CapitalResponse[]>(`${this.baseApiUrl}/all`, params, { withCredentials: true })
-      .pipe(tap(items => this.state$.next(items)));
+      .pipe(
+        shareReplay({
+          bufferSize: 1,
+          refCount: false
+        }),
+        tap(items => this.state$.next(items)));
   }
 
   refresh(params: QueryParams = { searchTerm: null, sortBy: null, sortDirection: null, filterBy: null }): void {
     this.load(params).subscribe();
   }
 
-  // Kept for any non-store callers (e.g. dialogs that fetch directly).
   getAll(params: QueryParams): Observable<CapitalResponse[]> {
     return this.load(params);
   }
@@ -75,7 +95,7 @@ export class CapitalService {
   update(id: number, request: UpdateCapitalRequest): Observable<void> {
     const previous = this.state$.value;
     this.state$.next(previous.map(c => c.id === id
-      ? { ...c, name: (request as any).name ?? c.name, balance: (request as any).balance ?? c.balance, includeInTotal: (request as any).includeInTotal ?? c.includeInTotal, onlyForSavings: (request as any).onlyForSavings ?? c.onlyForSavings }
+      ? { ...c, name: (request).name ?? c.name, balance: (request).balance ?? c.balance, includeInTotal: (request).includeInTotal ?? c.includeInTotal, onlyForSavings: (request).onlyForSavings ?? c.onlyForSavings }
       : c));
     return this.httpClient.put<void>(`${this.baseApiUrl}/${id}`, request, { withCredentials: true }).pipe(
       tap(() => this.refresh()),
@@ -136,10 +156,5 @@ export class CapitalService {
         return throwError(() => err);
       })
     );
-  }
-
-  getMainCurrency(): { str: string; val: CurrencyType } {
-    const val = CurrencyType.UAH;
-    return { str: CurrencyType[val], val };
   }
 }

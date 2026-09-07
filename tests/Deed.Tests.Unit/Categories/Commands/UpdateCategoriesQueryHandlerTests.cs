@@ -73,29 +73,29 @@ public sealed class UpdateCategoriesQueryHandlerTests
     }
 
     [Theory]
-    [InlineData("New Category", CategoryType.Expenses, 1.0, PerPeriodType.Daily)]
-    [InlineData(null, CategoryType.Incomes, 1.0, PerPeriodType.Weekly)]
-    [InlineData("New Category", null, 1.0, PerPeriodType.Daily)]
-    [InlineData("New Category", CategoryType.Expenses, null, PerPeriodType.Monthly)]
-    [InlineData("New Category", CategoryType.Expenses, null, PerPeriodType.Yearly)]
+    [InlineData("New Category", CategoryType.Expenses, 1.0, TimePeriodType.Day)]
+    [InlineData(null, CategoryType.Incomes, 1.0, TimePeriodType.Week)]
+    [InlineData("New Category", null, 1.0, TimePeriodType.Day)]
+    [InlineData("New Category", CategoryType.Expenses, null, TimePeriodType.Month)]
+    [InlineData("New Category", CategoryType.Expenses, null, TimePeriodType.Year)]
     [InlineData("New Category", CategoryType.Incomes, 1.0, null)]
     [InlineData(null, null, null, null)]
-    [InlineData("", CategoryType.Incomes, 0.0, PerPeriodType.Weekly)]
-    [InlineData("New Category", CategoryType.Expenses, -10.0, PerPeriodType.Monthly)]
-    [InlineData("New Category", CategoryType.Expenses, -10.0, PerPeriodType.Yearly)]
+    [InlineData("", CategoryType.Incomes, 0.0, TimePeriodType.Week)]
+    [InlineData("New Category", CategoryType.Expenses, -10.0, TimePeriodType.Month)]
+    [InlineData("New Category", CategoryType.Expenses, -10.0, TimePeriodType.Year)]
 
     public async Task Handle_ShouldUpdateCategorySuccessfully(
         string? name,
         CategoryType? type,
         double? plannedPeriodAmount,
-        PerPeriodType? perPeriodType)
+        TimePeriodType? perPeriodType)
     {
         // Arrange
         const int id = 1;
         const string oldName = "Old Category";
         const CategoryType oldType = CategoryType.Expenses;
         const decimal oldPlannedPeriodAmount = 1.2m;
-        const PerPeriodType oldPerPeriodType = PerPeriodType.Daily;
+        const TimePeriodType oldPerPeriodType = TimePeriodType.Day;
 
         var category = new Category(id)
         {

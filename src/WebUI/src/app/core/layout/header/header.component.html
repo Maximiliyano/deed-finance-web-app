@@ -61,6 +61,15 @@
         <i class="fas fa-bars"></i>
       </button>
 
+      <button
+        class="btn btn-ghost btn-icon theme-btn"
+        [class.theme-dark]="themeService.isDark"
+        (click)="themeService.toggle()"
+        title="Switch theme"
+      >
+        <i class="fas fa-lightbulb"></i>
+      </button>
+
       @if (user) {
         <button class="profile-btn" (click)="profile()" title="Profile">
           <img class="avatar" [src]="user.pictureUrl" alt="Avatar" />

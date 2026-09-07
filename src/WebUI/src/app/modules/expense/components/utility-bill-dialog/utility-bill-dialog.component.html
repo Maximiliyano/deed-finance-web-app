@@ -1,0 +1,63 @@
+<form [formGroup]="form" (ngSubmit)="submit()" class="ub-dialog">
+  <div class="ub-header">
+    <i class="fas fa-bolt"></i>
+    {{ isEdit ? 'Edit Utility Bill' : 'Add Utility Bill' }}
+  </div>
+
+  <div class="ub-body">
+    <div class="form-group">
+      <label class="form-label">Name</label>
+      <input type="text" class="input" formControlName="name" placeholder="e.g. Electric, Water, Internet" autocomplete="off">
+    </div>
+
+    <div class="ub-row">
+      <div class="form-group" style="flex:1">
+        <label class="form-label">Estimated Amount</label>
+        <input type="number" class="input" formControlName="estimatedAmount" min="0" step="0.01" autocomplete="off">
+      </div>
+      <div class="form-group" style="min-width:100px">
+        <label class="form-label">Currency</label>
+        <select class="input" formControlName="currency">
+          @for (c of currencies; track c) {
+            <option [value]="c">{{ c }}</option>
+          }
+        </select>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Due Day of Month</label>
+      <input type="number" class="input" formControlName="dueDayOfMonth" min="1" max="31" step="1" autocomplete="off">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Capital</label>
+      <select class="input" formControlName="capitalId">
+        @for (cap of capitals; track cap.id) {
+          <option [value]="cap.id">{{ cap.name }} ({{ cap.currency }})</option>
+        }
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Category</label>
+      <select class="input" formControlName="categoryId">
+        @for (cat of categories; track cat.id) {
+          <option [value]="cat.id">{{ cat.name }}</option>
+        }
+      </select>
+    </div>
+
+    <label class="checkbox-row">
+      <input type="checkbox" formControlName="isActive" class="checkbox">
+      <span class="checkbox-label">Active (show as pending each month)</span>
+    </label>
+  </div>
+
+  <div class="ub-footer">
+    <button type="button" class="btn btn-secondary btn-sm" (click)="cancel()">Cancel</button>
+    <button type="submit" class="btn btn-primary btn-sm" [disabled]="form.invalid || (isEdit && form.pristine)">
+      {{ isEdit ? 'Save' : 'Add' }}
+    </button>
+  </div>
+</form>

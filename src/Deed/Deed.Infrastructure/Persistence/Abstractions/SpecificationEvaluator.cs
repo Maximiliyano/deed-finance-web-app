@@ -37,8 +37,12 @@ internal static class SpecificationEvaluator
                 .Aggregate(
                     queryable,
                     (current, includeExpression) =>
-                        includeExpression(current))
-                .AsSplitQuery();
+                        includeExpression(current));
+
+            if (specification.Includes.Count > 1)
+            {
+                queryable = queryable.AsSplitQuery();
+            }
         }
 
         if (specification.OrderBy is not null)

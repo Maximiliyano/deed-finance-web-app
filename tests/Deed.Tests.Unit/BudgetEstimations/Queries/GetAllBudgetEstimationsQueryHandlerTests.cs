@@ -28,7 +28,7 @@ public sealed class GetAllBudgetEstimationsQueryHandlerTests
     public async Task Handle_ReturnsEstimations_WhenEstimationsExist()
     {
         // Arrange
-        var query = new GetAllBudgetEstimationsQuery();
+        var query = new GetAllBudgetEstimationsQuery(DateTime.UtcNow, DateTime.UtcNow);
         var estimations = new List<BudgetEstimation>
         {
             new(1) { Description = "Groceries", BudgetAmount = 500m, BudgetCurrency = CurrencyType.UAH }
@@ -50,7 +50,7 @@ public sealed class GetAllBudgetEstimationsQueryHandlerTests
     public async Task Handle_ReturnsEmpty_WhenNoEstimations()
     {
         // Arrange
-        var query = new GetAllBudgetEstimationsQuery();
+        var query = new GetAllBudgetEstimationsQuery(DateTime.UtcNow, DateTime.UtcNow);
         _repositoryMock.GetAllAsync(Arg.Any<BudgetEstimationsByUserSpecification>()).Returns(new List<BudgetEstimation>());
 
         // Act

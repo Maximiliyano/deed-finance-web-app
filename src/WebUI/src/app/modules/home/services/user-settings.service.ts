@@ -20,15 +20,11 @@ export class UserSettingsService {
       .pipe(tap(settings => this.state$.next(settings)));
   }
 
-  refresh(): void { this.load().subscribe(); }
-
-  get(): Observable<UserSettings | null> { return this.load(); }
-
   upsert(settings: UserSettings): Observable<void> {
     const previous = this.state$.value;
     this.state$.next({ ...(previous ?? {} as UserSettings), ...settings });
     return this.http.put<void>(this.baseUrl, settings, { withCredentials: true }).pipe(
-      tap(() => this.refresh()),
+      tap(() => this.load().subscribe()),
       catchError(err => {
         this.state$.next(previous);
         return throwError(() => err);

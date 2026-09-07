@@ -44,7 +44,7 @@ internal sealed class GetExpensesByCategoryHandler(
                     categorySum,
                     percentage,
                     category?.PlannedPeriodAmount ?? 0m,
-                    category?.Period.ToString() ?? nameof(PerPeriodType.None),
+                    category?.Period.ToString() ?? nameof(TimePeriodType.None),
                     g.ToResponses()
                 );
 

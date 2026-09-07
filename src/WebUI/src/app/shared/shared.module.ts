@@ -4,7 +4,6 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { OverlayComponent } from './components/overlay/overlay.component';
 import { LayoutComponent } from './components/layout/layout.component';
 import { CurrencySymbolPipe } from './components/currency/pipes/currency-symbol-pipe';
-import { DragDropModule } from '@angular/cdk/drag-drop';
 import { EnumTextPipe } from '../core/utils/enum';
 import { IconComponent } from './components/icon/icon.component';
 
@@ -19,16 +18,12 @@ import { IconComponent } from './components/icon/icon.component';
     CommonModule,
     FormsModule,
     ReactiveFormsModule,
-    DragDropModule,
-
     IconComponent
 ],
   exports: [
     CommonModule,
     FormsModule,
     ReactiveFormsModule,
-    DragDropModule,
-
     LayoutComponent,
     IconComponent,
     CurrencySymbolPipe,

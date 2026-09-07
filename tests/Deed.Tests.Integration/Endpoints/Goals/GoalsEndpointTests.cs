@@ -5,7 +5,7 @@ using FluentAssertions;
 
 namespace Deed.Tests.Integration.Endpoints.Goals;
 
-public sealed class GoalsEndpointTests(DeedApiFactory factory) : IntegrationTest(factory)
+public sealed class GoalsEndpointTests(DeedApiFactory factory) : IntegrationTest(factory, "api/goals")
 {
     private async Task<int> CreateGoalAsync(string? title = null)
     {

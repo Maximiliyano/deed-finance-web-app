@@ -257,3 +257,33 @@
   text-align: center;
   background: var(--surface-2);
 }
+
+@keyframes slideInKeyframe {
+  from {
+    transform: translateY(-6px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.slide-in {
+  animation: slideInKeyframe 200ms ease-out forwards;
+}
+
+@keyframes slideOutKeyframe {
+  from {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(6px);
+    opacity: 0;
+  }
+}
+
+.slide-out {
+  animation: slideOutKeyframe 200ms ease-out forwards;
+}

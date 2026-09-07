@@ -4,7 +4,7 @@
 
 <h2>Creating migrations</h2>
 
-1. To create a migration, open project folder. In the terminal cmd, type command '<code>pushd finance-tracker-app</code>'.
+1. To create a migration, open the project folder. In the terminal cmd, type the command '<code>pushd finance-tracker-app</code>'.
 
 1.1. Install EF Core tools for CLI:
 '<code>

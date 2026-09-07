@@ -14,15 +14,13 @@ public sealed class GetAllIncomesQueryHandlerTests
 {
     private readonly IUser _userMock = Substitute.For<IUser>();
     private readonly IIncomeRepository _incomeRepositoryMock = Substitute.For<IIncomeRepository>();
-    private readonly ICapitalRepository _capitalRepositoryMock = Substitute.For<ICapitalRepository>();
-    private readonly ICategoryRepository _categoryRepositoryMock = Substitute.For<ICategoryRepository>();
 
     private readonly GetIncomesQueryHandler _handler;
 
     public GetAllIncomesQueryHandlerTests()
     {
         _userMock.Name.Returns("testuser");
-        _handler = new GetIncomesQueryHandler(_userMock, _incomeRepositoryMock, _categoryRepositoryMock, _capitalRepositoryMock);
+        _handler = new GetIncomesQueryHandler(_userMock, _incomeRepositoryMock);
     }
 
     [Fact]
@@ -60,6 +58,6 @@ public sealed class GetAllIncomesQueryHandlerTests
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        result.Value.Incomes.Should().OnlyContain(x => x == response);
+        result.Value.Should().OnlyContain(x => x == response);
     }
 }

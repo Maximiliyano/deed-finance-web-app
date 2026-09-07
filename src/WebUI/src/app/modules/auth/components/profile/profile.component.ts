@@ -1,16 +1,16 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
+import { UserSettings } from './../../../home/models/user-settings.model';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, Optional } from '@angular/core';
 import { AuthService } from '../../services/auth-service';
 import { Subject, takeUntil } from 'rxjs';
 import { SharedModule } from "../../../../shared/shared.module";
 import { DialogService } from '../../../../shared/components/dialogs/services/dialog.service';
+import { DialogRef } from '../../../../shared/components/dialogs/models/dialog-ref';
 import { ConfirmDialogComponent } from '../../../../shared/components/dialogs/confirm-dialog/confirm-dialog.component';
 import { PopupMessageService } from '../../../../shared/services/popup-message.service';
 import { User } from '../../models/user';
 import { UserSettingsService } from '../../../home/services/user-settings.service';
-import { UserSettings } from '../../../home/models/user-settings.model';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { CurrencyType } from '../../../../core/types/currency-type';
-import { ThemeService } from '../../../../core/services/theme.service';
 
 @Component({
   selector: 'app-profile',
@@ -44,8 +44,8 @@ export class ProfileComponent implements OnInit, OnDestroy {
     private readonly popupMessageService: PopupMessageService,
     private readonly userSettingsService: UserSettingsService,
     private readonly fb: FormBuilder,
-    readonly themeService: ThemeService,
-    private readonly cdr: ChangeDetectorRef
+    private readonly cdr: ChangeDetectorRef,
+    @Optional() private readonly dialogRef: DialogRef<void> | null
   ) {}
 
   ngOnInit(): void {
@@ -71,21 +71,23 @@ export class ProfileComponent implements OnInit, OnDestroy {
         this.cdr.markForCheck();
       });
 
-    this.userSettingsService.get()
+    this.userSettingsService.load()
       .pipe(takeUntil(this.$unsubscribe))
-      .subscribe(settings => {
-        if (settings) {
-          this.settingsForm.patchValue({ currency: settings.currency });
-          this.notificationForm.patchValue({
-            balanceReminderEnabled: settings.balanceReminderEnabled ?? false,
-            balanceReminderCron: settings.balanceReminderCron ?? '0 0 9 * * ?',
-            expenseReminderEnabled: settings.expenseReminderEnabled ?? false,
-            expenseReminderCron: settings.expenseReminderCron ?? '0 0 9 * * ?',
-            debtReminderEnabled: settings.debtReminderEnabled ?? false,
-            debtReminderCron: settings.debtReminderCron ?? '0 0 9 * * ?',
-            emailNotificationsEnabled: settings.emailNotificationsEnabled ?? false
-          });
-          this.cdr.markForCheck();
+      .subscribe({
+        next: (settings: UserSettings | null) => {
+          if (settings) {
+            this.settingsForm.patchValue({ currency: settings.currency });
+            this.notificationForm.patchValue({
+              balanceReminderEnabled: settings.balanceReminderEnabled ?? false,
+              balanceReminderCron: settings.balanceReminderCron ?? '0 0 9 * * ?',
+              expenseReminderEnabled: settings.expenseReminderEnabled ?? false,
+              expenseReminderCron: settings.expenseReminderCron ?? '0 0 9 * * ?',
+              debtReminderEnabled: settings.debtReminderEnabled ?? false,
+              debtReminderCron: settings.debtReminderCron ?? '0 0 9 * * ?',
+              emailNotificationsEnabled: settings.emailNotificationsEnabled ?? false
+            });
+            this.cdr.markForCheck();
+          }
         }
       });
   }
@@ -145,6 +147,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
           if (submit) {
             this.authService.logout();
             this.popupMessageService.warning('You logged out your account.');
+            this.dialogRef?.close();
           }
         }
       });

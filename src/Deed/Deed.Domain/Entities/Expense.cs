@@ -26,6 +26,10 @@ public sealed class Expense
 
     public string? Purpose { get; set; }
 
+    public int? UtilityBillId { get; set; }
+
+    public UtilityBill? UtilityBill { get; init; }
+
     public List<ExpenseTag> Tags { get; init; } = [];
 
     public DateTimeOffset CreatedAt { get; init; }

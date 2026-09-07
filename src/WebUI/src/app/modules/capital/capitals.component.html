@@ -61,7 +61,8 @@
           <div
             class="cp-card"
             cdkDrag
-            [@slideRemove]
+            [animate.enter]="'slide-in'"
+            [animate.leave]="'slide-out'"
             [ngClass]="{
               'cp-card--savings': capital.onlyForSavings,
               'cp-card--excluded': !capital.includeInTotal && !capital.onlyForSavings

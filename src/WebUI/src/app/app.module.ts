@@ -10,7 +10,6 @@ import {credentialsInterceptor} from './core/interceptors/credentials.intercepto
 import {errorInterceptor} from './core/interceptors/error.interceptor';
 import {retryInterceptor} from './core/interceptors/retry.interceptor';
 import {sectionLoadingInterceptor} from './core/interceptors/section-loading.interceptor';
-import {provideAnimations} from '@angular/platform-browser/animations';
 import {SharedModule} from "./shared/shared.module";
 import {NgOptimizedImage} from "@angular/common";
 
@@ -30,8 +29,7 @@ import {NgOptimizedImage} from "@angular/common";
   providers: [
     provideHttpClient(
       withInterceptors([credentialsInterceptor, retryInterceptor, sectionLoadingInterceptor, errorInterceptor])
-    ),
-    provideAnimations()
+    )
   ]
 })
 export class AppModule { }

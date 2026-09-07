@@ -37,9 +37,8 @@ public sealed class DebtReminderJob(
             try
             {
                 var debts = (await debtRepository
-                    .GetAllAsync(new DebtsByUserSpecification(settings.CreatedBy), context.CancellationToken)
+                    .GetAllAsync(new UnpaidDebtsByUserSpecification(settings.CreatedBy), context.CancellationToken)
                     .ConfigureAwait(false))
-                    .Where(d => !d.IsPaid)
                     .ToList();
 
                 if (debts.Count == 0)

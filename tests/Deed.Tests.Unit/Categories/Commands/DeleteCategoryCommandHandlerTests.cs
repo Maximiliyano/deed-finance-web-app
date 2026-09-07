@@ -24,13 +24,13 @@ public sealed class DeleteCategoryCommandHandlerTests
     }
 
     [Theory]
-    [InlineData(CategoryType.Incomes, "IncomesWithHighAmountOfDollars", 0, PerPeriodType.None)]
-    [InlineData(CategoryType.Expenses, "E", 100, PerPeriodType.Daily)]
+    [InlineData(CategoryType.Incomes, "IncomesWithHighAmountOfDollars", 0, TimePeriodType.None)]
+    [InlineData(CategoryType.Expenses, "E", 100, TimePeriodType.Day)]
     public async Task Handle_ShouldDeleteCategory_ReturnSuccess(
         CategoryType type,
         string name,
         decimal periodAmount,
-        PerPeriodType periodType)
+        TimePeriodType periodType)
     {
         // Arrange
         var category = new Category(1)

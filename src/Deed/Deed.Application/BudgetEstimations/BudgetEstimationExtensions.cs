@@ -2,6 +2,7 @@ using Deed.Application.BudgetEstimations.Commands.Create;
 using Deed.Application.BudgetEstimations.Commands.Update;
 using Deed.Application.BudgetEstimations.Responses;
 using Deed.Domain.Entities;
+using Deed.Domain.Enums;
 
 namespace Deed.Application.BudgetEstimations;
 
@@ -38,7 +39,7 @@ internal static class BudgetEstimationExtensions
     {
         est.Description = cmd.Description.Trim();
         est.BudgetAmount = cmd.BudgetAmount;
-        est.BudgetCurrency = cmd.BudgetCurrency;
+        est.BudgetCurrency = Enum.Parse<CurrencyType>(cmd.BudgetCurrency);
         est.CapitalId = cmd.CapitalId;
         est.IsCompleted = cmd.IsCompleted;
     }

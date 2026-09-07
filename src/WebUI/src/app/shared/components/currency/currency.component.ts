@@ -8,6 +8,7 @@ import { PopupMessageService } from "../../services/popup-message.service";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import { UserSettingsService } from "../../../modules/home/services/user-settings.service";
+import { UserSettings } from "../../../modules/home/models/user-settings.model";
 
 @Component({
     selector: 'app-currency',
@@ -48,12 +49,12 @@ export class CurrencyComponent implements OnInit, OnDestroy {
         if (newCurrency) {
             this.userCurrency = newCurrency as unknown as CurrencyType;
 
-            this.userSettingsService.get()
+            this.userSettingsService.load()
                 .pipe(takeUntil(this.unsubscribe$))
                 .subscribe({
                     next: (settings) => {
-                        const payload = { salary: settings?.salary ?? 0, currency: Number(newCurrency) };
-                        this.userSettingsService.upsert(payload as any)
+                        const payload: UserSettings = { salary: settings?.salary ?? 0, currency: newCurrency };
+                        this.userSettingsService.upsert(payload)
                             .pipe(takeUntil(this.unsubscribe$))
                             .subscribe({
                                 next: () => this.popupMessageService.success(`Default currency updated to <b>${CurrencyType[Number(newCurrency)]}</b>`),

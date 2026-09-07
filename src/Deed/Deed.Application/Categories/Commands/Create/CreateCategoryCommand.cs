@@ -7,5 +7,5 @@ public sealed record CreateCategoryCommand(
     string Name,
     CategoryType Type,
     decimal PlannedPeriodAmount,
-    PerPeriodType Period)
+    TimePeriodType Period)
     : ICommand<int>;

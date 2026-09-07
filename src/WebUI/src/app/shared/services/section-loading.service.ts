@@ -4,7 +4,7 @@ import { BehaviorSubject, Observable, map } from 'rxjs';
 export type SectionKey =
   | 'settings'
   | 'capitals'
-  | 'estimations'
+  | 'budgetEstimations'
   | 'goals'
   | 'debts'
   | 'expenses'
@@ -16,7 +16,7 @@ export type SectionKey =
 const URL_TO_SECTION: [RegExp, SectionKey][] = [
   [/\/api\/user-settings/, 'settings'],
   [/\/api\/capitals/, 'capitals'],
-  [/\/api\/budget-estimations/, 'estimations'],
+  [/\/api\/budget-estimations/, 'budgetEstimations'],
   [/\/api\/goals/, 'goals'],
   [/\/api\/debts/, 'debts'],
   [/\/api\/expenses/, 'expenses'],

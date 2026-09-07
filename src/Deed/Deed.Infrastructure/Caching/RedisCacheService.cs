@@ -20,7 +20,10 @@ internal sealed class RedisCacheService(
         try
         {
             string? json = await cache.GetStringAsync(key, ct).ConfigureAwait(false);
-            return json is null ? default : JsonSerializer.Deserialize<T>(json, JsonOptions);
+            
+            return json is null
+                ? default
+                : JsonSerializer.Deserialize<T>(json, JsonOptions);
         }
         catch (Exception ex)
         {

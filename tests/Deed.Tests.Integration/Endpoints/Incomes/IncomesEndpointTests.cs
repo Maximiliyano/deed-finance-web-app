@@ -5,7 +5,7 @@ using FluentAssertions;
 
 namespace Deed.Tests.Integration.Endpoints.Incomes;
 
-public sealed class IncomesEndpointTests(DeedApiFactory factory) : IntegrationTest(factory)
+public sealed class IncomesEndpointTests(DeedApiFactory factory) : IntegrationTest(factory, "api/incomes")
 {
     private async Task<int> CreateCapitalAsync()
     {

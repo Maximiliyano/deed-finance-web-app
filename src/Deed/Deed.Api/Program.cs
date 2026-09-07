@@ -23,6 +23,8 @@ var app = builder.Build();
 
 app.UseForwardedHeaders();
 
+app.UseResponseCompression();
+
 if (app.Environment.IsDevelopment())
 {
     await app.ApplyMigrationsAsync();
@@ -49,6 +51,14 @@ app.UseRequestContextLogging();
 
 app.UseSerilogRequestLogging();
 
+// Liveness — used by Fly's machine health check. No dependency probing, so a
+// transient DB/Redis outage cannot mark the machine unhealthy and trigger a restart.
+app.MapHealthChecks("health/live", new HealthCheckOptions
+{
+    Predicate = _ => false
+}).AllowAnonymous();
+
+// Readiness — full DB + Redis probe, for dashboards / manual checks.
 app.MapHealthChecks("health", new HealthCheckOptions
 {
     ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse

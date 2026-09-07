@@ -6,4 +6,4 @@ public sealed record CreateCategoryRequest(
     string Name,
     CategoryType Type,
     decimal PlannedPeriodAmount,
-    PerPeriodType Period);
+    TimePeriodType Period);

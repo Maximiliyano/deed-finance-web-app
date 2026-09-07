@@ -24,6 +24,10 @@ public sealed class BalanceReminderJob(
 
         var allSettings = await userSettingsRepository.GetAllWithRemindersEnabledAsync(context.CancellationToken).ConfigureAwait(false);
 
+        var exchanges = (await exchangeRepository
+            .GetAllAsync(new ExchangesByQuerySpecification(), context.CancellationToken)
+            .ConfigureAwait(false)).ToList();
+
         foreach (var settings in allSettings)
         {
             if (!settings.BalanceReminderEnabled || !settings.EmailNotificationsEnabled || string.IsNullOrWhiteSpace(settings.Email))
@@ -39,11 +43,7 @@ public sealed class BalanceReminderJob(
             try
             {
                 var capitals = (await capitalRepository
-                    .GetAllAsync(new CapitalsByQueryParamsSpecification(settings.CreatedBy, disableIncludes: true), context.CancellationToken)
-                    .ConfigureAwait(false)).ToList();
-
-                var exchanges = (await exchangeRepository
-                    .GetAllAsync(new ExchangesByQuerySpecification(), context.CancellationToken)
+                    .GetAllAsync(new CapitalsByQueryParamsSpecification(settings.CreatedBy, toggleIncludes: true), context.CancellationToken)
                     .ConfigureAwait(false)).ToList();
 
                 var mainCurrency = settings.Currency.ToString();

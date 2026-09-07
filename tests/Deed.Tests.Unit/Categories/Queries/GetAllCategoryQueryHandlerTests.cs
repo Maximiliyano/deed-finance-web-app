@@ -1,3 +1,4 @@
+using Deed.Application.Abstractions.Caching;
 using Deed.Application.Abstractions.Settings;
 using Deed.Application.Categories.Queries.GetAll;
 using Deed.Application.Categories.Response;
@@ -6,7 +7,6 @@ using Deed.Domain.Entities;
 using Deed.Domain.Enums;
 using Deed.Domain.Repositories;
 using FluentAssertions;
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 using NSubstitute;
 
@@ -16,11 +16,19 @@ public sealed class GetAllCategoryQueryHandlerTests
 {
     private readonly ICategoryRepository _repositoryMock = Substitute.For<ICategoryRepository>();
 
+    private readonly ICacheService _cacheMock = Substitute.For<ICacheService>();
+
     private readonly GetAllCategoryQueryHandler _handler;
 
     public GetAllCategoryQueryHandlerTests()
     {
-        _handler = new GetAllCategoryQueryHandler(_repositoryMock);
+        var settings = Options.Create(new MemoryCacheSettings
+        {
+            ExchangesTimespanInHours = 12,
+            CategoriesTimespanInHours = 1
+        });
+
+        _handler = new GetAllCategoryQueryHandler(_repositoryMock, _cacheMock, settings);
     }
 
     [InlineData(CategoryType.Expenses)]

@@ -11,7 +11,7 @@ import { SessionStorageService } from './session-storage.service';
 export class ExchangeService {
   private baseApiUrl = environment.apiUrl + '/api/exchanges/';
   private exchanges$: Observable<Exchange[]>;
-  
+
   private readonly cacheKey = 'exchanges-cache';
   private readonly cacheTTL = 6 * 60 * 60 * 1000;
 
@@ -32,7 +32,7 @@ export class ExchangeService {
       .get<Exchange[]>(this.baseApiUrl, { withCredentials: true })
       .pipe(
         tap((data) => this.sessionService.save<Exchange[]>(this.cacheKey, data)),
-        shareReplay(1)
+        shareReplay({ bufferSize: 1, refCount: false })
       );
 
     return this.exchanges$;

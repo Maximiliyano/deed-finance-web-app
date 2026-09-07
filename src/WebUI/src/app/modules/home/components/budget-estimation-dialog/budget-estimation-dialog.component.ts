@@ -10,6 +10,7 @@ import { CurrencyType } from '../../../../core/types/currency-type';
 export interface BudgetEstimationDialogData {
   estimation?: BudgetEstimation;
   capitals: CapitalResponse[];
+  mode?: 'edit' | 'copy';
 }
 
 @Component({
@@ -33,15 +34,27 @@ export class BudgetEstimationDialogComponent implements OnInit {
 
   ngOnInit(): void {
     this.capitals = this.data.capitals ?? [];
-    this.isEdit = !!this.data.estimation;
+    const isCopy = this.data.mode === 'copy';
+    this.isEdit = !isCopy && !!this.data.estimation;
+
+    const src = this.data.estimation;
+    const description = isCopy && src ? this.appendCopySuffix(src.description) : (src?.description ?? '');
 
     this.form = this.fb.group({
-      description: [this.data.estimation?.description ?? '', [Validators.required, Validators.maxLength(64)]],
-      budgetAmount: [this.data.estimation?.budgetAmount ?? 0, [Validators.required, Validators.min(0)]],
-      budgetCurrency: [this.data.estimation?.budgetCurrency ?? 'UAH', Validators.required],
-      capitalId: [this.data.estimation?.capitalId ?? ''],
-      isCompleted: [this.data.estimation?.isCompleted ?? false]
+      description: [description, [Validators.required, Validators.maxLength(64)]],
+      budgetAmount: [src?.budgetAmount ?? 0, [Validators.required, Validators.min(0)]],
+      budgetCurrency: [src?.budgetCurrency ?? 'UAH', Validators.required],
+      capitalId: [src?.capitalId ?? ''],
+      isCompleted: [isCopy ? false : (src?.isCompleted ?? false)]
     });
+  }
+
+  private appendCopySuffix(description: string): string {
+    const suffix = ' (copy)';
+    const max = 64;
+    return (description + suffix).length > max
+      ? description.slice(0, max - suffix.length) + suffix
+      : description + suffix;
   }
 
   get selectedCapital(): CapitalResponse | null {
