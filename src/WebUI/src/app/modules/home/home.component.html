@@ -1,13 +1,15 @@
+<!-- eslint-disable @angular-eslint/template/interactive-supports-focus -->
+<!-- eslint-disable @angular-eslint/template/click-events-have-key-events -->
 <div class="dashboard">
 
-  <!-- ── Header ── -->
+  <!-- Dashboard header -->
   <header class="dashboard-header">
     <div>
       <h1 class="dashboard-title">Dashboard</h1>
     </div>
   </header>
 
-  <!-- ── Quick navigation ── -->
+  <!-- Quick navigation -->
   <div class="panel-editor">
     <span class="panel-editor-label">Quick navigation</span>
 
@@ -23,7 +25,7 @@
 
   <!-- Brief dashboard -->
   @if (capitalObservable | async;) {
-    <app-finance-dashboard [currency]="userCurrency" />
+    <app-finance-dashboard [currency]="userCurrency" /><!-- TODO BUG planFilter isn't updated-->
   } @else {
     <div class="kpi-bg section-spinner" id="kpi">
       <span class="circle-spinner"></span>
@@ -31,7 +33,7 @@
   }
 
   @defer (on viewport) {
-    <div id="estimations" class="card">
+    <div id="budgetEstimations" class="card">
       <div class="card-header">
         <h2 class="card-title"><i class="fas fa-compass-drafting"></i> Budget Planner</h2>
         <div class="card-header-actions">
@@ -63,6 +65,11 @@
               <i class="fas fa-calendar-days"></i> Year
             </button>
           </div>
+
+          <button class="bp-sort-btn" (click)="setPreviousPeriod()" title="Previous period">
+            <i class="fas fa-chevron-left"></i>
+          </button>
+
           @switch (planFilter) {
             @case ('day') {
               <input type="date" class="input bp-period-input" [value]="selectedDay" (change)="onDayChange($any($event.target).value)" [title]="'Pick a day — ' + selectedPeriodLabel" />
@@ -74,6 +81,10 @@
               <input type="number" class="input bp-period-input bp-period-input--year" min="2000" max="2100" step="1" [value]="selectedYear" (change)="onYearChange($any($event.target).value)" [title]="'Pick a year — ' + selectedPeriodLabel" />
             }
           }
+
+          <button class="bp-sort-btn" (click)="setNextPeriod()" title="Next period">
+            <i class="fas fa-chevron-right"></i>
+          </button>
         </div>
         <div class="bp-stats">
           <div class="bp-stat">
@@ -118,7 +129,6 @@
         </div>
       </div>
 
-      <!-- Charts panel — toggled by the chart-pie icon in the card-header -->
       @if (showCharts) {
         <div class="bp-charts">
           <div class="bp-charts-tabs" role="tablist" aria-label="Chart view">
@@ -259,132 +269,134 @@
           }
         </div>
       }
-      @if (estimations.length > 1) {
+      @if (budgetEstimations.length > 1) {
         <div class="bp-toolbar">
           <div class="bp-sort-group">
-            <button class="bp-sort-btn" [ngClass]="{ active: estimationSortBy === 'custom' }" (click)="sortEstimations('custom')" title="Custom order">
+            <button class="bp-sort-btn" [ngClass]="{ active: budgetEstimationSortBy === 'custom' }" (click)="sortEstimations('custom')" title="Custom order">
               <i class="fas fa-grip-vertical"></i>
             </button>
-            <button class="bp-sort-btn" [ngClass]="{ active: estimationSortBy === 'amount-desc' }" (click)="sortEstimations('amount-desc')" title="Highest first">
+            <button class="bp-sort-btn" [ngClass]="{ active: budgetEstimationSortBy === 'amount-desc' }" (click)="sortEstimations('amount-desc')" title="Highest first">
               <i class="fas fa-arrow-down-wide-short"></i>
             </button>
-            <button class="bp-sort-btn" [ngClass]="{ active: estimationSortBy === 'amount-asc' }" (click)="sortEstimations('amount-asc')" title="Lowest first">
+            <button class="bp-sort-btn" [ngClass]="{ active: budgetEstimationSortBy === 'amount-asc' }" (click)="sortEstimations('amount-asc')" title="Lowest first">
               <i class="fas fa-arrow-up-short-wide"></i>
             </button>
-            <button class="bp-sort-btn" [ngClass]="{ active: estimationSortBy === 'name' }" (click)="sortEstimations('name')" title="A to Z">
+            <button class="bp-sort-btn" [ngClass]="{ active: budgetEstimationSortBy === 'name' }" (click)="sortEstimations('name')" title="A to Z">
               <i class="fas fa-arrow-down-a-z"></i>
             </button>
           </div>
         </div>
       }
-      @if (loading('estimations')) {
-        <div class="section-spinner"><span class="circle-spinner"></span></div>
-      } @else if (estimations.length === 0) {
-        <div class="empty-state">
-          <i class="fas fa-compass-drafting empty-icon"></i>
-          <p class="empty-title">No budget items yet</p>
-          <p class="empty-hint">Plan recurring expenses like rent or one-off costs like a trip.</p>
-        </div>
-      } @else {
-        @if (totalCapitalAmount > 0) {
-          <div class="bp-bar-wrap">
-            <div class="bp-bar">
-              @for (est of estimations; track est.id) {
-                <div class="bp-bar-seg"
-                      [style.flex-grow]="convertUserCurrency(est.budgetAmount, est.budgetCurrency)"
-                      [style.background-color]="barColors[$index % barColors.length]"
-                      [title]="est.description + ' — ' + budgetPercent(est.budgetAmount, est.budgetCurrency) + '%'">
-                </div>
-              }
-              @if (profit > 0) {
-                <div class="bp-bar-seg bp-bar-free" [style.flex-grow]="profit" title="Free"></div>
-              }
-            </div>
+      @if (budgetEstimationObservable | async;) {
+        @if (loading('budgetEstimations')) {
+          <div class="section-spinner"><span class="circle-spinner"></span></div>
+        } @else if (budgetEstimations.length === 0) {
+          <div class="empty-state">
+            <i class="fas fa-compass-drafting empty-icon"></i>
+            <p class="empty-title">No budget items yet</p>
+            <p class="empty-hint">Plan recurring expenses like rent or one-off costs like a trip.</p>
           </div>
-        }
-        <div class="bp-list" cdkDropList (cdkDropListDropped)="dropEstimation($event)" [cdkDropListDisabled]="estimationSortBy !== 'custom' || isAnonymous">
-          @for (est of estimations; track est.id) {
-            <div class="bp-item" cdkDrag [cdkDragDisabled]="estimationSortBy !== 'custom' || isAnonymous" [ngClass]="{ 'bp-completed': est.isCompleted, 'clickable-row': !isAnonymous }" (click)="isAnonymous || openEstimationDialog(est)">
-              @if (estimationSortBy === 'custom' && !isAnonymous) {
-                <i class="fas fa-grip-vertical bp-drag-handle" cdkDragHandle [style.background-color]="barColors[$index % barColors.length] + '18'"></i>
-              }
-              <div class="bp-item-color" [style.background-color]="barColors[$index % barColors.length]"></div>
-              <div class="bp-item-body">
-                <div class="bp-item-top">
-                  <span class="bp-item-name">
-                    @if (est.isCompleted) { <i class="fas fa-circle-check text-success"></i> }
-                    {{ est.description }}
-                  </span>
-                  <div class="bp-item-actions">
-                    <span class="bp-item-amount">
-                      {{ est.budgetAmount | currencySymbol: est.budgetCurrency }}
-                      @if (est.budgetCurrency !== userCurrency) {
-                        <span class="bp-item-converted">{{ convertUserCurrency(est.budgetAmount, est.budgetCurrency) | currencySymbol: userCurrency }}</span>
-                      }
-                    </span>
-                    @if (!isAnonymous) {
-                      <label class="bp-complete-toggle"
-                              [title]="est.isCompleted ? 'Mark as incomplete' : 'Mark as completed'"
-                              (click)="$event.stopPropagation()">
-                        <input type="checkbox"
-                                [checked]="est.isCompleted"
-                                (change)="toggleEstimationCompleted(est, $event)" />
-                      </label>
-                      <button class="icon-btn" title="Duplicate"
-                              (click)="$event.stopPropagation(); copyEstimation(est)">
-                        <i class="fas fa-copy"></i>
-                      </button>
-                      <button class="icon-btn icon-btn-danger" title="Delete"
-                              (click)="$event.stopPropagation(); deleteEstimation(est)">
-                        <i class="fas fa-trash-can"></i>
-                      </button>
-                    }
+        } @else {
+          @if (totalCapitalAmount > 0) {
+            <div class="bp-bar-wrap">
+              <div class="bp-bar">
+                @for (est of budgetEstimations; track est.id) {
+                  <div class="bp-bar-seg"
+                        [style.flex-grow]="convertUserCurrency(est.budgetAmount, est.budgetCurrency)"
+                        [style.background-color]="barColors[$index % barColors.length]"
+                        [title]="est.description + ' — ' + budgetPercent(est.budgetAmount, est.budgetCurrency) + '%'">
                   </div>
-                </div>
-                <div class="bp-item-bar">
-                  <div class="bp-item-bar-fill"
-                        [style.width.%]="budgetPercent(est.budgetAmount, est.budgetCurrency)"
-                        [style.background-color]="barColors[$index % barColors.length]"></div>
-                </div>
-                <div class="bp-item-meta">
-                  @if (totalCapitalAmount > 0) {
-                    <span class="bp-item-pct">{{ budgetPercent(est.budgetAmount, est.budgetCurrency) }}% of capital</span>
-                  }
-                  @if (est.capitalName) {
-                    <span class="bp-item-capital">
-                      <i class="fas fa-wallet"></i> {{ est.capitalName }}
-                      @if (est.capitalId) {
-                        <span [ngClass]="(est.capitalBalance - est.budgetAmount) < 0 ? 'text-danger' : 'text-success'">
-                          ({{ (est.capitalBalance - est.budgetAmount) | currencySymbol: est.budgetCurrency }} left)
-                        </span>
-                      }
-                    </span>
-                  }
-                </div>
+                }
+                @if (profit > 0) {
+                  <div class="bp-bar-seg bp-bar-free" [style.flex-grow]="profit" title="Free"></div>
+                }
               </div>
             </div>
           }
-        </div>
-        <div class="bp-summary">
-          <div class="bp-summary-row">
-            <span class="bp-summary-label">Total planned</span>
-            <span class="bp-summary-val text-danger">
-              {{ loss | currencySymbol: userCurrency }}
-              @if (showDualCurrency) {
-                <span class="bp-summary-alt">{{ lossInUah | currencySymbol: 'UAH' }}</span>
-              }
-            </span>
+          <div class="bp-list" cdkDropList (cdkDropListDropped)="dropEstimation($event)" [cdkDropListDisabled]="budgetEstimationSortBy !== 'custom' || isAnonymous">
+            @for (est of budgetEstimations; track est.id) {
+              <div class="bp-item" cdkDrag [cdkDragDisabled]="budgetEstimationSortBy !== 'custom' || isAnonymous" [ngClass]="{ 'bp-completed': est.isCompleted, 'clickable-row': !isAnonymous }" (click)="isAnonymous || openEstimationDialog(est)">
+                @if (budgetEstimationSortBy === 'custom' && !isAnonymous) {
+                  <i class="fas fa-grip-vertical bp-drag-handle" cdkDragHandle [style.background-color]="barColors[$index % barColors.length] + '18'"></i>
+                }
+                <div class="bp-item-color" [style.background-color]="barColors[$index % barColors.length]"></div>
+                <div class="bp-item-body">
+                  <div class="bp-item-top">
+                    <span class="bp-item-name">
+                      @if (est.isCompleted) { <i class="fas fa-circle-check text-success"></i> }
+                      {{ est.description }}
+                    </span>
+                    <div class="bp-item-actions">
+                      <span class="bp-item-amount">
+                        {{ est.budgetAmount | currencySymbol: est.budgetCurrency }}
+                        @if (est.budgetCurrency !== userCurrency) {
+                          <span class="bp-item-converted">{{ convertUserCurrency(est.budgetAmount, est.budgetCurrency) | currencySymbol: userCurrency }}</span>
+                        }
+                      </span>
+                      @if (!isAnonymous) {
+                        <label class="bp-complete-toggle"
+                                [title]="est.isCompleted ? 'Mark as incomplete' : 'Mark as completed'"
+                                (click)="$event.stopPropagation()">
+                          <input type="checkbox"
+                                  [checked]="est.isCompleted"
+                                  (change)="toggleEstimationCompleted(est, $event)" />
+                        </label>
+                        <button class="icon-btn" title="Duplicate"
+                                (click)="$event.stopPropagation(); copyEstimation(est)">
+                          <i class="fas fa-copy"></i>
+                        </button>
+                        <button class="icon-btn icon-btn-danger" title="Delete"
+                                (click)="$event.stopPropagation(); deleteEstimation(est)">
+                          <i class="fas fa-trash-can"></i>
+                        </button>
+                      }
+                    </div>
+                  </div>
+                  <div class="bp-item-bar">
+                    <div class="bp-item-bar-fill"
+                          [style.width.%]="budgetPercent(est.budgetAmount, est.budgetCurrency)"
+                          [style.background-color]="barColors[$index % barColors.length]"></div>
+                  </div>
+                  <div class="bp-item-meta">
+                    @if (totalCapitalAmount > 0) {
+                      <span class="bp-item-pct">{{ budgetPercent(est.budgetAmount, est.budgetCurrency) }}% of capital</span>
+                    }
+                    @if (est.capitalName) {
+                      <span class="bp-item-capital">
+                        <i class="fas fa-wallet"></i> {{ est.capitalName }}
+                        @if (est.capitalId) {
+                          <span [ngClass]="(est.capitalBalance - est.budgetAmount) < 0 ? 'text-danger' : 'text-success'">
+                            ({{ (est.capitalBalance - est.budgetAmount) | currencySymbol: est.budgetCurrency }} left)
+                          </span>
+                        }
+                      </span>
+                    }
+                  </div>
+                </div>
+              </div>
+            }
           </div>
-          <div class="bp-summary-row">
-            <span class="bp-summary-label">{{ isProfitable ? 'Free to spend' : 'Deficit' }}</span>
-            <span class="bp-summary-val" [ngClass]="isProfitable ? 'text-success' : 'text-danger'">
-              {{ profit | currencySymbol: userCurrency }}
-              @if (showDualCurrency) {
-                <span class="bp-summary-alt">{{ profitInUah | currencySymbol: 'UAH' }}</span>
-              }
-            </span>
+          <div class="bp-summary">
+            <div class="bp-summary-row">
+              <span class="bp-summary-label">Total planned</span>
+              <span class="bp-summary-val text-danger">
+                {{ loss | currencySymbol: userCurrency }}
+                @if (showDualCurrency) {
+                  <span class="bp-summary-alt">{{ lossInUah | currencySymbol: 'UAH' }}</span>
+                }
+              </span>
+            </div>
+            <div class="bp-summary-row">
+              <span class="bp-summary-label">{{ isProfitable ? 'Free to spend' : 'Deficit' }}</span>
+              <span class="bp-summary-val" [ngClass]="isProfitable ? 'text-success' : 'text-danger'">
+                {{ profit | currencySymbol: userCurrency }}
+                @if (showDualCurrency) {
+                  <span class="bp-summary-alt">{{ profitInUah | currencySymbol: 'UAH' }}</span>
+                }
+              </span>
+            </div>
           </div>
-        </div>
+        }
       }
     </div>
   } @placeholder {
@@ -502,21 +514,22 @@
     </div>
   }
 
+  @if (categoryObservable | async;) {
   @defer (on viewport) {
     <div id="expenses" class="card">
       <div class="card-header">
         <h2 class="card-title"><i class="fas fa-money-bill-wave"></i> Expenses</h2>
         <div class="card-header-actions">
-          <span class="badge badge-warning">{{ totalExpenses | currencySymbol: userCurrency }}</span>
-          <button class="btn btn-danger btn-sm" (click)="openQuickExpense()">
-            <i class="fas fa-plus"></i> Add
-          </button>
-          <a class="btn btn-secondary btn-sm" routerLink="/expenses">
-            <i class="fas fa-arrow-up-right-from-square"></i>
-          </a>
+            <span class="badge badge-warning">{{ totalExpenses | currencySymbol: userCurrency }}</span>
+            <button class="btn btn-danger btn-sm" (click)="openQuickExpense()">
+              <i class="fas fa-plus"></i> Add
+            </button>
+            <a class="btn btn-secondary btn-sm" routerLink="/expenses">
+              <i class="fas fa-arrow-up-right-from-square"></i>
+            </a>
         </div>
       </div>
-      @if (expenseCategories.length > 1) {
+      @if (expenses.length > 1) {
         <div class="bp-toolbar">
           <div class="bp-sort-group">
             <button class="bp-sort-btn" [ngClass]="{ active: expenseSortBy === 'custom' }" (click)="sortExpenses('custom')" title="Custom order">
@@ -537,9 +550,10 @@
           </div>
         </div>
       }
+      @if (expenseObservable | async;) {
       @if (loading('expenses')) {
         <div class="section-spinner"><span class="circle-spinner"></span></div>
-      } @else if (expenseCategories.length === 0) {
+      } @else if (expenses.length === 0) {
         <div class="empty-state">
           <i class="fas fa-money-bill-wave empty-icon"></i>
           <p class="empty-title">No expenses yet</p>
@@ -547,7 +561,7 @@
         </div>
       } @else {
         <div class="expense-summary-list" cdkDropList (cdkDropListDropped)="dropExpense($event)" [cdkDropListDisabled]="expenseSortBy !== 'custom' || isAnonymous">
-          @for (cat of expenseCategories; track cat.categoryId) {
+          @for (cat of expenses; track cat.categoryId) {
             <div class="expense-summary-row clickable-row" cdkDrag [cdkDragDisabled]="expenseSortBy !== 'custom' || isAnonymous" (click)="toggleExpenseCat(cat.categoryId)">
               <div class="expense-summary-info">
                 @if (expenseSortBy === 'custom' && !isAnonymous) {
@@ -585,6 +599,7 @@
           }
         </div>
       }
+      }
     </div>
   } @placeholder {
     <div class="kpi-bg section-spinner" id="kpi">
@@ -597,13 +612,13 @@
       <div class="card-header">
         <h2 class="card-title"><i class="fas fa-arrow-trend-up"></i> Incomes</h2>
         <div class="card-header-actions">
-          <span class="badge badge-ok">{{ totalIncomes | currencySymbol: userCurrency }}</span>
-          <button class="btn btn-success btn-sm" (click)="openQuickIncome()">
-            <i class="fas fa-plus"></i> Add
-          </button>
-          <a class="btn btn-secondary btn-sm" routerLink="/incomes">
-            <i class="fas fa-arrow-up-right-from-square"></i>
-          </a>
+            <span class="badge badge-ok">{{ totalIncomes | currencySymbol: userCurrency }}</span>
+              <button class="btn btn-success btn-sm" (click)="openQuickIncome()">
+                <i class="fas fa-plus"></i> Add
+              </button>
+            <a class="btn btn-secondary btn-sm" routerLink="/incomes">
+              <i class="fas fa-arrow-up-right-from-square"></i>
+            </a>
         </div>
       </div>
       @if (incomeByCategoryList.length > 1) {
@@ -627,6 +642,7 @@
           </div>
         </div>
       }
+      @if (incomeObservable | async;) {
       @if (loading('incomes')) {
         <div class="section-spinner"><span class="circle-spinner"></span></div>
       } @else if (incomes.length === 0) {
@@ -677,139 +693,145 @@
           }
         </div>
       }
+      }
     </div>
   } @placeholder {
     <div class="kpi-bg section-spinner" id="kpi">
       <span class="circle-spinner"></span>
     </div>
   }
+  }
 
   @defer (on viewport) {
-    <div id="goals" class="card">
-      <div class="card-header">
-        <h2 class="card-title"><i class="fas fa-star"></i> Goals</h2>
-        @if (!isAnonymous) {
-          <div class="card-header-actions">
-            <button class="btn btn-primary btn-sm" (click)="openGoalDialog()">
-              <i class="fas fa-plus"></i> Add
-            </button>
-          </div>
-        }
-      </div>
-      @if (goals.length > 1) {
-        <div class="bp-toolbar">
-          <div class="bp-sort-group">
-            <button class="bp-sort-btn" [ngClass]="{ active: goalSortBy === 'custom' }" (click)="sortGoals('custom')" title="Custom order">
-              <i class="fas fa-grip-vertical"></i>
-            </button>
-            <button class="bp-sort-btn" [ngClass]="{ active: goalSortBy === 'progress-desc' }" (click)="sortGoals('progress-desc')" title="Most progress">
-              <i class="fas fa-arrow-down-wide-short"></i>
-            </button>
-            <button class="bp-sort-btn" [ngClass]="{ active: goalSortBy === 'progress-asc' }" (click)="sortGoals('progress-asc')" title="Least progress">
-              <i class="fas fa-arrow-up-short-wide"></i>
-            </button>
-            <button class="bp-sort-btn" [ngClass]="{ active: goalSortBy === 'name' }" (click)="sortGoals('name')" title="A to Z">
-              <i class="fas fa-arrow-down-a-z"></i>
-            </button>
-          </div>
-        </div>
-      }
-      @if (loading('goals')) {
-        <div class="section-spinner"><span class="circle-spinner"></span></div>
-      } @else if (goals.length === 0) {
-        <div class="empty-state">
-          <i class="fas fa-star empty-icon"></i>
-          <p class="empty-title">No goals yet</p>
-          <p class="empty-hint">Set financial goals and track your progress toward them.</p>
-        </div>
-      } @else {
-        @if (goalBudgetSummary; as g) {
-          <div class="goal-budget-summary">
-            <div class="goal-budget-stat">
-              <span class="goal-budget-label">Free budget</span>
-              <strong class="goal-budget-value" [ngClass]="g.freeBudget > 0 ? 'text-success' : 'text-muted'">{{ g.freeBudget | currencySymbol: userCurrency }}/mo</strong>
-            </div>
-            <div class="goal-budget-stat">
-              <span class="goal-budget-label">Reserved for deadlines</span>
-              <strong class="goal-budget-value" [ngClass]="g.reservedForDeadlines > g.freeBudget ? 'text-danger' : ''">{{ g.reservedForDeadlines | currencySymbol: userCurrency }}/mo</strong>
-            </div>
-            <div class="goal-budget-stat">
-              <span class="goal-budget-label">For open goals ({{ g.openGoalCount }})</span>
-              <strong class="goal-budget-value">{{ g.availableForOpenGoals | currencySymbol: userCurrency }}/mo</strong>
-            </div>
-          </div>
-        }
-        <div class="goals-list" cdkDropList (cdkDropListDropped)="dropGoal($event)" [cdkDropListDisabled]="goalSortBy !== 'custom' || isAnonymous">
-          @for (goal of goals; track goal.id) {
-            <div class="goal-item" cdkDrag [cdkDragDisabled]="goalSortBy !== 'custom' || isAnonymous" [ngClass]="{ 'goal-completed': goal.isCompleted, 'clickable-row': !isAnonymous }" (click)="isAnonymous || openGoalDialog(goal)">
-              @if (goalSortBy === 'custom' && !isAnonymous) {
-                <i class="fas fa-grip-vertical bp-drag-handle" cdkDragHandle (click)="$event.stopPropagation()"></i>
-              }
-              <div class="goal-item-header">
-                <span class="goal-item-title">
-                  @if (goal.isCompleted) { <i class="fas fa-circle-check text-success"></i> }
-                  {{ goal.title }}
-                </span>
-                <div class="goal-item-right">
-                  <span class="goal-item-amounts">
-                    {{ goal.currentAmount | currencySymbol: goal.currency }}
-                    <span class="text-muted"> / </span>
-                  {{ goal.targetAmount | currencySymbol: goal.currency }}
-                  </span>
-                  @if (!isAnonymous) {
-                    <button class="icon-btn icon-btn-danger" title="Delete" (click)="$event.stopPropagation(); deleteGoal(goal)">
-                      <i class="fas fa-trash-can"></i>
-                    </button>
-                  }
-                </div>
-              </div>
-              <div class="goal-item-bar">
-                <div class="goal-bar-fill"
-                      [style.width.%]="goalProgress(goal)"
-                      [ngClass]="goal.isCompleted ? 'fill-success' : 'fill-primary'"></div>
-              </div>
-              <div class="goal-item-footer">
-                <span class="goal-pct" [ngClass]="goal.isCompleted ? 'text-success' : ''">{{ goalProgress(goal) }}%</span>
-                @if (goal.deadline) {
-                  <span class="goal-deadline"><i class="fas fa-calendar-days"></i> {{ goal.deadline | date: 'dd MMM yyyy' }}</span>
-                }
-              </div>
-              @if (goalAllocation(goal); as tip) {
-                <div class="goal-tip"
-                      [ngClass]="tip.kind === 'overdue' || tip.kind === 'no-budget' ? 'goal-tip--overdue' : tip.feasible ? 'goal-tip--ok' : 'goal-tip--warn'">
-                  <i class="fas"
-                      [ngClass]="tip.kind === 'overdue' ? 'fa-triangle-exclamation' : tip.kind === 'no-budget' ? 'fa-circle-exclamation' : tip.feasible ? 'fa-lightbulb' : 'fa-circle-info'"></i>
-                  @switch (tip.kind) {
-                    @case ('overdue') {
-                      <span>Deadline passed — <strong>{{ tip.monthly | currencySymbol: userCurrency }}</strong> still needed</span>
-                    }
-                    @case ('deadline') {
-                      <span>Save <strong>{{ tip.monthly | currencySymbol: userCurrency }}/mo</strong> to hit deadline · {{ tip.months }} month{{ tip.months !== 1 ? 's' : '' }} left</span>
-                      @if (!tip.feasible) {
-                        <span class="goal-tip-extra">· exceeds free budget ({{ profit | currencySymbol: userCurrency }}/mo)</span>
-                      }
-                    }
-                    @case ('allocated') {
-                      <span>Allocate <strong>{{ tip.monthly | currencySymbol: userCurrency }}/mo</strong> · ETA {{ tip.months }} month{{ tip.months !== 1 ? 's' : '' }}</span>
-                    }
-                    @case ('no-budget') {
-                      <span>No free budget to allocate · {{ tip.remaining | currencySymbol: userCurrency }} remaining</span>
-                    }
-                  }
-                </div>
-              }
+      <div id="goals" class="card">
+        <div class="card-header">
+          <h2 class="card-title"><i class="fas fa-star"></i> Goals</h2>
+          @if (!isAnonymous) {
+            <div class="card-header-actions">
+              <button class="btn btn-primary btn-sm" (click)="openGoalDialog()">
+                <i class="fas fa-plus"></i> Add
+              </button>
             </div>
           }
         </div>
-      }
-    </div>
-  } @placeholder {
+        @if (goals.length > 1) {
+          <div class="bp-toolbar">
+            <div class="bp-sort-group">
+              <button class="bp-sort-btn" [ngClass]="{ active: goalSortBy === 'custom' }" (click)="sortGoals('custom')" title="Custom order">
+                <i class="fas fa-grip-vertical"></i>
+              </button>
+              <button class="bp-sort-btn" [ngClass]="{ active: goalSortBy === 'progress-desc' }" (click)="sortGoals('progress-desc')" title="Most progress">
+                <i class="fas fa-arrow-down-wide-short"></i>
+              </button>
+              <button class="bp-sort-btn" [ngClass]="{ active: goalSortBy === 'progress-asc' }" (click)="sortGoals('progress-asc')" title="Least progress">
+                <i class="fas fa-arrow-up-short-wide"></i>
+              </button>
+              <button class="bp-sort-btn" [ngClass]="{ active: goalSortBy === 'name' }" (click)="sortGoals('name')" title="A to Z">
+                <i class="fas fa-arrow-down-a-z"></i>
+              </button>
+            </div>
+          </div>
+        }
+        @if (goalObservable | async;) {
+        @if (loading('goals')) {
+          <div class="section-spinner"><span class="circle-spinner"></span></div>
+        } @else if (goals.length === 0) {
+          <div class="empty-state">
+            <i class="fas fa-star empty-icon"></i>
+            <p class="empty-title">No goals yet</p>
+            <p class="empty-hint">Set financial goals and track your progress toward them.</p>
+          </div>
+        } @else {
+          @if (goalBudgetSummary; as g) {
+            <div class="goal-budget-summary">
+              <div class="goal-budget-stat">
+                <span class="goal-budget-label">Free budget</span>
+                <strong class="goal-budget-value" [ngClass]="g.freeBudget > 0 ? 'text-success' : 'text-muted'">{{ g.freeBudget | currencySymbol: userCurrency }}/mo</strong>
+              </div>
+              <div class="goal-budget-stat">
+                <span class="goal-budget-label">Reserved for deadlines</span>
+                <strong class="goal-budget-value" [ngClass]="g.reservedForDeadlines > g.freeBudget ? 'text-danger' : ''">{{ g.reservedForDeadlines | currencySymbol: userCurrency }}/mo</strong>
+              </div>
+              <div class="goal-budget-stat">
+                <span class="goal-budget-label">For open goals ({{ g.openGoalCount }})</span>
+                <strong class="goal-budget-value">{{ g.availableForOpenGoals | currencySymbol: userCurrency }}/mo</strong>
+              </div>
+            </div>
+          }
+          <div class="goals-list" cdkDropList (cdkDropListDropped)="dropGoal($event)" [cdkDropListDisabled]="goalSortBy !== 'custom' || isAnonymous">
+            @for (goal of goals; track goal.id) {
+              <div class="goal-item" cdkDrag [cdkDragDisabled]="goalSortBy !== 'custom' || isAnonymous" [ngClass]="{ 'goal-completed': goal.isCompleted, 'clickable-row': !isAnonymous }" (click)="isAnonymous || openGoalDialog(goal)">
+                @if (goalSortBy === 'custom' && !isAnonymous) {
+                  <i class="fas fa-grip-vertical bp-drag-handle" cdkDragHandle (click)="$event.stopPropagation()"></i>
+                }
+                <div class="goal-item-header">
+                  <span class="goal-item-title">
+                    @if (goal.isCompleted) { <i class="fas fa-circle-check text-success"></i> }
+                    {{ goal.title }}
+                  </span>
+                  <div class="goal-item-right">
+                    <span class="goal-item-amounts">
+                      {{ goal.currentAmount | currencySymbol: goal.currency }}
+                      <span class="text-muted"> / </span>
+                    {{ goal.targetAmount | currencySymbol: goal.currency }}
+                    </span>
+                    @if (!isAnonymous) {
+                      <button class="icon-btn icon-btn-danger" title="Delete" (click)="$event.stopPropagation(); deleteGoal(goal)">
+                        <i class="fas fa-trash-can"></i>
+                      </button>
+                    }
+                  </div>
+                </div>
+                <div class="goal-item-bar">
+                  <div class="goal-bar-fill"
+                        [style.width.%]="goalProgress(goal)"
+                        [ngClass]="goal.isCompleted ? 'fill-success' : 'fill-primary'"></div>
+                </div>
+                <div class="goal-item-footer">
+                  <span class="goal-pct" [ngClass]="goal.isCompleted ? 'text-success' : ''">{{ goalProgress(goal) }}%</span>
+                  @if (goal.deadline) {
+                    <span class="goal-deadline"><i class="fas fa-calendar-days"></i> {{ goal.deadline | date: 'dd MMM yyyy' }}</span>
+                  }
+                </div>
+                @if (goalAllocation(goal); as tip) {
+                  <div class="goal-tip"
+                        [ngClass]="tip.kind === 'overdue' || tip.kind === 'no-budget' ? 'goal-tip--overdue' : tip.feasible ? 'goal-tip--ok' : 'goal-tip--warn'">
+                    <i class="fas"
+                        [ngClass]="tip.kind === 'overdue' ? 'fa-triangle-exclamation' : tip.kind === 'no-budget' ? 'fa-circle-exclamation' : tip.feasible ? 'fa-lightbulb' : 'fa-circle-info'"></i>
+                    @switch (tip.kind) {
+                      @case ('overdue') {
+                        <span>Deadline passed — <strong>{{ tip.monthly | currencySymbol: userCurrency }}</strong> still needed</span>
+                      }
+                      @case ('deadline') {
+                        <span>Save <strong>{{ tip.monthly | currencySymbol: userCurrency }}/mo</strong> to hit deadline · {{ tip.months }} month{{ tip.months !== 1 ? 's' : '' }} left</span>
+                        @if (!tip.feasible) {
+                          <span class="goal-tip-extra">· exceeds free budget ({{ profit | currencySymbol: userCurrency }}/mo)</span>
+                        }
+                      }
+                      @case ('allocated') {
+                        <span>Allocate <strong>{{ tip.monthly | currencySymbol: userCurrency }}/mo</strong> · ETA {{ tip.months }} month{{ tip.months !== 1 ? 's' : '' }}</span>
+                      }
+                      @case ('no-budget') {
+                        <span>No free budget to allocate · {{ tip.remaining | currencySymbol: userCurrency }} remaining</span>
+                      }
+                    }
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        }
+        }
+      </div>
+    }
+   @placeholder {
     <div class="kpi-bg section-spinner" id="kpi">
       <span class="circle-spinner"></span>
     </div>
   }
 
   @defer (on viewport) {
+    @if (debtObservable | async;) {
     <div id="debts" class="card">
       <div class="card-header">
         <h2 class="card-title"><i class="fas fa-hand-holding-dollar"></i> Debt Dashboard</h2>
@@ -920,6 +942,7 @@
         </div>
       }
     </div>
+    }
   } @placeholder {
     <div class="kpi-bg section-spinner" id="kpi">
       <span class="circle-spinner"></span>

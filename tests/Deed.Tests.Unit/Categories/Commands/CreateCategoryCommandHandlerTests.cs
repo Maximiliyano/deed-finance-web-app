@@ -27,7 +27,7 @@ public sealed class CreateCategoryCommandHandlerTests
             "New Category",
             CategoryType.Expenses,
             100.0m,
-            PerPeriodType.Daily);
+            TimePeriodType.Day);
 
         // Act
         var result = await _handler.Handle(command, CancellationToken.None);

@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { environment } from '../../../../environments/environment';
 import { BehaviorSubject, Observable, catchError, tap, throwError } from 'rxjs';
-import { IncomeResponse, IncomeResponses } from '../models/income-response';
+import { IncomeResponse } from '../models/income-response';
 import { CategoryResponse } from '../../category/models/category-model';
 import { CreateIncomeRequest } from '../models/create-income-request';
 
@@ -21,20 +21,18 @@ export class IncomeService {
   constructor(private readonly http: HttpClient) { }
 
   get currentIncomes(): IncomeResponse[] { return this.incomesState$.value; }
-  get currentCategories(): CategoryResponse[] { return this.categoriesState$.value; }
 
-  load(): Observable<IncomeResponses> {
-    return this.http.get<IncomeResponses>(this.baseUrl, { withCredentials: true }).pipe(
+  load(): Observable<IncomeResponse[]> {
+    return this.http.get<IncomeResponse[]>(this.baseUrl, { withCredentials: true }).pipe(
       tap(data => {
-        this.incomesState$.next(data.incomes);
-        this.categoriesState$.next(data.categories);
+        this.incomesState$.next(data);
       })
     );
   }
 
   refresh(): void { this.load().subscribe(); }
 
-  getAll(): Observable<IncomeResponses> { return this.load(); }
+  getAll(): Observable<IncomeResponse[]> { return this.load(); }
 
   create(request: CreateIncomeRequest): Observable<number> {
     const tempId = -Date.now();

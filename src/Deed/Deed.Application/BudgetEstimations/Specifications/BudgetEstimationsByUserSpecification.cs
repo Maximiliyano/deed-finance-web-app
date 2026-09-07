@@ -5,8 +5,14 @@ namespace Deed.Application.BudgetEstimations.Specifications;
 
 internal sealed class BudgetEstimationsByUserSpecification : BaseSpecification<BudgetEstimation>
 {
-    public BudgetEstimationsByUserSpecification(string createdBy, bool includeCapital = false)
-        : base(e => e.CreatedBy == createdBy)
+    public BudgetEstimationsByUserSpecification(
+        DateTime periodStart,
+        DateTime periodEnd,
+        string createdBy,
+        bool includeCapital = false)
+        : base(e => 
+            e.CreatedAt.Date >= periodStart.Date && e.CreatedAt.Date <= periodEnd.Date &&
+            e.CreatedBy == createdBy)
     {
         if (includeCapital)
         {

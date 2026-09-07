@@ -1,7 +1,7 @@
 import { PopupMessageService } from './../../../services/popup-message.service';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, OnInit } from '@angular/core';
 import { Exchange } from '../../../../core/models/exchange-model';
-import { DecimalPipe } from '@angular/common';
+import { DatePipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DIALOG_DATA } from '../models/dialog-consts';
 import { getCurrencies } from '../../currency/functions/get-currencies.component';
@@ -15,7 +15,7 @@ import { Subject, takeUntil } from 'rxjs';
     selector: 'app-exchange-dialog',
     templateUrl: './exchange-dialog.component.html',
     styleUrl: './exchange-dialog.component.scss',
-    imports: [DecimalPipe, FormsModule, IconComponent, ClipboardModule],
+    imports: [DecimalPipe, FormsModule, IconComponent, ClipboardModule, DatePipe],
     standalone: true,
     changeDetection: ChangeDetectionStrategy.OnPush
 })

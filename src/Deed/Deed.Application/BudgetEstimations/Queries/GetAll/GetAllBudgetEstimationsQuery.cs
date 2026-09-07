@@ -3,4 +3,5 @@ using Deed.Application.BudgetEstimations.Responses;
 
 namespace Deed.Application.BudgetEstimations.Queries.GetAll;
 
-public sealed record GetAllBudgetEstimationsQuery : IQuery<IEnumerable<BudgetEstimationResponse>>;
+public sealed record GetAllBudgetEstimationsQuery(DateTime PeriodStart, DateTime PeriodEnd)
+    : IQuery<IEnumerable<BudgetEstimationResponse>>;

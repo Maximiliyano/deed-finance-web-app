@@ -12,5 +12,5 @@ public sealed record UpdateCategoryRequest(
     string? Name,
     CategoryType? Type,
     decimal? PeriodAmount,
-    PerPeriodType? PeriodType
+    TimePeriodType? PeriodType
 );

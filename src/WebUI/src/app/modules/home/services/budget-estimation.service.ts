@@ -1,8 +1,9 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, Observable, catchError, tap, throwError } from 'rxjs';
+import { BehaviorSubject, Observable, catchError, shareReplay, tap, throwError } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { BudgetEstimation } from '../models/budget-estimation.model';
+import { QueryTimeRange } from '../models/query-time-range';
 
 export interface CreateBudgetEstimationRequest {
   description: string;
@@ -14,7 +15,7 @@ export interface CreateBudgetEstimationRequest {
 export interface UpdateBudgetEstimationRequest {
   description: string;
   budgetAmount: number;
-  budgetCurrency: number;
+  budgetCurrency: string;
   capitalId: number | null;
   isCompleted: boolean;
 }
@@ -30,14 +31,19 @@ export class BudgetEstimationService {
 
   get current(): BudgetEstimation[] { return this.state$.value; }
 
-  load(): Observable<BudgetEstimation[]> {
-    return this.http.get<BudgetEstimation[]>(this.baseUrl, { withCredentials: true })
-      .pipe(tap(items => this.state$.next(items)));
+  load(query: QueryTimeRange): Observable<BudgetEstimation[]> {
+    return this.http.post<BudgetEstimation[]>(`${this.baseUrl}/all`, query)
+      .pipe(
+        shareReplay({
+          bufferSize: 1,
+          refCount: false
+        }),
+        tap(items => this.state$.next(items)));
   }
 
-  refresh(): void { this.load().subscribe(); }
+  refresh(): void { this.load({ periodStart: new Date(), periodEnd: new Date() }).subscribe(); }
 
-  getAll(): Observable<BudgetEstimation[]> { return this.load(); }
+  getAll(): Observable<BudgetEstimation[]> { return this.load({ periodStart: new Date(), periodEnd: new Date() }); }
 
   create(request: CreateBudgetEstimationRequest): Observable<number> {
     const tempId = -Date.now();
@@ -58,10 +64,9 @@ export class BudgetEstimationService {
 
     this.state$.next([...previous, optimistic]);
 
-    return this.http.post<number>(this.baseUrl, request, { withCredentials: true }).pipe(
+    return this.http.post<number>(this.baseUrl, request).pipe(
       tap(realId => {
         this.state$.next(this.state$.value.map(e => e.id === tempId ? { ...e, id: realId } : e));
-        this.refresh();
       }),
       catchError(err => {
         this.state$.next(previous);
@@ -71,14 +76,13 @@ export class BudgetEstimationService {
   }
 
   update(id: number, request: UpdateBudgetEstimationRequest): Observable<void> {
-    const previous = this.state$.value;
-    this.state$.next(previous.map(e => e.id === id
-      ? { ...e, description: request.description, budgetAmount: request.budgetAmount, budgetCurrency: String(request.budgetCurrency), capitalId: request.capitalId, isCompleted: request.isCompleted } as BudgetEstimation
-      : e));
     return this.http.put<void>(`${this.baseUrl}/${id}`, request, { withCredentials: true }).pipe(
-      tap(() => this.refresh()),
+      tap(() => {
+        this.state$.next(this.state$.value.map(e => e.id === id
+          ? { ...e, description: request.description, budgetAmount: request.budgetAmount, budgetCurrency: request.budgetCurrency, capitalId: request.capitalId, isCompleted: request.isCompleted } as BudgetEstimation
+          : e));
+      }),
       catchError(err => {
-        this.state$.next(previous);
         return throwError(() => err);
       })
     );

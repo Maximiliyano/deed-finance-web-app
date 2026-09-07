@@ -1,6 +1,7 @@
 using Deed.Application.Abstractions.Messaging;
 using Deed.Application.Auth;
 using Deed.Application.BudgetEstimations.Specifications;
+using Deed.Domain.Enums;
 using Deed.Domain.Errors;
 using Deed.Domain.Repositories;
 using Deed.Domain.Results;
@@ -27,7 +28,7 @@ internal sealed class UpdateBudgetEstimationCommandHandler(
 
         if (estimation.Description == command.Description.Trim() &&
             estimation.BudgetAmount == command.BudgetAmount &&
-            estimation.BudgetCurrency == command.BudgetCurrency &&
+            estimation.BudgetCurrency == Enum.Parse<CurrencyType>(command.BudgetCurrency) &&
             estimation.CapitalId == command.CapitalId &&
             estimation.IsCompleted == command.IsCompleted)
         {

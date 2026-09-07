@@ -14,11 +14,11 @@ export class ExpenseService {
   private baseUrl = environment.apiUrl + "/api/expenses";
 
   private readonly state$ = new BehaviorSubject<ExpenseCategoryResponse[]>([]);
-  readonly categories$ = this.state$.asObservable();
+  readonly expenses$ = this.state$.asObservable();
 
   constructor(private readonly http: HttpClient) { }
 
-  get current(): ExpenseCategoryResponse[] { return this.state$.value; }
+  get objects(): ExpenseCategoryResponse[] { return this.state$.value; }
 
   load(capitalId?: number): Observable<ExpenseCategoryResponse[]> {
     let params = new HttpParams();

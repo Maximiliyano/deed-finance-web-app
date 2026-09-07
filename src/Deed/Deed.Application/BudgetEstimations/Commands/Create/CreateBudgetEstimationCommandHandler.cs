@@ -19,7 +19,7 @@ internal sealed class CreateBudgetEstimationCommandHandler(
         if (!user.IsAuthenticated)
         {
             var count = await repository.CountAsync(
-                new BudgetEstimationsByUserSpecification(user.Name!, false), cancellationToken).ConfigureAwait(false);
+                new BudgetEstimationsByUserSpecification(DateTime.UnixEpoch, DateTime.UtcNow, user.Name!, false), cancellationToken).ConfigureAwait(false);
 
             if (count >= AuthConstants.EntityLimit)
             {

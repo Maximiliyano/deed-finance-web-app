@@ -17,13 +17,13 @@ public static class DomainErrors
 
         public static Error EmptyCollection
             => Error.BadRequest(nameof(EmptyCollection), "The collection of entities is empty.");
+        
+        public static Error InvalidCurrency
+            => Error.BadRequest(nameof(InvalidCurrency), "The currency is invalid.");
     }
 
     public static class Capital
     {
-        public static Error InvalidCurrency
-            => Error.BadRequest(nameof(InvalidCurrency), "The currency is invalid.");
-
         public static Error ForSavingsOnly
             => Error.BadRequest(nameof(ForSavingsOnly), "Capital is only for savings.");
 

@@ -62,23 +62,31 @@
 
   <!-- Profit / Deficit -->
   <div class="kpi-card">
-    <div class="kpi-icon" [ngClass]="isProfitable ? 'profit-icon' : 'deficit-icon'">
-      <i class="fas" [ngClass]="isProfitable ? 'fa-shield-halved' : 'fa-triangle-exclamation'"></i>
-    </div>
-    <div class="kpi-body">
-      <p class="kpi-label">{{ planFilterLabel }} {{ isProfitable ? 'Profit' : 'Deficit' }}</p>
-      <p class="kpi-value">
-        @if (!!profitPerTime) {
+    @if (!!profitPerTime) {
+      <div class="kpi-icon" [ngClass]="isProfitable ? 'profit-icon' : 'deficit-icon'">
+        <i class="fas" [ngClass]="isProfitable ? 'fa-shield-halved' : 'fa-triangle-exclamation'"></i>
+      </div>
+      <div class="kpi-body">
+        <p class="kpi-label">{{ planFilterLabel }} {{ isProfitable ? 'Profit' : 'Deficit' }}</p>
+        <div class="kpi-value">
           <div [ngClass]="isProfitable ? 'text-success' : 'text-danger'">
             {{ profitPerTime | currencySymbol: currency() }}
             @if (showDualCurrency) {
               <p class="bp-stat-alt">{{ profitPerTimeInUah | currencySymbol: 'UAH' }}</p>
             }
           </div>
-        } @else {
-          <p class="kpi-empty">No statistic yet</p>
-        }
-      </p>
-    </div>
+        </div>
+      </div>
+    } @else {
+      <div class="kpi-icon">
+        <i class="fas fa-question"></i>
+      </div>
+      <div class="kpi-body">
+        <p class="kpi-label">{{ planFilterLabel }} Break-even</p>
+        <div class="kpi-value">
+          <p class="kpi-empty">No data yet</p>
+        </div>
+      </div>
+    }
   </div>
 </div>

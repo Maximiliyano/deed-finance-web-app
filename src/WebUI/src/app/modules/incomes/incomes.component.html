@@ -8,7 +8,7 @@
   </div>
 
   <div class="card">
-    @if (result().incomes.length > 0) {
+    @if (incomes().length > 0) {
       <table class="table">
         <thead>
           <tr>
@@ -21,7 +21,7 @@
           </tr>
         </thead>
         <tbody>
-          @for (item of result().incomes; track item.id) {
+          @for (item of incomes(); track item.id) {
             <tr>
               <td class="inc-date">{{ item.paymentDate | date: 'dd MMM yyyy' }}</td>
               <td class="inc-amount">{{ item.amount | number:'1.2-2' }}</td>

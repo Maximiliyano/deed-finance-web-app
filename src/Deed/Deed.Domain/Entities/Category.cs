@@ -19,7 +19,7 @@ public sealed class Category : Entity, IAuditableEntity, ISoftDeletableEntity
 
     public decimal PlannedPeriodAmount { get; set; }
 
-    public PerPeriodType Period { get; set; }
+    public TimePeriodType Period { get; set; }
 
     public ICollection<Expense> Expenses { get; init; } = [];
 

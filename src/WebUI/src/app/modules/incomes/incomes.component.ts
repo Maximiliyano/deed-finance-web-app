@@ -1,13 +1,15 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, signal } from '@angular/core';
 import { IncomeService } from './services/income.service';
-import { IncomeResponse, IncomeResponses } from './models/income-response';
-import { Subject, take, takeUntil } from 'rxjs';
+import { IncomeResponse } from './models/income-response';
+import { Subject, takeUntil } from 'rxjs';
 import { DialogService } from '../../shared/components/dialogs/services/dialog.service';
 import { CreateIncomeDialogComponent } from './components/create-income-dialog.component/create-income-dialog.component';
 import { SelectOptionModel } from '../../shared/components/forms/models/select-option-model';
 import { PopupMessageService } from '../../shared/services/popup-message.service';
 import { CreateIncomeRequest } from './models/create-income-request';
+import { CategoryResponse } from '../category/models/category-model';
+import { CapitalResponse } from '../capital/models/capital-response';
 
 @Component({
   selector: 'app-incomes.component',
@@ -18,11 +20,9 @@ import { CreateIncomeRequest } from './models/create-income-request';
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class IncomesComponent implements OnInit, OnDestroy {
-  result = signal<IncomeResponses>({
-    incomes: [],
-    categories: [],
-    capitals: []
-  });
+  incomes = signal<IncomeResponse[]>([]);
+  categories = signal<CategoryResponse[]>([]);
+  capitals = signal<CapitalResponse[]>([]);
 
   private unsubscribe = new Subject<void>();
 
@@ -35,11 +35,11 @@ export class IncomesComponent implements OnInit, OnDestroy {
   }
 
   get capitalOptions(): SelectOptionModel[] {
-    return this.result().capitals.map(x => ({ key: x.name, value: x.id }));
+    return this.capitals().map(x => ({ key: x.name, value: x.id }));
   }
 
   get categoryOptions(): SelectOptionModel[] {
-    return this.result().categories.map(x => ({ key: x.name, value: x.id }));
+    return this.categories().map(x => ({ key: x.name, value: x.id }));
   }
 
   onDelete(id: number) {
@@ -50,19 +50,19 @@ export class IncomesComponent implements OnInit, OnDestroy {
 
   capitalName(id: number | null): string {
     if (!id) return '—';
-    return this.result().capitals.find(c => c.id === id)?.name ?? '—';
+    return this.capitals().find(c => c.id === id)?.name ?? '—';
   }
 
   categoryName(id: number | null): string {
     if (!id) return '—';
-    return this.result().categories.find(c => c.id === id)?.name ?? '—';
+    return this.categories().find(c => c.id === id)?.name ?? '—';
   }
 
   ngOnInit(): void {
     this.incomeService
       .getAll()
       .pipe(takeUntil(this.unsubscribe))
-      .subscribe(incomes => this.result.set(incomes));
+      .subscribe(incomes => this.incomes.set(incomes));
   }
 
   ngOnDestroy(): void {
@@ -88,17 +88,14 @@ export class IncomesComponent implements OnInit, OnDestroy {
           .pipe(takeUntil(this.unsubscribe))
           .subscribe({
             next: (id: number) => {
-              this.result.update(r => ({
-                ...r,
-                incomes: [...r.incomes, {
-                  id,
-                  capitalId:   request.capitalId,
-                  categoryId:  request.categoryId,
-                  amount:      request.amount,
-                  paymentDate: request.paymentDate,
-                  purpose:     request.purpose
-                }]
-              }));
+              this.incomes.update(incomes => [...incomes, {
+                id,
+                capitalId:   request.capitalId,
+                categoryId:  request.categoryId,
+                amount:      request.amount,
+                paymentDate: request.paymentDate,
+                purpose:     request.purpose
+              }]);
               this.popup.success('Income created successfully.');
             }
           });

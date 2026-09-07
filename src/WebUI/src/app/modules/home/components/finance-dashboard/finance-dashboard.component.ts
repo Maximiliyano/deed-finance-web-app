@@ -75,7 +75,7 @@ export class FinanceDashboardComponent implements OnInit {
   get totalExpenseAmount(): number {
     let sum = 0;
 
-    for (const expenseCategoryResponse of this.expenseService.current) {
+    for (const expenseCategoryResponse of this.expenseService.objects) {
       for (const e of expenseCategoryResponse.expenses) {
         sum += convertCurrency(e.amount, this.capitalService.getCurrency(e.capitalId) ?? CurrencyType.None.toString(), this.currency(), this.exchanges);
       }
@@ -93,10 +93,10 @@ export class FinanceDashboardComponent implements OnInit {
   }
 
   get totalIncomeAmount(): number {
-    return this.incomeService.currentIncomes
+    return this.incomeService.currentIncomes.length > 0 ? this.incomeService.currentIncomes
       .reduce(
         (sum, i) => sum + convertCurrency(i.amount, this.capitalService.getCurrency(i.capitalId) ?? CurrencyType.None.toString(), this.currency(), this.exchanges), 0
-      );
+      ) : 0;
   }
 
   get totalIncomeAmountInUah(): number {

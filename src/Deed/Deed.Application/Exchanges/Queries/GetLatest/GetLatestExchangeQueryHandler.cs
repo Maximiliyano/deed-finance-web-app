@@ -19,6 +19,7 @@ public sealed class GetLatestExchangeQueryHandler(
     public async Task<Result<IEnumerable<ExchangeResponse>>> Handle(GetLatestExchangeQuery query, CancellationToken cancellationToken)
     {
         var cached = await cache.GetAsync<List<ExchangeResponse>>(CacheKeys.Exchanges, cancellationToken).ConfigureAwait(false);
+        
         if (cached is not null)
         {
             return Result.Success<IEnumerable<ExchangeResponse>>(cached);

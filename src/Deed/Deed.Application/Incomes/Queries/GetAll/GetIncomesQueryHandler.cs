@@ -14,19 +14,14 @@ namespace Deed.Application.Incomes.Queries.GetAll;
 
 internal sealed class GetIncomesQueryHandler(
     IUser user,
-    IIncomeRepository incomeRepository,
-    ICategoryRepository categoryRepository,
-    ICapitalRepository capitalRepository
-) : IQueryHandler<GetIncomesQuery, IncomesResponse>
+    IIncomeRepository incomeRepository
+) : IQueryHandler<GetIncomesQuery, IEnumerable<IncomeResponse>>
 {
-    public async Task<Result<IncomesResponse>> Handle(GetIncomesQuery query, CancellationToken cancellationToken)
+    public async Task<Result<IEnumerable<IncomeResponse>>> Handle(GetIncomesQuery query, CancellationToken cancellationToken)
     {
-        ArgumentNullException.ThrowIfNullOrEmpty(user.Name);
+        ArgumentException.ThrowIfNullOrEmpty(user.Name);
 
         var incomes = (await incomeRepository.GetAllAsync(new IncomesByQuerySpecification(user.Name), cancellationToken).ConfigureAwait(false)).ToResponses();
-        var categories = (await categoryRepository.GetAllAsync(new CategoriesByQuerySpecification([], type: CategoryType.Incomes), cancellationToken).ConfigureAwait(false)).ToResponses();
-        var capitals = (await capitalRepository.GetAllAsync(new CapitalsByQueryParamsSpecification(user.Name, toggleIncludes: true), cancellationToken).ConfigureAwait(false)).ToResponses();
-
-        return Result.Success(new IncomesResponse(incomes, categories, capitals));
+        return Result.Success(incomes);
     }
 }
