@@ -1,5 +1,3 @@
-using System.Security.Claims;
-using System.Text.Encodings.Web;
 using Deed.Application.Abstractions.Data;
 using Deed.Domain.Repositories;
 using Deed.Infrastructure.Persistence;
@@ -12,8 +10,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
 namespace Deed.Tests.Integration.Infrastructure;
 
@@ -37,15 +33,12 @@ public sealed class DeedApiFactory : WebApplicationFactory<Program>, IAsyncLifet
 
         builder.ConfigureTestServices(services =>
         {
-            // Read base connection from config to get the server address
             ServiceProvider sp = services.BuildServiceProvider();
             IConfiguration config = sp.GetRequiredService<IConfiguration>();
             string baseConn = config.GetValue<string>("DatabaseConnection") ?? "";
 
-            // Build test DB connection string from the base one
             _connectionString = ReplaceDatabase(baseConn, TestDbName);
 
-            // Remove existing DB registrations
             List<ServiceDescriptor> toRemove = services.Where(d =>
                 d.ServiceType == typeof(DbContextOptions<DeedDbContext>) ||
                 d.ServiceType == typeof(DbContextOptions) ||
@@ -61,7 +54,6 @@ public sealed class DeedApiFactory : WebApplicationFactory<Program>, IAsyncLifet
                 services.Remove(d);
             }
 
-            // Register real SQL Server with test database
             services.AddDbContext<DeedDbContext>((svc, options) =>
             {
                 UpdateAuditableEntitiesInterceptor interceptor =
@@ -88,7 +80,6 @@ public sealed class DeedApiFactory : WebApplicationFactory<Program>, IAsyncLifet
 
     public async Task InitializeAsync()
     {
-        // Create / migrate the test database
         using IServiceScope scope = Services.CreateScope();
         DeedDbContext db = scope.ServiceProvider.GetRequiredService<DeedDbContext>();
         await db.Database.EnsureDeletedAsync();
@@ -97,7 +88,6 @@ public sealed class DeedApiFactory : WebApplicationFactory<Program>, IAsyncLifet
 
     async Task IAsyncLifetime.DisposeAsync()
     {
-        // Drop the test database after all tests
         using IServiceScope scope = Services.CreateScope();
         DeedDbContext db = scope.ServiceProvider.GetRequiredService<DeedDbContext>();
         await db.Database.EnsureDeletedAsync();
@@ -113,29 +103,5 @@ public sealed class DeedApiFactory : WebApplicationFactory<Program>, IAsyncLifet
                 ? $"Database={newDb}"
                 : p);
         return string.Join("; ", parts);
-    }
-}
-
-internal sealed class TestAuthHandler(
-    IOptionsMonitor<AuthenticationSchemeOptions> options,
-    ILoggerFactory logger,
-    UrlEncoder encoder)
-    : AuthenticationHandler<AuthenticationSchemeOptions>(options, logger, encoder)
-{
-    protected override Task<AuthenticateResult> HandleAuthenticateAsync()
-    {
-        Claim[] claims = new[]
-        {
-            new Claim("name", DeedApiFactory.TestUser),
-            new Claim(ClaimTypes.NameIdentifier, DeedApiFactory.TestUser),
-            new Claim(ClaimTypes.Email, "test@deed.finance"),
-            new Claim("email_verified", "true")
-        };
-
-        ClaimsIdentity identity = new(claims, "Test");
-        ClaimsPrincipal principal = new(identity);
-        AuthenticationTicket ticket = new(principal, "Test");
-
-        return Task.FromResult(AuthenticateResult.Success(ticket));
     }
 }

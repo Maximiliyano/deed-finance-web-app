@@ -5,7 +5,7 @@ using FluentAssertions;
 
 namespace Deed.Tests.Integration.Endpoints.Transfers;
 
-public sealed class TransfersEndpointTests(DeedApiFactory factory) : IntegrationTest(factory)
+public sealed class TransfersEndpointTests(DeedApiFactory factory) : IntegrationTest(factory, "api/transfers")
 {
     private async Task<int> CreateCapitalAsync()
     {

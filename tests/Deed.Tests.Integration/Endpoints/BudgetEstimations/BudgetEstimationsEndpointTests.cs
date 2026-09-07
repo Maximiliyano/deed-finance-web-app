@@ -6,7 +6,8 @@ using FluentAssertions;
 
 namespace Deed.Tests.Integration.Endpoints.BudgetEstimations;
 
-public sealed class BudgetEstimationsEndpointTests(DeedApiFactory factory) : IntegrationTest(factory)
+public sealed class BudgetEstimationsEndpointTests(DeedApiFactory factory)
+    : IntegrationTest(factory, "api/budget-estimations")
 {
     private async Task<int> CreateEstimationAsync()
     {

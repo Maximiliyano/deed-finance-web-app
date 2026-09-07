@@ -5,7 +5,7 @@ using FluentAssertions;
 
 namespace Deed.Tests.Integration.Endpoints.Categories;
 
-public sealed class CategoriesEndpointTests(DeedApiFactory factory) : IntegrationTest(factory)
+public sealed class CategoriesEndpointTests(DeedApiFactory factory) : IntegrationTest(factory, "api/categories")
 {
     private async Task<int> CreateCategoryAsync(int type = 1)
     {

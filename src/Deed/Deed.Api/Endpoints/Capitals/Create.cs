@@ -1,9 +1,7 @@
 ﻿using Deed.Api.Extensions;
 using Deed.Application.Capitals.Commands.Create;
 using Deed.Application.Capitals.Requests;
-using Deed.Domain.Enums;
 using MediatR;
-using Microsoft.AspNetCore.Authorization;
 
 namespace Deed.Api.Endpoints.Capitals;
 

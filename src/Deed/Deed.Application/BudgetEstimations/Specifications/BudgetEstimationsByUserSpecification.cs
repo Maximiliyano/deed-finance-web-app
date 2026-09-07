@@ -10,8 +10,9 @@ internal sealed class BudgetEstimationsByUserSpecification : BaseSpecification<B
         DateTime periodEnd,
         string createdBy,
         bool includeCapital = false)
-        : base(e => 
-            e.CreatedAt.Date >= periodStart.Date && e.CreatedAt.Date <= periodEnd.Date &&
+        : base(e =>
+            e.CreatedAt >= periodStart &&
+            e.CreatedAt < periodEnd &&
             e.CreatedBy == createdBy)
     {
         if (includeCapital)
