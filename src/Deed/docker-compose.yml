@@ -1,4 +1,14 @@
 services:
+  deed.ui:
+    image: ${DOCKER_REGISTRY-}deedui
+    build:
+      context: ../WebUI/
+      dockerfile: Dockerfile
+    ports:
+      - "4200:80"
+    depends_on:
+      - deed.api
+  
   deed.api:
     image: ${DOCKER_REGISTRY-}deedapi
     build:

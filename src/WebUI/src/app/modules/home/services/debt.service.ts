@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, catchError, tap, throwError } from 'rxjs';
-import { environment } from '../../../../environments/environment';
 import { Debt } from '../models/debt.model';
 
 export interface CreateDebtRequest {
@@ -31,7 +30,7 @@ export interface UpdateDebtRequest {
 
 @Injectable({ providedIn: 'root' })
 export class DebtService {
-  private readonly baseUrl = `${environment.apiUrl}/api/debts`;
+  private readonly baseUrl = '/api/debts';
 
   private readonly state$ = new BehaviorSubject<Debt[]>([]);
   readonly debts$ = this.state$.asObservable();

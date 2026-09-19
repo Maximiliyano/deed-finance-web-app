@@ -2,14 +2,13 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable, of, shareReplay, tap } from 'rxjs';
 import { Exchange } from '../../core/models/exchange-model';
-import { environment } from '../../../environments/environment';
 import { SessionStorageService } from './session-storage.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ExchangeService {
-  private baseApiUrl = environment.apiUrl + '/api/exchanges/';
+  private readonly baseApiUrl = '/api/exchanges/';
   private exchanges$: Observable<Exchange[]>;
 
   private readonly cacheKey = 'exchanges-cache';

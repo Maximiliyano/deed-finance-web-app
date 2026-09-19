@@ -1,7 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { environment } from '../../../../environments/environment';
 import {
   CreateUtilityBillRequest,
   PayUtilityBillRequest,
@@ -11,7 +10,7 @@ import {
 
 @Injectable({ providedIn: 'root' })
 export class UtilityBillService {
-  private readonly baseUrl = environment.apiUrl + '/api/utility-bills';
+  private readonly baseUrl = '/api/utility-bills';
 
   constructor(private readonly http: HttpClient) {}
 

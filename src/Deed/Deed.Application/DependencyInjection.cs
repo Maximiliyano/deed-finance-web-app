@@ -3,6 +3,7 @@ using Deed.Application.Abstractions.Settings;
 using Deed.Application.Auth;
 using Deed.Application.Exchanges.Service;
 using FluentValidation;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Builder;
@@ -47,7 +48,7 @@ public static class DependencyInjection
         .AddCookie(options =>
         {
             options.Cookie.HttpOnly = true;
-            options.Cookie.SameSite = environment.IsDevelopment() ? SameSiteMode.Lax : SameSiteMode.None;
+            options.Cookie.SameSite = SameSiteMode.Lax;
             options.Cookie.SecurePolicy = environment.IsDevelopment() ? CookieSecurePolicy.SameAsRequest : CookieSecurePolicy.Always;
 
             options.ExpireTimeSpan = TimeSpan.FromHours(1);

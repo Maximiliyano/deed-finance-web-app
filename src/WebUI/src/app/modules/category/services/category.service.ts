@@ -1,5 +1,4 @@
 import {Injectable} from "@angular/core";
-import {environment} from "../../../../environments/environment";
 import { HttpClient, HttpParams } from "@angular/common/http";
 import {BehaviorSubject, Observable, tap} from "rxjs";
 import { CategoryType } from "../../../core/types/category-type";
@@ -10,7 +9,10 @@ import { CreateCategoryRequest } from "../models/create-category-request";
   providedIn: 'root'
 })
 export class CategoryService {
-  private baseApiUrl = environment.apiUrl + '/api/categories';
+  private readonly baseApiUrl = '/api/categories';
+
+  private readonly state$ = new BehaviorSubject<CategoryResponse[]>([]);
+  readonly categories$ = this.state$.asObservable();
 
   private readonly state$ = new BehaviorSubject<CategoryResponse[]>([]);
   readonly categories$ = this.state$.asObservable();

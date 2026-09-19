@@ -1,5 +1,4 @@
 import {Injectable} from '@angular/core';
-import {environment} from '../../../../environments/environment';
 import {HttpClient} from '@angular/common/http';
 import {BehaviorSubject, catchError, Observable, of, shareReplay, tap} from 'rxjs';
 import {User} from '../models/user';
@@ -18,11 +17,11 @@ export class AuthService {
 
   login(): void {
     const returnUrl = encodeURIComponent(window.location.pathname + window.location.search);
-    window.location.href = `${environment.apiUrl}/api/auth/login?returnUrl=${returnUrl}`;
+    window.location.href = `${window.location.host}/api/auth/login?returnUrl=${returnUrl}`;
   }
 
   logout(): void {
-    window.location.href = `${environment.apiUrl}/api/auth/logout`;
+    window.location.href = `${window.location.host}/api/auth/logout`;
   }
 
   invalidate(): void {
@@ -35,7 +34,7 @@ export class AuthService {
     if (this.loaded) return of(this.userSubject.value);
 
     if (!this.pending$) {
-      this.pending$ = this.http.get<User>(`${environment.apiUrl}/api/users/me`, {withCredentials: true})
+      this.pending$ = this.http.get<User>(`/api/users/me`, {withCredentials: true})
         .pipe(
           catchError(() => of(null)),
           tap(user => {
