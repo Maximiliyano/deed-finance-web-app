@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, catchError, shareReplay, tap, throwError } from 'rxjs';
-import { environment } from '../../../../environments/environment';
 import { BudgetEstimation } from '../models/budget-estimation.model';
 import { QueryTimeRange } from '../models/query-time-range';
 
@@ -22,7 +21,7 @@ export interface UpdateBudgetEstimationRequest {
 
 @Injectable({ providedIn: 'root' })
 export class BudgetEstimationService {
-  private readonly baseUrl = `${environment.apiUrl}/api/budget-estimations`;
+  private readonly baseUrl = '/api/budget-estimations';
 
   private readonly state$ = new BehaviorSubject<BudgetEstimation[]>([]);
   readonly estimations$ = this.state$.asObservable();

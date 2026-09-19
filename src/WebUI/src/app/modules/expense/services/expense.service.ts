@@ -1,7 +1,6 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, catchError, tap, throwError } from 'rxjs';
-import { environment } from '../../../../environments/environment';
 import { CreateExpenseRequest } from '../models/create-expense-request';
 import { ExpenseCategoryResponse } from '../models/expense-category-response';
 import { ExpenseResponse } from '../models/expense-response';
@@ -11,7 +10,7 @@ import { UpdateExpenseRequest } from '../models/update-expense.request';
   providedIn: 'root'
 })
 export class ExpenseService {
-  private baseUrl = environment.apiUrl + "/api/expenses";
+  private readonly baseUrl = '/api/expenses';
 
   private readonly state$ = new BehaviorSubject<ExpenseCategoryResponse[]>([]);
   readonly expenses$ = this.state$.asObservable();

@@ -1,6 +1,5 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { environment } from '../../../../environments/environment';
 import { BehaviorSubject, Observable, catchError, tap, throwError } from 'rxjs';
 import { IncomeResponse } from '../models/income-response';
 import { CategoryResponse } from '../../category/models/category-model';
@@ -10,7 +9,7 @@ import { CreateIncomeRequest } from '../models/create-income-request';
   providedIn: 'root'
 })
 export class IncomeService {
-  private baseUrl = environment.apiUrl + "/api/incomes";
+  private readonly baseUrl = '/api/incomes';
 
   private readonly incomesState$ = new BehaviorSubject<IncomeResponse[]>([]);
   private readonly categoriesState$ = new BehaviorSubject<CategoryResponse[]>([]);

@@ -1,12 +1,11 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, catchError, tap, throwError } from 'rxjs';
-import { environment } from '../../../../environments/environment';
 import { UserSettings } from '../models/user-settings.model';
 
 @Injectable({ providedIn: 'root' })
 export class UserSettingsService {
-  private readonly baseUrl = `${environment.apiUrl}/api/user-settings`;
+  private readonly baseUrl = '/api/user-settings';
 
   private readonly state$ = new BehaviorSubject<UserSettings | null>(null);
   readonly settings$ = this.state$.asObservable();

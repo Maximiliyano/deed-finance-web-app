@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, catchError, shareReplay, tap, throwError } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
-import { environment } from '../../../../environments/environment';
 import { AddCapitalRequest } from '../models/add-capital-request';
 import { UpdateCapitalRequest } from '../models/update-capital-request';
 import { CapitalResponse } from '../models/capital-response';
@@ -15,7 +14,7 @@ import { Exchange } from '../../../core/models/exchange-model';
   providedIn: 'root'
 })
 export class CapitalService {
-  private baseApiUrl = environment.apiUrl + '/api/capitals';
+  private baseApiUrl = '/api/capitals';
 
   private readonly state$ = new BehaviorSubject<CapitalResponse[]>([]);
   readonly capitals$ = this.state$.asObservable();

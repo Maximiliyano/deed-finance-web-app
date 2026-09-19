@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, catchError, tap, throwError } from 'rxjs';
-import { environment } from '../../../../environments/environment';
 import { Goal } from '../models/goal.model';
 
 export interface CreateGoalRequest {
@@ -25,7 +24,7 @@ export interface UpdateGoalRequest {
 
 @Injectable({ providedIn: 'root' })
 export class GoalService {
-  private readonly baseUrl = `${environment.apiUrl}/api/goals`;
+  private readonly baseUrl = `/api/goals`;
 
   private readonly state$ = new BehaviorSubject<Goal[]>([]);
   readonly goals$ = this.state$.asObservable();

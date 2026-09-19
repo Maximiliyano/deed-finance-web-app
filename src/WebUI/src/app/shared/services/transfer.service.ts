@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, catchError, tap, throwError } from 'rxjs';
-import { environment } from '../../../environments/environment';
 import { CapitalService } from '../../modules/capital/services/capital.service';
 
 export interface CreateTransferRequest {
@@ -26,7 +25,7 @@ export interface TransferResponse {
 
 @Injectable({ providedIn: 'root' })
 export class TransferService {
-  private readonly baseUrl = `${environment.apiUrl}/api/transfers`;
+  private readonly baseUrl = '/api/transfers';
 
   private readonly state$ = new BehaviorSubject<TransferResponse[]>([]);
   readonly transfers$ = this.state$.asObservable();
