@@ -14,9 +14,6 @@ export class CategoryService {
   private readonly state$ = new BehaviorSubject<CategoryResponse[]>([]);
   readonly categories$ = this.state$.asObservable();
 
-  private readonly state$ = new BehaviorSubject<CategoryResponse[]>([]);
-  readonly categories$ = this.state$.asObservable();
-
   constructor(private readonly http: HttpClient) { }
 
   get objects(): CategoryResponse[]
