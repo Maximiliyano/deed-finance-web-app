@@ -14,7 +14,7 @@ namespace Deed.Application.Exchanges.Service;
 
 public sealed class ExchangeHttpService(
     IDateTimeProvider dateTimeProvider,
-    IOptions<WebUrlSettings> options,
+    IOptions<BankSettings> options,
     HttpClient client)
     : IExchangeHttpService
 {
@@ -29,31 +29,31 @@ public sealed class ExchangeHttpService(
         "PLN"
     ];
 
-    public async Task<Result<IEnumerable<Exchange>>> GetCurrenciesAsync()
+    public async Task<Result<IEnumerable<Exchange>>> GetCurrenciesAsync(CancellationToken cancellationToken)
     {
         try
         {
             Log.Information("Sending request to get currencies...");
             
             var date = dateTimeProvider.UtcNow.ToString("dd.MM.yyyy", CultureInfo.InvariantCulture);
-            var url = string.Format(CultureInfo.CurrentCulture, options.Value.ExchangeRatesPrivatAPIUrl, date);
+            var url = string.Format(CultureInfo.CurrentCulture, options.Value.ExchangeRates, date);
             
             using var request = new HttpRequestMessage(HttpMethod.Get, url);
-            using var response = await client.SendAsync(request);
+            using var response = await client.SendAsync(request, cancellationToken);
 
             if (!response.IsSuccessStatusCode)
             {
                 Log.Warning("HTTP request failed with status {Status}: {Reason}", (int)response.StatusCode, response.ReasonPhrase);
-                return Result.Failure<IEnumerable<Exchange>>(DomainErrors.Exchange.HttpExecution);
+                return Result.Failure<IEnumerable<Exchange>>(DomainErrors.HttpClient.Execution);
             }
 
             Log.Information("Deserializing a response...");
-            var exchanges = await response.Content.ReadFromJsonAsync<ExchangeRateData>(CaseInsensitive);
+            var exchanges = await response.Content.ReadFromJsonAsync<ExchangeRateData>(CaseInsensitive, cancellationToken);
 
             if (exchanges is null)
             {
                 Log.Warning("Failed to deserialize exchange rate response");
-                return Result.Failure<IEnumerable<Exchange>>(DomainErrors.Exchange.Serialization);
+                return Result.Failure<IEnumerable<Exchange>>(DomainErrors.HttpClient.Serialization);
             }
             var newExchanges = exchanges.ExchangeRates
                 .Where(e => AllowedCurrencies.Contains(e.Currency))
@@ -72,7 +72,7 @@ public sealed class ExchangeHttpService(
         catch (Exception e)
         {
             Log.Warning(e, "Exception occurred while fetching exchange rates");
-            return Result.Failure<IEnumerable<Exchange>>(DomainErrors.Exchange.HttpExecution);
+            return Result.Failure<IEnumerable<Exchange>>(DomainErrors.HttpClient.Execution);
         }
     }
 }

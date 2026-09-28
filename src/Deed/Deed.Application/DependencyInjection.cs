@@ -122,6 +122,8 @@ public static class DependencyInjection
             options.KnownProxies.Clear();
         });
 
+        services.Configure<BankSettings>(configuration.GetRequiredSection(nameof(BankSettings)));
+        
         services.Configure<WebUrlSettings>(configuration.GetRequiredSection(nameof(WebUrlSettings)));
 
         services.Configure<BackgroundJobsSettings>(configuration.GetRequiredSection(nameof(BackgroundJobsSettings)));

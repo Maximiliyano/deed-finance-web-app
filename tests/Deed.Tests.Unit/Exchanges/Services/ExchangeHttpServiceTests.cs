@@ -14,12 +14,11 @@ namespace Deed.Tests.Unit.Exchanges.Services;
 public sealed class ExchangeHttpServiceTests
 {
     private readonly IDateTimeProvider _dateTimeProvider = Substitute.For<IDateTimeProvider>();
-    private readonly IOptions<WebUrlSettings> _options = Options.Create(new WebUrlSettings
+    private readonly IOptions<BankSettings> _options = Options.Create(new BankSettings
     {
-        UIUrl = "https://ui.ex.com",
-        ExchangeRatesPrivatAPIUrl = "https://api.ex.com/rates?date={0}",
-        AllowedHeaders = [],
-        AllowedMethods = []
+        ApiKey = "https://ui.ex.com",
+        PersonalClientInfo = "https://api.personal-client-info.com",
+        ExchangeRates = "https://api.ex.com/rates?date={0}"
     });
 
     private readonly DateTime _fixedNow = new(2024, 12, 1, 0, 0, 0, DateTimeKind.Utc);
@@ -63,7 +62,7 @@ public sealed class ExchangeHttpServiceTests
         var service = new ExchangeHttpService(_dateTimeProvider, _options, client);
 
         // Act
-        var result = await service.GetCurrenciesAsync();
+        var result = await service.GetCurrenciesAsync(CancellationToken.None);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -100,7 +99,7 @@ public sealed class ExchangeHttpServiceTests
         var service = new ExchangeHttpService(_dateTimeProvider, _options, client);
 
         // Act
-        var result = await service.GetCurrenciesAsync();
+        var result = await service.GetCurrenciesAsync(CancellationToken.None);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -118,10 +117,10 @@ public sealed class ExchangeHttpServiceTests
         var client = CreateHttpClient(response);
         var service = new ExchangeHttpService(_dateTimeProvider, _options, client);
 
-        var result = await service.GetCurrenciesAsync();
+        var result = await service.GetCurrenciesAsync(CancellationToken.None);
 
         result.IsSuccess.Should().BeFalse();
-        result.Errors.Should().OnlyContain(x => x == DomainErrors.Exchange.HttpExecution);
+        result.Errors.Should().OnlyContain(x => x == DomainErrors.HttpClient.Execution);
 
         client.Dispose();
         response.Dispose();
@@ -139,10 +138,10 @@ public sealed class ExchangeHttpServiceTests
         var client = CreateHttpClient(response);
         var service = new ExchangeHttpService(_dateTimeProvider, _options, client);
 
-        var result = await service.GetCurrenciesAsync();
+        var result = await service.GetCurrenciesAsync(CancellationToken.None);
 
         result.IsSuccess.Should().BeFalse();
-        result.Errors.Should().OnlyContain(x => x == DomainErrors.Exchange.HttpExecution);
+        result.Errors.Should().OnlyContain(x => x == DomainErrors.HttpClient.Execution);
 
         client.Dispose();
         response.Dispose();
@@ -160,10 +159,10 @@ public sealed class ExchangeHttpServiceTests
         var client = CreateHttpClient(response);
         var service = new ExchangeHttpService(_dateTimeProvider, _options, client);
 
-        var result = await service.GetCurrenciesAsync();
+        var result = await service.GetCurrenciesAsync(CancellationToken.None);
 
         result.IsSuccess.Should().BeFalse();
-        result.Errors.Should().OnlyContain(x => x == DomainErrors.Exchange.Serialization);
+        result.Errors.Should().OnlyContain(x => x == DomainErrors.HttpClient.Serialization);
 
         client.Dispose();
         response.Dispose();
@@ -177,10 +176,10 @@ public sealed class ExchangeHttpServiceTests
 
         var service = new ExchangeHttpService(_dateTimeProvider, _options, client);
 
-        var result = await service.GetCurrenciesAsync();
+        var result = await service.GetCurrenciesAsync(CancellationToken.None);
 
         result.IsSuccess.Should().BeFalse();
-        result.Errors.Should().OnlyContain(x => x == DomainErrors.Exchange.HttpExecution);
+        result.Errors.Should().OnlyContain(x => x == DomainErrors.HttpClient.Execution);
 
         client.Dispose();
         handler.Dispose();
@@ -207,7 +206,7 @@ public sealed class ExchangeHttpServiceTests
         var client = new HttpClient(handler);
         var service = new ExchangeHttpService(_dateTimeProvider, _options, client);
 
-        await service.GetCurrenciesAsync();
+        await service.GetCurrenciesAsync(CancellationToken.None);
 
         requestedUrl.Should().Be("https://api.ex.com/rates?date=01.12.2024");
 

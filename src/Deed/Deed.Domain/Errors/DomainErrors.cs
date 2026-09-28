@@ -31,16 +31,13 @@ public static class DomainErrors
             => Error.Conflict("Capital.ReferenceExists", "Capital cannot be deleted because it has related references.");
     }
 
-    public static class Exchange
+    public static class HttpClient
     {
-        public static Error HttpExecution
-            => Error.Failure(nameof(HttpExecution), "The http request execution was failed.");
+        public static Error Execution
+            => Error.Failure(nameof(Execution), "The http request execution was failed.");
 
         public static Error Serialization
             => Error.Failure(nameof(Serialization), "The content execution into exchange was failed.");
-
-        public static Error AlreadyExists
-            => Error.Conflict(nameof(AlreadyExists), "The exchange already exists.");
 
         public static Error InvalidOperation
             => Error.BadRequest(nameof(InvalidOperation), "The operation is invalid.");

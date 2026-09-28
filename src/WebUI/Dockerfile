@@ -12,6 +12,8 @@ RUN npm run build
 
 FROM nginx:alpine AS runtime
 
+RUN rm -f /etc/nginx/conf.d/default.conf
+
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 COPY --from=build /app/dist/deed/browser/ /usr/share/nginx/html/

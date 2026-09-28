@@ -68,4 +68,7 @@ app.MapEndpoints();
 
 await app.RunAsync();
 
-public partial class Program;
+namespace Deed.Api
+{
+    public partial class Program;
+}

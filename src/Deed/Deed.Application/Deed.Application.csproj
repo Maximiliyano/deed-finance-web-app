@@ -23,4 +23,8 @@
 		<ProjectReference Include="..\Deed.Domain\Deed.Domain.csproj" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <Folder Include="Bank\Queries\" />
+	</ItemGroup>
+
 </Project>

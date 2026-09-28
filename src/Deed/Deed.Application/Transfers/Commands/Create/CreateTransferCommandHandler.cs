@@ -32,7 +32,7 @@ internal sealed class CreateTransferCommandHandler(
 
         if (command.SourceCapitalId == command.DestinationCapitalId)
         {
-            return Result.Failure<int>(DomainErrors.Exchange.InvalidOperation);
+            return Result.Failure<int>(DomainErrors.HttpClient.InvalidOperation);
         }
 
         var source = await capitalRepository

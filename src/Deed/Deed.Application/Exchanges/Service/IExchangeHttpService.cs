@@ -5,5 +5,5 @@ namespace Deed.Application.Exchanges.Service;
 
 public interface IExchangeHttpService
 {
-    Task<Result<IEnumerable<Exchange>>> GetCurrenciesAsync();
+    Task<Result<IEnumerable<Exchange>>> GetCurrenciesAsync(CancellationToken cancellationToken);
 }

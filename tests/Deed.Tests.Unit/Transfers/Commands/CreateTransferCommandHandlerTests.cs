@@ -57,7 +57,7 @@ public sealed class CreateTransferCommandHandlerTests
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.Errors.Should().Contain(DomainErrors.Exchange.InvalidOperation);
+        result.Errors.Should().Contain(DomainErrors.HttpClient.InvalidOperation);
     }
 
     [Fact]

@@ -20,14 +20,14 @@ public sealed class UpsertLatestExchangeJob(
     {
         Log.Information("Job started: {Name}", nameof(UpsertLatestExchangeJob));
 
-        var latestExchangesResult = await service.GetCurrenciesAsync().ConfigureAwait(false);
+        var latestExchangesResult = await service.GetCurrenciesAsync(context.CancellationToken).ConfigureAwait(false);
 
         if (!latestExchangesResult.IsSuccess)
         {
             return;
         }
 
-        var exchanges = (await repository.GetAllAsync(new ExchangesByQuerySpecification()).ConfigureAwait(false)).ToList();
+        var exchanges = (await repository.GetAllAsync(new ExchangesByQuerySpecification(), context.CancellationToken).ConfigureAwait(false)).ToList();
         var lookup = exchanges
             .ToDictionary(
                 e => key(e.NationalCurrencyCode, e.TargetCurrencyCode),

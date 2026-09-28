@@ -13,7 +13,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Deed.Tests.Integration.Infrastructure;
 
-public sealed class DeedApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
+public sealed class DeedApiFactory : WebApplicationFactory<Api.Program>, IAsyncLifetime
 {
     public const string TestUser = "integration-test-user";
     private const string TestDbName = "DeedDB_IntegrationTests";

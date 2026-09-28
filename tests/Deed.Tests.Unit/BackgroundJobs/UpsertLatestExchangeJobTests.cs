@@ -35,7 +35,7 @@ public sealed class UpsertLatestExchangeJobTests
     public async Task Execute_ShouldNotModifyDatabase_WhenApiFails()
     {
         // Arrange
-        _service.GetCurrenciesAsync().Returns(Result.Failure<IEnumerable<Exchange>>(DomainErrors.Exchange.HttpExecution));
+        _service.GetCurrenciesAsync(CancellationToken.None).Returns(Result.Failure<IEnumerable<Exchange>>(DomainErrors.HttpClient.Execution));
 
         // Act
         await _job.Execute(_context);
@@ -56,7 +56,7 @@ public sealed class UpsertLatestExchangeJobTests
             new Exchange(2) { NationalCurrencyCode = "EUR", TargetCurrencyCode = "UAH", Buy = 43, Sale = 44 }
         };
 
-        _service.GetCurrenciesAsync().Returns(Result.Success<IEnumerable<Exchange>>(newRates));
+        _service.GetCurrenciesAsync(CancellationToken.None).Returns(Result.Success<IEnumerable<Exchange>>(newRates));
         _repository.GetAllAsync(Arg.Any<ExchangesByQuerySpecification>()).Returns(new List<Exchange>());
 
         // Act
@@ -72,7 +72,7 @@ public sealed class UpsertLatestExchangeJobTests
     {
         var existing = new Exchange(1) { NationalCurrencyCode = "USD", TargetCurrencyCode = "UAH", Buy = 40, Sale = 41 };
 
-        _service.GetCurrenciesAsync().Returns(Result.Success<IEnumerable<Exchange>>(new[] { existing }));
+        _service.GetCurrenciesAsync(CancellationToken.None).Returns(Result.Success<IEnumerable<Exchange>>(new[] { existing }));
         _repository.GetAllAsync(Arg.Any<ExchangesByQuerySpecification>()).Returns(new[] { existing });
 
         // Act
@@ -90,7 +90,7 @@ public sealed class UpsertLatestExchangeJobTests
         var existing = new Exchange(1) { NationalCurrencyCode = "USD", TargetCurrencyCode = "UAH", Buy = 40, Sale = 41 };
         var latest = new Exchange(1) { NationalCurrencyCode = "USD", TargetCurrencyCode = "UAH", Buy = 42, Sale = 43 };
 
-        _service.GetCurrenciesAsync().Returns(Result.Success<IEnumerable<Exchange>>(new[] { latest }));
+        _service.GetCurrenciesAsync(CancellationToken.None).Returns(Result.Success<IEnumerable<Exchange>>(new[] { latest }));
         _repository.GetAllAsync(Arg.Any<ExchangesByQuerySpecification>()).Returns(new[] { existing });
 
         // Act
@@ -111,7 +111,7 @@ public sealed class UpsertLatestExchangeJobTests
         var updated = new Exchange(1) { NationalCurrencyCode = "USD", TargetCurrencyCode = "UAH", Buy = 42, Sale = 43 };
         var added = new Exchange(1) { NationalCurrencyCode = "EUR", TargetCurrencyCode = "UAH", Buy = 43, Sale = 44 };
 
-        _service.GetCurrenciesAsync().Returns(Result.Success<IEnumerable<Exchange>>(new[] { updated, added }));
+        _service.GetCurrenciesAsync(CancellationToken.None).Returns(Result.Success<IEnumerable<Exchange>>(new[] { updated, added }));
         _repository.GetAllAsync(Arg.Any<ExchangesByQuerySpecification>()).Returns(new[] { existing });
 
         // Act
@@ -126,7 +126,7 @@ public sealed class UpsertLatestExchangeJobTests
     [Fact]
     public async Task Execute_ShouldDoNothing_WhenRemoteListIsEmpty()
     {
-        _service.GetCurrenciesAsync().Returns(Result.Success<IEnumerable<Exchange>>(Array.Empty<Exchange>()));
+        _service.GetCurrenciesAsync(CancellationToken.None).Returns(Result.Success<IEnumerable<Exchange>>(Array.Empty<Exchange>()));
         _repository.GetAllAsync(Arg.Any<ExchangesByQuerySpecification>()).Returns(new List<Exchange>());
 
         // Act
