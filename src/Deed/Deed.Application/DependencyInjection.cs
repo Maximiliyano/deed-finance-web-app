@@ -1,3 +1,4 @@
+using System.Net;
 using Deed.Application.Abstractions.Behaviours;
 using Deed.Application.Abstractions.Settings;
 using Deed.Application.Auth;
@@ -48,8 +49,10 @@ public static class DependencyInjection
         .AddCookie(options =>
         {
             options.Cookie.HttpOnly = true;
-            options.Cookie.SameSite = SameSiteMode.Lax;
-            options.Cookie.SecurePolicy = environment.IsDevelopment() ? CookieSecurePolicy.SameAsRequest : CookieSecurePolicy.Always;
+            options.Cookie.SameSite = SameSiteMode.None;
+            options.Cookie.SecurePolicy = environment.IsDevelopment()
+                ? CookieSecurePolicy.SameAsRequest
+                : CookieSecurePolicy.Always;
 
             options.ExpireTimeSpan = TimeSpan.FromHours(1);
             options.SlidingExpiration = true;
@@ -78,11 +81,45 @@ public static class DependencyInjection
             options.Events.OnRedirectToIdentityProvider = ctx =>
             {
                 var isExplicitLogin = ctx.Properties.Items.ContainsKey(AuthConstants.ExplicitLoginKey);
+                Console.WriteLine(
+                    $"OIDC Redirect: {ctx.Request.Path}, explicit={isExplicitLogin}");
                 if (ctx.Request.Path.StartsWithSegments("/api") && !isExplicitLogin)
                 {
                     ctx.Response.StatusCode = StatusCodes.Status401Unauthorized;
                     ctx.HandleResponse();
                 }
+                return Task.CompletedTask;
+            };
+            
+            options.Events.OnMessageReceived = ctx =>
+            {
+                Console.WriteLine(
+                    $"OIDC MessageReceived: {ctx.Request.Path}");
+
+                return Task.CompletedTask;
+            };
+
+            options.Events.OnTokenValidated = ctx =>
+            {
+                Console.WriteLine(
+                    $"OIDC TokenValidated: {ctx.Request.Path}");
+
+                return Task.CompletedTask;
+            };
+
+            options.Events.OnAuthenticationFailed = ctx =>
+            {
+                Console.WriteLine(
+                    $"OIDC AuthenticationFailed: {ctx.Exception}");
+
+                return Task.CompletedTask;
+            };
+
+            options.Events.OnTicketReceived = ctx =>
+            {
+                Console.WriteLine(
+                    $"OIDC TicketReceived: {ctx.Properties?.RedirectUri}");
+
                 return Task.CompletedTask;
             };
         });
@@ -116,11 +153,7 @@ public static class DependencyInjection
     private static IServiceCollection AddSettings(this IServiceCollection services, IConfiguration configuration)
     {
         services.Configure<ForwardedHeadersOptions>(options =>
-        {
-            options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
-            options.KnownNetworks.Clear();
-            options.KnownProxies.Clear();
-        });
+            options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto | ForwardedHeaders.XForwardedHost);
 
         services.Configure<BankSettings>(configuration.GetRequiredSection(nameof(BankSettings)));
         

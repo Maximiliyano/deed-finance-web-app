@@ -10,6 +10,8 @@ COPY . .
 
 RUN npm run build
 
+RUN rm -f dist/deed/browser/_redirects dist/deed/browser/.netlify
+
 FROM nginx:alpine AS runtime
 
 RUN rm -f /etc/nginx/conf.d/default.conf

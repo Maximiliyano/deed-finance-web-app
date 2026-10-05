@@ -4,6 +4,7 @@ services:
     build:
       context: ../WebUI
       dockerfile: Dockerfile
+      cache_from: []
     ports:
       - "4200:80"
     depends_on:

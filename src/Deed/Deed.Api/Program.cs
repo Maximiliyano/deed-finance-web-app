@@ -47,18 +47,18 @@ if (!app.Environment.IsDevelopment())
 app.UseAuthentication();
 app.UseAuthorization();
 
+app.UseAuthentication();
+app.UseAuthorization();
+
 app.UseRequestContextLogging();
 
 app.UseSerilogRequestLogging();
 
-// Liveness — used by Fly's machine health check. No dependency probing, so a
-// transient DB/Redis outage cannot mark the machine unhealthy and trigger a restart.
 app.MapHealthChecks("health/live", new HealthCheckOptions
 {
     Predicate = _ => false
 }).AllowAnonymous();
 
-// Readiness — full DB + Redis probe, for dashboards / manual checks.
 app.MapHealthChecks("health", new HealthCheckOptions
 {
     ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
@@ -72,3 +72,6 @@ namespace Deed.Api
 {
     public partial class Program;
 }
+
+// TODO docker UI is cached and not rebuild like api
+// TODO auth fails callback to the BE instaed redirect URI FE

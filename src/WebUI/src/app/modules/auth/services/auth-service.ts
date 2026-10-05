@@ -15,9 +15,9 @@ export class AuthService {
 
   constructor(private readonly http: HttpClient) { }
 
-  login(): void {
+  login() {
     const returnUrl = encodeURIComponent(window.location.pathname + window.location.search);
-    window.location.href = `${window.location.host}/api/auth/login?returnUrl=${returnUrl}`;
+    window.location.href = `${window.location.origin}/api/auth/login?returnUrl=${returnUrl}`;
   }
 
   logout(): void {
