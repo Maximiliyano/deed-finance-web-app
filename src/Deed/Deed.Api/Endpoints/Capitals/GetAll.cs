@@ -14,6 +14,7 @@ internal sealed class GetAll : IEndpoint
                 .Send(new GetAllCapitalsQuery(query.SearchTerm, query.SortBy, query.SortDirection, query.FilterBy), ct))
                 .Process()
             )
+            .AllowAnonymous()
             .WithTags(nameof(Capitals));
     }
 }

@@ -15,13 +15,13 @@ export class AuthService {
 
   constructor(private readonly http: HttpClient) { }
 
-  login() {
-    const returnUrl = encodeURIComponent(window.location.pathname + window.location.search);
-    window.location.href = `${window.location.origin}/api/auth/login?returnUrl=${returnUrl}`;
+  login(): void {
+    const returnUrl = window.location.pathname;
+    window.location.assign(`/api/auth/login?returnUrl=${encodeURIComponent(returnUrl)}`);
   }
 
   logout(): void {
-    window.location.href = `${window.location.host}/api/auth/logout`;
+    window.location.assign('/api/auth/logout');
   }
 
   invalidate(): void {

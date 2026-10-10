@@ -2,6 +2,7 @@
 
 public interface IUser
 {
+    string? ExternalId { get; }
     string? Email { get; }
     bool? IsEmailVerified { get; }
     string? Name { get; }

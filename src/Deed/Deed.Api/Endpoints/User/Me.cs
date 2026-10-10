@@ -8,7 +8,7 @@ internal sealed class Me : IEndpoint
     {
         app.MapGet("api/users/me", (IUser user) =>
             Results.Ok(new UserResponse(
-                user.Email, user.IsEmailVerified, user.Name, user.PictureUrl)))
+                user.ExternalId, user.Email, user.IsEmailVerified, user.Name, user.PictureUrl)))
         .RequireAuthorization()
         .WithTags(nameof(User));
     }

@@ -1,5 +1,6 @@
 using Deed.Api.Extensions;
 using Deed.Application.Debts.Commands.Create;
+using Deed.Application.Debts.Requests;
 using Deed.Domain.Enums;
 using MediatR;
 
@@ -19,14 +20,3 @@ internal sealed class Create : IEndpoint
             .WithTags(nameof(Debts));
     }
 }
-
-internal sealed record CreateDebtRequest(
-    string Item,
-    decimal Amount,
-    CurrencyType Currency,
-    string Source,
-    string Recipient,
-    DateTimeOffset BorrowedAt,
-    DateTimeOffset? DeadlineAt,
-    string? Note,
-    int? CapitalId);

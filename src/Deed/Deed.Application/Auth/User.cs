@@ -1,10 +1,13 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using System.Security.Principal;
+using Microsoft.AspNetCore.Http;
 
 namespace Deed.Application.Auth;
 
 public sealed class User(IHttpContextAccessor accessor)
     : IUser
 {
+    public string? ExternalId => GetValue(AuthClaimTypes.Sub);
+
     public string? Email => GetValue(AuthClaimTypes.Email);
 
     public bool? IsEmailVerified => bool.TryParse(GetValue(AuthClaimTypes.EmailVerified), out var v) && v;

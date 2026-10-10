@@ -19,6 +19,13 @@ builder.Services
 
 builder.Services.AddEndpoints();
 
+builder.Services.AddAntiforgery(options =>
+{
+    options.Cookie.HttpOnly = true;
+    options.Cookie.SameSite = SameSiteMode.Lax;
+    options.HeaderName = "X-XSRF-TOKEN";
+});
+
 var app = builder.Build();
 
 app.UseForwardedHeaders();
@@ -36,6 +43,17 @@ else
 }
 
 app.UseExceptionHandler();
+
+app.Use(async (ctx, next) =>
+{
+    var h = ctx.Response.Headers;
+    h["X-Content-Type-Options"] = "nosniff";
+    h["X-Frame-Options"] = "DENY";
+    h["Referrer-Policy"] = "no-referrer";
+    h["Cache-Control"] = "no-store";
+    h["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains";
+    await next();
+});
 
 app.UseCorsPolicy();
 

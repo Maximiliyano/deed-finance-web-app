@@ -16,7 +16,7 @@ internal sealed class Logout : IEndpoint
                 await context.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             }
 
-            var logoutUri = $"{authSettings.Value.Domain.TrimEnd('/')}/v2/logout?client_id={authSettings.Value.ClientID}&returnTo={Uri.EscapeDataString(webUrlSettings.Value.UIUrl)}";
+            var logoutUri = $"{authSettings.Value.Domain.TrimEnd('/')}/v2/logout?client_id={authSettings.Value.ClientId}&returnTo={Uri.EscapeDataString(webUrlSettings.Value.UIUrl)}";
             context.Response.Redirect(logoutUri);
         })
         .AllowAnonymous()

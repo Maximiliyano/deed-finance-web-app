@@ -1,23 +1,18 @@
 services:
   deed.ui:
+    container_name: deed-ui
     image: ${DOCKER_REGISTRY-}deedui:latest
     build:
       context: ../WebUI
       dockerfile: Dockerfile
-      cache_from: []
     ports:
       - "4200:80"
-    depends_on:
-      - deed.api
-    restart: unless-stopped
-    healthcheck:
-      test: [ "CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1/index.html" ]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 15s
+    volumes:
+      - ../WebUI/nginx.conf:/etc/nginx/nginx.conf
+    restart: always
   
   deed.api:
+    container_name: deed-api
     image: ${DOCKER_REGISTRY-}deedapi:latest
     build:
       context: .

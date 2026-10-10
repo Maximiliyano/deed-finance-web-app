@@ -1,4 +1,6 @@
 using System.Net;
+using System.Security.Claims;
+using System.Threading.RateLimiting;
 using Deed.Application.Abstractions.Behaviours;
 using Deed.Application.Abstractions.Settings;
 using Deed.Application.Auth;
@@ -6,7 +8,10 @@ using Deed.Application.Exchanges.Service;
 using FluentValidation;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authentication.OAuth;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -15,6 +20,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Deed.Application;
 
@@ -40,6 +46,8 @@ public static class DependencyInjection
     {
         services.AddScoped<IUser, User>();
 
+        var auth0 = services.BuildServiceProvider().GetRequiredService<IOptions<AuthSettings>>().Value;
+
         services.AddAuthentication(options =>
         {
             options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
@@ -49,7 +57,7 @@ public static class DependencyInjection
         .AddCookie(options =>
         {
             options.Cookie.HttpOnly = true;
-            options.Cookie.SameSite = SameSiteMode.None;
+            options.Cookie.SameSite = SameSiteMode.Lax;
             options.Cookie.SecurePolicy = environment.IsDevelopment()
                 ? CookieSecurePolicy.SameAsRequest
                 : CookieSecurePolicy.Always;
@@ -70,6 +78,9 @@ public static class DependencyInjection
         })
         .AddOpenIdConnect(AuthConstants.AuthenticationScheme, options =>
         {
+            options.Authority = auth0.Domain;
+            options.ClientId = auth0.ClientId;
+            options.ClientSecret = auth0.ClientSecret;
             options.ResponseType = AuthConstants.ResponseType;
             options.SaveTokens = true;
 
@@ -78,11 +89,14 @@ public static class DependencyInjection
             options.Scope.Add("profile");
             options.Scope.Add("email");
 
+            options.TokenValidationParameters = new()
+            {
+                NameClaimType = "sub"
+            };
+
             options.Events.OnRedirectToIdentityProvider = ctx =>
             {
                 var isExplicitLogin = ctx.Properties.Items.ContainsKey(AuthConstants.ExplicitLoginKey);
-                Console.WriteLine(
-                    $"OIDC Redirect: {ctx.Request.Path}, explicit={isExplicitLogin}");
                 if (ctx.Request.Path.StartsWithSegments("/api") && !isExplicitLogin)
                 {
                     ctx.Response.StatusCode = StatusCodes.Status401Unauthorized;
@@ -90,48 +104,7 @@ public static class DependencyInjection
                 }
                 return Task.CompletedTask;
             };
-            
-            options.Events.OnMessageReceived = ctx =>
-            {
-                Console.WriteLine(
-                    $"OIDC MessageReceived: {ctx.Request.Path}");
-
-                return Task.CompletedTask;
-            };
-
-            options.Events.OnTokenValidated = ctx =>
-            {
-                Console.WriteLine(
-                    $"OIDC TokenValidated: {ctx.Request.Path}");
-
-                return Task.CompletedTask;
-            };
-
-            options.Events.OnAuthenticationFailed = ctx =>
-            {
-                Console.WriteLine(
-                    $"OIDC AuthenticationFailed: {ctx.Exception}");
-
-                return Task.CompletedTask;
-            };
-
-            options.Events.OnTicketReceived = ctx =>
-            {
-                Console.WriteLine(
-                    $"OIDC TicketReceived: {ctx.Properties?.RedirectUri}");
-
-                return Task.CompletedTask;
-            };
         });
-
-        services.AddOptions<OpenIdConnectOptions>(AuthConstants.AuthenticationScheme)
-            .Configure<IOptions<AuthSettings>>((oidcOptions, authSettingsOptions) =>
-            {
-                var authSettings = authSettingsOptions.Value;
-                oidcOptions.Authority = authSettings.Domain;
-                oidcOptions.ClientId = authSettings.ClientID;
-                oidcOptions.ClientSecret = authSettings.ClientSecret;
-            });
 
         services.AddAuthorization();
     }
@@ -152,9 +125,6 @@ public static class DependencyInjection
 
     private static IServiceCollection AddSettings(this IServiceCollection services, IConfiguration configuration)
     {
-        services.Configure<ForwardedHeadersOptions>(options =>
-            options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto | ForwardedHeaders.XForwardedHost);
-
         services.Configure<BankSettings>(configuration.GetRequiredSection(nameof(BankSettings)));
         
         services.Configure<WebUrlSettings>(configuration.GetRequiredSection(nameof(WebUrlSettings)));
