@@ -28,10 +28,6 @@ builder.Services.AddAntiforgery(options =>
 
 var app = builder.Build();
 
-app.UseForwardedHeaders();
-
-app.UseResponseCompression();
-
 if (app.Environment.IsDevelopment())
 {
     await app.ApplyMigrationsAsync();
