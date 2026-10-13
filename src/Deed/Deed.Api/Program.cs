@@ -51,6 +51,8 @@ app.Use(async (ctx, next) =>
     await next();
 });
 
+app.UseForwardedHeaders();
+
 app.UseCorsPolicy();
 
 if (!app.Environment.IsDevelopment())

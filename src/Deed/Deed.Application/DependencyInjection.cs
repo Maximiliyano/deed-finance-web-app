@@ -125,6 +125,15 @@ public static class DependencyInjection
 
     private static IServiceCollection AddSettings(this IServiceCollection services, IConfiguration configuration)
     {
+        services.Configure<ForwardedHeadersOptions>(o =>
+        {
+            o.ForwardedHeaders = ForwardedHeaders.XForwardedFor
+                               | ForwardedHeaders.XForwardedProto
+                               | ForwardedHeaders.XForwardedHost;
+            o.KnownNetworks.Clear();
+            o.KnownProxies.Clear();
+        });
+
         services.Configure<BankSettings>(configuration.GetRequiredSection(nameof(BankSettings)));
         
         services.Configure<WebUrlSettings>(configuration.GetRequiredSection(nameof(WebUrlSettings)));
