@@ -16,9 +16,15 @@ export default async (req: Request, context: Context) => {
   );
 
   const headers = new Headers(req.headers);
-  headers.delete('host');
   headers.delete('content-length');
   headers.delete('accept-encoding');
+
+  const originalHost = incomingUrl.host;
+  headers.set('host', originalHost);
+  headers.set('x-forwarded-host', originalHost);
+  headers.set('x-forwarded-proto', incomingUrl.protocol.replace(':', ''));
+  headers.set('x-forwarded-for', req.headers.get('x-forwarded-for') || 'unknown');
+
   headers.set('X-Internal-Proxy-Key', proxySecret);
 
   const body =
@@ -36,9 +42,7 @@ export default async (req: Request, context: Context) => {
     });
 
     const responseHeaders = new Headers(response.headers);
-
     responseHeaders.delete('content-encoding');
-    responseHeaders.delete('content-length');
     responseHeaders.delete('transfer-encoding');
 
     return new Response(response.body, {
