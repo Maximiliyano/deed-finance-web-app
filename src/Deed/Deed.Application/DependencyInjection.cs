@@ -88,22 +88,6 @@ public static class DependencyInjection
             options.Scope.Add("openid");
             options.Scope.Add("profile");
             options.Scope.Add("email");
-
-            options.TokenValidationParameters = new()
-            {
-                NameClaimType = "sub"
-            };
-
-            options.Events.OnRedirectToIdentityProvider = ctx =>
-            {
-                var isExplicitLogin = ctx.Properties.Items.ContainsKey(AuthConstants.ExplicitLoginKey);
-                if (ctx.Request.Path.StartsWithSegments("/api") && !isExplicitLogin)
-                {
-                    ctx.Response.StatusCode = StatusCodes.Status401Unauthorized;
-                    ctx.HandleResponse();
-                }
-                return Task.CompletedTask;
-            };
         });
 
         services.AddAuthorization();

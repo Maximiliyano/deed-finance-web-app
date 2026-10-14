@@ -42,16 +42,25 @@ app.UseExceptionHandler();
 
 app.Use(async (ctx, next) =>
 {
+    // If the request has forwarded headers, trust them (it came through a proxy)
+    if (ctx.Request.Headers.TryGetValue("x-forwarded-host", out Microsoft.Extensions.Primitives.StringValues value))
+    {
+        ctx.Request.Scheme = ctx.Request.Headers["x-forwarded-proto"].FirstOrDefault() ?? ctx.Request.Scheme;
+        ctx.Request.Host = new HostString(value.FirstOrDefault() ?? ctx.Request.Host.ToString());
+    }
+    await next();
+});
+
+
+app.Use(async (ctx, next) =>
+{
     var h = ctx.Response.Headers;
     h["X-Content-Type-Options"] = "nosniff";
     h["X-Frame-Options"] = "DENY";
     h["Referrer-Policy"] = "no-referrer";
     h["Cache-Control"] = "no-store";
-    h["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains";
     await next();
 });
-
-app.UseForwardedHeaders();
 
 app.UseCorsPolicy();
 
@@ -59,9 +68,6 @@ if (!app.Environment.IsDevelopment())
 {
     app.UseHttpsRedirection();
 }
-
-app.UseAuthentication();
-app.UseAuthorization();
 
 app.UseAuthentication();
 app.UseAuthorization();

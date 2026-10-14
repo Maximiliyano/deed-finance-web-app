@@ -19,9 +19,7 @@ export default async (req: Request, context: Context) => {
   headers.delete('content-length');
   headers.delete('accept-encoding');
 
-  const originalHost = incomingUrl.host;
-  headers.set('host', originalHost);
-  headers.set('x-forwarded-host', originalHost);
+  headers.set('x-forwarded-host', req.headers.get('host') || 'localhost');
   headers.set('x-forwarded-proto', incomingUrl.protocol.replace(':', ''));
   headers.set('x-forwarded-for', req.headers.get('x-forwarded-for') || 'unknown');
 
