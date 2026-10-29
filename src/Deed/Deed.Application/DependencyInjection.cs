@@ -26,11 +26,11 @@ namespace Deed.Application;
 
 public static class DependencyInjection
 {
-    public static IServiceCollection AddApplication(this IServiceCollection services, IConfiguration configuration, IWebHostEnvironment environment)
+    public static IServiceCollection AddApplication(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddSettings(configuration);
 
-        services.AddAuth(environment);
+        services.AddAuth();
 
         services.AddMediatrDependencies();
 
@@ -42,7 +42,7 @@ public static class DependencyInjection
         return services;
     }
 
-    private static void AddAuth(this IServiceCollection services, IWebHostEnvironment environment)
+    private static void AddAuth(this IServiceCollection services)
     {
         services.AddScoped<IUser, User>();
 
@@ -58,23 +58,10 @@ public static class DependencyInjection
         {
             options.Cookie.HttpOnly = true;
             options.Cookie.SameSite = SameSiteMode.Lax;
-            options.Cookie.SecurePolicy = environment.IsDevelopment()
-                ? CookieSecurePolicy.SameAsRequest
-                : CookieSecurePolicy.Always;
+            options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
 
             options.ExpireTimeSpan = TimeSpan.FromHours(1);
             options.SlidingExpiration = true;
-
-            options.Events.OnRedirectToLogin = async ctx =>
-            {
-                if (ctx.Request.Path.StartsWithSegments("/api"))
-                {
-                    ctx.Response.StatusCode = StatusCodes.Status401Unauthorized;
-                    await ctx.Response.CompleteAsync();
-                    return;
-                }
-                ctx.Response.Redirect(ctx.RedirectUri);
-            };
         })
         .AddOpenIdConnect(AuthConstants.AuthenticationScheme, options =>
         {
@@ -88,6 +75,17 @@ public static class DependencyInjection
             options.Scope.Add("openid");
             options.Scope.Add("profile");
             options.Scope.Add("email");
+
+            options.Events.OnRedirectToIdentityProvider = ctx =>
+            {
+                var isExplicitLogin = ctx.Properties.Items.ContainsKey(AuthConstants.ExplicitLoginKey);
+                if (ctx.Request.Path.StartsWithSegments("/api") && !isExplicitLogin)
+                {
+                    ctx.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                    ctx.HandleResponse();
+                }
+                return Task.CompletedTask;
+            };
         });
 
         services.AddAuthorization();
