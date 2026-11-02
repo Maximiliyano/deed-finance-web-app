@@ -2,6 +2,8 @@
 
 public sealed class AuthSettings
 {
+    public required string Audience { get; init; }
+
     public required string Domain { get; init; }
 
     public required string ClientId { get; init; }

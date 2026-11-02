@@ -46,7 +46,7 @@ public static class DependencyInjection
     {
         services.AddScoped<IUser, User>();
 
-        var auth0 = services.BuildServiceProvider().GetRequiredService<IOptions<AuthSettings>>().Value;
+        AuthSettings authSettings = services.BuildServiceProvider().GetRequiredService<IOptions<AuthSettings>>().Value;
 
         services.AddAuthentication(options =>
         {
@@ -65,9 +65,9 @@ public static class DependencyInjection
         })
         .AddOpenIdConnect(AuthConstants.AuthenticationScheme, options =>
         {
-            options.Authority = auth0.Domain;
-            options.ClientId = auth0.ClientId;
-            options.ClientSecret = auth0.ClientSecret;
+            options.Authority = authSettings.Domain;
+            options.ClientId = authSettings.ClientId;
+            options.ClientSecret = authSettings.ClientSecret;
             options.ResponseType = AuthConstants.ResponseType;
             options.SaveTokens = true;
 
@@ -86,7 +86,8 @@ public static class DependencyInjection
                 }
                 return Task.CompletedTask;
             };
-        });
+        })
+        .AddJwtBearer(option => option.Audience = authSettings.Audience);
 
         services.AddAuthorization();
     }
