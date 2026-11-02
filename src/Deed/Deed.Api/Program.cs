@@ -47,6 +47,11 @@ app.UseRequestContextLogging();
 
 app.UseSerilogRequestLogging();
 
+app.MapHealthChecks("health/live", new HealthCheckOptions
+{
+    Predicate = _ => false
+}).AllowAnonymous();
+
 app.MapHealthChecks("health", new HealthCheckOptions
 {
     ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
