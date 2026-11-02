@@ -16,13 +16,13 @@ export default async (req: Request, context: Context) => {
   );
 
   const headers = new Headers(req.headers);
+
+  headers.delete('host');
   headers.delete('content-length');
   headers.delete('accept-encoding');
 
-  headers.set('x-forwarded-host', req.headers.get('host') || 'localhost');
+  headers.set('x-forwarded-host', incomingUrl.host);
   headers.set('x-forwarded-proto', incomingUrl.protocol.replace(':', ''));
-  headers.set('x-forwarded-for', req.headers.get('x-forwarded-for') || 'unknown');
-
   headers.set('X-Internal-Proxy-Key', proxySecret);
 
   const body =
@@ -62,5 +62,5 @@ export default async (req: Request, context: Context) => {
 };
 
 export const config: Config = {
-  path: '/api/*',
+   path: ['/api/*', '/signin-oidc', '/signout-callback-oidc'],
 };
