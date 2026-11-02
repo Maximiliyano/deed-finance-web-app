@@ -4,6 +4,7 @@ using System.Text.Json;
 using Deed.Application.Abstractions.Settings;
 using Deed.Application.Exchanges.Responses;
 using Deed.Domain.Entities;
+using Deed.Domain.Enums;
 using Deed.Domain.Errors;
 using Deed.Domain.Providers;
 using Deed.Domain.Results;
@@ -24,9 +25,10 @@ public sealed class ExchangeHttpService(
     };
 
     private static readonly HashSet<string> AllowedCurrencies = [
-        "USD",
-        "EUR",
-        "PLN"
+        nameof(CurrencyType.USD),
+        nameof(CurrencyType.EUR),
+        nameof(CurrencyType.PLN),
+        nameof(CurrencyType.CZK)
     ];
 
     public async Task<Result<IEnumerable<Exchange>>> GetCurrenciesAsync(CancellationToken cancellationToken)

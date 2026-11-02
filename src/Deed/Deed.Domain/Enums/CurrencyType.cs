@@ -6,5 +6,6 @@ public enum CurrencyType
     UAH,
     USD,
     EUR,
-    PLN
+    PLN,
+    CZK
 }

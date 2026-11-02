@@ -4,4 +4,5 @@ export enum CurrencyType {
     USD,
     EUR,
     PLN,
+    CZK
 }
