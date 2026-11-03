@@ -8,6 +8,7 @@ import { CapitalResponse } from '../../../capital/models/capital-response';
 import { CurrencyType } from '../../../../core/types/currency-type';
 import { getCurrencies } from '../../../../shared/components/currency/functions/get-currencies.component';
 import { BudgetEstimationForm } from '../../models/budget-estimation-form';
+import { stringToCurrencyEnum } from '../../../../shared/components/currency/functions/string-to-currency-enum';
 
 export interface BudgetEstimationDialogData {
   estimation?: BudgetEstimation;
@@ -42,10 +43,11 @@ export class BudgetEstimationDialogComponent implements OnInit {
     const src = this.data.estimation;
     const description = isCopy && src ? this.appendCopySuffix(src.description) : (src?.description ?? '');
 
+    const parsedBudgetCurrency = stringToCurrencyEnum(src?.budgetCurrency ?? CurrencyType.UAH.toString());
     this.form = this.fb.group({
       description: [description, [Validators.required, Validators.maxLength(64)]],
       budgetAmount: [src?.budgetAmount ?? 0, [Validators.required, Validators.min(0)]],
-      budgetCurrency: [src?.budgetCurrency ?? CurrencyType.UAH, Validators.required],
+      budgetCurrency: [parsedBudgetCurrency, Validators.required],
       capitalId: [src?.capitalId ?? ''],
       isCompleted: [isCopy ? false : (src?.isCompleted ?? false)]
     });
