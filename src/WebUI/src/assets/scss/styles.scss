@@ -89,7 +89,14 @@ html {
 
 *, *::before, *::after { box-sizing: border-box; }
 
-html, body { height: 100%; -webkit-font-smoothing: antialiased; }
+html, body {
+  min-height: 100%;
+  -webkit-font-smoothing: antialiased;
+}
+
+html {
+  overflow-x: clip;
+}
 
 body {
   margin: 0;

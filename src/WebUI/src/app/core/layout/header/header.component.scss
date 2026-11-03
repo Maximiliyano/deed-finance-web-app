@@ -131,14 +131,14 @@
 
 // ── Exchange rate chips ───────────────────────────────────────────────────────
 .exchanges {
-  display: flex;
+  display: none;
+  justify-content: flex-end;
   align-items: center;
   gap: 0.5rem;
   flex: 1;
   justify-content: center;
 
-  @media (max-width: 767px) { display: none; }
-  @media (max-width: 1199px) { justify-content: flex-end; }
+  @include mixin.respond-to('lg') { display: flex; }
 }
 
 .exchange-chip {
@@ -184,7 +184,7 @@
 }
 
 .exc-mob-btn {
-  @include mixin.respond-to('md') { display: none; }
+  @include mixin.respond-to('lg') { display: none; }
 }
 
 // ── Profile button ────────────────────────────────────────────────────────────
@@ -201,7 +201,7 @@
 
   &:hover { background: var(--surface-2); box-shadow: var(--shadow-sm); }
 
-  @media (max-width: 479px) {
+  @media (max-width: 1360px) {
     .profile-name, .chevron { display: none; }
     border: none; padding: 0.25rem;
   }
@@ -216,10 +216,11 @@
 }
 
 .profile-name {
+  display: inline-flex;
   font-size: 0.875rem;
   font-weight: 500;
   color: var(--text);
-  max-width: 120px;
+  max-width: 180px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -229,8 +230,8 @@
 
 // ── Burger (mobile) ───────────────────────────────────────────────────────────
 .burger-btn {
-  display: none;
-  @media (max-width: 1199px) { display: inline-flex; }
+  display: inline-flex;
+  @include mixin.respond-to('xl') { display: none; }
 }
 
 // ── Sidebar backdrop ──────────────────────────────────────────────────────────
