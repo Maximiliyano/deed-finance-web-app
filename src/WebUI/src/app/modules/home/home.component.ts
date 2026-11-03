@@ -5,14 +5,9 @@ import {moveItemInArray} from '@angular/cdk/drag-drop';
 import {AuthService} from '../auth/services/auth-service';
 import {User} from '../auth/models/user';
 import {Debt} from './models/debt.model';
-import {BudgetEstimation} from './models/budget-estimation.model';
+import {BudgetEstimation} from './models/budget-estimation';
 import {Goal} from './models/goal.model';
 import {UserSettings} from './models/user-settings.model';
-import {
-  BudgetEstimationService,
-  CreateBudgetEstimationRequest,
-  UpdateBudgetEstimationRequest
-} from './services/budget-estimation.service';
 import {GoalService, UpdateGoalRequest} from './services/goal.service';
 import {CreateDebtRequest, DebtService, UpdateDebtRequest} from './services/debt.service';
 import {UserSettingsService} from './services/user-settings.service';
@@ -50,6 +45,11 @@ import {convertCurrency} from '../../shared/utils/currency-conversion.util';
 import { NavItem } from '../../core/layout/header/header.component';
 import { QueryTimeRange } from './models/query-time-range';
 import { CategoryType } from '../../core/types/category-type';
+import { stringToCurrencyEnum } from '../../shared/components/currency/functions/string-to-currency-enum';
+import { BudgetEstimationService } from './services/budget-estimation.service';
+import { CreateBudgetEstimationRequest } from './models/budget-estimation-request-create';
+import { BudgetEstimationForm } from './models/budget-estimation-form';
+import { UpdateBudgetEstimationRequest } from './models/budget-estimation-request-update';
 
 @Component({
     selector: 'app-home',
@@ -670,22 +670,25 @@ export class HomeComponent implements OnInit, OnDestroy {
   openEstimationDialog(estimation?: BudgetEstimation): void {
     const data: BudgetEstimationDialogData = { estimation, capitals: this.capitals };
     const ref = this.dialogService.open(BudgetEstimationDialogComponent, { data });
-    ref.afterClosed$.pipe(takeUntil(this.unsubscribe$)).subscribe(result => {
-      if (!result) return;
-      if (estimation) {
-        const req: UpdateBudgetEstimationRequest = result;
-        this.budgetEstimationService.update(estimation.id, req).pipe(takeUntil(this.unsubscribe$)).subscribe({
-          next: () => this.popup.success('Estimation updated'),
-          error: () => this.popup.error('Failed to update estimation')
-        });
-      } else {
-        const req: CreateBudgetEstimationRequest = result;
-        this.budgetEstimationService.create(req).pipe(takeUntil(this.unsubscribe$)).subscribe({
-          next: () => this.popup.success('Estimation added'),
-          error: () => this.popup.error('Failed to add estimation')
-        });
-      }
-    });
+    ref.afterClosed$.pipe(takeUntil(this.unsubscribe$)).subscribe({
+      next: (result: BudgetEstimationForm) => {
+        if (!result) return;
+        if (estimation) {
+          const req: UpdateBudgetEstimationRequest = result;
+
+          this.budgetEstimationService.update(estimation.id, req).pipe(takeUntil(this.unsubscribe$)).subscribe({
+            next: () => this.popup.success('Estimation updated'),
+            error: () => this.popup.error('Failed to update estimation')
+          });
+        } else {
+          const req: CreateBudgetEstimationRequest = result;
+
+          this.budgetEstimationService.create(req, result.capital ?? null).pipe(takeUntil(this.unsubscribe$)).subscribe({
+            next: () => this.popup.success('Estimation added'),
+            error: () => this.popup.error('Failed to add estimation')
+          });
+        }
+    }});
   }
 
   copyEstimation(source: BudgetEstimation): void {
@@ -715,7 +718,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     const req: UpdateBudgetEstimationRequest = {
       description: estimation.description,
       budgetAmount: estimation.budgetAmount,
-      budgetCurrency: estimation.budgetCurrency,
+      budgetCurrency: stringToCurrencyEnum(estimation.budgetCurrency)!,
       capitalId: estimation.capitalId,
       isCompleted: checked
     };

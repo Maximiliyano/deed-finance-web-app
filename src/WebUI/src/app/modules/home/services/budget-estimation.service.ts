@@ -1,23 +1,12 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, catchError, shareReplay, tap, throwError } from 'rxjs';
-import { BudgetEstimation } from '../models/budget-estimation.model';
+import { BudgetEstimation } from '../models/budget-estimation';
 import { QueryTimeRange } from '../models/query-time-range';
-
-export interface CreateBudgetEstimationRequest {
-  description: string;
-  budgetAmount: number;
-  budgetCurrency: number;
-  capitalId: number | null;
-}
-
-export interface UpdateBudgetEstimationRequest {
-  description: string;
-  budgetAmount: number;
-  budgetCurrency: string;
-  capitalId: number | null;
-  isCompleted: boolean;
-}
+import { CurrencyType } from '../../../core/types/currency-type';
+import { CapitalResponse } from '../../capital/models/capital-response';
+import { CreateBudgetEstimationRequest } from '../models/budget-estimation-request-create';
+import { UpdateBudgetEstimationRequest } from '../models/budget-estimation-request-update';
 
 @Injectable({ providedIn: 'root' })
 export class BudgetEstimationService {
@@ -44,22 +33,22 @@ export class BudgetEstimationService {
 
   getAll(): Observable<BudgetEstimation[]> { return this.load({ periodStart: new Date(), periodEnd: new Date() }); }
 
-  create(request: CreateBudgetEstimationRequest): Observable<number> {
+  create(request: CreateBudgetEstimationRequest, capital?: CapitalResponse | null): Observable<number> {
     const tempId = -Date.now();
     const previous = this.state$.value;
-    const optimistic = {
+    const optimistic: BudgetEstimation = {
       id: tempId,
       description: request.description,
       budgetAmount: request.budgetAmount,
-      budgetCurrency: String(request.budgetCurrency),
-      capitalId: request.capitalId,
-      capitalName: null,
-      capitalBalance: 0,
-      capitalTotalExpense: 0,
-      capitalCurrency: null,
+      budgetCurrency: CurrencyType[request.budgetCurrency],
+      capitalId: capital?.id ?? null,
+      capitalName: capital?.name ?? null,
+      capitalBalance: capital?.balance ?? 0,
+      capitalTotalExpense: capital?.totalExpense ?? 0,
+      capitalCurrency: capital?.currency ?? null,
       orderIndex: previous.length,
       isCompleted: false
-    } as unknown as BudgetEstimation;
+    };
 
     this.state$.next([...previous, optimistic]);
 
@@ -78,7 +67,7 @@ export class BudgetEstimationService {
     return this.http.put<void>(`${this.baseUrl}/${id}`, request, { withCredentials: true }).pipe(
       tap(() => {
         this.state$.next(this.state$.value.map(e => e.id === id
-          ? { ...e, description: request.description, budgetAmount: request.budgetAmount, budgetCurrency: request.budgetCurrency, capitalId: request.capitalId, isCompleted: request.isCompleted } as BudgetEstimation
+          ? { ...e, description: request.description, budgetAmount: request.budgetAmount, budgetCurrency: CurrencyType[request.budgetCurrency] as string, capitalId: request.capitalId, isCompleted: request.isCompleted } as BudgetEstimation
           : e));
       }),
       catchError(err => {

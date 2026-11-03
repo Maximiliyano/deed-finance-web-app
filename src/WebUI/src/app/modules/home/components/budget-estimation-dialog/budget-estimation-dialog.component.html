@@ -19,7 +19,7 @@
         <label class="form-label">Currency</label>
         <select class="input" formControlName="budgetCurrency">
           @for (c of currencies; track c) {
-            <option [value]="c">{{ c }}</option>
+            <option [value]="c.value">{{ c.key }}</option>
           }
         </select>
       </div>

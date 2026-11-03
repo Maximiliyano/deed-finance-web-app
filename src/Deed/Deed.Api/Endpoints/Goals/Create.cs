@@ -1,5 +1,6 @@
 using Deed.Api.Extensions;
 using Deed.Application.Goals.Commands.Create;
+using Deed.Application.Goals.Requests;
 using Deed.Domain.Enums;
 using MediatR;
 
@@ -16,11 +17,3 @@ internal sealed class Create : IEndpoint
             .WithTags(nameof(Goals));
     }
 }
-
-internal sealed record CreateGoalRequest(
-    string Title,
-    decimal TargetAmount,
-    CurrencyType Currency,
-    decimal CurrentAmount,
-    DateTimeOffset? Deadline,
-    string? Note);

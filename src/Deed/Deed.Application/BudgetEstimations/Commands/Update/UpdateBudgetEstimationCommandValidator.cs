@@ -18,7 +18,7 @@ internal sealed class UpdateBudgetEstimationCommandValidator : AbstractValidator
             .GreaterThanOrEqualTo(ValidationConstants.ZeroValue);
 
         RuleFor(c => c.BudgetCurrency)
-            .Must(c => Enum.TryParse<CurrencyType>(c, out var currencyType) && currencyType != CurrencyType.None)
+            .Must(c => c != CurrencyType.None)
             .WithError(DomainErrors.General.InvalidCurrency);
     }
 }

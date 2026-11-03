@@ -3,9 +3,11 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { DialogRef } from '../../../../shared/components/dialogs/models/dialog-ref';
 import { DIALOG_DATA } from '../../../../shared/components/dialogs/models/dialog-consts';
-import { BudgetEstimation } from '../../models/budget-estimation.model';
+import { BudgetEstimation } from '../../models/budget-estimation';
 import { CapitalResponse } from '../../../capital/models/capital-response';
 import { CurrencyType } from '../../../../core/types/currency-type';
+import { getCurrencies } from '../../../../shared/components/currency/functions/get-currencies.component';
+import { BudgetEstimationForm } from '../../models/budget-estimation-form';
 
 export interface BudgetEstimationDialogData {
   estimation?: BudgetEstimation;
@@ -23,12 +25,12 @@ export interface BudgetEstimationDialogData {
 export class BudgetEstimationDialogComponent implements OnInit {
   form!: FormGroup;
   capitals: CapitalResponse[] = [];
-  currencies = Object.keys(CurrencyType).filter(k => isNaN(Number(k)) && k !== 'None');
+  currencies = getCurrencies({ excludeNone: true });
   isEdit = false;
 
   constructor(
     private readonly fb: FormBuilder,
-    private readonly dialogRef: DialogRef<{ description: string; budgetAmount: number; budgetCurrency: number; capitalId: number | null; isCompleted: boolean } | null>,
+    private readonly dialogRef: DialogRef<BudgetEstimationForm | null>,
     @Inject(DIALOG_DATA) private readonly data: BudgetEstimationDialogData
   ) {}
 
@@ -43,7 +45,7 @@ export class BudgetEstimationDialogComponent implements OnInit {
     this.form = this.fb.group({
       description: [description, [Validators.required, Validators.maxLength(64)]],
       budgetAmount: [src?.budgetAmount ?? 0, [Validators.required, Validators.min(0)]],
-      budgetCurrency: [src?.budgetCurrency ?? 'UAH', Validators.required],
+      budgetCurrency: [src?.budgetCurrency ?? CurrencyType.UAH, Validators.required],
       capitalId: [src?.capitalId ?? ''],
       isCompleted: [isCopy ? false : (src?.isCompleted ?? false)]
     });
@@ -71,17 +73,14 @@ export class BudgetEstimationDialogComponent implements OnInit {
     return budget - this.totalSpent;
   }
 
-  currencyIndex(name: string): number {
-    return CurrencyType[name as keyof typeof CurrencyType] as unknown as number;
-  }
-
   submit(): void {
     if (this.form.invalid) return;
     const val = this.form.value;
     this.dialogRef.close({
       description: val.description,
       budgetAmount: val.budgetAmount,
-      budgetCurrency: this.currencyIndex(val.budgetCurrency),
+      budgetCurrency: val.budgetCurrency,
+      capital: this.selectedCapital,
       capitalId: val.capitalId ? Number(val.capitalId) : null,
       isCompleted: val.isCompleted
     });

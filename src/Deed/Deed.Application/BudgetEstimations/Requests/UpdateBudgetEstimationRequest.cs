@@ -2,8 +2,10 @@ using Deed.Domain.Enums;
 
 namespace Deed.Api.Endpoints.BudgetEstimations;
 
-internal sealed record CreateBudgetEstimationRequest(
+public sealed record UpdateBudgetEstimationRequest(
     string Description,
     decimal BudgetAmount,
     CurrencyType BudgetCurrency,
-    int? CapitalId);
+    int? CapitalId,
+    bool IsCompleted
+);

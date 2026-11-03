@@ -1,5 +1,6 @@
 using Deed.Api.Extensions;
 using Deed.Application.Debts.Commands.Update;
+using Deed.Application.Debts.Requests;
 using Deed.Domain.Enums;
 using Deed.Domain.Results;
 using MediatR;
@@ -21,15 +22,3 @@ internal sealed class Update : IEndpoint
             .WithTags(nameof(Debts));
     }
 }
-
-internal sealed record UpdateDebtRequest(
-    string Item,
-    decimal Amount,
-    CurrencyType Currency,
-    string Source,
-    string Recipient,
-    DateTimeOffset BorrowedAt,
-    DateTimeOffset? DeadlineAt,
-    string? Note,
-    bool IsPaid,
-    int? PayFromCapitalId);
