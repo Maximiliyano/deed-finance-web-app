@@ -1,6 +1,7 @@
 using Deed.Application.Abstractions.Messaging;
 using Deed.Application.Auth;
 using Deed.Application.Goals.Specifications;
+using Deed.Domain.Enums;
 using Deed.Domain.Errors;
 using Deed.Domain.Repositories;
 using Deed.Domain.Results;
@@ -25,9 +26,10 @@ internal sealed class UpdateGoalCommandHandler(
             return Result.Failure(DomainErrors.General.NotFound("goal"));
         }
 
+        CurrencyType updatedCurrencyType = Enum.Parse<CurrencyType>(command.Currency);
         if (goal.Title == command.Title.Trim() &&
             goal.TargetAmount == command.TargetAmount &&
-            goal.Currency == command.Currency &&
+            updatedCurrencyType == goal.Currency &&
             goal.CurrentAmount == command.CurrentAmount &&
             goal.Deadline == command.Deadline &&
             goal.Note == command.Note?.Trim() &&
@@ -36,7 +38,13 @@ internal sealed class UpdateGoalCommandHandler(
             return Result.Success();
         }
 
-        goal.ApplyUpdate(command);
+        goal.Title = command.Title.Trim();
+        goal.TargetAmount = command.TargetAmount;
+        goal.Currency = updatedCurrencyType;
+        goal.CurrentAmount = command.CurrentAmount;
+        goal.Deadline = command.Deadline;
+        goal.Note = command.Note?.Trim();
+        goal.IsCompleted = command.IsCompleted;
 
         repository.Update(goal);
 

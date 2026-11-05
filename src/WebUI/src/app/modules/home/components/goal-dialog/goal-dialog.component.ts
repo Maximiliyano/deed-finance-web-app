@@ -4,7 +4,8 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { DialogRef } from '../../../../shared/components/dialogs/models/dialog-ref';
 import { DIALOG_DATA } from '../../../../shared/components/dialogs/models/dialog-consts';
 import { Goal } from '../../models/goal.model';
-import { CurrencyType } from '../../../../core/types/currency-type';
+import { GoalDialogForm } from '../../models/goal-dialog-form';
+import { CURRENCIES } from '../../../../core/types/currency-type';
 
 export interface GoalDialogData {
   goal?: Goal;
@@ -19,12 +20,12 @@ export interface GoalDialogData {
 })
 export class GoalDialogComponent implements OnInit {
   form!: FormGroup;
-  currencies = Object.keys(CurrencyType).filter(k => isNaN(Number(k)) && k !== 'None');
+  currencies = CURRENCIES;
   isEdit = false;
 
   constructor(
     private readonly fb: FormBuilder,
-    private readonly dialogRef: DialogRef<any>,
+    private readonly dialogRef: DialogRef<GoalDialogForm | null>,
     @Inject(DIALOG_DATA) private readonly data: GoalDialogData
   ) {}
 
@@ -50,17 +51,13 @@ export class GoalDialogComponent implements OnInit {
     return Math.min(100, Math.round((current / target) * 100));
   }
 
-  currencyIndex(name: string): number {
-    return CurrencyType[name as keyof typeof CurrencyType] as unknown as number;
-  }
-
   submit(): void {
     if (this.form.invalid) return;
     const val = this.form.value;
     this.dialogRef.close({
       title: val.title,
       targetAmount: val.targetAmount,
-      currency: this.currencyIndex(val.currency),
+      currency: val.currency,
       currentAmount: val.currentAmount,
       deadline: val.deadline || null,
       note: val.note || null,

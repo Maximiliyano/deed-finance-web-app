@@ -2,7 +2,7 @@ import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { FormGroup, FormControl, Validators } from '@angular/forms';
 import { Subject } from 'rxjs';
 import { PopupMessageService } from '../../../../shared/services/popup-message.service';
-import { CurrencyType } from '../../../../core/types/currency-type';
+import { CURRENCY_DEFAULT } from '../../../../core/types/currency-type';
 import { AddCapitalRequest } from '../../models/add-capital-request';
 import { FormField } from '../../../../shared/components/forms/models/form-field';
 import { SelectOptionModel } from '../../../../shared/components/forms/models/select-option-model';
@@ -43,7 +43,7 @@ export class AddCapitalDialogComponent implements OnInit, OnDestroy {
     this.form = new FormGroup({
       Name: new FormControl('', [Validators.required, Validators.minLength(1), Validators.maxLength(24)]),
       Balance: new FormControl(0, [Validators.required, Validators.min(0)]),
-      Currency: new FormControl(CurrencyType.UAH, [Validators.required]),
+      Currency: new FormControl(CURRENCY_DEFAULT, [Validators.required]),
       IncludeInTotal: new FormControl(true, [Validators.required]),
       OnlyForSavings: new FormControl(false)
     });
@@ -88,7 +88,7 @@ export class AddCapitalDialogComponent implements OnInit, OnDestroy {
     const request: AddCapitalRequest = {
       name: this.form.value.Name,
       balance: Number(this.form.value.Balance),
-      currency: Number(this.form.value.Currency),
+      currency: this.form.value.Currency,
       includeInTotal: this.form.value.IncludeInTotal,
       onlyForSavings: this.form.value.OnlyForSavings
     };

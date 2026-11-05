@@ -3,10 +3,10 @@ import { CapitalService } from '../../../capital/services/capital.service';
 import { ExchangeService } from '../../../../shared/services/exchange.service';
 import { Exchange } from '../../../../core/models/exchange-model';
 import { convertCurrency } from '../../../../shared/utils/currency-conversion.util';
-import { CurrencyType } from '../../../../core/types/currency-type';
 import { IncomeService } from '../../../incomes/services/income.service';
 import { ExpenseService } from '../../../expense/services/expense.service';
 import { SharedModule } from "../../../../shared/shared.module";
+import { CURRENCY_DEFAULT } from '../../../../core/types/currency-type';
 
 @Component({
   selector: 'app-finance-dashboard',
@@ -53,7 +53,7 @@ export class FinanceDashboardComponent implements OnInit {
       return this.profitPerTime;
     }
 
-    return convertCurrency(this.profitPerTime, this.currency(), CurrencyType.UAH.toString(), this.exchanges);
+    return convertCurrency(this.profitPerTime, this.currency(), CURRENCY_DEFAULT, this.exchanges);
   }
 
   get profitPerTime(): number {
@@ -77,7 +77,7 @@ export class FinanceDashboardComponent implements OnInit {
 
     for (const expenseCategoryResponse of this.expenseService.objects) {
       for (const e of expenseCategoryResponse.expenses) {
-        sum += convertCurrency(e.amount, this.capitalService.getCurrency(e.capitalId) ?? CurrencyType.None.toString(), this.currency(), this.exchanges);
+        sum += convertCurrency(e.amount, this.capitalService.getCurrency(e.capitalId) ?? CURRENCY_DEFAULT, this.currency(), this.exchanges);
       }
     }
 
@@ -89,13 +89,13 @@ export class FinanceDashboardComponent implements OnInit {
       return this.totalExpenseAmount;
     }
 
-    return convertCurrency(this.totalExpenseAmount, this.currency(), CurrencyType.UAH.toString(), this.exchanges);
+    return convertCurrency(this.totalExpenseAmount, this.currency(), CURRENCY_DEFAULT, this.exchanges);
   }
 
   get totalIncomeAmount(): number {
     return this.incomeService.currentIncomes.length > 0 ? this.incomeService.currentIncomes
       .reduce(
-        (sum, i) => sum + convertCurrency(i.amount, this.capitalService.getCurrency(i.capitalId) ?? CurrencyType.None.toString(), this.currency(), this.exchanges), 0
+        (sum, i) => sum + convertCurrency(i.amount, this.capitalService.getCurrency(i.capitalId) ?? CURRENCY_DEFAULT, this.currency(), this.exchanges), 0
       ) : 0;
   }
 
@@ -104,7 +104,7 @@ export class FinanceDashboardComponent implements OnInit {
       return this.totalIncomeAmount;
     }
 
-    return convertCurrency(this.totalIncomeAmount, this.currency(), CurrencyType.UAH.toString(), this.exchanges);
+    return convertCurrency(this.totalIncomeAmount, this.currency(), CURRENCY_DEFAULT, this.exchanges);
   }
 
   get totalCapitalAmount(): number {
@@ -116,6 +116,6 @@ export class FinanceDashboardComponent implements OnInit {
       return this.totalCapitalAmount;
     }
 
-    return convertCurrency(this.totalCapitalAmount, this.currency(), CurrencyType.UAH.toString(), this.exchanges );
+    return convertCurrency(this.totalCapitalAmount, this.currency(), CURRENCY_DEFAULT, this.exchanges );
   }
 }

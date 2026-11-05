@@ -6,7 +6,7 @@ namespace Deed.Application.Goals.Commands.Create;
 public sealed record CreateGoalCommand(
     string Title,
     decimal TargetAmount,
-    CurrencyType Currency,
+    string Currency,
     decimal CurrentAmount,
     DateTimeOffset? Deadline,
     string? Note)

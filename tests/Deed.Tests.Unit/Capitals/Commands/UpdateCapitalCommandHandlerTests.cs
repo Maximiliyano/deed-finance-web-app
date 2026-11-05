@@ -89,7 +89,7 @@ public sealed class UpdateCapitalCommandHandlerTests
             1,
             name,
             currentBalance,
-            currency,
+            currency.ToString(),
             includeInTotal);
 
         _repositoryMock.GetAsync(Arg.Any<CapitalByIdSpecification>()).Returns(capital);

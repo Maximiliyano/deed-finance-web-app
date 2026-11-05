@@ -2,6 +2,7 @@ using Deed.Application.UtilityBills.Commands.Create;
 using Deed.Application.UtilityBills.Commands.Update;
 using Deed.Application.UtilityBills.Responses;
 using Deed.Domain.Entities;
+using Deed.Domain.Enums;
 
 namespace Deed.Application.UtilityBills;
 
@@ -44,21 +45,10 @@ internal static class UtilityBillExtensions
         {
             Name = cmd.Name.Trim(),
             EstimatedAmount = cmd.EstimatedAmount,
-            Currency = cmd.Currency,
+            Currency = Enum.Parse<CurrencyType>(cmd.Currency),
             DueDayOfMonth = cmd.DueDayOfMonth,
             CapitalId = cmd.CapitalId,
             CategoryId = cmd.CategoryId,
             IsActive = cmd.IsActive
         };
-
-    internal static void ApplyUpdate(this UtilityBill bill, UpdateUtilityBillCommand cmd)
-    {
-        bill.Name = cmd.Name.Trim();
-        bill.EstimatedAmount = cmd.EstimatedAmount;
-        bill.Currency = cmd.Currency;
-        bill.DueDayOfMonth = cmd.DueDayOfMonth;
-        bill.CapitalId = cmd.CapitalId;
-        bill.CategoryId = cmd.CategoryId;
-        bill.IsActive = cmd.IsActive;
-    }
 }

@@ -1,5 +1,6 @@
 using Deed.Application.Abstractions.Messaging;
 using Deed.Application.Auth;
+using Deed.Domain.Enums;
 using Deed.Domain.Repositories;
 using Deed.Domain.Results;
 using Serilog;
@@ -24,7 +25,8 @@ internal sealed class UpsertUserSettingsCommandHandler(
         }
         else
         {
-            if (existing.Currency == command.Currency &&
+            var updatedCurrency = Enum.Parse<CurrencyType>(command.Currency);
+            if (existing.Currency == updatedCurrency &&
                 existing.BalanceReminderEnabled == command.BalanceReminderEnabled &&
                 existing.BalanceReminderCron == command.BalanceReminderCron &&
                 existing.ExpenseReminderEnabled == command.ExpenseReminderEnabled &&
@@ -37,7 +39,7 @@ internal sealed class UpsertUserSettingsCommandHandler(
                 return Result.Success();
             }
 
-            existing.Currency = command.Currency;
+            existing.Currency = updatedCurrency;
             existing.BalanceReminderEnabled = command.BalanceReminderEnabled;
             existing.BalanceReminderCron = command.BalanceReminderCron;
             existing.ExpenseReminderEnabled = command.ExpenseReminderEnabled;

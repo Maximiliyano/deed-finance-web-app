@@ -1,5 +1,5 @@
 <select class="form-select" [(ngModel)]="userCurrency" (change)="onCurrencyChange($event)">
-    @for (option of currencies; track option.value) {
-        <option [value]="option.value">{{ option.key }}</option>
+    @for (option of currencies; track option ) {
+        <option [value]="option">{{ option }}</option>
     }
 </select>

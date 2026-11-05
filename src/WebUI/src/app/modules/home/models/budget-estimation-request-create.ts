@@ -1,8 +1,6 @@
-import { CurrencyType } from "../../../core/types/currency-type";
-
 export interface CreateBudgetEstimationRequest {
   description: string;
   budgetAmount: number;
-  budgetCurrency: CurrencyType;
+  budgetCurrency: string;
   capitalId: number | null;
 }

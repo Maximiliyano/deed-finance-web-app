@@ -39,7 +39,7 @@ public sealed class UpdateUtilityBillCommandHandlerTests
             IsActive = true
         };
         var command = new UpdateUtilityBillCommand(
-            1, "  New Name  ", 250m, CurrencyType.USD, 20, 2, 6, false);
+            1, "  New Name  ", 250m, nameof(CurrencyType.USD), 20, 2, 6, false);
 
         _repositoryMock.GetAsync(Arg.Any<UtilityBillByIdSpecification>()).Returns(bill);
 
@@ -66,7 +66,7 @@ public sealed class UpdateUtilityBillCommandHandlerTests
     {
         // Arrange
         var command = new UpdateUtilityBillCommand(
-            99, "X", 1m, CurrencyType.UAH, 1, 1, 1, true);
+            99, "X", 1m, nameof(CurrencyType.UAH), 1, 1, 1, true);
         _repositoryMock.GetAsync(Arg.Any<UtilityBillByIdSpecification>()).Returns((UtilityBill?)null);
 
         // Act
@@ -95,7 +95,7 @@ public sealed class UpdateUtilityBillCommandHandlerTests
             IsActive = true
         };
         var command = new UpdateUtilityBillCommand(
-            1, "Same", 100m, CurrencyType.UAH, 10, 1, 5, true);
+            1, "Same", 100m, nameof(CurrencyType.UAH), 10, 1, 5, true);
 
         _repositoryMock.GetAsync(Arg.Any<UtilityBillByIdSpecification>()).Returns(bill);
 

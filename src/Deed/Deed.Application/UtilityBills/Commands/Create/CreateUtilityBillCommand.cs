@@ -6,7 +6,7 @@ namespace Deed.Application.UtilityBills.Commands.Create;
 public sealed record CreateUtilityBillCommand(
     string Name,
     decimal EstimatedAmount,
-    CurrencyType Currency,
+    string Currency,
     int DueDayOfMonth,
     int CapitalId,
     int CategoryId,

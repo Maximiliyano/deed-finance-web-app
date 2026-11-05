@@ -27,7 +27,7 @@ public sealed class UpsertUserSettingsCommandHandlerTests
     public async Task Handle_WhenSettingsNotExist_CreatesNew()
     {
         // Arrange
-        var command = new UpsertUserSettingsCommand(CurrencyType.UAH, false, null, false, null, false, null, false);
+        var command = new UpsertUserSettingsCommand(nameof(CurrencyType.UAH), false, null, false, null, false, null, false);
 
         _repositoryMock.GetAsync("testuser", Arg.Any<CancellationToken>())
             .Returns((DomainUserSettings?)null);
@@ -51,7 +51,7 @@ public sealed class UpsertUserSettingsCommandHandlerTests
     {
         // Arrange
         var existing = new DomainUserSettings(1) { Currency = CurrencyType.UAH };
-        var command = new UpsertUserSettingsCommand(CurrencyType.USD, false, null, false, null, false, null, false);
+        var command = new UpsertUserSettingsCommand(nameof(CurrencyType.USD), false, null, false, null, false, null, false);
 
         _repositoryMock.GetAsync("testuser", Arg.Any<CancellationToken>()).Returns(existing);
 

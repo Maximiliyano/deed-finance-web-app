@@ -4,8 +4,9 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { DialogRef } from '../../../../shared/components/dialogs/models/dialog-ref';
 import { DIALOG_DATA } from '../../../../shared/components/dialogs/models/dialog-consts';
 import { Debt } from '../../models/debt.model';
-import { CurrencyType } from '../../../../core/types/currency-type';
 import { CapitalResponse } from '../../../capital/models/capital-response';
+import { DebtForm } from '../../models/debt-form';
+import { CURRENCIES, CURRENCY_DEFAULT } from '../../../../core/types/currency-type';
 
 export interface DebtDialogData {
   debt?: Debt;
@@ -21,14 +22,14 @@ export interface DebtDialogData {
 })
 export class DebtDialogComponent implements OnInit {
   form!: FormGroup;
-  currencies = Object.keys(CurrencyType).filter(k => isNaN(Number(k)) && k !== 'None');
+  currencies = CURRENCIES;
   capitals: CapitalResponse[] = [];
   isEdit = false;
   showPayConfirm = false;
 
   constructor(
     private readonly fb: FormBuilder,
-    private readonly dialogRef: DialogRef<any>,
+    private readonly dialogRef: DialogRef<DebtForm | null>,
     @Inject(DIALOG_DATA) private readonly data: DebtDialogData
   ) {}
 
@@ -40,7 +41,7 @@ export class DebtDialogComponent implements OnInit {
     this.form = this.fb.group({
       item: [d?.item ?? '', [Validators.required, Validators.maxLength(64)]],
       amount: [d?.amount ?? 0, [Validators.required, Validators.min(0.01)]],
-      currency: [d?.currency ?? 'UAH', Validators.required],
+      currency: [d?.currency ?? CURRENCY_DEFAULT, Validators.required],
       source: [d?.source ?? '', [Validators.required, Validators.maxLength(128)]],
       recipient: [d?.recipient ?? '', [Validators.required, Validators.maxLength(128)]],
       borrowedAt: [d?.borrowedAt ? d.borrowedAt.slice(0, 10) : '', Validators.required],
@@ -60,10 +61,6 @@ export class DebtDialogComponent implements OnInit {
     return !!this.data.debt?.isPaid;
   }
 
-  currencyIndex(name: string): number {
-    return CurrencyType[name as keyof typeof CurrencyType] as unknown as number;
-  }
-
   onPaidChange(): void {
     if (this.isPaidChecked && !this.wasPaid) {
       this.showPayConfirm = true;
@@ -78,7 +75,7 @@ export class DebtDialogComponent implements OnInit {
     this.dialogRef.close({
       item: val.item,
       amount: val.amount,
-      currency: this.currencyIndex(val.currency),
+      currency: val.currency,
       source: val.source,
       recipient: val.recipient,
       borrowedAt: val.borrowedAt || null,

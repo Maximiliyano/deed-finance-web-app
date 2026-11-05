@@ -1,17 +1,16 @@
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { PopupMessageService } from '../../../../shared/services/popup-message.service';
 import { UpdateCapitalRequest } from '../../models/update-capital-request';
-import { CurrencyType } from '../../../../core/types/currency-type';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { Exchange } from '../../../../core/models/exchange-model';
 import { CapitalResponse } from '../../models/capital-response';
 import { FormField } from '../../../../shared/components/forms/models/form-field';
-import { stringToCurrencyEnum } from '../../../../shared/components/currency/functions/string-to-currency-enum';
 import { FormButton } from '../../../../shared/components/forms/models/form-button';
 import { Subject, takeUntil } from 'rxjs';
 import { DIALOG_DATA } from '../../../../shared/components/dialogs/models/dialog-consts';
 import { DialogRef } from '../../../../shared/components/dialogs/models/dialog-ref';
 import { FormComponent } from '../../../../shared/components/forms/form.component';
+import { SelectOptionModel } from '../../../../shared/components/forms/models/select-option-model';
 
 @Component({
     selector: 'app-capital-details',
@@ -31,7 +30,7 @@ export class CapitalDetailsComponent implements OnInit, OnDestroy {
   constructor(
     @Inject(DIALOG_DATA) public data: {
       capital: CapitalResponse;
-      currencyOptions: { key: string, value: CurrencyType }[];
+      currencyOptions: SelectOptionModel[];
       exchanges: Exchange[];
     },
     private readonly dialogRef: DialogRef<UpdateCapitalRequest | null>,
@@ -53,14 +52,14 @@ export class CapitalDetailsComponent implements OnInit, OnDestroy {
     this.form = new FormGroup({
       Name: new FormControl(this.data.capital.name, [Validators.required, Validators.maxLength(32)]),
       Balance: new FormControl(this.data.capital.balance, Validators.required),
-      Currency: new FormControl(stringToCurrencyEnum(this.data.capital.currency), Validators.required),
+      Currency: new FormControl(this.data.capital.currency, Validators.required),
       IncludeInTotal: new FormControl(this.data.capital.includeInTotal, Validators.required),
       OnlyForSavings: new FormControl(this.data.capital.onlyForSavings)
     });
   }
 
   checkFormModified(): void {
-    const capitalCurrency = stringToCurrencyEnum(this.data.capital.currency);
+    const capitalCurrency = this.data.capital.currency;
     const capitalBalance = Number(this.data.capital.balance);
 
     this.form.valueChanges
@@ -149,8 +148,8 @@ export class CapitalDetailsComponent implements OnInit, OnDestroy {
 
     const updatedCapital = this.form.value;
 
-    const capitalCurrency = stringToCurrencyEnum(this.data.capital.currency);
-    const updatedCurrency = !isNaN(updatedCapital.Currency) ? Number(updatedCapital.Currency) : capitalCurrency;
+    const capitalCurrency = this.data.capital.currency;
+    const updatedCurrency = updatedCapital.Currency;
 
     const request: UpdateCapitalRequest = {
       id: this.data.capital.id,

@@ -5,7 +5,7 @@ namespace Deed.Api.Endpoints.Goals;
 internal sealed record UpdateGoalRequest(
     string Title,
     decimal TargetAmount,
-    CurrencyType Currency,
+    string Currency,
     decimal CurrentAmount,
     DateTimeOffset? Deadline,
     string? Note,

@@ -1,6 +1,7 @@
 using Deed.Application.Abstractions.Messaging;
 using Deed.Application.Auth;
 using Deed.Application.Capitals.Specifications;
+using Deed.Domain.Enums;
 using Deed.Domain.Errors;
 using Deed.Domain.Repositories;
 using Deed.Domain.Results;
@@ -19,9 +20,16 @@ internal sealed class UpdateCapitalCommandHandler(ICapitalRepository repository,
             return Result.Failure(DomainErrors.General.NotFound(nameof(capital)));
         }
 
+        CurrencyType? updatedCurrencyType = null;
+
+        if (command.Currency is not null)
+        {
+            updatedCurrencyType = Enum.Parse<CurrencyType>(command.Currency);
+        }
+
         if ((command.Name is null || command.Name.Trim() == capital.Name) &&
             (command.Balance is null || command.Balance == capital.Balance) &&
-            (command.Currency is null || command.Currency == capital.Currency) &&
+            (updatedCurrencyType is null || updatedCurrencyType == capital.Currency) &&
             (command.IncludeInTotal is null || command.IncludeInTotal == capital.IncludeInTotal) &&
             (command.OnlyForSavings is null || command.OnlyForSavings == capital.OnlyForSavings))
         {
@@ -30,7 +38,7 @@ internal sealed class UpdateCapitalCommandHandler(ICapitalRepository repository,
 
         capital.Name = command.Name?.Trim() ?? capital.Name;
         capital.Balance = command.Balance ?? capital.Balance;
-        capital.Currency = command.Currency ?? capital.Currency;
+        capital.Currency = updatedCurrencyType ?? capital.Currency;
         capital.IncludeInTotal = command.IncludeInTotal ?? capital.IncludeInTotal;
         capital.OnlyForSavings = command.OnlyForSavings ?? capital.OnlyForSavings;
 

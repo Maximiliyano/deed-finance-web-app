@@ -36,7 +36,7 @@ public sealed class UpdateBudgetEstimationCommandHandlerTests
             BudgetCurrency = CurrencyType.UAH,
         };
         var command = new UpdateBudgetEstimationCommand(
-            1, "New Description", 1000m, CurrencyType.USD, 2, false);
+            1, "New Description", 1000m, nameof(CurrencyType.USD), 2, false);
 
         _repositoryMock.GetAsync(Arg.Any<BudgetEstimationByIdSpecification>()).Returns(estimation);
 
@@ -60,7 +60,7 @@ public sealed class UpdateBudgetEstimationCommandHandlerTests
     {
         // Arrange
         var command = new UpdateBudgetEstimationCommand(
-            99, "Desc", 100m, CurrencyType.UAH, null, false);
+            99, "Desc", 100m, nameof(CurrencyType.UAH), null, false);
 
         _repositoryMock.GetAsync(Arg.Any<BudgetEstimationByIdSpecification>()).Returns((BudgetEstimation?)null);
 

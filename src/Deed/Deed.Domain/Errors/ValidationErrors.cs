@@ -24,9 +24,6 @@ public static class ValidationErrors
     {
         public static Error AlreadyExists
             => Error.Conflict(nameof(AlreadyExists), "The capital was already exists.");
-
-        public static Error InvalidCurrencyType
-            => Error.BadRequest(nameof(InvalidCurrencyType), "The capital currency type is invalid.");
     }
 
     public static class Category
@@ -54,5 +51,8 @@ public static class ValidationErrors
 
         public static Error AmountMustBeGreaterThanZero
             => Error.BadRequest(nameof(AmountMustBeGreaterThanZero), "Amount must be greater than zero.");
+
+        public static Error InvalidCurrencyType
+            => Error.BadRequest(nameof(InvalidCurrencyType), "The currency type is invalid.");
     }
 }

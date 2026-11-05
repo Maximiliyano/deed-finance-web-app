@@ -38,7 +38,7 @@
         </div>
         <form [formGroup]="settingsForm" (ngSubmit)="saveSettings()" class="settings-form">
           <div class="form-group">
-            <label class="form-label">Main Currency</label>
+            <label for="currency" class="form-label">Main Currency</label>
             <select class="input" formControlName="currency">
               @for (c of currencies; track c) {
                 <option [value]="c">{{ c }}</option>
@@ -75,7 +75,7 @@
           </div>
           @if (notificationForm.value.balanceReminderEnabled) {
             <div class="form-group">
-              <label class="form-label">Reminder Schedule</label>
+              <label for="balanceReminderCron" class="form-label">Reminder Schedule</label>
               <select class="input" formControlName="balanceReminderCron">
                 @for (preset of cronPresets; track preset.value) {
                   <option [value]="preset.value">{{ preset.label }}</option>
@@ -96,7 +96,7 @@
           </div>
           @if (notificationForm.value.expenseReminderEnabled) {
             <div class="form-group">
-              <label class="form-label">Reminder Schedule</label>
+              <label for="expenseReminderCron" class="form-label">Reminder Schedule</label>
               <select class="input" formControlName="expenseReminderCron">
                 @for (preset of cronPresets; track preset.value) {
                   <option [value]="preset.value">{{ preset.label }}</option>
@@ -117,7 +117,7 @@
           </div>
           @if (notificationForm.value.debtReminderEnabled) {
             <div class="form-group">
-              <label class="form-label">Reminder Schedule</label>
+              <label for="debtReminderCron" class="form-label">Reminder Schedule</label>
               <select class="input" formControlName="debtReminderCron">
                 @for (preset of cronPresets; track preset.value) {
                   <option [value]="preset.value">{{ preset.label }}</option>

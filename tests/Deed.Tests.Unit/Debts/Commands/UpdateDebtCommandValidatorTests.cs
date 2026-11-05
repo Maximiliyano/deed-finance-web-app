@@ -10,7 +10,7 @@ public sealed class UpdateDebtCommandValidatorTests
     private readonly UpdateDebtCommandValidator _validator = new();
 
     private static UpdateDebtCommand ValidCommand => new(
-        1, "Laptop", 1500m, CurrencyType.USD,
+        1, "Laptop", 1500m, nameof(CurrencyType.USD),
         "John", "Me", DateTimeOffset.UtcNow,
         null, null, false, null);
 
@@ -52,7 +52,7 @@ public sealed class UpdateDebtCommandValidatorTests
     [Fact]
     public async Task Validate_CurrencyNone_FailsValidation()
     {
-        var command = ValidCommand with { Currency = CurrencyType.None };
+        var command = ValidCommand with { Currency = nameof(CurrencyType.None) };
         var result = await _validator.TestValidateAsync(command);
         result.ShouldHaveValidationErrorFor(c => c.Currency);
     }

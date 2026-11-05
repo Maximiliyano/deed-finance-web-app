@@ -25,7 +25,7 @@ internal sealed class CreateCapitalCommandValidator : AbstractValidator<CreateCa
             .WithError(ValidationErrors.General.AmountMustBeGreaterThanZero);
 
         RuleFor(c => c.Currency)
-            .Must(currency => currency != CurrencyType.None)
-            .WithError(ValidationErrors.Capital.InvalidCurrencyType);
+            .Must(c => Enum.TryParse<CurrencyType>(c, out var pc) && !pc.Equals(CurrencyType.None))
+            .WithError(DomainErrors.General.InvalidCurrency);
     }
 }

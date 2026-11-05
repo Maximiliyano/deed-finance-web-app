@@ -41,9 +41,9 @@
 
         <div class="toolbar-ctrl">
           <i class="fas fa-coins toolbar-ctrl-icon"></i>
-          <select [(ngModel)]="mainCurrencyVal" (change)="onCurrencyChange($event)" class="toolbar-select">
-            @for (option of currencyOptions; track option.value) {
-              <option [value]="option.value">{{ option.key }}</option>
+          <select [(ngModel)]="mainCurrency" (change)="onCurrencyChange($event)" class="toolbar-select">
+            @for (option of currencyOptions; track option) {
+              <option [value]="option">{{ option }}</option>
             }
           </select>
         </div>

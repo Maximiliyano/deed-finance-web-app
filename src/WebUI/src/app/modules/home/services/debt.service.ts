@@ -2,31 +2,8 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, catchError, tap, throwError } from 'rxjs';
 import { Debt } from '../models/debt.model';
-
-export interface CreateDebtRequest {
-  item: string;
-  amount: number;
-  currency: number;
-  source: string;
-  recipient: string;
-  borrowedAt: string;
-  deadlineAt: string | null;
-  note: string | null;
-  capitalId: number | null;
-}
-
-export interface UpdateDebtRequest {
-  item: string;
-  amount: number;
-  currency: number;
-  source: string;
-  recipient: string;
-  borrowedAt: string;
-  deadlineAt: string | null;
-  note: string | null;
-  isPaid: boolean;
-  payFromCapitalId: number | null;
-}
+import { CreateDebtRequest } from '../models/debt-request-create';
+import { UpdateDebtRequest } from '../models/debt-request-update';
 
 @Injectable({ providedIn: 'root' })
 export class DebtService {
@@ -55,7 +32,7 @@ export class DebtService {
       id: tempId,
       item: request.item,
       amount: request.amount,
-      currency: String(request.currency),
+      currency: request.currency,
       source: request.source,
       recipient: request.recipient,
       borrowedAt: request.borrowedAt,
@@ -83,7 +60,7 @@ export class DebtService {
   update(id: number, request: UpdateDebtRequest): Observable<void> {
     const previous = this.state$.value;
     this.state$.next(previous.map(d => d.id === id
-      ? { ...d, ...request, currency: String(request.currency), capitalId: request.payFromCapitalId ?? d.capitalId }
+      ? { ...d, ...request, currency: request.currency.toString(), capitalId: request.payFromCapitalId ?? d.capitalId }
       : d));
     return this.http.put<void>(`${this.baseUrl}/${id}`, request, { withCredentials: true }).pipe(
       tap(() => this.refresh()),

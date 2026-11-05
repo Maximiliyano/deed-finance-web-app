@@ -5,10 +5,8 @@ import { DialogRef } from '../../../../shared/components/dialogs/models/dialog-r
 import { DIALOG_DATA } from '../../../../shared/components/dialogs/models/dialog-consts';
 import { BudgetEstimation } from '../../models/budget-estimation';
 import { CapitalResponse } from '../../../capital/models/capital-response';
-import { CurrencyType } from '../../../../core/types/currency-type';
-import { getCurrencies } from '../../../../shared/components/currency/functions/get-currencies.component';
 import { BudgetEstimationForm } from '../../models/budget-estimation-form';
-import { stringToCurrencyEnum } from '../../../../shared/components/currency/functions/string-to-currency-enum';
+import { CURRENCIES, CURRENCY_DEFAULT } from '../../../../core/types/currency-type';
 
 export interface BudgetEstimationDialogData {
   estimation?: BudgetEstimation;
@@ -26,7 +24,7 @@ export interface BudgetEstimationDialogData {
 export class BudgetEstimationDialogComponent implements OnInit {
   form!: FormGroup;
   capitals: CapitalResponse[] = [];
-  currencies = getCurrencies({ excludeNone: true });
+  currencies = CURRENCIES;
   isEdit = false;
 
   constructor(
@@ -43,11 +41,10 @@ export class BudgetEstimationDialogComponent implements OnInit {
     const src = this.data.estimation;
     const description = isCopy && src ? this.appendCopySuffix(src.description) : (src?.description ?? '');
 
-    const parsedBudgetCurrency = stringToCurrencyEnum(src?.budgetCurrency ?? CurrencyType.UAH.toString());
     this.form = this.fb.group({
       description: [description, [Validators.required, Validators.maxLength(64)]],
       budgetAmount: [src?.budgetAmount ?? 0, [Validators.required, Validators.min(0)]],
-      budgetCurrency: [parsedBudgetCurrency, Validators.required],
+      budgetCurrency: [src?.budgetCurrency ?? CURRENCY_DEFAULT, Validators.required],
       capitalId: [src?.capitalId ?? ''],
       isCompleted: [isCopy ? false : (src?.isCompleted ?? false)]
     });

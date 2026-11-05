@@ -1,6 +1,7 @@
 using Deed.Application.Abstractions.Messaging;
 using Deed.Application.Auth;
 using Deed.Application.UtilityBills.Specifications;
+using Deed.Domain.Enums;
 using Deed.Domain.Errors;
 using Deed.Domain.Repositories;
 using Deed.Domain.Results;
@@ -25,9 +26,10 @@ internal sealed class UpdateUtilityBillCommandHandler(
             return Result.Failure(DomainErrors.General.NotFound("utility bill"));
         }
 
+        CurrencyType updatedCurrency = Enum.Parse<CurrencyType>(command.Currency);
         if (bill.Name == command.Name.Trim() &&
             bill.EstimatedAmount == command.EstimatedAmount &&
-            bill.Currency == command.Currency &&
+            bill.Currency == updatedCurrency &&
             bill.DueDayOfMonth == command.DueDayOfMonth &&
             bill.CapitalId == command.CapitalId &&
             bill.CategoryId == command.CategoryId &&
@@ -35,8 +37,14 @@ internal sealed class UpdateUtilityBillCommandHandler(
         {
             return Result.Success();
         }
-
-        bill.ApplyUpdate(command);
+        
+        bill.Name = command.Name.Trim();
+        bill.EstimatedAmount = command.EstimatedAmount;
+        bill.Currency = updatedCurrency;
+        bill.DueDayOfMonth = command.DueDayOfMonth;
+        bill.CapitalId = command.CapitalId;
+        bill.CategoryId = command.CategoryId;
+        bill.IsActive = command.IsActive;
 
         repository.Update(bill);
 

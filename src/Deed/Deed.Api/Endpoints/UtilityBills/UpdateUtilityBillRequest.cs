@@ -5,7 +5,7 @@ namespace Deed.Api.Endpoints.UtilityBills;
 internal sealed record UpdateUtilityBillRequest(
     string Name,
     decimal EstimatedAmount,
-    CurrencyType Currency,
+    string Currency,
     int DueDayOfMonth,
     int CapitalId,
     int CategoryId,

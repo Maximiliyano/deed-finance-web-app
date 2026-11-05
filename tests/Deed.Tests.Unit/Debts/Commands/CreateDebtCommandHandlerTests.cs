@@ -29,7 +29,7 @@ public sealed class CreateDebtCommandHandlerTests
     {
         // Arrange
         var command = new CreateDebtCommand(
-            "Laptop  ", 1500m, CurrencyType.USD,
+            "Laptop  ", 1500m, nameof(CurrencyType.USD),
             "John  ", "Me  ", DateTimeOffset.UtcNow,
             null, "  Some note  ", null);
 
@@ -57,7 +57,7 @@ public sealed class CreateDebtCommandHandlerTests
     {
         // Arrange
         var command = new CreateDebtCommand(
-            "Rent", 500m, CurrencyType.UAH,
+            "Rent", 500m, nameof(CurrencyType.UAH),
             "Bank", "Me", DateTimeOffset.UtcNow,
             DateTimeOffset.UtcNow.AddMonths(1), null, null);
 

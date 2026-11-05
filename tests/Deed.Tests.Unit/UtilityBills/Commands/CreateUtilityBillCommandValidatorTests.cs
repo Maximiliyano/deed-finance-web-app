@@ -9,7 +9,7 @@ public sealed class CreateUtilityBillCommandValidatorTests
     private readonly CreateUtilityBillCommandValidator _validator = new();
 
     private static CreateUtilityBillCommand ValidCommand => new(
-        "Electric", 500m, CurrencyType.UAH, 15, 1, 7, true);
+        "Electric", 500m, nameof(CurrencyType.UAH), 15, 1, 7, true);
 
     [Fact]
     public async Task Validate_ValidCommand_PassesValidation()
@@ -47,7 +47,7 @@ public sealed class CreateUtilityBillCommandValidatorTests
     [Fact]
     public async Task Validate_CurrencyNone_FailsValidation()
     {
-        var command = ValidCommand with { Currency = CurrencyType.None };
+        var command = ValidCommand with { Currency = nameof(CurrencyType.None) };
         var result = await _validator.TestValidateAsync(command);
         result.ShouldHaveValidationErrorFor(c => c.Currency);
     }

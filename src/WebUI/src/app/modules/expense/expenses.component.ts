@@ -26,7 +26,7 @@ import { UtilityBillService } from './services/utility-bill.service';
 import { CreateUtilityBillRequest, PayUtilityBillRequest, UtilityBillResponse } from './models/utility-bill';
 import { UtilityBillDialogComponent, UtilityBillDialogData } from './components/utility-bill-dialog/utility-bill-dialog.component';
 import { PayUtilityBillDialogComponent, PayUtilityBillDialogData } from './components/pay-utility-bill-dialog/pay-utility-bill-dialog.component';
-import { CurrencyType } from '../../core/types/currency-type';
+import { CURRENCY_DEFAULT } from '../../core/types/currency-type';
 
 @Component({
     selector: 'app-expenses',
@@ -185,8 +185,8 @@ export class ExpensesComponent implements OnInit, OnDestroy {
     document.title = "Deed - Expenses";
 
     this.userSettingsService.load().subscribe({
-      next: (v) => this.defaultCurrency = v?.currency ?? CurrencyType.UAH.toString()
-    })
+      next: (v) => this.defaultCurrency = v?.currency ?? CURRENCY_DEFAULT
+    });
 
     this.fetchExpenses();
     this.fetchCapitals();

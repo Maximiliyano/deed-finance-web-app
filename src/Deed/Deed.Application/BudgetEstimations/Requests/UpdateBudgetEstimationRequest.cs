@@ -5,7 +5,7 @@ namespace Deed.Api.Endpoints.BudgetEstimations;
 public sealed record UpdateBudgetEstimationRequest(
     string Description,
     decimal BudgetAmount,
-    CurrencyType BudgetCurrency,
+    string BudgetCurrency,
     int? CapitalId,
     bool IsCompleted
 );

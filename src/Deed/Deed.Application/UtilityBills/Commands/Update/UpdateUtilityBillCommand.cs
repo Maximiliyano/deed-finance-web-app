@@ -7,7 +7,7 @@ public sealed record UpdateUtilityBillCommand(
     int Id,
     string Name,
     decimal EstimatedAmount,
-    CurrencyType Currency,
+    string Currency,
     int DueDayOfMonth,
     int CapitalId,
     int CategoryId,

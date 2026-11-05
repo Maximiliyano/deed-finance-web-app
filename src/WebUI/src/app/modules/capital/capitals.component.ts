@@ -8,8 +8,6 @@ import { AddCapitalRequest } from './models/add-capital-request';
 import { CapitalItem } from './models/capital-item';
 import { CapitalResponse } from './models/capital-response';
 import { CapitalService } from './services/capital.service';
-import { CurrencyType } from '../../core/types/currency-type';
-import { getCurrencies } from '../../shared/components/currency/functions/get-currencies.component';
 import { UpdateCapitalRequest } from './models/update-capital-request';
 import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import { AddCapitalDialogComponent } from './components/capital-dialog/add-capital-dialog.component';
@@ -19,6 +17,8 @@ import { User } from '../auth/models/user';
 import { AuthService } from '../auth/services/auth-service';
 import { Debt } from '../home/models/debt.model';
 import { DebtService } from '../home/services/debt.service';
+import { CURRENCIES, CURRENCY_DEFAULT } from '../../core/types/currency-type';
+import { UserSettingsService } from '../home/services/user-settings.service';
 
 @Component({
     selector: 'app-capitals',
@@ -44,7 +44,6 @@ export class CapitalsComponent implements OnInit, OnDestroy {
   filterBy: 'onlyForSavings' | null = null;
 
   mainCurrency: string;
-  mainCurrencyVal: CurrencyType;
 
   sortOptions: {label: string; key: string}[] = [
     { label: 'custom', key: '' },
@@ -61,7 +60,7 @@ export class CapitalsComponent implements OnInit, OnDestroy {
   isCapitalActionsOpen: boolean = false;
   openMenuId: number | null = null;
 
-  currencyOptions = getCurrencies({ excludeNone: true });
+  currencyOptions = CURRENCIES;
 
   user: User | null = null;
 
@@ -75,6 +74,7 @@ export class CapitalsComponent implements OnInit, OnDestroy {
     private readonly dialogService: DialogService,
     private readonly authService: AuthService,
     private readonly debtService: DebtService,
+    private readonly userSettingsService: UserSettingsService,
     private readonly cdr: ChangeDetectorRef
   ) {
   }
@@ -102,9 +102,7 @@ export class CapitalsComponent implements OnInit, OnDestroy {
         this.cdr.markForCheck();
       });
 
-      // TODO refactor to userSettings
-    this.mainCurrency = CurrencyType.UAH.toString();
-    this.mainCurrencyVal = CurrencyType.UAH;
+    this.mainCurrency = this.user?.currency ?? CURRENCY_DEFAULT;
 
     this.queryParams$
       .pipe(
@@ -182,9 +180,14 @@ export class CapitalsComponent implements OnInit, OnDestroy {
     const newCurrency = (event.target as HTMLSelectElement).value;
 
     if (newCurrency) {
-      this.mainCurrencyVal = Number(newCurrency);
-      this.mainCurrency = CurrencyType[this.mainCurrencyVal];
-      this.popupMessageService.success(`Shown currency updated to <b>${this.mainCurrency}</b>`);
+      this.userSettingsService.upsert({
+        currency: newCurrency
+      }).subscribe({
+        next: () => {
+          this.mainCurrency = newCurrency;
+          this.popupMessageService.success(`Shown currency updated to <b>${this.mainCurrency}</b>`);
+        }
+      });
     }
   }
 
@@ -223,7 +226,7 @@ export class CapitalsComponent implements OnInit, OnDestroy {
     if (capital) {
       capital.name = request.name ?? capital.name;
       capital.balance = request.balance ?? capital.balance;
-      capital.currency = request.currency ? CurrencyType[request.currency] : capital.currency;
+      capital.currency = request.currency ? request.currency : capital.currency;
       capital.includeInTotal = request.includeInTotal ?? capital.includeInTotal;
       capital.onlyForSavings = request.onlyForSavings ?? capital.onlyForSavings;
 
@@ -265,7 +268,7 @@ export class CapitalsComponent implements OnInit, OnDestroy {
       id: id,
       name: request.name,
       balance: Number(request.balance),
-      currency: CurrencyType[request.currency],
+      currency: request.currency,
       includeInTotal: request.includeInTotal,
       onlyForSavings: request.onlyForSavings,
       totalIncome: 0,

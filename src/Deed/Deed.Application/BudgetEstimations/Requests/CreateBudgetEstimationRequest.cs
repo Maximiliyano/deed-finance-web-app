@@ -10,6 +10,6 @@ namespace Deed.Application.BudgetEstimations.Requests;
 public sealed record CreateBudgetEstimationRequest(
     string Description,
     decimal BudgetAmount,
-    CurrencyType BudgetCurrency,
+    string BudgetCurrency,
     int? CapitalId
 );

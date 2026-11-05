@@ -6,7 +6,6 @@ import { UpdateCapitalRequest } from '../models/update-capital-request';
 import { CapitalResponse } from '../models/capital-response';
 import { UpdateCapitalOrderRequest } from '../models/update-capital-order-request';
 import { QueryParams } from '../../../core/models/query-params';
-import { CurrencyType } from '../../../core/types/currency-type';
 import { convertCurrency } from '../../../shared/utils/currency-conversion.util';
 import { Exchange } from '../../../core/models/exchange-model';
 
@@ -65,7 +64,7 @@ export class CapitalService {
       id: tempId,
       name: request.name,
       balance: request.balance,
-      currency: CurrencyType[request.currency] as string,
+      currency: request.currency,
       onlyForSavings: request.onlyForSavings,
       includeInTotal: request.includeInTotal,
       totalIncome: 0,

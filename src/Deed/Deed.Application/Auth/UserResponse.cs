@@ -1,9 +1,12 @@
-﻿namespace Deed.Application.Auth;
+﻿using Deed.Application.UserSettings.Responses;
+
+namespace Deed.Application.Auth;
 
 public sealed record UserResponse(
     string? Id,
     string? Email,
     bool? EmailVerified,
     string? Fullname,
-    Uri? PictureUrl
+    Uri? PictureUrl,
+    UserSettingsResponse? Settings
 );

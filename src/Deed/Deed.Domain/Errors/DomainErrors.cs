@@ -53,14 +53,14 @@ public static class DomainErrors
 
         public static Error ReferenceExists
             => Error.Conflict("Category.ReferenceExists", "Category cannot be deleted because it has related references.");
-
-        public static Error RestoreFailed
-            => Error.NotFound("Category.RestoreFailed", "This category is not available for restore.");
     }
 
     public static class Anonymous
     {
         public static Error LimitReached
             => Error.BadRequest("Anonymous.LimitReached", "Anonymous users can create up to 3 items per entity. Sign in to remove this limit.");
+
+        public static Error NameInvalid
+            => Error.Failure("Anonymous.NameInvalid", "Server failure. Anonymous user name is invalid.");
     }
 }

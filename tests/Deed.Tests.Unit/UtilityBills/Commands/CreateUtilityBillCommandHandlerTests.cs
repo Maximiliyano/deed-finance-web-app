@@ -29,7 +29,7 @@ public sealed class CreateUtilityBillCommandHandlerTests
     {
         // Arrange
         var command = new CreateUtilityBillCommand(
-            "  Electric  ", 500m, CurrencyType.UAH, 15, 1, 7, true);
+            "  Electric  ", 500m, nameof(CurrencyType.UAH), 15, 1, 7, true);
 
         // Act
         var result = await _handler.Handle(command, CancellationToken.None);
@@ -61,7 +61,7 @@ public sealed class CreateUtilityBillCommandHandlerTests
             .Returns(AuthConstants.EntityLimit);
 
         var command = new CreateUtilityBillCommand(
-            "Water", 100m, CurrencyType.UAH, 5, 1, 7, true);
+            "Water", 100m, nameof(CurrencyType.UAH), 5, 1, 7, true);
 
         // Act
         var result = await _handler.Handle(command, CancellationToken.None);

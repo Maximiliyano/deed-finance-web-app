@@ -2,6 +2,7 @@ using Deed.Application.Debts.Commands.Create;
 using Deed.Application.Debts.Commands.Update;
 using Deed.Application.Debts.Responses;
 using Deed.Domain.Entities;
+using Deed.Domain.Enums;
 
 namespace Deed.Application.Debts;
 
@@ -32,7 +33,7 @@ internal static class DebtExtensions
         {
             Item = cmd.Item.Trim(),
             Amount = cmd.Amount,
-            Currency = cmd.Currency,
+            Currency = Enum.Parse<CurrencyType>(cmd.Currency),
             Source = cmd.Source.Trim(),
             Recipient = cmd.Recipient.Trim(),
             BorrowedAt = cmd.BorrowedAt,
@@ -40,17 +41,4 @@ internal static class DebtExtensions
             Note = cmd.Note?.Trim(),
             CapitalId = cmd.CapitalId,
         };
-
-    internal static void ApplyUpdate(this Debt debt, UpdateDebtCommand cmd)
-    {
-        debt.Item = cmd.Item.Trim();
-        debt.Amount = cmd.Amount;
-        debt.Currency = cmd.Currency;
-        debt.Source = cmd.Source.Trim();
-        debt.Recipient = cmd.Recipient.Trim();
-        debt.BorrowedAt = cmd.BorrowedAt;
-        debt.DeadlineAt = cmd.DeadlineAt;
-        debt.Note = cmd.Note?.Trim();
-        debt.IsPaid = cmd.IsPaid;
-    }
 }

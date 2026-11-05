@@ -4,12 +4,12 @@ import { Exchange } from '../../../../core/models/exchange-model';
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DIALOG_DATA } from '../models/dialog-consts';
-import { getCurrencies } from '../../currency/functions/get-currencies.component';
 import { convertCurrency } from '../../../utils/currency-conversion.util';
 import { IconComponent } from "../../icon/icon.component";
 import { ClipboardModule } from '@angular/cdk/clipboard'
 import { SectionKey, SectionLoadingService } from '../../../services/section-loading.service';
 import { Subject, takeUntil } from 'rxjs';
+import { CURRENCIES } from '../../../../core/types/currency-type';
 
 @Component({
     selector: 'app-exchange-dialog',
@@ -24,7 +24,7 @@ export class ExchangeDialogComponent implements OnInit {
   fromCurrency: string;
   toCurrency: string;
 
-  readonly currencies: string[] = getCurrencies({ excludeNone: true }).map(c => c.key);
+  readonly currencies: string[] = CURRENCIES.map(x => x);
 
   constructor(
     private readonly popupMessageService: PopupMessageService,

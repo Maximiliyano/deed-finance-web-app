@@ -36,7 +36,7 @@ public sealed class UpdateGoalCommandHandlerTests
             Currency = CurrencyType.USD
         };
         var command = new UpdateGoalCommand(
-            1, "New Title", 5000m, CurrencyType.EUR,
+            1, "New Title", 5000m, nameof(CurrencyType.EUR),
             1000m, null, "note", true);
 
         _repositoryMock.GetAsync(Arg.Any<GoalByIdSpecification>()).Returns(goal);
@@ -60,7 +60,7 @@ public sealed class UpdateGoalCommandHandlerTests
     {
         // Arrange
         var command = new UpdateGoalCommand(
-            99, "Title", 100m, CurrencyType.UAH,
+            99, "Title", 100m, nameof(CurrencyType.UAH),
             0m, null, null, false);
 
         _repositoryMock.GetAsync(Arg.Any<GoalByIdSpecification>()).Returns((Goal?)null);

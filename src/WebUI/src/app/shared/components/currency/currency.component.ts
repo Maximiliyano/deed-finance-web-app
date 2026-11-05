@@ -1,9 +1,7 @@
 import { Component, OnDestroy, OnInit } from "@angular/core";
-import { CurrencyType } from "../../../core/types/currency-type";
-import { getCurrencies } from "./functions/get-currencies.component";
+import { CURRENCIES, Currency, CURRENCY_DEFAULT } from "../../../core/types/currency-type";
 import { Subject, takeUntil } from "rxjs";
 import { AuthService } from "../../../modules/auth/services/auth-service";
-import { stringToCurrencyEnum } from "./functions/string-to-currency-enum";
 import { PopupMessageService } from "../../services/popup-message.service";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
@@ -17,8 +15,8 @@ import { UserSettings } from "../../../modules/home/models/user-settings.model";
     imports: [CommonModule, FormsModule]
 })
 export class CurrencyComponent implements OnInit, OnDestroy {
-    currencies: { key: string, value: CurrencyType }[] = [];
-    userCurrency: CurrencyType;
+    currencies: string[] = CURRENCIES.map(x => x);
+    userCurrency: string;
 
     private unsubscribe$ = new Subject<void>();
 
@@ -29,12 +27,11 @@ export class CurrencyComponent implements OnInit, OnDestroy {
     ) {}
 
     ngOnInit(): void {
-        this.currencies = getCurrencies();
         this.authService
             .me()
             .pipe(takeUntil(this.unsubscribe$))
             .subscribe({
-                next: (user) => this.userCurrency = stringToCurrencyEnum(user?.currency ?? '') ?? CurrencyType.UAH
+                next: (user) => this.userCurrency = user?.currency ?? CURRENCY_DEFAULT
             });
     }
 
@@ -47,7 +44,7 @@ export class CurrencyComponent implements OnInit, OnDestroy {
         const newCurrency = (event.target as HTMLSelectElement).value;
 
         if (newCurrency) {
-            this.userCurrency = newCurrency as unknown as CurrencyType;
+            this.userCurrency = newCurrency as Currency;
 
             this.userSettingsService.load()
                 .pipe(takeUntil(this.unsubscribe$))
@@ -57,7 +54,7 @@ export class CurrencyComponent implements OnInit, OnDestroy {
                         this.userSettingsService.upsert(payload)
                             .pipe(takeUntil(this.unsubscribe$))
                             .subscribe({
-                                next: () => this.popupMessageService.success(`Default currency updated to <b>${CurrencyType[Number(newCurrency)]}</b>`),
+                                next: () => this.popupMessageService.success(`Default currency updated to <b>${newCurrency}</b>`),
                             });
                     }
                 });

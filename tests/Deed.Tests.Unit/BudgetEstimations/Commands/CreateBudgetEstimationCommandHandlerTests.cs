@@ -28,7 +28,7 @@ public sealed class CreateBudgetEstimationCommandHandlerTests
     {
         // Arrange
         var command = new CreateBudgetEstimationCommand(
-            "Groceries  ", 500m, CurrencyType.UAH, 1);
+            "Groceries  ", 500m, nameof(CurrencyType.UAH), 1);
 
         // Act
         var result = await _handler.Handle(command, CancellationToken.None);
@@ -52,7 +52,7 @@ public sealed class CreateBudgetEstimationCommandHandlerTests
     {
         // Arrange
         var command = new CreateBudgetEstimationCommand(
-            "Rent", 1000m, CurrencyType.USD, null);
+            "Rent", 1000m, nameof(CurrencyType.USD), null);
 
         // Act
         var result = await _handler.Handle(command, CancellationToken.None);

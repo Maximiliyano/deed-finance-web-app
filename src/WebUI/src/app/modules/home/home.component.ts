@@ -1,5 +1,5 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit} from '@angular/core';
-import {Subject, combineLatest, of, skip, startWith, switchMap, takeUntil} from 'rxjs';
+import {Subject, combineLatest, skip, startWith, switchMap, takeUntil} from 'rxjs';
 import {ActivatedRoute} from '@angular/router';
 import {moveItemInArray} from '@angular/cdk/drag-drop';
 import {AuthService} from '../auth/services/auth-service';
@@ -9,7 +9,7 @@ import {BudgetEstimation} from './models/budget-estimation';
 import {Goal} from './models/goal.model';
 import {UserSettings} from './models/user-settings.model';
 import {GoalService, UpdateGoalRequest} from './services/goal.service';
-import {CreateDebtRequest, DebtService, UpdateDebtRequest} from './services/debt.service';
+import {DebtService} from './services/debt.service';
 import {UserSettingsService} from './services/user-settings.service';
 import {DashboardLayoutService, PanelId} from './services/dashboard-layout.service';
 import {DialogService} from '../../shared/components/dialogs/services/dialog.service';
@@ -34,22 +34,24 @@ import {
 import {TransferResponse, TransferService} from '../../shared/services/transfer.service';
 import {TransferDialogComponent, TransferDialogData} from './components/transfer-dialog/transfer-dialog.component';
 import {Exchange} from '../../core/models/exchange-model';
-import {CurrencyType} from '../../core/types/currency-type';
+import {CURRENCIES, CURRENCY_DEFAULT} from '../../core/types/currency-type';
 import {CapitalDetailsComponent} from '../capital/components/capital-details/capital-details.component';
 import {AddCapitalDialogComponent} from '../capital/components/capital-dialog/add-capital-dialog.component';
 import {AddCapitalRequest} from '../capital/models/add-capital-request';
-import {getCurrencies} from '../../shared/components/currency/functions/get-currencies.component';
 import {UpdateCapitalRequest} from '../capital/models/update-capital-request';
 import {SectionKey, SectionLoadingService} from '../../shared/services/section-loading.service';
 import {convertCurrency} from '../../shared/utils/currency-conversion.util';
 import { NavItem } from '../../core/layout/header/header.component';
 import { QueryTimeRange } from './models/query-time-range';
 import { CategoryType } from '../../core/types/category-type';
-import { stringToCurrencyEnum } from '../../shared/components/currency/functions/string-to-currency-enum';
 import { BudgetEstimationService } from './services/budget-estimation.service';
 import { CreateBudgetEstimationRequest } from './models/budget-estimation-request-create';
 import { BudgetEstimationForm } from './models/budget-estimation-form';
 import { UpdateBudgetEstimationRequest } from './models/budget-estimation-request-update';
+import { DebtForm } from './models/debt-form';
+import { CreateDebtRequest } from './models/debt-request-create';
+import { UpdateDebtRequest } from './models/debt-request-update';
+import { ExpenseResponse } from '../expense/models/expense-response';
 
 @Component({
     selector: 'app-home',
@@ -230,7 +232,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   get totalCapitalAmountInUah(): number {
     return this.capitals
       .filter(c => c.includeInTotal)
-      .reduce((sum, c) => sum + convertCurrency(c.balance, c.currency, CurrencyType.UAH.toString(), this.exchanges), 0);
+      .reduce((sum, c) => sum + convertCurrency(c.balance, c.currency, CURRENCY_DEFAULT, this.exchanges), 0);
   }
 
   private get planFactor(): number {
@@ -368,9 +370,9 @@ export class HomeComponent implements OnInit, OnDestroy {
     const target = this.chartCurrency;
     const filtered = this.expenses.map(c => {
       const expenses = this.hasCapitalFilter
-        ? c.expenses.filter((e: any) => this.capitalAllowed(e.capitalId))
+        ? c.expenses.filter((e: ExpenseResponse) => this.capitalAllowed(e.capitalId))
         : c.expenses;
-      const sum = expenses.reduce((s: number, e: any) =>
+      const sum = expenses.reduce((s: number, e: ExpenseResponse) =>
         s + convertCurrency(e.amount, this.capitalCurrencyOf(e.capitalId), target, this.exchanges), 0);
       return { name: c.name, sum };
     });
@@ -392,10 +394,10 @@ export class HomeComponent implements OnInit, OnDestroy {
     let sum = 0;
     for (const cat of this.expenses) {
       const expenses = this.hasCapitalFilter
-        ? cat.expenses.filter((e: any) => this.capitalAllowed(e.capitalId))
+        ? cat.expenses.filter((e: ExpenseResponse) => this.capitalAllowed(e.capitalId))
         : cat.expenses;
       for (const e of expenses) {
-        sum += convertCurrency(e.amount, this.capitalCurrencyOf((e as any).capitalId), target, this.exchanges);
+        sum += convertCurrency(e.amount, this.capitalCurrencyOf(e.capitalId), target, this.exchanges);
       }
     }
     return sum;
@@ -718,7 +720,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     const req: UpdateBudgetEstimationRequest = {
       description: estimation.description,
       budgetAmount: estimation.budgetAmount,
-      budgetCurrency: stringToCurrencyEnum(estimation.budgetCurrency)!,
+      budgetCurrency: estimation.budgetCurrency,
       capitalId: estimation.capitalId,
       isCompleted: checked
     };
@@ -758,43 +760,44 @@ export class HomeComponent implements OnInit, OnDestroy {
   openDebtDialog(debt?: Debt): void {
     const data: DebtDialogData = { debt, capitals: this.capitals };
     const ref = this.dialogService.open(DebtDialogComponent, { data });
-    ref.afterClosed$.pipe(takeUntil(this.unsubscribe$)).subscribe(result => {
-      if (!result) return;
-      if (debt) {
-        const req: UpdateDebtRequest = {
-          item: result.item,
-          amount: result.amount,
-          currency: result.currency,
-          source: result.source,
-          recipient: result.recipient,
-          borrowedAt: result.borrowedAt,
-          deadlineAt: result.deadlineAt,
-          note: result.note,
-          isPaid: result.isPaid ?? debt.isPaid,
-          payFromCapitalId: result.payFromCapitalId ?? null
-        };
-        this.debtService.update(debt.id, req).pipe(takeUntil(this.unsubscribe$)).subscribe({
-          next: () => this.popup.success('Debt updated'),
-          error: () => this.popup.error('Failed to update debt')
-        });
-      } else {
-        const req: CreateDebtRequest = {
-          item: result.item,
-          amount: result.amount,
-          currency: result.currency,
-          source: result.source,
-          recipient: result.recipient,
-          borrowedAt: result.borrowedAt,
-          deadlineAt: result.deadlineAt,
-          note: result.note,
-          capitalId: result.capitalId ?? null
-        };
-        this.debtService.create(req).pipe(takeUntil(this.unsubscribe$)).subscribe({
-          next: () => this.popup.success('Debt added'),
-          error: () => this.popup.error('Failed to add debt')
-        });
-      }
-    });
+    ref.afterClosed$.pipe(takeUntil(this.unsubscribe$)).subscribe({
+      next: (result: DebtForm) => {
+        if (!result) return;
+        if (debt) {
+          const req: UpdateDebtRequest = {
+            item: result.item,
+            amount: result.amount,
+            currency: result.currency,
+            source: result.source,
+            recipient: result.recipient,
+            borrowedAt: result.borrowedAt,
+            deadlineAt: result.deadlineAt,
+            note: result.note,
+            isPaid: result.isPaid ?? debt.isPaid,
+            payFromCapitalId: result.payFromCapitalId ?? null
+          };
+          this.debtService.update(debt.id, req).pipe(takeUntil(this.unsubscribe$)).subscribe({
+            next: () => this.popup.success('Debt updated'),
+            error: () => this.popup.error('Failed to update debt')
+          });
+        } else {
+          const req: CreateDebtRequest = {
+            item: result.item,
+            amount: result.amount,
+            currency: result.currency,
+            source: result.source,
+            recipient: result.recipient,
+            borrowedAt: result.borrowedAt,
+            deadlineAt: result.deadlineAt,
+            note: result.note,
+            capitalId: result.capitalId ?? null
+          };
+          this.debtService.create(req).pipe(takeUntil(this.unsubscribe$)).subscribe({
+            next: () => this.popup.success('Debt added'),
+            error: () => this.popup.error('Failed to add debt')
+          });
+        }
+      }});
   }
 
   deleteDebt(debt: Debt): void {
@@ -826,7 +829,7 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   openCapitalDetail(cap: CapitalResponse): void {
     const ref = this.dialogService.open(CapitalDetailsComponent, {
-      data: { capital: cap, currencyOptions: getCurrencies({ excludeNone: true }), exchanges: this.exchanges }
+      data: { capital: cap, currencyOptions: CURRENCIES, exchanges: this.exchanges }
     });
     ref.afterClosed$.pipe(takeUntil(this.unsubscribe$)).subscribe((result: UpdateCapitalRequest | null) => {
       if (!result) return;
@@ -862,7 +865,7 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   openAddCapital(): void {
     const ref = this.dialogService.open(AddCapitalDialogComponent, {
-      data: getCurrencies({ excludeNone: true })
+      data: CURRENCIES
     });
     ref.afterClosed$.pipe(takeUntil(this.unsubscribe$)).subscribe((result: AddCapitalRequest | null) => {
       if (!result) return;
@@ -907,7 +910,7 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   get totalIncomesInUah(): number {
     return this.incomes.length > 0 ? this.incomes.reduce(
-      (sum, i) => sum + convertCurrency(i.amount, this.capitalCurrencyOf(i.capitalId), CurrencyType.UAH.toString(), this.exchanges), 0
+      (sum, i) => sum + convertCurrency(i.amount, this.capitalCurrencyOf(i.capitalId), CURRENCY_DEFAULT, this.exchanges), 0
     ) : 0;
   }
 

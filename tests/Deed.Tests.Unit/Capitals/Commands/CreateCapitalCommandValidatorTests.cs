@@ -22,7 +22,7 @@ public sealed class CreateCapitalCommandValidatorTests
     }
 
     private static CreateCapitalCommand ValidCommand => new(
-        "Cash", 1000m, CurrencyType.UAH, true, false);
+        "Cash", 1000m, nameof(CurrencyType.UAH), true, false);
 
     [Fact]
     public async Task Validate_ValidCommand_PassesValidation()
@@ -76,7 +76,7 @@ public sealed class CreateCapitalCommandValidatorTests
     [Fact]
     public async Task Validate_CurrencyNone_FailsValidation()
     {
-        var command = ValidCommand with { Currency = CurrencyType.None };
+        var command = ValidCommand with { Currency = nameof(CurrencyType.None) };
         var result = await _validator.TestValidateAsync(command);
         result.ShouldHaveValidationErrorFor(c => c.Currency);
     }

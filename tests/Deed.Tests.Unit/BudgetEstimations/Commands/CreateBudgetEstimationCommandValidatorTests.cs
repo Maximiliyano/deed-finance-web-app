@@ -9,7 +9,7 @@ public sealed class CreateBudgetEstimationCommandValidatorTests
     private readonly CreateBudgetEstimationCommandValidator _validator = new();
 
     private static CreateBudgetEstimationCommand ValidCommand => new(
-        "Rent", 500m, CurrencyType.UAH, null);
+        "Rent", 500m, nameof(CurrencyType.UAH), null);
 
     [Fact]
     public async Task Validate_ValidCommand_PassesValidation()
@@ -63,7 +63,7 @@ public sealed class CreateBudgetEstimationCommandValidatorTests
     [Fact]
     public async Task Validate_CurrencyNone_FailsValidation()
     {
-        var command = ValidCommand with { BudgetCurrency = CurrencyType.None };
+        var command = ValidCommand with { BudgetCurrency = nameof(CurrencyType.None) };
         var result = await _validator.TestValidateAsync(command);
         result.ShouldHaveValidationErrorFor(c => c.BudgetCurrency);
     }

@@ -5,8 +5,8 @@ import { DialogRef } from '../../../../shared/components/dialogs/models/dialog-r
 import { DIALOG_DATA } from '../../../../shared/components/dialogs/models/dialog-consts';
 import { CapitalResponse } from '../../../capital/models/capital-response';
 import { CategoryResponse } from '../../../category/models/category-model';
-import { CurrencyType } from '../../../../core/types/currency-type';
 import { CreateUtilityBillRequest, UtilityBillResponse } from '../../models/utility-bill';
+import { CURRENCIES } from '../../../../core/types/currency-type';
 
 export interface UtilityBillDialogData {
   bill?: UtilityBillResponse;
@@ -25,7 +25,7 @@ export class UtilityBillDialogComponent implements OnInit {
   form!: FormGroup;
   capitals: CapitalResponse[] = [];
   categories: CategoryResponse[] = [];
-  currencies = Object.keys(CurrencyType).filter(k => isNaN(Number(k)) && k !== 'None');
+  currencies = CURRENCIES;
   isEdit = false;
 
   constructor(
@@ -51,17 +51,13 @@ export class UtilityBillDialogComponent implements OnInit {
     });
   }
 
-  private currencyIndex(name: string): number {
-    return CurrencyType[name as keyof typeof CurrencyType] as unknown as number;
-  }
-
   submit(): void {
     if (this.form.invalid) return;
     const val = this.form.value;
     this.dialogRef.close({
       name: val.name.trim(),
       estimatedAmount: val.estimatedAmount,
-      currency: this.currencyIndex(val.currency),
+      currency: val.currency,
       dueDayOfMonth: Number(val.dueDayOfMonth),
       capitalId: Number(val.capitalId),
       categoryId: Number(val.categoryId),

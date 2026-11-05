@@ -21,7 +21,7 @@ internal static class UserSettingsExtensions
     internal static DomainUserSettings ToEntity(this UpsertUserSettingsCommand command)
         => new()
         {
-            Currency = command.Currency,
+            Currency = Enum.Parse<CurrencyType>(command.Currency),
             BalanceReminderEnabled = command.BalanceReminderEnabled,
             BalanceReminderCron = command.BalanceReminderCron,
             ExpenseReminderEnabled = command.ExpenseReminderEnabled,

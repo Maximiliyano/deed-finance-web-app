@@ -28,7 +28,7 @@ public sealed class CreateGoalCommandHandlerTests
     {
         // Arrange
         var command = new CreateGoalCommand(
-            "Emergency Fund  ", 10000m, CurrencyType.USD,
+            "Emergency Fund  ", 10000m, nameof(CurrencyType.USD),
             500m, null, "  Save for rainy days  ");
 
         // Act

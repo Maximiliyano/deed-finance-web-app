@@ -40,7 +40,7 @@ public sealed class UpdateDebtCommandHandlerTests
             BorrowedAt = DateTimeOffset.UtcNow
         };
         var command = new UpdateDebtCommand(
-            1, "Updated Item", 2000m, CurrencyType.EUR,
+            1, "Updated Item", 2000m, nameof(CurrencyType.EUR),
             "Jane", "You", DateTimeOffset.UtcNow,
             null, "Updated note", true, null);
 
@@ -66,7 +66,7 @@ public sealed class UpdateDebtCommandHandlerTests
     {
         // Arrange
         var command = new UpdateDebtCommand(
-            99, "Item", 100m, CurrencyType.UAH,
+            99, "Item", 100m, nameof(CurrencyType.UAH),
             "A", "B", DateTimeOffset.UtcNow, null, null, false, null);
 
         _repositoryMock.GetAsync(Arg.Any<DebtByIdSpecification>()).Returns((Debt?)null);

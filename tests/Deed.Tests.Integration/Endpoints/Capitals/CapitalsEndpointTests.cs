@@ -17,7 +17,7 @@ public sealed class CapitalsEndpointTests(DeedApiFactory factory)
         CreateCapitalRequest request = new(
             $"TestRun_{Guid.NewGuid().ToString("N")[..8]}",
             5000m,
-            CurrencyType.UAH,
+            nameof(CurrencyType.UAH),
             true,
             false
         );
@@ -32,7 +32,7 @@ public sealed class CapitalsEndpointTests(DeedApiFactory factory)
         Assert.NotNull(capital);
         Assert.Equal(request.Name, capital.Name);
         Assert.Equal(request.Balance, capital.Balance);
-        Assert.Equal(request.Currency, Enum.Parse<CurrencyType>(capital.Currency));
+        Assert.Equal(request.Currency, capital.Currency);
         Assert.Equal(request.IncludeInTotal, capital.IncludeInTotal);
         Assert.Equal(request.OnlyForSavings, capital.OnlyForSavings);
     }

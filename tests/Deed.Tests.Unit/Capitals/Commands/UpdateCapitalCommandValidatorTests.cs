@@ -63,7 +63,7 @@ public sealed class UpdateCapitalCommandValidatorTests
     [Fact]
     public async Task Validate_CurrencyNone_FailsValidation()
     {
-        var command = ValidCommand with { Currency = CurrencyType.None };
+        var command = ValidCommand with { Currency = nameof(CurrencyType.None) };
         var result = await _validator.TestValidateAsync(command);
         result.ShouldHaveValidationErrorFor(c => c.Currency);
     }
@@ -71,7 +71,7 @@ public sealed class UpdateCapitalCommandValidatorTests
     [Fact]
     public async Task Validate_ValidCurrency_PassesValidation()
     {
-        var command = ValidCommand with { Currency = CurrencyType.USD };
+        var command = ValidCommand with { Currency = nameof(CurrencyType.USD) };
         var result = await _validator.TestValidateAsync(command);
         result.ShouldNotHaveValidationErrorFor(c => c.Currency);
     }

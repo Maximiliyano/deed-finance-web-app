@@ -10,7 +10,7 @@ import { PopupMessageService } from '../../../../shared/services/popup-message.s
 import { User } from '../../models/user';
 import { UserSettingsService } from '../../../home/services/user-settings.service';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { CurrencyType } from '../../../../core/types/currency-type';
+import { CURRENCIES, CURRENCY_DEFAULT } from '../../../../core/types/currency-type';
 
 @Component({
   selector: 'app-profile',
@@ -25,7 +25,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
   editMode: boolean;
   settingsForm!: FormGroup;
   savingSettings = false;
-  currencies = Object.keys(CurrencyType).filter(k => isNaN(Number(k)) && k !== 'None');
+  currencies = CURRENCIES;
   notificationForm!: FormGroup;
   savingNotifications = false;
   cronPresets = [
@@ -50,7 +50,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.settingsForm = this.fb.group({
-      currency: ['UAH', Validators.required]
+        currency: [this.user?.currency ?? CURRENCY_DEFAULT, Validators.required]
     });
 
     this.notificationForm = this.fb.group({
@@ -103,7 +103,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
     const val = this.settingsForm.value;
     const notif = this.notificationForm.value;
     const payload = {
-      currency: CurrencyType[val.currency as keyof typeof CurrencyType] as unknown as number,
+      currency: Number(val.currency),
       balanceReminderEnabled: notif.balanceReminderEnabled,
       balanceReminderCron: notif.balanceReminderCron,
       expenseReminderEnabled: notif.expenseReminderEnabled,

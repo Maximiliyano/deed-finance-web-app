@@ -2,6 +2,7 @@ using Deed.Application.Goals.Commands.Create;
 using Deed.Application.Goals.Commands.Update;
 using Deed.Application.Goals.Responses;
 using Deed.Domain.Entities;
+using Deed.Domain.Enums;
 
 namespace Deed.Application.Goals;
 
@@ -28,20 +29,9 @@ internal static class GoalExtensions
         {
             Title = cmd.Title.Trim(),
             TargetAmount = cmd.TargetAmount,
-            Currency = cmd.Currency,
+            Currency = Enum.Parse<CurrencyType>(cmd.Currency),
             CurrentAmount = cmd.CurrentAmount,
             Deadline = cmd.Deadline,
             Note = cmd.Note?.Trim(),
         };
-
-    internal static void ApplyUpdate(this Goal goal, UpdateGoalCommand cmd)
-    {
-        goal.Title = cmd.Title.Trim();
-        goal.TargetAmount = cmd.TargetAmount;
-        goal.Currency = cmd.Currency;
-        goal.CurrentAmount = cmd.CurrentAmount;
-        goal.Deadline = cmd.Deadline;
-        goal.Note = cmd.Note?.Trim();
-        goal.IsCompleted = cmd.IsCompleted;
-    }
 }

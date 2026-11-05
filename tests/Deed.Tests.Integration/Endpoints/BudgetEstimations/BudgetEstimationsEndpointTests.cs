@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
 using Deed.Application.BudgetEstimations.Responses;
+using Deed.Domain.Enums;
 using Deed.Tests.Integration.Infrastructure;
 using FluentAssertions;
 
@@ -15,7 +16,7 @@ public sealed class BudgetEstimationsEndpointTests(DeedApiFactory factory)
         {
             description = $"Est_{Guid.NewGuid().ToString("N")[..8]}",
             budgetAmount = 500m,
-            budgetCurrency = 1,
+            budgetCurrency = nameof(CurrencyType.UAH),
             capitalId = (int?)null
         });
         response.EnsureSuccessStatusCode();

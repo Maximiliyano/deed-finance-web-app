@@ -7,9 +7,9 @@ public sealed record UpdateGoalCommand(
     int Id,
     string Title,
     decimal TargetAmount,
-    CurrencyType Currency,
+    string Currency,
     decimal CurrentAmount,
     DateTimeOffset? Deadline,
     string? Note,
-    bool IsCompleted)
-    : ICommand;
+    bool IsCompleted
+) : ICommand;

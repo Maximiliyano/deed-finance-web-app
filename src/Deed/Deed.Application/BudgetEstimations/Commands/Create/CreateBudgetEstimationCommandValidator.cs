@@ -1,5 +1,7 @@
+using Deed.Application.Abstractions;
 using Deed.Domain.Constants;
 using Deed.Domain.Enums;
+using Deed.Domain.Errors;
 using FluentValidation;
 
 namespace Deed.Application.BudgetEstimations.Commands.Create;
@@ -16,7 +18,7 @@ internal sealed class CreateBudgetEstimationCommandValidator : AbstractValidator
             .GreaterThanOrEqualTo(ValidationConstants.ZeroValue);
 
         RuleFor(c => c.BudgetCurrency)
-            .Must(c => c != CurrencyType.None)
-            .WithMessage("Budget currency must be set.");
+            .Must(c => Enum.TryParse<CurrencyType>(c, out var pc) && !pc.Equals(CurrencyType.None))
+            .WithError(DomainErrors.General.InvalidCurrency);
     }
 }

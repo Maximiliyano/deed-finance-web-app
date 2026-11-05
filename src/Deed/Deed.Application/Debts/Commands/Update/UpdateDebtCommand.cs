@@ -5,14 +5,14 @@ namespace Deed.Application.Debts.Commands.Update;
 
 public sealed record UpdateDebtCommand(
     int Id,
-    string Item,
-    decimal Amount,
-    CurrencyType Currency,
-    string Source,
-    string Recipient,
-    DateTimeOffset BorrowedAt,
-    DateTimeOffset? DeadlineAt,
-    string? Note,
-    bool IsPaid,
-    int? PayFromCapitalId)
+    string? Item = null,
+    decimal? Amount = null,
+    string? Currency = null,
+    string? Source = null,
+    string? Recipient = null,
+    DateTimeOffset? BorrowedAt = null,
+    DateTimeOffset? DeadlineAt = null,
+    string? Note = null,
+    bool? IsPaid = null,
+    int? PayFromCapitalId = null)
     : ICommand;

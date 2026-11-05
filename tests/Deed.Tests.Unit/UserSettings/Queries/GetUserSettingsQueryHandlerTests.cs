@@ -11,22 +11,20 @@ namespace Deed.Tests.Unit.UserSettings.Queries;
 public sealed class GetUserSettingsQueryHandlerTests
 {
     private readonly IUserSettingsRepository _repositoryMock = Substitute.For<IUserSettingsRepository>();
-    private readonly IUser _userMock = Substitute.For<IUser>();
 
     private readonly GetUserSettingsQueryHandler _handler;
 
     public GetUserSettingsQueryHandlerTests()
     {
-        _userMock.Name.Returns("testuser");
-        _handler = new GetUserSettingsQueryHandler(_repositoryMock, _userMock);
+        _handler = new GetUserSettingsQueryHandler(_repositoryMock);
     }
 
     [Fact]
     public async Task Handle_WhenSettingsExist_ReturnsResponse()
     {
         // Arrange
-        var query = new GetUserSettingsQuery();
-        var settings = new DomainUserSettings(1) { Currency = CurrencyType.UAH };
+        var query = new GetUserSettingsQuery("testname");
+        var settings = new DomainUserSettings(1) { Currency = CurrencyType.USD };
 
         _repositoryMock.GetAsync("testuser", Arg.Any<CancellationToken>()).Returns(settings);
 
@@ -36,14 +34,14 @@ public sealed class GetUserSettingsQueryHandlerTests
         // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().NotBeNull();
-        result.Value.Currency.Should().Be("UAH");
+        result.Value.Currency.Should().Be("USD");
     }
 
     [Fact]
     public async Task Handle_WhenSettingsNotExist_ReturnsNull()
     {
         // Arrange
-        var query = new GetUserSettingsQuery();
+        var query = new GetUserSettingsQuery("testName");
         _repositoryMock.GetAsync("testuser", Arg.Any<CancellationToken>()).Returns((DomainUserSettings?)null);
 
         // Act

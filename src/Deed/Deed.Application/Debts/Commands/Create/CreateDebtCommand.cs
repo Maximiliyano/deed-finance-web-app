@@ -6,7 +6,7 @@ namespace Deed.Application.Debts.Commands.Create;
 public sealed record CreateDebtCommand(
     string Item,
     decimal Amount,
-    CurrencyType Currency,
+    string Currency,
     string Source,
     string Recipient,
     DateTimeOffset BorrowedAt,

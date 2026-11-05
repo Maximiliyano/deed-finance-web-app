@@ -1,6 +1,7 @@
 using Deed.Application.Capitals.Commands.Create;
 using Deed.Application.Capitals.Responses;
 using Deed.Domain.Entities;
+using Deed.Domain.Enums;
 
 namespace Deed.Application.Capitals;
 
@@ -30,7 +31,7 @@ internal static class CapitalExtensions
         {
             Name = command.Name.Trim(),
             Balance = command.Balance,
-            Currency = command.Currency,
+            Currency = Enum.Parse<CurrencyType>(command.Currency),
             IncludeInTotal = command.IncludeInTotal,
             OnlyForSavings = command.OnlyForSavings,
         };

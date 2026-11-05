@@ -31,7 +31,7 @@ internal static class BudgetEstimationExtensions
         {
             Description = cmd.Description.Trim(),
             BudgetAmount = cmd.BudgetAmount,
-            BudgetCurrency = cmd.BudgetCurrency,
+            BudgetCurrency = Enum.Parse<CurrencyType>(cmd.BudgetCurrency),
             CapitalId = cmd.CapitalId,
         };
 
@@ -39,7 +39,7 @@ internal static class BudgetEstimationExtensions
     {
         est.Description = cmd.Description.Trim();
         est.BudgetAmount = cmd.BudgetAmount;
-        est.BudgetCurrency = cmd.BudgetCurrency;
+        est.BudgetCurrency = Enum.Parse<CurrencyType>(cmd.BudgetCurrency);
         est.CapitalId = cmd.CapitalId;
         est.IsCompleted = cmd.IsCompleted;
     }

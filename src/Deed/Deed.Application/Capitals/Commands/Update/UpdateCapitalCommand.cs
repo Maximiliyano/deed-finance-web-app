@@ -7,7 +7,7 @@ public sealed record UpdateCapitalCommand(
     int Id,
     string? Name = null,
     decimal? Balance = null,
-    CurrencyType? Currency = null,
+    string? Currency = null,
     bool? IncludeInTotal = null,
     bool? OnlyForSavings = null
 ) : ICommand;

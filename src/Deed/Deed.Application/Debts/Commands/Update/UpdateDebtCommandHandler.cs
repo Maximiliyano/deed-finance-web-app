@@ -2,9 +2,11 @@ using Deed.Application.Abstractions.Messaging;
 using Deed.Application.Auth;
 using Deed.Application.Capitals.Specifications;
 using Deed.Application.Debts.Specifications;
+using Deed.Domain.Enums;
 using Deed.Domain.Errors;
 using Deed.Domain.Repositories;
 using Deed.Domain.Results;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Serilog;
 
 namespace Deed.Application.Debts.Commands.Update;
@@ -27,20 +29,42 @@ internal sealed class UpdateDebtCommandHandler(
             return Result.Failure(DomainErrors.General.NotFound("debt"));
         }
 
-        if (debt.Item == command.Item.Trim() &&
-            debt.Amount == command.Amount &&
-            debt.Currency == command.Currency &&
-            debt.Source == command.Source.Trim() &&
-            debt.Recipient == command.Recipient.Trim() &&
-            debt.BorrowedAt == command.BorrowedAt &&
-            debt.DeadlineAt == command.DeadlineAt &&
-            debt.Note == command.Note?.Trim() &&
-            debt.IsPaid == command.IsPaid)
+        CurrencyType? updatedCurrency = null;
+
+        if (command.Currency is not null)
+        {
+            updatedCurrency = Enum.Parse<CurrencyType>(command.Currency);
+        }
+
+        var updatedItem = command.Item?.Trim();
+        var updatedSource = command.Source?.Trim();
+        var updatedRecipient = command.Recipient?.Trim();
+        var updatedNote = command.Note?.Trim();
+
+        if (updatedItem is null || updatedItem.Equals(debt.Item, StringComparison.OrdinalIgnoreCase) &&
+            (command.Amount is null || command.Amount == debt.Amount) &&
+            (updatedCurrency is null || updatedCurrency == debt.Currency) &&
+            (updatedSource is null || updatedSource.Equals(debt.Source, StringComparison.OrdinalIgnoreCase)) &&
+            (updatedRecipient is null || updatedRecipient.Equals(debt.Recipient, StringComparison.OrdinalIgnoreCase)) &&
+            command.BorrowedAt is null || command.BorrowedAt == debt.BorrowedAt &&
+            command.DeadlineAt == debt.DeadlineAt &&
+            command.Note == updatedNote &&
+            command.IsPaid is null || command.IsPaid == debt.IsPaid)
         {
             return Result.Success();
         }
 
-        var becomingPaid = command.IsPaid && !debt.IsPaid;
+        debt.Item = updatedItem ?? debt.Item;
+        debt.Amount = command.Amount ?? debt.Amount;
+        debt.Currency = updatedCurrency ?? debt.Currency;
+        debt.Source = updatedSource ?? debt.Source;
+        debt.Recipient = updatedRecipient ?? debt.Recipient;
+        debt.BorrowedAt = command.BorrowedAt ?? debt.BorrowedAt;
+        debt.DeadlineAt = command.DeadlineAt;
+        debt.Note = updatedNote ?? debt.Note;
+        debt.IsPaid = command.IsPaid ?? debt.IsPaid;
+
+        var becomingPaid = command.IsPaid == true && !debt.IsPaid;
 
         if (becomingPaid && command.PayFromCapitalId.HasValue)
         {
@@ -53,11 +77,9 @@ internal sealed class UpdateDebtCommandHandler(
                 return Result.Failure(DomainErrors.General.NotFound("capital"));
             }
 
-            capital.Balance -= command.Amount;
+            capital.Balance -= debt.Amount;
             capitalRepository.Update(capital);
         }
-
-        debt.ApplyUpdate(command);
 
         repository.Update(debt);
 

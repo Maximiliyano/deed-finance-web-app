@@ -10,7 +10,7 @@ public sealed class UpsertUserSettingsCommandValidatorTests
     private readonly UpsertUserSettingsCommandValidator _validator = new();
 
     private static UpsertUserSettingsCommand ValidCommand => new(
-        CurrencyType.UAH, false, null, false, null, false, null, false);
+        nameof(CurrencyType.UAH), false, null, false, null, false, null, false);
 
     [Fact]
     public async Task Validate_ValidCommand_PassesValidation()
@@ -22,7 +22,7 @@ public sealed class UpsertUserSettingsCommandValidatorTests
     [Fact]
     public async Task Validate_CurrencyNone_FailsValidation()
     {
-        var command = ValidCommand with { Currency = CurrencyType.None };
+        var command = ValidCommand with { Currency = nameof(CurrencyType.None) };
         var result = await _validator.TestValidateAsync(command);
         result.ShouldHaveValidationErrorFor(c => c.Currency);
     }

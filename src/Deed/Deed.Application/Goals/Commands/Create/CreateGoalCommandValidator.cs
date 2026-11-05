@@ -1,5 +1,7 @@
+using Deed.Application.Abstractions;
 using Deed.Domain.Constants;
 using Deed.Domain.Enums;
+using Deed.Domain.Errors;
 using FluentValidation;
 
 namespace Deed.Application.Goals.Commands.Create;
@@ -16,8 +18,8 @@ internal sealed class CreateGoalCommandValidator : AbstractValidator<CreateGoalC
             .GreaterThan(ValidationConstants.ZeroValue);
 
         RuleFor(c => c.Currency)
-            .Must(c => c != CurrencyType.None)
-            .WithMessage("Currency must be set.");
+            .Must(c => Enum.TryParse<CurrencyType>(c, out var pc) && !pc.Equals(CurrencyType.None))
+            .WithError(ValidationErrors.General.InvalidCurrencyType);
 
         RuleFor(c => c.CurrentAmount)
             .GreaterThanOrEqualTo(ValidationConstants.ZeroValue);

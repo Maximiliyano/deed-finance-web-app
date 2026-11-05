@@ -10,7 +10,7 @@ namespace Deed.Application.Goals.Requests;
 public sealed record CreateGoalRequest(
     string Title,
     decimal TargetAmount,
-    CurrencyType Currency,
+    string Currency,
     decimal CurrentAmount,
     DateTimeOffset? Deadline,
     string? Note

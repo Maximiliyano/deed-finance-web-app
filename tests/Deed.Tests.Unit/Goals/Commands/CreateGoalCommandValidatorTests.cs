@@ -9,7 +9,7 @@ public sealed class CreateGoalCommandValidatorTests
     private readonly CreateGoalCommandValidator _validator = new();
 
     private static CreateGoalCommand ValidCommand => new(
-        "Save for car", 10000m, CurrencyType.UAH, 0m, null, null);
+        "Save for car", 10000m, nameof(CurrencyType.UAH), 0m, null, null);
 
     [Fact]
     public async Task Validate_ValidCommand_PassesValidation()
@@ -49,7 +49,7 @@ public sealed class CreateGoalCommandValidatorTests
     [Fact]
     public async Task Validate_CurrencyNone_FailsValidation()
     {
-        var command = ValidCommand with { Currency = CurrencyType.None };
+        var command = ValidCommand with { Currency = nameof(CurrencyType.None) };
         var result = await _validator.TestValidateAsync(command);
         result.ShouldHaveValidationErrorFor(c => c.Currency);
     }
