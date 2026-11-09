@@ -7,7 +7,11 @@ public interface ICapitalRepository
 {
     Task<IEnumerable<Capital>> GetAllAsync(ISpecification<Capital> specification, CancellationToken cancellationToken = default);
 
+    Task<IReadOnlyList<CapitalSummary>> GetSummariesAsync(ISpecification<Capital> specification, CancellationToken cancellationToken = default);
+
     Task<Capital?> GetAsync(ISpecification<Capital> specification, CancellationToken cancellationToken = default);
+
+    Task<bool> HasReferencesAsync(int id, CancellationToken cancellationToken = default);
 
     void Create(Capital capital);
 

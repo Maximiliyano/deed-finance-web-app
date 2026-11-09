@@ -4,5 +4,5 @@ using Deed.Application.Expenses.Responses;
 namespace Deed.Application.Expenses.Queries.GetAll;
 
 public sealed record GetExpensesByCategoryQuery(
-    int? CategoryId)
+    int? CapitalId)
     : IQuery<IEnumerable<CategoryExpenseResponse>>;

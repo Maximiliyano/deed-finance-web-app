@@ -1,7 +1,7 @@
 ﻿using Deed.Application.Abstractions;
 using Deed.Application.Auth;
 using Deed.Application.Capitals.Specifications;
-using Deed.Application.Categories.Specifications;
+using Deed.Application.Categories;
 using Deed.Domain.Constants;
 using Deed.Domain.Enums;
 using Deed.Domain.Errors;
@@ -38,12 +38,7 @@ internal sealed class UpdateExpenseCommandValidator : AbstractValidator<UpdateEx
             .When(e => e.CapitalId.HasValue);
 
         RuleFor(e => e.CategoryId)
-            .MustAsync(async (categoryId, ct) => await categoryRepository
-                .AnyAsync(new CategoryByIdSpecification(categoryId!.Value), ct).ConfigureAwait(false))
-            .WithError(ValidationErrors.General.NotFound("category"))
-            .MustAsync(async (categoryId, ct) => (await categoryRepository
-                .GetAsync(new CategoryByIdSpecification(categoryId!.Value), ct).ConfigureAwait(false))?.Type == CategoryType.Expenses)
-            .WithError(ValidationErrors.Category.InvalidType)
+            .MustBeCategoryOfType(categoryRepository, CategoryType.Expenses)
             .When(e => e.CategoryId.HasValue);
 
         RuleFor(i => i.Date)

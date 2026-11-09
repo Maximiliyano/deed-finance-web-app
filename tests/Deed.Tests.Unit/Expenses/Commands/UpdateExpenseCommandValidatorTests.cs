@@ -29,9 +29,6 @@ public sealed class UpdateExpenseCommandValidatorTests
     [Fact]
     public async Task Validate_ExistingCategory_PassesValidation()
     {
-        // Arrange
-        _categoryRepository.AnyAsync(Arg.Any<ISpecification<Category>>(), Arg.Any<CancellationToken>()).Returns(true);
-
         // Act
         var result = await _validator.TestValidateAsync(new UpdateExpenseCommand(1, CategoryId: 2));
 
@@ -43,7 +40,7 @@ public sealed class UpdateExpenseCommandValidatorTests
     public async Task Validate_CategoryNotFound_FailsValidation()
     {
         // Arrange
-        _categoryRepository.AnyAsync(Arg.Any<ISpecification<Category>>(), Arg.Any<CancellationToken>()).Returns(false);
+        _categoryRepository.GetAsync(Arg.Any<ISpecification<Category>>(), Arg.Any<CancellationToken>()).Returns((Category?)null);
 
         // Act
         var result = await _validator.TestValidateAsync(new UpdateExpenseCommand(1, CategoryId: 2));
@@ -55,13 +52,10 @@ public sealed class UpdateExpenseCommandValidatorTests
     [Fact]
     public async Task Validate_CategoryCheckDoesNotDependOnExpenseIds()
     {
-        // Arrange
-        _categoryRepository.AnyAsync(Arg.Any<ISpecification<Category>>(), Arg.Any<CancellationToken>()).Returns(true);
-
         // Act
         await _validator.TestValidateAsync(new UpdateExpenseCommand(1, CategoryId: 1));
 
         // Assert
-        await _categoryRepository.Received(1).AnyAsync(Arg.Any<ISpecification<Category>>(), Arg.Any<CancellationToken>());
+        await _categoryRepository.Received(1).GetAsync(Arg.Any<ISpecification<Category>>(), Arg.Any<CancellationToken>());
     }
 }

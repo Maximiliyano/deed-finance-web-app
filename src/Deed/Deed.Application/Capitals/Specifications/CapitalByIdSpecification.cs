@@ -31,5 +31,7 @@ internal sealed class CapitalByIdSpecification : BaseSpecification<Capital>
         {
             AddInclude(c => c.TransfersOut);
         }
+
+        UseSplitQuery = Includes.Count > 1;
     }
 }

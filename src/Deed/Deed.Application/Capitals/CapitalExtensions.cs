@@ -2,29 +2,30 @@ using Deed.Application.Capitals.Commands.Create;
 using Deed.Application.Capitals.Responses;
 using Deed.Domain.Entities;
 using Deed.Domain.Enums;
+using Deed.Domain.Repositories;
 
 namespace Deed.Application.Capitals;
 
 internal static class CapitalExtensions
 {
-    internal static CapitalResponse ToResponse(this Capital capital)
+    internal static CapitalResponse ToResponse(this CapitalSummary summary)
         => new(
-            capital.Id,
-            capital.Name,
-            capital.Balance,
-            capital.Currency.ToString(),
-            capital.IncludeInTotal,
-            capital.OnlyForSavings,
-            capital.TotalIncome,
-            capital.TotalExpense,
-            capital.TotalTransferIn,
-            capital.TotalTransferOut,
-            capital.CreatedAt,
-            capital.CreatedBy
+            summary.Capital.Id,
+            summary.Capital.Name,
+            summary.Capital.Balance,
+            summary.Capital.Currency.ToString(),
+            summary.Capital.IncludeInTotal,
+            summary.Capital.OnlyForSavings,
+            summary.TotalIncome,
+            summary.TotalExpense,
+            summary.TotalTransferIn,
+            summary.TotalTransferOut,
+            summary.Capital.CreatedAt,
+            summary.Capital.CreatedBy
     );
 
-    internal static IEnumerable<CapitalResponse> ToResponses(this IEnumerable<Capital> capitals)
-        => capitals.Select(e => e.ToResponse());
+    internal static IEnumerable<CapitalResponse> ToResponses(this IEnumerable<CapitalSummary> summaries)
+        => summaries.Select(e => e.ToResponse());
 
     internal static Capital ToEntity(this CreateCapitalCommand command)
         => new()

@@ -39,7 +39,7 @@ internal static class SpecificationEvaluator
                     (current, includeExpression) =>
                         includeExpression(current));
 
-            if (specification.Includes.Count > 1)
+            if (specification.UseSplitQuery)
             {
                 queryable = queryable.AsSplitQuery();
             }

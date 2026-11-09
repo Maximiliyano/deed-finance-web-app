@@ -2,6 +2,7 @@
 using Deed.Application.Auth;
 using Deed.Application.Capitals.Specifications;
 using Deed.Application.Expenses.Specifications;
+using Deed.Application.Tags;
 using Deed.Application.Tags.Specifications;
 using Deed.Domain.Errors;
 using Deed.Domain.Repositories;
@@ -45,7 +46,7 @@ internal sealed class CreateExpenseCommandHandler(
 
         var expense = command.ToEntity();
 
-        var tagNames = (command.TagNames ?? []).Distinct(StringComparer.CurrentCultureIgnoreCase).ToList();
+        var tagNames = TagLinkSynchronizer.Normalize(command.TagNames ?? []);
 
         if (tagNames.Count > 0)
         {

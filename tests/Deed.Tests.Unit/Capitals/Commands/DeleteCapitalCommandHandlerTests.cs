@@ -54,6 +54,26 @@ public sealed class DeleteCapitalCommandHandlerTests
     }
 
     [Fact]
+    public async Task Handle_WhenCapitalHasReferences_ReturnsConflict()
+    {
+        // Arrange
+        var capital = new Capital(1) { Name = "Dollars", Balance = 100, Currency = CurrencyType.USD };
+
+        _capitalRepositoryMock.GetAsync(Arg.Any<CapitalByIdSpecification>()).Returns(capital);
+        _capitalRepositoryMock.HasReferencesAsync(1, Arg.Any<CancellationToken>()).Returns(true);
+
+        // Act
+        var result = await _handler.Handle(new DeleteCapitalCommand(1), CancellationToken.None);
+
+        // Assert
+        result.IsSuccess.Should().BeFalse();
+        result.Errors.Should().OnlyContain(e => e == DomainErrors.Capital.ReferenceExists);
+
+        _capitalRepositoryMock.DidNotReceive().Delete(Arg.Any<Capital>());
+        await _unitOfWorkMock.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
     public async Task Handle_ShouldDeleteNotFoundCapital_ReturnFailure()
     {
         // Arrange

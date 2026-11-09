@@ -13,15 +13,15 @@ internal sealed class GetByIdCapitalQueryHandler(ICapitalRepository repository, 
 {
     public async Task<Result<CapitalResponse>> Handle(GetByIdCapitalQuery query, CancellationToken cancellationToken)
     {
-        var capital = await repository.GetAsync(new CapitalByIdSpecification(query.Id, user.Name), cancellationToken).ConfigureAwait(false);
+        var summaries = await repository.GetSummariesAsync(new CapitalByIdSpecification(query.Id, user.Name), cancellationToken).ConfigureAwait(false);
 
-        if (capital is null)
+        var summary = summaries.SingleOrDefault();
+
+        if (summary is null)
         {
-            return Result.Failure<CapitalResponse>(DomainErrors.General.NotFound(nameof(capital)));
+            return Result.Failure<CapitalResponse>(DomainErrors.General.NotFound("capital"));
         }
 
-        var capitalResponse = capital.ToResponse();
-
-        return Result.Success(capitalResponse);
+        return Result.Success(summary.ToResponse());
     }
 }

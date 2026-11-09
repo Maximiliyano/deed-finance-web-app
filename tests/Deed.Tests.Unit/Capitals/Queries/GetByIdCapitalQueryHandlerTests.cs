@@ -32,7 +32,7 @@ public sealed class GetByIdCapitalQueryHandlerTests
         var capital = new Capital(id) { Name = "New Capital", Balance = 100, Currency = CurrencyType.UAH };
         var query = new GetByIdCapitalQuery(id);
 
-        _repositoryMock.GetAsync(Arg.Any<CapitalByIdSpecification>()).Returns(capital);
+        _repositoryMock.GetSummariesAsync(Arg.Any<CapitalByIdSpecification>()).Returns([new CapitalSummary(capital, 5m, 6m, 7m, 8m)]);
 
         // Act
         var result = await _handler.Handle(query, CancellationToken.None);
@@ -44,16 +44,19 @@ public sealed class GetByIdCapitalQueryHandlerTests
         result.Value.Name.Should().Be(capital.Name);
         result.Value.Balance.Should().Be(capital.Balance);
         result.Value.Currency.Should().Be(capital.Currency.ToString());
+        result.Value.TotalIncome.Should().Be(5m);
+        result.Value.TotalExpense.Should().Be(6m);
+        result.Value.TotalTransferIn.Should().Be(7m);
+        result.Value.TotalTransferOut.Should().Be(8m);
 
-        await _repositoryMock.Received(1).GetAsync(Arg.Any<CapitalByIdSpecification>());
+        await _repositoryMock.Received(1).GetSummariesAsync(Arg.Any<CapitalByIdSpecification>());
     }
 
     [Fact]
     public async Task Handle_ShouldReturnNotFound_WhenCapitalNotFound()
     {
         // Arrange
-        _repositoryMock.GetAsync(Arg.Any<CapitalByIdSpecification>())
-                       .Returns((Capital)null);
+        _repositoryMock.GetSummariesAsync(Arg.Any<CapitalByIdSpecification>()).Returns([]);
 
         var query = new GetByIdCapitalQuery(-1);
 
@@ -64,6 +67,6 @@ public sealed class GetByIdCapitalQueryHandlerTests
         result.IsSuccess.Should().BeFalse();
         result.Errors.Should().OnlyContain(e => e == DomainErrors.General.NotFound("capital"));
 
-        await _repositoryMock.Received(1).GetAsync(Arg.Any<CapitalByIdSpecification>());
+        await _repositoryMock.Received(1).GetSummariesAsync(Arg.Any<CapitalByIdSpecification>());
     }
 }

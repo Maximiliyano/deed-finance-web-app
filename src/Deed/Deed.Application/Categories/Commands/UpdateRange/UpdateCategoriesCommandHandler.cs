@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Deed.Application.Abstractions.Caching;
 using Deed.Application.Abstractions.Messaging;
 using Deed.Application.Categories.Specifications;
 using Deed.Domain.Errors;
@@ -13,8 +14,8 @@ namespace Deed.Application.Categories.Commands.UpdateRange;
 
 public sealed class UpdateCategoriesCommandHandler(
     ICategoryRepository repository,
-    IUnitOfWork unitOfWork
-    ) : ICommandHandler<UpdateCategoriesCommand>
+    IUnitOfWork unitOfWork,
+    ICacheService cache) : ICommandHandler<UpdateCategoriesCommand>
 {
     public async Task<Result> Handle(UpdateCategoriesCommand request, CancellationToken cancellationToken)
     {
@@ -39,6 +40,7 @@ public sealed class UpdateCategoriesCommandHandler(
             selectedCategory.PlannedPeriodAmount = updatedCategory.PeriodAmount ?? selectedCategory.PlannedPeriodAmount;
         }
         await unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        await cache.RemoveCategoriesAsync(cancellationToken).ConfigureAwait(false);
 
         return Result.Success();
     }

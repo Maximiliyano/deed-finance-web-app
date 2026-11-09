@@ -20,7 +20,6 @@ public sealed class CreateExpenseCommandValidatorTests
     public CreateExpenseCommandValidatorTests()
     {
         _capitalRepository.AnyAsync(Arg.Any<ISpecification<Capital>>(), Arg.Any<CancellationToken>()).Returns(true);
-        _categoryRepository.AnyAsync(Arg.Any<ISpecification<Category>>(), Arg.Any<CancellationToken>()).Returns(true);
         _categoryRepository.GetAsync(Arg.Any<ISpecification<Category>>(), Arg.Any<CancellationToken>())
             .Returns(new Category { Name = "Food", Type = CategoryType.Expenses });
         _provider.UtcNow.Returns(DateTimeOffset.UtcNow);
@@ -50,7 +49,7 @@ public sealed class CreateExpenseCommandValidatorTests
     [Fact]
     public async Task Validate_CategoryNotFound_FailsValidation()
     {
-        _categoryRepository.AnyAsync(Arg.Any<ISpecification<Category>>(), Arg.Any<CancellationToken>()).Returns(false);
+        _categoryRepository.GetAsync(Arg.Any<ISpecification<Category>>(), Arg.Any<CancellationToken>()).Returns((Category?)null);
         var result = await _validator.TestValidateAsync(ValidCommand);
         result.ShouldHaveValidationErrorFor(c => c.CategoryId);
     }

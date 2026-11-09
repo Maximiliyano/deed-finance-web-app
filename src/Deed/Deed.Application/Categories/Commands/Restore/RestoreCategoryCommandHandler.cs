@@ -1,3 +1,4 @@
+using Deed.Application.Abstractions.Caching;
 using Deed.Application.Abstractions.Messaging;
 using Deed.Application.Categories.Response;
 using Deed.Application.Categories.Specifications;
@@ -9,8 +10,8 @@ namespace Deed.Application.Categories.Commands.Restore;
 
 internal sealed class RestoreCategoryCommandHandler(
     ICategoryRepository categoryRepository,
-    IUnitOfWork unitOfWork
-    ) : ICommandHandler<RestoreCategoryCommand, CategoryResponse>
+    IUnitOfWork unitOfWork,
+    ICacheService cache) : ICommandHandler<RestoreCategoryCommand, CategoryResponse>
 {
     public async Task<Result<CategoryResponse>> Handle(
         RestoreCategoryCommand command,
@@ -26,6 +27,7 @@ internal sealed class RestoreCategoryCommandHandler(
         category.IsDeleted = false;
 
         await unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        await cache.RemoveCategoriesAsync(cancellationToken).ConfigureAwait(false);
 
         return Result.Success(category.ToResponse());
     }

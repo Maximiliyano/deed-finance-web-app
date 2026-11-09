@@ -34,8 +34,4 @@ public sealed class Category : Entity, IAuditableEntity, ISoftDeletableEntity
     public string? UpdatedBy { get; init; }
 
     public bool IsDeleted { get; set; }
-
-    public bool HasReferences() =>
-        Expenses.Any()
-        || Incomes.Any();
 }

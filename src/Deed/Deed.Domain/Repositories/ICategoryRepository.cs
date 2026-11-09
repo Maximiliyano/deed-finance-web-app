@@ -9,6 +9,8 @@ public interface ICategoryRepository
 
     Task<Category?> GetAsync(ISpecification<Category> specification, CancellationToken cancellationToken = default);
 
+    Task<bool> HasReferencesAsync(int id, CancellationToken cancellationToken = default);
+
     void Create(Category category);
 
     void Update(Category category);

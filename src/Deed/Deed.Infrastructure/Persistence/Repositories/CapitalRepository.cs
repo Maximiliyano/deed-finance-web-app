@@ -9,6 +9,21 @@ namespace Deed.Infrastructure.Persistence.Repositories;
 internal sealed class CapitalRepository(IDeedDbContext context)
     : GeneralRepository<Capital>(context), ICapitalRepository
 {
+    public async Task<IReadOnlyList<CapitalSummary>> GetSummariesAsync(ISpecification<Capital> specification, CancellationToken cancellationToken = default) =>
+        await ApplySpecification(specification)
+            .Select(c => new CapitalSummary(
+                c,
+                c.Incomes.Sum(i => i.Amount),
+                c.Expenses.Sum(e => e.Amount),
+                c.TransfersIn.Sum(t => t.Amount),
+                c.TransfersOut.Sum(t => t.Amount)))
+            .ToListAsync(cancellationToken);
+
+    public async Task<bool> HasReferencesAsync(int id, CancellationToken cancellationToken = default) =>
+        await DbSet
+            .Where(c => c.Id == id)
+            .AnyAsync(c => c.Expenses.Any() || c.Incomes.Any() || c.TransfersIn.Any() || c.TransfersOut.Any(), cancellationToken);
+
     public async Task<bool> PatchIncludeInTotalAsync(int id, bool includeInTotal, string createdBy, CancellationToken cancellationToken)
     {
         return await DbSet

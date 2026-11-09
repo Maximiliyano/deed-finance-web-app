@@ -37,14 +37,6 @@ public sealed class Capital
 
     public bool IsDeleted { get; set; }
 
-    public decimal TotalIncome => Incomes.Sum(i => i.Amount);
-
-    public decimal TotalExpense => Expenses.Sum(e => e.Amount);
-
-    public decimal TotalTransferIn => TransfersIn.Sum(t => t.Amount);
-
-    public decimal TotalTransferOut => TransfersOut.Sum(t => t.Amount);
-
     public ICollection<Income> Incomes { get; } = [];
 
     public ICollection<Expense> Expenses { get; } = [];
@@ -55,10 +47,4 @@ public sealed class Capital
 
     [Timestamp]
     public byte[]? RowVersion { get; set; }
-
-    public bool HasReferences() =>
-        Expenses.Any()
-        || Incomes.Any()
-        || TransfersIn.Any()
-        || TransfersOut.Any();
 }

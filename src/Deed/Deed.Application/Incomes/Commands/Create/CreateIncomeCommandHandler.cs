@@ -2,6 +2,7 @@ using Deed.Application.Abstractions.Messaging;
 using Deed.Application.Auth;
 using Deed.Application.Capitals.Specifications;
 using Deed.Application.Incomes.Specifications;
+using Deed.Application.Tags;
 using Deed.Application.Tags.Specifications;
 using Deed.Domain.Errors;
 using Deed.Domain.Repositories;
@@ -40,7 +41,7 @@ internal sealed class CreateIncomeCommandHandler(
 
         var income = command.ToEntity();
 
-        var tagNames = (command.TagNames ?? []).Distinct(StringComparer.CurrentCultureIgnoreCase).ToList();
+        var tagNames = TagLinkSynchronizer.Normalize(command.TagNames ?? []);
 
         if (tagNames.Count > 0)
         {

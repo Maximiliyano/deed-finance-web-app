@@ -19,4 +19,6 @@ public interface ISpecification<TEntity>
     bool? IgnoreQueryFilter { get; }
 
     bool? Tracking { get; }
+
+    bool UseSplitQuery { get; }
 }

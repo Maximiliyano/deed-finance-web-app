@@ -14,7 +14,6 @@ public sealed class CreateIncomeCommandValidatorTests
 
     public CreateIncomeCommandValidatorTests()
     {
-        _categoryRepository.AnyAsync(Arg.Any<ISpecification<Category>>(), Arg.Any<CancellationToken>()).Returns(true);
         _categoryRepository.GetAsync(Arg.Any<ISpecification<Category>>(), Arg.Any<CancellationToken>())
             .Returns(new Category { Name = "Salary", Type = CategoryType.Incomes });
         _validator = new CreateIncomeCommandValidator(_categoryRepository);
@@ -33,7 +32,7 @@ public sealed class CreateIncomeCommandValidatorTests
     [Fact]
     public async Task Validate_CategoryNotFound_FailsValidation()
     {
-        _categoryRepository.AnyAsync(Arg.Any<ISpecification<Category>>(), Arg.Any<CancellationToken>()).Returns(false);
+        _categoryRepository.GetAsync(Arg.Any<ISpecification<Category>>(), Arg.Any<CancellationToken>()).Returns((Category?)null);
         var result = await _validator.TestValidateAsync(ValidCommand);
         result.ShouldHaveValidationErrorFor(c => c.CategoryId);
     }

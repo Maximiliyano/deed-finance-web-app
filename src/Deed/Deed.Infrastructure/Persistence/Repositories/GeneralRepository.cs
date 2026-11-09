@@ -43,6 +43,6 @@ internal abstract class GeneralRepository<TEntity>(IDeedDbContext context)
         await ApplySpecification(specification)
             .CountAsync(cancellationToken);
 
-    private IQueryable<TEntity> ApplySpecification(ISpecification<TEntity>? specification)
+    protected IQueryable<TEntity> ApplySpecification(ISpecification<TEntity>? specification)
         => SpecificationEvaluator.GetQuery(DbSet, specification);
 }

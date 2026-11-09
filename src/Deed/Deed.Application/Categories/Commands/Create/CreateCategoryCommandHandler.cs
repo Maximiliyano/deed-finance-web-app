@@ -1,3 +1,4 @@
+using Deed.Application.Abstractions.Caching;
 using Deed.Application.Abstractions.Messaging;
 using Deed.Domain.Repositories;
 using Deed.Domain.Results;
@@ -7,7 +8,8 @@ namespace Deed.Application.Categories.Commands.Create;
 
 internal sealed class CreateCategoryCommandHandler(
     ICategoryRepository repository,
-    IUnitOfWork unitOfWork)
+    IUnitOfWork unitOfWork,
+    ICacheService cache)
     : ICommandHandler<CreateCategoryCommand, int>
 {
     public async Task<Result<int>> Handle(CreateCategoryCommand command, CancellationToken cancellationToken)
@@ -17,6 +19,7 @@ internal sealed class CreateCategoryCommandHandler(
         repository.Create(category);
 
         await unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        await cache.RemoveCategoriesAsync(cancellationToken).ConfigureAwait(false);
 
         Log.Information("Category {Name} - {Id} created successfully", category.Name, category.Id);
 

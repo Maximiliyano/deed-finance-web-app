@@ -17,7 +17,7 @@ internal sealed class GetAllCategoryQueryHandler(
 {
     public async Task<Result<IEnumerable<CategoryResponse>>> Handle(GetAllCategoryQuery query, CancellationToken cancellationToken)
     {
-        var cacheKey = $"{CacheKeys.Categories}:{query.Type}:{query.IncludeDeleted}";
+        var cacheKey = CacheKeys.Category(query.Type, query.IncludeDeleted);
 
         var cached = await cache.GetAsync<List<CategoryResponse>>(cacheKey, cancellationToken).ConfigureAwait(false);
         if (cached is not null)

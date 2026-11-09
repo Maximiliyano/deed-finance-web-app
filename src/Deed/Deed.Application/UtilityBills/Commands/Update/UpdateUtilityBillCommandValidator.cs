@@ -1,7 +1,7 @@
 using Deed.Application.Abstractions;
 using Deed.Application.Auth;
 using Deed.Application.Capitals.Specifications;
-using Deed.Application.Categories.Specifications;
+using Deed.Application.Categories;
 using Deed.Domain.Constants;
 using Deed.Domain.Enums;
 using Deed.Domain.Errors;
@@ -39,11 +39,6 @@ internal sealed class UpdateUtilityBillCommandValidator : AbstractValidator<Upda
 
         RuleFor(c => c.CategoryId)
             .GreaterThan(0)
-            .MustAsync(async (categoryId, ct) => await categoryRepository
-                .AnyAsync(new CategoryByIdSpecification(categoryId), ct).ConfigureAwait(false))
-            .WithError(ValidationErrors.General.NotFound("category"))
-            .MustAsync(async (categoryId, ct) => (await categoryRepository
-                .GetAsync(new CategoryByIdSpecification(categoryId), ct).ConfigureAwait(false))?.Type == CategoryType.Expenses)
-            .WithError(ValidationErrors.Category.InvalidType);
+            .MustBeCategoryOfType(categoryRepository, CategoryType.Expenses);
     }
 }

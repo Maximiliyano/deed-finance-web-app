@@ -1,4 +1,5 @@
-﻿using Deed.Application.Categories.Commands.Create;
+﻿using Deed.Application.Abstractions.Caching;
+using Deed.Application.Categories.Commands.Create;
 using Deed.Domain.Entities;
 using Deed.Domain.Enums;
 using Deed.Domain.Repositories;
@@ -11,12 +12,13 @@ public sealed class CreateCategoryCommandHandlerTests
 {
     private readonly ICategoryRepository _repositoryMock = Substitute.For<ICategoryRepository>();
     private readonly IUnitOfWork _unitOfWorkMock = Substitute.For<IUnitOfWork>();
+    private readonly ICacheService _cacheMock = Substitute.For<ICacheService>();
 
     private readonly CreateCategoryCommandHandler _handler;
 
     public CreateCategoryCommandHandlerTests()
     {
-        _handler = new CreateCategoryCommandHandler(_repositoryMock, _unitOfWorkMock);
+        _handler = new CreateCategoryCommandHandler(_repositoryMock, _unitOfWorkMock, _cacheMock);
     }
 
     [Fact]
@@ -42,5 +44,6 @@ public sealed class CreateCategoryCommandHandlerTests
             c.Period == command.Period));
 
         await _unitOfWorkMock.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
+        await _cacheMock.Received(CacheKeys.AllCategoryKeys().Count()).RemoveAsync(Arg.Is<string>(k => k.StartsWith(CacheKeys.Categories)), Arg.Any<CancellationToken>());
     }
 }

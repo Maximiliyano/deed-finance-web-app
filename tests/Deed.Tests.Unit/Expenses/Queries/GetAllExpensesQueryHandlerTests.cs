@@ -45,7 +45,7 @@ public sealed class GetAllExpensesQueryHandlerTests
             }
         };
         var entities = new List<Expense> { entity };
-        var query = new GetExpensesByCategoryQuery(entity.CategoryId);
+        var query = new GetExpensesByCategoryQuery(entity.CapitalId);
 
         _expenseRepositoryMock.GetAllAsync(Arg.Any<ExpenseByQueriesSpecification>()).Returns(entities);
 
@@ -54,7 +54,7 @@ public sealed class GetAllExpensesQueryHandlerTests
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        result.Value.Should().OnlyContain(x => x.CategoryId == query.CategoryId);
+        result.Value.Should().OnlyContain(x => x.CategoryId == entity.CategoryId);
 
         await _expenseRepositoryMock.Received(1).GetAllAsync(Arg.Any<ExpenseByQueriesSpecification>());
     }

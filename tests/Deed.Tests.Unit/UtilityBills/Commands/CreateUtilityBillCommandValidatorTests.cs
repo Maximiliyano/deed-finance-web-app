@@ -19,7 +19,6 @@ public sealed class CreateUtilityBillCommandValidatorTests
     {
         _user.Name.Returns("testuser");
         _capitalRepository.AnyAsync(Arg.Any<ISpecification<Capital>>(), Arg.Any<CancellationToken>()).Returns(true);
-        _categoryRepository.AnyAsync(Arg.Any<ISpecification<Category>>(), Arg.Any<CancellationToken>()).Returns(true);
         _categoryRepository.GetAsync(Arg.Any<ISpecification<Category>>(), Arg.Any<CancellationToken>())
             .Returns(new Category { Name = "Utilities", Type = CategoryType.Expenses });
         _validator = new CreateUtilityBillCommandValidator(_capitalRepository, _categoryRepository, _user);
@@ -36,7 +35,7 @@ public sealed class CreateUtilityBillCommandValidatorTests
     [Fact]
     public async Task Validate_CategoryMissing_FailsValidation()
     {
-        _categoryRepository.AnyAsync(Arg.Any<ISpecification<Category>>(), Arg.Any<CancellationToken>()).Returns(false);
+        _categoryRepository.GetAsync(Arg.Any<ISpecification<Category>>(), Arg.Any<CancellationToken>()).Returns((Category?)null);
         var result = await _validator.TestValidateAsync(ValidCommand);
         result.ShouldHaveValidationErrorFor(c => c.CategoryId);
     }

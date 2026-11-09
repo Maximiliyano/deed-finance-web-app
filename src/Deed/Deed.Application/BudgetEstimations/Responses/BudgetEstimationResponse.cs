@@ -8,7 +8,6 @@ public sealed record BudgetEstimationResponse(
     int? CapitalId,
     string? CapitalName,
     decimal CapitalBalance,
-    decimal CapitalTotalExpense,
     string? CapitalCurrency,
     int OrderIndex,
     bool IsCompleted

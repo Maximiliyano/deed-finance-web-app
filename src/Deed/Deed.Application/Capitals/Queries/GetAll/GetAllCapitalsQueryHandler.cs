@@ -2,6 +2,7 @@ using Deed.Application.Abstractions.Messaging;
 using Deed.Application.Auth;
 using Deed.Application.Capitals.Responses;
 using Deed.Application.Capitals.Specifications;
+using Deed.Domain.Constants;
 using Deed.Domain.Repositories;
 using Deed.Domain.Results;
 
@@ -14,12 +15,31 @@ internal sealed class GetAllCapitalsQueryHandler(
 {
     public async Task<Result<IEnumerable<CapitalResponse>>> Handle(GetAllCapitalsQuery query, CancellationToken cancellationToken)
     {
-        var capitals = await repository
-            .GetAllAsync(new CapitalsByQueryParamsSpecification(user?.Name, query.SearchTerm, query.SortBy, query.SortDirection, query.FilterBy, toggleIncludes: true), cancellationToken)
+        var summaries = await repository
+            .GetSummariesAsync(new CapitalsByQueryParamsSpecification(user?.Name, query.SearchTerm, query.SortBy, query.SortDirection, query.FilterBy), cancellationToken)
             .ConfigureAwait(false);
 
-        var capitalResponses = capitals.ToResponses();
+        return Result.Success(SortByTotals(summaries.ToResponses(), query.SortBy, query.SortDirection));
+    }
 
-        return Result.Success(capitalResponses);
+    private static IEnumerable<CapitalResponse> SortByTotals(IEnumerable<CapitalResponse> capitals, string? sortBy, string? sortDirection)
+    {
+        Func<CapitalResponse, decimal>? keySelector = sortBy switch
+        {
+            SortKeysConstants.Expenses => c => c.TotalExpense,
+            SortKeysConstants.Incomes => c => c.TotalIncome,
+            SortKeysConstants.TransfersIn => c => c.TotalTransferIn,
+            SortKeysConstants.TransfersOut => c => c.TotalTransferOut,
+            _ => null
+        };
+
+        if (keySelector is null)
+        {
+            return capitals;
+        }
+
+        return string.Equals(sortDirection, "asc", StringComparison.OrdinalIgnoreCase)
+            ? capitals.OrderBy(keySelector)
+            : capitals.OrderByDescending(keySelector);
     }
 }

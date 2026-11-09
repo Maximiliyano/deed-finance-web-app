@@ -149,7 +149,9 @@ public static class DependencyInjection
             var databaseSettings = sp.GetRequiredService<IConfiguration>().GetValue<string>(ConfigurationKeys.DatabaseConnection);
             var auditableInterceptor = sp.GetRequiredService<UpdateAuditableEntitiesInterceptor>();
 
-            options.UseSqlServer(databaseSettings)
+            options.UseSqlServer(databaseSettings, sql => sql
+                    .EnableRetryOnFailure(maxRetryCount: 3, maxRetryDelay: TimeSpan.FromSeconds(5), errorNumbersToAdd: null)
+                    .CommandTimeout(30))
                 .ConfigureWarnings(w =>
                     w.Ignore(RelationalEventId.PendingModelChangesWarning))
                 .AddInterceptors(auditableInterceptor);

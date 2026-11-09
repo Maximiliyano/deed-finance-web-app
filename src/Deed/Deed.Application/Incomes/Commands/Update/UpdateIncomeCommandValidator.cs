@@ -1,4 +1,4 @@
-using Deed.Application.Categories.Specifications;
+using Deed.Application.Categories;
 using Deed.Application.Abstractions;
 using Deed.Domain.Constants;
 using Deed.Domain.Enums;
@@ -26,12 +26,7 @@ internal sealed class UpdateIncomeCommandValidator : AbstractValidator<UpdateInc
             .When(e => e.TagNames is not null);
 
         RuleFor(e => e.CategoryId)
-            .MustAsync(async (categoryId, ct) => await categoryRepository
-                .AnyAsync(new CategoryByIdSpecification(categoryId!.Value), ct).ConfigureAwait(false))
-            .WithError(ValidationErrors.General.NotFound("category"))
-            .MustAsync(async (categoryId, ct) => (await categoryRepository
-                .GetAsync(new CategoryByIdSpecification(categoryId!.Value), ct).ConfigureAwait(false))?.Type == CategoryType.Incomes)
-            .WithError(ValidationErrors.Category.InvalidType)
+            .MustBeCategoryOfType(categoryRepository, CategoryType.Incomes)
             .When(e => e.CategoryId.HasValue);
     }
 }

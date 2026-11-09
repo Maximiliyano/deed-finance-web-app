@@ -16,7 +16,7 @@ internal sealed class GetExpensesByCategoryHandler(
     public async Task<Result<IEnumerable<CategoryExpenseResponse>>> Handle(GetExpensesByCategoryQuery query, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNullOrEmpty(user.Name);
-        var expenses = await repository.GetAllAsync(new ExpenseByQueriesSpecification(user.Name, query.CategoryId), cancellationToken).ConfigureAwait(false);
+        var expenses = await repository.GetAllAsync(new ExpenseByQueriesSpecification(user.Name, query.CapitalId), cancellationToken).ConfigureAwait(false);
 
         if (!expenses.Any())
         {

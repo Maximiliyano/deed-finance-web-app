@@ -1,3 +1,4 @@
+using Deed.Application.Abstractions.Caching;
 using Deed.Application.Capitals.Commands.Update;
 using Deed.Application.Categories.Commands.UpdateRange;
 using Deed.Application.Categories.Requests;
@@ -16,12 +17,13 @@ public sealed class UpdateCategoriesQueryHandlerTests
 {
     private readonly ICategoryRepository _repositoryMock = Substitute.For<ICategoryRepository>();
     private readonly IUnitOfWork _unitOfWorkMock = Substitute.For<IUnitOfWork>();
+    private readonly ICacheService _cacheMock = Substitute.For<ICacheService>();
 
     private readonly UpdateCategoriesCommandHandler _handler;
 
     public UpdateCategoriesQueryHandlerTests()
     {
-        _handler = new UpdateCategoriesCommandHandler(_repositoryMock, _unitOfWorkMock);
+        _handler = new UpdateCategoriesCommandHandler(_repositoryMock, _unitOfWorkMock, _cacheMock);
     }
 
     [Fact]
@@ -46,6 +48,7 @@ public sealed class UpdateCategoriesQueryHandlerTests
 
         await _repositoryMock.Received(1).GetAllAsync(Arg.Is<CategoriesByQuerySpecification>(spec => spec.Tracking == true));
         await _unitOfWorkMock.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
+        await _cacheMock.DidNotReceive().RemoveAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -70,6 +73,7 @@ public sealed class UpdateCategoriesQueryHandlerTests
 
         await _repositoryMock.Received(1).GetAllAsync(Arg.Any<CategoriesByQuerySpecification>());
         await _unitOfWorkMock.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
+        await _cacheMock.Received(CacheKeys.AllCategoryKeys().Count()).RemoveAsync(Arg.Is<string>(k => k.StartsWith(CacheKeys.Categories)), Arg.Any<CancellationToken>());
     }
 
     [Theory]

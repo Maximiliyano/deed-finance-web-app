@@ -14,7 +14,6 @@ public sealed class UpdateIncomeCommandValidatorTests
 
     public UpdateIncomeCommandValidatorTests()
     {
-        _categoryRepository.AnyAsync(Arg.Any<ISpecification<Category>>(), Arg.Any<CancellationToken>()).Returns(true);
         _validator = new UpdateIncomeCommandValidator(_categoryRepository);
     }
 

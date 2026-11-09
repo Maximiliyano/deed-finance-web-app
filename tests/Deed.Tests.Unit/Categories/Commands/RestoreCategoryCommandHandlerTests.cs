@@ -1,3 +1,4 @@
+using Deed.Application.Abstractions.Caching;
 using Deed.Application.Categories.Commands.Restore;
 using Deed.Application.Categories.Specifications;
 using Deed.Domain.Entities;
@@ -13,12 +14,13 @@ public sealed class RestoreCategoryCommandHandlerTests
 {
     private readonly ICategoryRepository _repositoryMock = Substitute.For<ICategoryRepository>();
     private readonly IUnitOfWork _unitOfWorkMock = Substitute.For<IUnitOfWork>();
+    private readonly ICacheService _cacheMock = Substitute.For<ICacheService>();
 
     private readonly RestoreCategoryCommandHandler _handler;
 
     public RestoreCategoryCommandHandlerTests()
     {
-        _handler = new RestoreCategoryCommandHandler(_repositoryMock, _unitOfWorkMock);
+        _handler = new RestoreCategoryCommandHandler(_repositoryMock, _unitOfWorkMock, _cacheMock);
     }
 
     [Fact]
@@ -40,6 +42,7 @@ public sealed class RestoreCategoryCommandHandlerTests
         category.IsDeleted.Should().BeFalse();
 
         await _unitOfWorkMock.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
+        await _cacheMock.Received(CacheKeys.AllCategoryKeys().Count()).RemoveAsync(Arg.Is<string>(k => k.StartsWith(CacheKeys.Categories)), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -56,5 +59,6 @@ public sealed class RestoreCategoryCommandHandlerTests
         result.IsSuccess.Should().BeFalse();
         result.Errors.Should().OnlyContain(e => e == DomainErrors.General.NotFound("category"));
         await _unitOfWorkMock.Received(0).SaveChangesAsync(Arg.Any<CancellationToken>());
+        await _cacheMock.DidNotReceive().RemoveAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
     }
 }
