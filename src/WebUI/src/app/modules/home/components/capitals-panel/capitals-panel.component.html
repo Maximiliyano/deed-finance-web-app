@@ -1,0 +1,87 @@
+<div id="capitals" class="card">
+  <div class="card-header">
+    <h2 class="card-title"><i class="fas fa-wallet"></i> Capitals</h2>
+    <div class="card-header-actions">
+      @if (!isAnonymous()) {
+        <button class="btn btn-primary btn-sm" (click)="openAddCapital()" title="Add capital">
+          <i class="fas fa-plus"></i> Add
+        </button>
+        <button class="btn btn-secondary btn-sm" (click)="openTransferDialog()" title="Transfer between capitals">
+          <i class="fas fa-exchange-alt"></i> Transfer
+        </button>
+      }
+      <a class="btn btn-secondary btn-sm" routerLink="/capitals">
+        <i class="fas fa-arrow-up-right-from-square"></i> Open
+      </a>
+    </div>
+  </div>
+  @if (capitals().length > 1) {
+    <app-sort-toolbar [options]="sortOptions" [value]="sortBy()" (changed)="sortCapitals($event)" />
+  }
+  @if (loading()) {
+    <div class="section-spinner"><span class="circle-spinner"></span></div>
+  } @else if (capitals().length === 0) {
+    <div class="empty-state">
+      <i class="fas fa-wallet empty-icon"></i>
+      <p class="empty-title">No capitals yet</p>
+      <p class="empty-hint">Add your bank accounts, cash wallets and investment accounts.</p>
+    </div>
+  } @else {
+    <div class="summary-grid" cdkDropList (cdkDropListDropped)="dropCapital($event)" [cdkDropListDisabled]="dragDisabled()">
+      @for (cap of capitals(); track cap.id) {
+        <div class="summary-card" cdkDrag [cdkDragDisabled]="dragDisabled()" [ngClass]="isAnonymous() ? '' : 'clickable-row'" (click)="isAnonymous() || openCapitalDetail(cap)">
+          @if (!dragDisabled()) {
+            <i class="fas fa-grip-vertical bp-drag-handle" cdkDragHandle (click)="$event.stopPropagation()"></i>
+          }
+          <div class="summary-card-header">
+            <span class="summary-card-name">{{ cap.name }}</span>
+            <div class="summary-card-actions">
+              @if (!isAnonymous()) {
+                <button class="summary-icon-btn" (click)="$event.stopPropagation(); openTransferDialog(cap.id)" title="Transfer from this capital">
+                  <i class="fas fa-paper-plane"></i>
+                </button>
+              }
+              <button class="summary-icon-btn" (click)="$event.stopPropagation(); showTransfers(cap)" title="Show transfers">
+                <i class="fas fa-exchange-alt"></i>
+              </button>
+              <span class="badge" [ngClass]="cap.onlyForSavings ? 'badge-info' : 'badge-ok'">
+                {{ cap.onlyForSavings ? 'Savings' : 'Active' }}
+              </span>
+            </div>
+          </div>
+          <p class="summary-card-value">{{ cap.balance | currencySymbol: cap.currency }}</p>
+          <div class="summary-card-stats">
+            <span class="text-success"><i class="fas fa-arrow-down"></i> {{ cap.totalIncome | currencySymbol: cap.currency }}</span>
+            <span class="text-danger"><i class="fas fa-arrow-up"></i> {{ cap.totalExpense | currencySymbol: cap.currency }}</span>
+            @if (borrowedByCapital().get(cap.id); as borrowed) {
+              <span class="text-warning"><i class="fas fa-hand-holding-dollar"></i> {{ borrowed | currencySymbol: cap.currency }} borrowed</span>
+            }
+          </div>
+          @if (expandedCapitalId() === cap.id) {
+            <div class="cap-transfers" (click)="$event.stopPropagation()">
+              @for (t of expandedTransfers(); track t.id) {
+                <div class="txn-row">
+                  @if (t.sourceCapitalId === cap.id) {
+                    <span class="txn-amount text-danger">-{{ t.amount | currencySymbol: t.sourceCurrency ?? '' }}</span>
+                    <span class="txn-purpose"><i class="fas fa-arrow-right"></i> {{ t.destinationCapitalName }} ({{ t.destinationAmount | currencySymbol: t.destinationCurrency ?? '' }})</span>
+                  } @else {
+                    <span class="txn-amount text-success">+{{ t.destinationAmount | currencySymbol: t.destinationCurrency ?? '' }}</span>
+                    <span class="txn-purpose"><i class="fas fa-arrow-left"></i> {{ t.sourceCapitalName }} ({{ t.amount | currencySymbol: t.sourceCurrency ?? '' }})</span>
+                  }
+                  <span class="txn-date">{{ t.createdAt | date: 'dd MMM' }}</span>
+                  @if (!isAnonymous()) {
+                    <button class="icon-btn icon-btn-danger" title="Delete & reverse" (click)="deleteTransfer(t.id)">
+                      <i class="fas fa-trash-can"></i>
+                    </button>
+                  }
+                </div>
+              } @empty {
+                <span class="txn-purpose">No transfers</span>
+              }
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+</div>

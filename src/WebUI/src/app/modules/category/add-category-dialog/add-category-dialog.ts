@@ -1,4 +1,4 @@
-import { Component, Inject, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, inject } from '@angular/core';
 import { FormGroup, FormControl, Validators } from '@angular/forms';
 import { CategoryType } from '../../../core/types/category-type';
 import { PerPeriodType } from '../../../core/types/per-period-type';
@@ -15,9 +15,13 @@ import { FormComponent } from '../../../shared/components/forms/form.component';
   templateUrl: './add-category-dialog.html',
   styleUrl: './add-category-dialog.scss',
   standalone: true,
-  imports: [SharedModule, FormComponent]
+  imports: [SharedModule, FormComponent],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AddCategoryDialog implements OnInit {
+  readonly exclude = inject<string[]>(DIALOG_DATA);
+  private readonly dialogRef = inject<DialogRef<CategoryResponse | null>>(DialogRef);
+
   form: FormGroup;
   fields: FormField[] = [];
 
@@ -25,11 +29,6 @@ export class AddCategoryDialog implements OnInit {
   private categoryTypeOptions = enumToOptions(CategoryType, {
     exclude: ['None', ...this.exclude]
   });
-
-  constructor(
-    @Inject(DIALOG_DATA) public exclude: string[],
-    private readonly dialogRef: DialogRef<CategoryResponse | null>
-  ) {}
 
   ngOnInit(): void {
     this.initForm();

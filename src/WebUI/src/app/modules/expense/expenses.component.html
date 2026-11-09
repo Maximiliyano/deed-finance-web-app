@@ -43,12 +43,12 @@
     </div>
   </div>
 
-  <!-- Category grid -->
+  
   @if (expenseCategories.length > 0) {
     <div class="exp-categories">
       @for (expenseCategory of expenseCategories; track expenseCategory.categoryId) {
         <div class="exp-category">
-          <!-- Category header -->
+          
           <button
             class="exp-cat-header"
             [class.exp-cat-header--open]="openedExpensesCategoryId === expenseCategory.categoryId"
@@ -72,7 +72,7 @@
             </div>
           </button>
 
-          <!-- Expense list -->
+          
           @if (openedExpensesCategoryId === expenseCategory.categoryId) {
             <div class="exp-list">
               @for (e of expenseCategory.expenses; track e.id) {

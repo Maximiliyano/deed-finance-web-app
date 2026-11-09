@@ -2,6 +2,7 @@ using Deed.Api.Extensions;
 using Deed.Domain.Errors;
 using Deed.Domain.Results;
 using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.EntityFrameworkCore;
 using Serilog;
 
 namespace Deed.Api.Middlewares;
@@ -40,6 +41,7 @@ internal sealed class GlobalExceptionHandler(
     private static Error ParseException(Exception exception)
         => exception switch
         {
+            DbUpdateConcurrencyException => DomainErrors.General.ConcurrencyConflict,
             _ => DomainErrors.General.Exception
         };
 }

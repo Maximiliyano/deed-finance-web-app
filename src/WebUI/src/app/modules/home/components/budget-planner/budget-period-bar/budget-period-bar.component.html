@@ -1,0 +1,79 @@
+<div class="bp-period-bar">
+  <div class="bp-period-controls">
+    <div class="bp-sort-group" role="tablist" aria-label="Period filter">
+      <button class="bp-sort-btn" [ngClass]="{ active: store.planFilter() === 'day' }" (click)="store.setPlanFilter('day')" role="tab" [attr.aria-selected]="store.planFilter() === 'day'" title="Daily breakdown">
+        <i class="fas fa-calendar-day"></i> Day
+      </button>
+      <button class="bp-sort-btn" [ngClass]="{ active: store.planFilter() === 'month' }" (click)="store.setPlanFilter('month')" role="tab" [attr.aria-selected]="store.planFilter() === 'month'" title="Monthly view">
+        <i class="fas fa-calendar-week"></i> Month
+      </button>
+      <button class="bp-sort-btn" [ngClass]="{ active: store.planFilter() === 'year' }" (click)="store.setPlanFilter('year')" role="tab" [attr.aria-selected]="store.planFilter() === 'year'" title="Yearly view">
+        <i class="fas fa-calendar-days"></i> Year
+      </button>
+    </div>
+
+    <div class="bp-date-controls">
+      <button class="bp-sort-btn" (click)="store.shiftPeriod(-1)" title="Previous period">
+        <i class="fas fa-chevron-left"></i>
+      </button>
+
+      @switch (store.planFilter()) {
+        @case ('day') {
+          <input type="date" class="input bp-period-input" [value]="selectedDay()" (change)="onDayChange($any($event.target).value)" [title]="'Pick a day — ' + selectedPeriodLabel()" />
+        }
+        @case ('month') {
+          <input type="month" class="input bp-period-input" [value]="selectedMonth()" (change)="onMonthChange($any($event.target).value)" [title]="'Pick a month — ' + selectedPeriodLabel()" />
+        }
+        @case ('year') {
+          <input type="number" class="input bp-period-input bp-period-input--year" min="2000" max="2100" step="1" [value]="selectedYear()" (change)="onYearChange($any($event.target).value)" [title]="'Pick a year — ' + selectedPeriodLabel()" />
+        }
+      }
+
+      <button class="bp-sort-btn" (click)="store.shiftPeriod(1)" title="Next period">
+        <i class="fas fa-chevron-right"></i>
+      </button>
+    </div>
+  </div>
+
+  <div class="bp-stats">
+    <div class="bp-stat">
+      <span class="bp-stat-icon expense-icon"><i class="fas fa-arrow-trend-down"></i></span>
+      <span class="bp-stat-body">
+        <span class="bp-stat-label">Planned Expenses</span>
+        <span class="bp-stat-value text-danger">
+          {{ scaledLoss() | currencySymbol: store.userCurrency() }}
+          @if (store.showDualCurrency()) {
+            <span class="bp-stat-alt">{{ scaledLossInDefault() | currencySymbol: 'UAH' }}</span>
+          }
+        </span>
+      </span>
+    </div>
+    <div class="bp-stat">
+      <span class="bp-stat-icon" [ngClass]="isProfitable() ? 'profit-icon' : 'deficit-icon'">
+        <i class="fas" [ngClass]="isProfitable() ? 'fa-arrow-trend-up' : 'fa-triangle-exclamation'"></i>
+      </span>
+      <span class="bp-stat-body">
+        <span class="bp-stat-label">{{ store.planFilterLabel() }} {{ isProfitable() ? 'Profit' : 'Deficit' }}</span>
+        <span class="bp-stat-value" [ngClass]="isProfitable() ? 'text-success' : 'text-danger'">
+          {{ scaledProfit() | currencySymbol: store.userCurrency() }}
+          @if (store.showDualCurrency()) {
+            <span class="bp-stat-alt">{{ scaledProfitInDefault() | currencySymbol: 'UAH' }}</span>
+          }
+        </span>
+      </span>
+    </div>
+    <div class="bp-stat">
+      <span class="bp-stat-icon alloc-icon"><i class="fas fa-chart-pie"></i></span>
+      <span class="bp-stat-body">
+        <span class="bp-stat-label">Budget Allocated</span>
+        <span class="bp-stat-value">{{ lossPercent() }}%</span>
+        <div class="mini-bar">
+          <div class="mini-bar-fill"
+               [style.width.%]="lossPercent()"
+               [ngClass]="lossPercent() >= 100 ? 'fill-danger' : lossPercent() >= 80 ? 'fill-warning' : 'fill-primary'">
+          </div>
+        </div>
+      </span>
+    </div>
+  </div>
+</div>

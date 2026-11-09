@@ -1,61 +1,44 @@
-import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, catchError, shareReplay, tap, throwError } from 'rxjs';
+import { Injectable, inject } from '@angular/core';
+import { BehaviorSubject, Observable, catchError, tap, throwError } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { AddCapitalRequest } from '../models/add-capital-request';
 import { UpdateCapitalRequest } from '../models/update-capital-request';
 import { CapitalResponse } from '../models/capital-response';
 import { UpdateCapitalOrderRequest } from '../models/update-capital-order-request';
 import { QueryParams } from '../../../core/models/query-params';
-import { convertCurrency } from '../../../shared/utils/currency-conversion.util';
-import { Exchange } from '../../../core/models/exchange-model';
 
 @Injectable({
   providedIn: 'root'
 })
 export class CapitalService {
+  private readonly httpClient = inject(HttpClient);
+
   private baseApiUrl = '/api/capitals';
 
   private readonly state$ = new BehaviorSubject<CapitalResponse[]>([]);
   readonly capitals$ = this.state$.asObservable();
 
-  constructor(private readonly httpClient: HttpClient) { }
-
   get current(): CapitalResponse[] {
     return this.state$.value;
   }
 
-  getCurrency(capitalId: number): string | null {
-    if (capitalId == null) return null;
-    const cap = this.current.find(c => c.id === capitalId);
-    return cap?.currency ?? null;
-  }
-
-  getTotalAmount(currency: string, exchanges: Exchange[]): number {
-    return this.current
-      .filter(c => c.includeInTotal)
-      .reduce((sum, c) => sum + convertCurrency(c.balance, c.currency, currency, exchanges), 0);
-  }
-
   load(params: QueryParams): Observable<CapitalResponse[]> {
-    return this.httpClient.post<CapitalResponse[]>(`${this.baseApiUrl}/all`, params, { withCredentials: true })
-      .pipe(
-        shareReplay({
-          bufferSize: 1,
-          refCount: false
-        }),
-        tap(items => this.state$.next(items)));
+    const isFiltered = !!params.searchTerm || !!params.filterBy;
+
+    return this.httpClient.post<CapitalResponse[]>(`${this.baseApiUrl}/all`, params)
+      .pipe(tap(items => {
+        if (!isFiltered) {
+          this.state$.next(items);
+        }
+      }));
   }
 
   refresh(params: QueryParams = { searchTerm: null, sortBy: null, sortDirection: null, filterBy: null }): void {
     this.load(params).subscribe();
   }
 
-  getAll(params: QueryParams): Observable<CapitalResponse[]> {
-    return this.load(params);
-  }
-
   getById(id: number): Observable<CapitalResponse> {
-    return this.httpClient.get<CapitalResponse>(`${this.baseApiUrl}/${id}`, { withCredentials: true });
+    return this.httpClient.get<CapitalResponse>(`${this.baseApiUrl}/${id}`);
   }
 
   create(request: AddCapitalRequest): Observable<number> {
@@ -78,7 +61,7 @@ export class CapitalService {
     const previous = this.state$.value;
     this.state$.next([...previous, optimistic]);
 
-    return this.httpClient.post<number>(this.baseApiUrl, request, { withCredentials: true }).pipe(
+    return this.httpClient.post<number>(this.baseApiUrl, request).pipe(
       tap(realId => {
         this.state$.next(this.state$.value.map(c => c.id === tempId ? { ...c, id: realId } : c));
         this.refresh();
@@ -95,7 +78,7 @@ export class CapitalService {
     this.state$.next(previous.map(c => c.id === id
       ? { ...c, name: (request).name ?? c.name, balance: (request).balance ?? c.balance, includeInTotal: (request).includeInTotal ?? c.includeInTotal, onlyForSavings: (request).onlyForSavings ?? c.onlyForSavings }
       : c));
-    return this.httpClient.put<void>(`${this.baseApiUrl}/${id}`, request, { withCredentials: true }).pipe(
+    return this.httpClient.put<void>(`${this.baseApiUrl}/${id}`, request).pipe(
       tap(() => this.refresh()),
       catchError(err => {
         this.state$.next(previous);
@@ -115,7 +98,7 @@ export class CapitalService {
         return ai - bi;
       })
     );
-    return this.httpClient.put<void>(`${this.baseApiUrl}/orders`, request, { withCredentials: true }).pipe(
+    return this.httpClient.put<void>(`${this.baseApiUrl}/orders`, request).pipe(
       catchError(err => {
         this.state$.next(previous);
         return throwError(() => err);
@@ -126,7 +109,7 @@ export class CapitalService {
   patchSavingsOnly(id: number, value: boolean): Observable<void> {
     const previous = this.state$.value;
     this.state$.next(previous.map(c => c.id === id ? { ...c, onlyForSavings: value } : c));
-    return this.httpClient.patch<void>(`${this.baseApiUrl}/${id}/savings-only`, value, { withCredentials: true }).pipe(
+    return this.httpClient.patch<void>(`${this.baseApiUrl}/${id}/savings-only`, value).pipe(
       catchError(err => {
         this.state$.next(previous);
         return throwError(() => err);
@@ -137,7 +120,7 @@ export class CapitalService {
   patchIncludeTotal(id: number, value: boolean): Observable<void> {
     const previous = this.state$.value;
     this.state$.next(previous.map(c => c.id === id ? { ...c, includeInTotal: value } : c));
-    return this.httpClient.patch<void>(`${this.baseApiUrl}/${id}/include-in-total`, value, { withCredentials: true }).pipe(
+    return this.httpClient.patch<void>(`${this.baseApiUrl}/${id}/include-in-total`, value).pipe(
       catchError(err => {
         this.state$.next(previous);
         return throwError(() => err);
@@ -148,7 +131,7 @@ export class CapitalService {
   delete(id: number): Observable<void> {
     const previous = this.state$.value;
     this.state$.next(previous.filter(c => c.id !== id));
-    return this.httpClient.delete<void>(`${this.baseApiUrl}/${id}`, { withCredentials: true }).pipe(
+    return this.httpClient.delete<void>(`${this.baseApiUrl}/${id}`).pipe(
       catchError(err => {
         this.state$.next(previous);
         return throwError(() => err);

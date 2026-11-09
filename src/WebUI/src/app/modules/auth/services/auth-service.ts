@@ -1,4 +1,4 @@
-import {Injectable} from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {BehaviorSubject, catchError, Observable, of, shareReplay, tap} from 'rxjs';
 import {User} from '../models/user';
@@ -7,13 +7,13 @@ import {User} from '../models/user';
   providedIn: 'root'
 })
 export class AuthService {
+  private readonly http = inject(HttpClient);
+
   private readonly userSubject = new BehaviorSubject<User | null>(null);
   readonly user$ = this.userSubject.asObservable();
 
   private loaded = false;
   private pending$: Observable<User | null> | null = null;
-
-  constructor(private readonly http: HttpClient) { }
 
   login(): void {
     const returnUrl = window.location.pathname;
@@ -34,7 +34,7 @@ export class AuthService {
     if (this.loaded) return of(this.userSubject.value);
 
     if (!this.pending$) {
-      this.pending$ = this.http.get<User>(`/api/users/me`, {withCredentials: true})
+      this.pending$ = this.http.get<User>(`/api/users/me`)
         .pipe(
           catchError(() => of(null)),
           tap(user => {

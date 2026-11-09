@@ -17,4 +17,6 @@ public interface IExpenseRepository
     Task<bool> AnyAsync(ISpecification<Expense> specification, CancellationToken cancellationToken = default);
 
     Task<int> CountAsync(ISpecification<Expense> specification, CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<CategoryAmount>> GetTotalsByCategoryAsync(string createdBy, IReadOnlyCollection<int>? capitalIds, CancellationToken cancellationToken = default);
 }

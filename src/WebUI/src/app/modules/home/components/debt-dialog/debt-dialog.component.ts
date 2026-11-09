@@ -1,4 +1,4 @@
-import { Component, Inject, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { DialogRef } from '../../../../shared/components/dialogs/models/dialog-ref';
@@ -18,20 +18,19 @@ export interface DebtDialogData {
   templateUrl: './debt-dialog.component.html',
   styleUrl: './debt-dialog.component.scss',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule]
+  imports: [CommonModule, ReactiveFormsModule],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class DebtDialogComponent implements OnInit {
+  private readonly fb = inject(FormBuilder);
+  private readonly dialogRef = inject<DialogRef<DebtForm | null>>(DialogRef);
+  private readonly data = inject<DebtDialogData>(DIALOG_DATA);
+
   form!: FormGroup;
   currencies = CURRENCIES;
   capitals: CapitalResponse[] = [];
   isEdit = false;
   showPayConfirm = false;
-
-  constructor(
-    private readonly fb: FormBuilder,
-    private readonly dialogRef: DialogRef<DebtForm | null>,
-    @Inject(DIALOG_DATA) private readonly data: DebtDialogData
-  ) {}
 
   ngOnInit(): void {
     this.isEdit = !!this.data.debt;

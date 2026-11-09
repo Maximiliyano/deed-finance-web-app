@@ -1,6 +1,6 @@
 .popup-messages-container {
   position: fixed;
-  top: 72px;
+  top: calc(var(--header-h) + 0.5rem + env(safe-area-inset-top));
   right: 1rem;
   display: flex;
   flex-direction: column-reverse;
@@ -20,7 +20,7 @@
   padding: 0.75rem 2.25rem 0.75rem 0.875rem;
   font-size: 0.875rem;
   color: var(--text);
-  width: 300px;
+  width: min(300px, calc(100vw - 2rem));
   min-height: 48px;
   word-wrap: break-word;
   pointer-events: all;

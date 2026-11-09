@@ -1,5 +1,6 @@
 import { PopupMessageService } from './../../../services/popup-message.service';
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, inject, DestroyRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Exchange } from '../../../../core/models/exchange-model';
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -8,7 +9,7 @@ import { convertCurrency } from '../../../utils/currency-conversion.util';
 import { IconComponent } from "../../icon/icon.component";
 import { ClipboardModule } from '@angular/cdk/clipboard'
 import { SectionKey, SectionLoadingService } from '../../../services/section-loading.service';
-import { Subject, takeUntil } from 'rxjs';
+
 import { CURRENCIES } from '../../../../core/types/currency-type';
 
 @Component({
@@ -20,24 +21,21 @@ import { CURRENCIES } from '../../../../core/types/currency-type';
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ExchangeDialogComponent implements OnInit {
+  private readonly popupMessageService = inject(PopupMessageService);
+  private readonly sectionLoading = inject(SectionLoadingService);
+  private readonly cdr = inject(ChangeDetectorRef);
+  readonly exchanges = inject<Exchange[]>(DIALOG_DATA);
+  private readonly destroyRef = inject(DestroyRef);
+
   amount = 1;
   fromCurrency: string;
   toCurrency: string;
 
   readonly currencies: string[] = CURRENCIES.map(x => x);
 
-  constructor(
-    private readonly popupMessageService: PopupMessageService,
-    private readonly sectionLoading: SectionLoadingService,
-    private readonly cdr: ChangeDetectorRef,
-    @Inject(DIALOG_DATA) public exchanges: Exchange[]
-  ) {}
-
-  private unsubscribe$ = new Subject<void>();
-
   ngOnInit(): void {
     this.sectionLoading.isLoading$('exchanges')
-      .pipe(takeUntil(this.unsubscribe$))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => {
         const base = this.exchanges[0]?.nationalCurrency ?? 'UAH';
         const first = this.exchanges[0]?.targetCurrency ?? 'USD';

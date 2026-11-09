@@ -1,4 +1,4 @@
-import {Injectable} from "@angular/core";
+import { Injectable, inject } from "@angular/core";
 import { HttpClient, HttpParams } from "@angular/common/http";
 import {BehaviorSubject, Observable, tap} from "rxjs";
 import { CategoryType } from "../../../core/types/category-type";
@@ -9,19 +9,18 @@ import { CreateCategoryRequest } from "../models/create-category-request";
   providedIn: 'root'
 })
 export class CategoryService {
+  private readonly http = inject(HttpClient);
+
   private readonly baseApiUrl = '/api/categories';
 
   private readonly state$ = new BehaviorSubject<CategoryResponse[]>([]);
   readonly categories$ = this.state$.asObservable();
 
-  constructor(private readonly http: HttpClient) { }
-
-  get objects(): CategoryResponse[]
-  {
+  get current(): CategoryResponse[] {
     return this.state$.value;
   }
 
-  getAll(type: CategoryType | null = null, includeDeleted: boolean | null = null): Observable<CategoryResponse[]> {
+  load(type: CategoryType | null = null, includeDeleted: boolean | null = null): Observable<CategoryResponse[]> {
     let params = new HttpParams();
 
     if (type) {
@@ -33,15 +32,19 @@ export class CategoryService {
     }
 
     return this.http.get<CategoryResponse[]>(this.baseApiUrl, { params })
-      .pipe(tap(items => this.state$.next(items)));
+      .pipe(tap(items => {
+        if (!type && !includeDeleted) {
+          this.state$.next(items);
+        }
+      }));
   }
 
   create(request: CreateCategoryRequest): Observable<number> {
-    return this.http.post<number>(`${this.baseApiUrl}`, request, {withCredentials: true});
+    return this.http.post<number>(`${this.baseApiUrl}`, request);
   }
 
   updateRange(categories: CategoryResponse[]): Observable<void> {
-    return this.http.put<void>(`${this.baseApiUrl}/updateRange`, categories, {withCredentials: true});
+    return this.http.put<void>(`${this.baseApiUrl}/updateRange`, categories);
   }
 
   delete(id: number): Observable<void> {
@@ -49,6 +52,6 @@ export class CategoryService {
   }
 
   restore(id: number): Observable<CategoryResponse> {
-    return this.http.post<CategoryResponse>(`${this.baseApiUrl}/${id}/restore`, {}, {withCredentials: true});
+    return this.http.post<CategoryResponse>(`${this.baseApiUrl}/${id}/restore`, {});
   }
 }

@@ -1,4 +1,4 @@
-import { Component, Inject, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { DialogRef } from '../../../../shared/components/dialogs/models/dialog-ref';
@@ -16,18 +16,17 @@ export interface GoalDialogData {
   templateUrl: './goal-dialog.component.html',
   styleUrl: './goal-dialog.component.scss',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule]
+  imports: [CommonModule, ReactiveFormsModule],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class GoalDialogComponent implements OnInit {
+  private readonly fb = inject(FormBuilder);
+  private readonly dialogRef = inject<DialogRef<GoalDialogForm | null>>(DialogRef);
+  private readonly data = inject<GoalDialogData>(DIALOG_DATA);
+
   form!: FormGroup;
   currencies = CURRENCIES;
   isEdit = false;
-
-  constructor(
-    private readonly fb: FormBuilder,
-    private readonly dialogRef: DialogRef<GoalDialogForm | null>,
-    @Inject(DIALOG_DATA) private readonly data: GoalDialogData
-  ) {}
 
   ngOnInit(): void {
     this.isEdit = !!this.data.goal;

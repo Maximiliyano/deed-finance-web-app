@@ -1,4 +1,5 @@
-import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectorRef, ChangeDetectionStrategy, Component, OnInit, inject, DestroyRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { PopupMessageService } from '../../../../shared/services/popup-message.service';
 import { UpdateCapitalRequest } from '../../models/update-capital-request';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
@@ -6,7 +7,7 @@ import { Exchange } from '../../../../core/models/exchange-model';
 import { CapitalResponse } from '../../models/capital-response';
 import { FormField } from '../../../../shared/components/forms/models/form-field';
 import { FormButton } from '../../../../shared/components/forms/models/form-button';
-import { Subject, takeUntil } from 'rxjs';
+
 import { DIALOG_DATA } from '../../../../shared/components/dialogs/models/dialog-consts';
 import { DialogRef } from '../../../../shared/components/dialogs/models/dialog-ref';
 import { FormComponent } from '../../../../shared/components/forms/form.component';
@@ -17,24 +18,20 @@ import { SelectOptionModel } from '../../../../shared/components/forms/models/se
     templateUrl: './capital-details.component.html',
     styleUrl: './capital-details.component.scss',
     imports: [FormComponent],
-    standalone: true
+    standalone: true,
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class CapitalDetailsComponent implements OnInit, OnDestroy {
+export class CapitalDetailsComponent implements OnInit {
+  private readonly cdr = inject(ChangeDetectorRef);
+  readonly data = inject<{ capital: CapitalResponse; currencyOptions: SelectOptionModel[]; exchanges: Exchange[]; }>(DIALOG_DATA);
+  private readonly dialogRef = inject<DialogRef<UpdateCapitalRequest | null>>(DialogRef);
+  private readonly popupMessageService = inject(PopupMessageService);
+  private readonly destroyRef = inject(DestroyRef);
+
   form: FormGroup;
   fields: FormField[] = [];
   buttons: FormButton[] = [];
   isFormModified: boolean = false;
-
-  private unsubcribe$ = new Subject<void>();
-
-  constructor(
-    @Inject(DIALOG_DATA) public data: {
-      capital: CapitalResponse;
-      currencyOptions: SelectOptionModel[];
-      exchanges: Exchange[];
-    },
-    private readonly dialogRef: DialogRef<UpdateCapitalRequest | null>,
-    private readonly popupMessageService: PopupMessageService) {}
 
   ngOnInit(): void {
     this.initForm();
@@ -42,12 +39,7 @@ export class CapitalDetailsComponent implements OnInit, OnDestroy {
     this.initButtons();
     this.checkFormModified();
   }
-
-  ngOnDestroy(): void {
-    this.unsubcribe$.next();
-    this.unsubcribe$.complete();
-  }
-
+
   initForm(): void {
     this.form = new FormGroup({
       Name: new FormControl(this.data.capital.name, [Validators.required, Validators.maxLength(32)]),
@@ -63,7 +55,7 @@ export class CapitalDetailsComponent implements OnInit, OnDestroy {
     const capitalBalance = Number(this.data.capital.balance);
 
     this.form.valueChanges
-      .pipe(takeUntil(this.unsubcribe$))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (formValue) => {
           const isFormEqualToModel = (
@@ -77,6 +69,7 @@ export class CapitalDetailsComponent implements OnInit, OnDestroy {
           this.isFormModified = !isFormEqualToModel;
 
           this.initButtons();
+          this.cdr.markForCheck();
         }
     });
   }

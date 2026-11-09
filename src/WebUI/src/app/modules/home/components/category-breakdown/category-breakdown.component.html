@@ -1,0 +1,40 @@
+<div class="expense-summary-list" cdkDropList (cdkDropListDropped)="reordered.emit($event)" [cdkDropListDisabled]="!reorderable()">
+  @for (group of groups(); track group.key) {
+    <div class="expense-summary-row clickable-row" cdkDrag [cdkDragDisabled]="!reorderable()" (click)="toggle(group.key)">
+      <div class="expense-summary-info">
+        @if (reorderable()) {
+          <i class="fas fa-grip-vertical bp-drag-handle" cdkDragHandle (click)="$event.stopPropagation()"></i>
+        }
+        <i class="fas expand-icon" [ngClass]="expanded().has(group.key) ? 'fa-chevron-down' : 'fa-chevron-right'"></i>
+        <span class="expense-summary-name">{{ group.name }}</span>
+        <span class="expense-summary-count">{{ group.count }} {{ group.count === 1 ? 'transaction' : 'transactions' }}</span>
+      </div>
+      <div class="expense-summary-right">
+        <span class="expense-summary-amount" [class.text-success]="tone() === 'success'">{{ group.total | currencySymbol: currency() }}</span>
+        @if (group.percentage !== null) {
+          <span class="expense-summary-pct">{{ group.percentage | number: percentFormat() }}%</span>
+        }
+      </div>
+      <div class="expense-summary-bar">
+        <div class="expense-summary-bar-fill" [class.fill-success]="tone() === 'success'" [style.width.%]="group.percentage ?? 0"></div>
+      </div>
+      @if (expanded().has(group.key)) {
+        @for (item of group.items; track item.id) {
+          <div class="txn-row"
+               [ngClass]="{ 'clickable-row': !readonly() }"
+               [title]="readonly() ? null : 'Edit ' + entity()"
+               (click)="onEdit($event, item)">
+            <span class="txn-amount" [ngClass]="tone() === 'success' ? 'text-success' : 'text-danger'">{{ item.amount | currencySymbol: currency() }}</span>
+            <span class="txn-purpose">{{ item.purpose ?? '—' }}</span>
+            <span class="txn-date">{{ item.paymentDate | date: 'dd MMM' }}</span>
+            @if (!readonly()) {
+              <button type="button" class="icon-btn icon-btn-danger" title="Delete" aria-label="Delete" (click)="onRemove($event, item.id)">
+                <i class="fas fa-trash-can"></i>
+              </button>
+            }
+          </div>
+        }
+      }
+    </div>
+  }
+</div>

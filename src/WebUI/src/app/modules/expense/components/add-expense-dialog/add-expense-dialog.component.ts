@@ -1,4 +1,4 @@
-import {Component, Inject, OnInit} from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, inject } from '@angular/core';
 import {FormControl, FormGroup, Validators} from "@angular/forms";
 import { CreateExpenseRequest } from '../../models/create-expense-request';
 import { FormField } from '../../../../shared/components/forms/models/form-field';
@@ -8,7 +8,7 @@ import { noFutureDate } from '../../../../shared/components/forms/validators/noF
 import { SharedModule } from "../../../../shared/shared.module";
 import { DIALOG_DATA } from '../../../../shared/components/dialogs/models/dialog-consts';
 import { DialogRef } from '../../../../shared/components/dialogs/models/dialog-ref';
-import { todayDateString } from '../../../../core/utils/date.utils';
+import { todayDateString } from '../../../../core/utils/date';
 import { FormComponent } from '../../../../shared/components/forms/form.component';
 import { Tag } from '../../models/tag';
 
@@ -17,20 +17,16 @@ import { Tag } from '../../models/tag';
     templateUrl: './add-expense-dialog.component.html',
     styleUrl: './add-expense-dialog.component.scss',
     standalone: true,
-    imports: [SharedModule, FormComponent]
+    imports: [SharedModule, FormComponent],
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AddExpenseDialogComponent implements OnInit {
+  readonly data = inject<{ categoryOptions: SelectOptionModel[]; capitalsOptions: SelectOptionModel[]; tags: Tag[]; }>(DIALOG_DATA);
+  private readonly dialogRef = inject<DialogRef<CreateExpenseRequest | null>>(DialogRef);
+  private readonly popupMessageService = inject(PopupMessageService);
+
   form: FormGroup;
   fields: FormField[] = [];
-
-  constructor(
-    @Inject(DIALOG_DATA) public data: {
-      categoryOptions: SelectOptionModel[];
-      capitalsOptions: SelectOptionModel[];
-      tags: Tag[];
-    },
-    private readonly dialogRef: DialogRef<CreateExpenseRequest | null>,
-    private readonly popupMessageService: PopupMessageService) {}
 
   ngOnInit(): void {
     this.initForm();

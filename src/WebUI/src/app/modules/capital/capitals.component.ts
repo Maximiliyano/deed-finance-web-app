@@ -1,5 +1,6 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, HostListener, OnDestroy, OnInit } from '@angular/core';
-import { debounceTime, Subject, takeUntil } from 'rxjs';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, HostListener, OnDestroy, OnInit, inject, DestroyRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { debounceTime, Subject } from 'rxjs';
 import { Exchange } from '../../core/models/exchange-model';
 import { DialogService } from '../../shared/components/dialogs/services/dialog.service';
 import { ExchangeService } from '../../shared/services/exchange.service';
@@ -28,6 +29,16 @@ import { UserSettingsService } from '../home/services/user-settings.service';
     standalone: false
 })
 export class CapitalsComponent implements OnInit, OnDestroy {
+  private readonly capitalService = inject(CapitalService);
+  private readonly popupMessageService = inject(PopupMessageService);
+  private readonly exchangeService = inject(ExchangeService);
+  private readonly dialogService = inject(DialogService);
+  private readonly authService = inject(AuthService);
+  private readonly debtService = inject(DebtService);
+  private readonly userSettingsService = inject(UserSettingsService);
+  private readonly cdr = inject(ChangeDetectorRef);
+  private readonly destroyRef = inject(DestroyRef);
+
   capitals: CapitalResponse[] = [];
   capitalStatItems: CapitalItem[] = [
     { key: 'totalIncome', title: 'Incomes', icon: 'fa-dollar-sign', style: 'cp-incomes' },
@@ -65,20 +76,6 @@ export class CapitalsComponent implements OnInit, OnDestroy {
   user: User | null = null;
 
   private queryParams$ = new Subject<void>();
-  private unsubcribe$ = new Subject<void>();
-
-  constructor(
-    private readonly capitalService: CapitalService,
-    private readonly popupMessageService: PopupMessageService,
-    private readonly exchangeService: ExchangeService,
-    private readonly dialogService: DialogService,
-    private readonly authService: AuthService,
-    private readonly debtService: DebtService,
-    private readonly userSettingsService: UserSettingsService,
-    private readonly cdr: ChangeDetectorRef
-  ) {
-  }
-
   @HostListener('document:click', ['$event.target'])
   onClickOutside(targetElement: EventTarget | null): void {
     if (!(targetElement instanceof HTMLElement)) {
@@ -96,7 +93,7 @@ export class CapitalsComponent implements OnInit, OnDestroy {
     document.title = "Deed - Capitals";
 
     this.authService.user$
-      .pipe(takeUntil(this.unsubcribe$))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(user => {
         this.user = user;
         this.cdr.markForCheck();
@@ -107,7 +104,7 @@ export class CapitalsComponent implements OnInit, OnDestroy {
     this.queryParams$
       .pipe(
         debounceTime(300),
-        takeUntil(this.unsubcribe$)
+        takeUntilDestroyed(this.destroyRef)
       )
       .subscribe({
         next: () => this.fetchCapitals()
@@ -115,7 +112,7 @@ export class CapitalsComponent implements OnInit, OnDestroy {
 
     this.fetchCapitals();
     this.fetchExchanges();
-    this.debtService.getAll().pipe(takeUntil(this.unsubcribe$)).subscribe({
+    this.debtService.load().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: debts => { this.debts = debts; this.cdr.markForCheck(); }
     });
   }
@@ -127,15 +124,13 @@ export class CapitalsComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.unsubcribe$.next();
-    this.unsubcribe$.complete();
     this.queryParams$.complete();
   }
 
   fetchExchanges(): void {
     this.exchangeService
       .getLatest()
-      .pipe(takeUntil(this.unsubcribe$))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (response) => { this.exchanges = response; this.cdr.markForCheck(); },
         error: () => this.popupMessageService.error('Failed to load exchanges')
@@ -143,13 +138,13 @@ export class CapitalsComponent implements OnInit, OnDestroy {
   }
 
   fetchCapitals(): void {
-    this.capitalService.getAll({
+    this.capitalService.load({
         searchTerm: this.searchTerm,
         sortBy: this.selectedSortOption,
         sortDirection: this.sortDirection,
         filterBy: this.filterBy
       })
-      .pipe(takeUntil(this.unsubcribe$))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (response) => {
           this.capitals = response;
@@ -180,7 +175,7 @@ export class CapitalsComponent implements OnInit, OnDestroy {
     const newCurrency = (event.target as HTMLSelectElement).value;
 
     if (newCurrency) {
-      this.userSettingsService.upsert({
+      this.userSettingsService.patch({
         currency: newCurrency
       }).subscribe({
         next: () => {
@@ -204,13 +199,13 @@ export class CapitalsComponent implements OnInit, OnDestroy {
 
     ref
       .afterClosed$
-      .pipe(takeUntil(this.unsubcribe$))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (request: UpdateCapitalRequest | null) => {
           if (request) {
             this.capitalService
               .update(request.id, request)
-              .pipe(takeUntil(this.unsubcribe$))
+              .pipe(takeUntilDestroyed(this.destroyRef))
               .subscribe({
                 next: () => this.capitalUpdated(request),
                 error: () => this.popupMessageService.error('Failed to update capital')
@@ -245,12 +240,12 @@ export class CapitalsComponent implements OnInit, OnDestroy {
 
     dialogRef
       .afterClosed$
-      .pipe(takeUntil(this.unsubcribe$))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (request: AddCapitalRequest | null) => {
           if (request) {
             this.capitalService.create(request)
-              .pipe(takeUntil(this.unsubcribe$))
+              .pipe(takeUntilDestroyed(this.destroyRef))
               .subscribe({
                 next: (id) => {
                   this.addCapitalToTheList(id, request);
@@ -327,7 +322,7 @@ export class CapitalsComponent implements OnInit, OnDestroy {
     if (capital) {
       this.capitalService
         .patchIncludeTotal(id, !capital.includeInTotal)
-        .pipe(takeUntil(this.unsubcribe$))
+        .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe({
           next: () => {
             capital.includeInTotal = !capital.includeInTotal;
@@ -344,7 +339,7 @@ export class CapitalsComponent implements OnInit, OnDestroy {
     if (capital) {
       this.capitalService
         .patchSavingsOnly(id, !capital.onlyForSavings)
-        .pipe(takeUntil(this.unsubcribe$))
+        .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe({
           next: () => {
             capital.onlyForSavings = !capital.onlyForSavings;
@@ -368,12 +363,12 @@ export class CapitalsComponent implements OnInit, OnDestroy {
       },
     });
 
-    ref.afterClosed$.pipe(takeUntil(this.unsubcribe$)).subscribe({
+    ref.afterClosed$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (confirmed: boolean) => {
         if (confirmed) {
           this.capitalService
             .delete(id)
-            .pipe(takeUntil(this.unsubcribe$))
+            .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe({
               next: () => {
                 this.capitals = this.capitals.filter(x => x.id !== id);
@@ -401,7 +396,7 @@ export class CapitalsComponent implements OnInit, OnDestroy {
 
     this.capitalService
       .updateOrder({ capitals: orders })
-      .pipe(takeUntil(this.unsubcribe$))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: () => {
           this.popupMessageService.success("Sort order is changed.");

@@ -1,0 +1,138 @@
+<div class="bp-charts">
+  <div class="bp-charts-tabs bp-sort-group" role="tablist" aria-label="Chart view">
+    <button class="bp-sort-btn" role="tab" [ngClass]="{ active: chartTab() === 'general' }" [attr.aria-selected]="chartTab() === 'general'" (click)="chartTab.set('general')">
+      <i class="fas fa-circle-half-stroke"></i> General
+    </button>
+    <button class="bp-sort-btn" role="tab" [ngClass]="{ active: chartTab() === 'expenses' }" [attr.aria-selected]="chartTab() === 'expenses'" (click)="chartTab.set('expenses')">
+      <i class="fas fa-arrow-trend-down"></i> Expenses
+    </button>
+    <button class="bp-sort-btn" role="tab" [ngClass]="{ active: chartTab() === 'incomes' }" [attr.aria-selected]="chartTab() === 'incomes'" (click)="chartTab.set('incomes')">
+      <i class="fas fa-arrow-trend-up"></i> Incomes
+    </button>
+  </div>
+
+  @if (store.capitals().length > 0) {
+    <div class="bp-charts-capital-filter">
+      <span class="bp-charts-filter-label"><i class="fas fa-wallet"></i> Capitals:</span>
+      <button class="bp-capital-chip"
+              [ngClass]="{ active: !store.hasCapitalFilter() }"
+              (click)="store.clearCapitals()"
+              [attr.aria-pressed]="!store.hasCapitalFilter()">
+        All
+      </button>
+      @for (cap of store.capitals(); track cap.id) {
+        <button class="bp-capital-chip"
+                [ngClass]="{ active: store.isCapitalSelected(cap.id) }"
+                (click)="store.toggleCapital(cap.id)"
+                [attr.aria-pressed]="store.isCapitalSelected(cap.id)">
+          {{ cap.name }}
+        </button>
+      }
+    </div>
+  }
+
+  @switch (chartTab()) {
+    @case ('general') {
+      <div class="bp-chart-general">
+        <div class="bp-donut-wrap">
+          <svg viewBox="0 0 36 36" class="bp-donut-svg" aria-hidden="true">
+            <circle class="bp-donut-track" cx="18" cy="18" r="15.915"></circle>
+            <circle class="bp-donut-loss" cx="18" cy="18" r="15.915"
+                    [attr.stroke-dasharray]="donutLossPct() + ' ' + (100 - donutLossPct())"
+                    stroke-dashoffset="0"></circle>
+            <circle class="bp-donut-net" cx="18" cy="18" r="15.915"
+                    [ngClass]="{ 'is-deficit': store.filteredNetProfit() < 0 }"
+                    [attr.stroke-dasharray]="donutNetPct() + ' ' + (100 - donutNetPct())"
+                    [attr.stroke-dashoffset]="-donutLossPct()"></circle>
+          </svg>
+          <div class="bp-donut-center">
+            <span class="bp-donut-center-label">{{ store.filteredNetProfit() >= 0 ? 'Net Profit' : 'Net Deficit' }}</span>
+            <span class="bp-donut-center-value" [ngClass]="store.filteredNetProfit() >= 0 ? 'text-success' : 'text-danger'">
+              {{ scaledFilteredNet() | currencySymbol: store.chartCurrency() }}
+            </span>
+            <span class="bp-donut-center-sub">{{ store.planFilterLabel() }}</span>
+          </div>
+        </div>
+        <ul class="bp-donut-legend">
+          <li>
+            <span class="bp-spend-dot dot-income"></span>
+            <span class="bp-donut-legend-name">Incomes</span>
+            <strong class="text-success">{{ scaledFilteredIncomes() | currencySymbol: store.chartCurrency() }}</strong>
+          </li>
+          <li>
+            <span class="bp-spend-dot dot-loss"></span>
+            <span class="bp-donut-legend-name">Losses</span>
+            <strong class="text-danger">{{ scaledFilteredLoss() | currencySymbol: store.chartCurrency() }}</strong>
+          </li>
+          <li>
+            <span class="bp-spend-dot" [ngClass]="store.filteredNetProfit() >= 0 ? 'dot-net' : 'dot-loss'"></span>
+            <span class="bp-donut-legend-name">{{ store.filteredNetProfit() >= 0 ? 'Net Profit' : 'Net Deficit' }}</span>
+            <strong [ngClass]="store.filteredNetProfit() >= 0 ? 'text-success' : 'text-danger'">{{ scaledFilteredNet() | currencySymbol: store.chartCurrency() }}</strong>
+          </li>
+        </ul>
+      </div>
+    }
+    @case ('expenses') {
+              @if (expenseItems().length > 0) {
+                <div class="bp-spend">
+                  <div class="bp-spend-header">
+                    <span class="bp-spend-title"><i class="fas fa-arrow-trend-down"></i> Expenses by category</span>
+                    <span class="bp-spend-total text-danger">{{ totalExpense() | currencySymbol: store.chartCurrency() }}</span>
+                  </div>
+                  <div class="bp-spend-bar">
+                    @for (item of expenseItems(); track item.name) {
+                      <div class="bp-spend-seg"
+                           [style.flex-grow]="item.amount"
+                           [style.background-color]="item.color"
+                           [title]="item.name + ' — ' + (item.amount | currencySymbol: store.chartCurrency()) + ' (' + (item.pct | number:'1.0-1') + '%)'">
+                      </div>
+                    }
+                  </div>
+                  <div class="bp-spend-legend">
+                    @for (item of expenseItems(); track item.name) {
+                      <span class="bp-spend-legend-item">
+                        <span class="bp-spend-dot" [style.background-color]="item.color"></span>
+                        <span class="bp-spend-name">{{ item.name }}</span>
+                        <span class="bp-spend-amount">{{ item.amount | currencySymbol: store.chartCurrency() }}</span>
+                        <span class="bp-spend-pct">{{ item.pct | number:'1.0-1' }}%</span>
+                      </span>
+                    }
+                  </div>
+                </div>
+              } @else {
+                <p class="bp-charts-empty">No expenses for the selected capitals.</p>
+              }
+    }
+    @case ('incomes') {
+              @if (incomeItems().length > 0) {
+                <div class="bp-spend">
+                  <div class="bp-spend-header">
+                    <span class="bp-spend-title"><i class="fas fa-arrow-trend-up"></i> Incomes by category</span>
+                    <span class="bp-spend-total text-success">{{ store.filteredIncome() | currencySymbol: store.chartCurrency() }}</span>
+                  </div>
+                  <div class="bp-spend-bar">
+                    @for (item of incomeItems(); track item.name) {
+                      <div class="bp-spend-seg"
+                           [style.flex-grow]="item.amount"
+                           [style.background-color]="item.color"
+                           [title]="item.name + ' — ' + (item.amount | currencySymbol: store.chartCurrency()) + ' (' + (item.pct | number:'1.0-1') + '%)'">
+                      </div>
+                    }
+                  </div>
+                  <div class="bp-spend-legend">
+                    @for (item of incomeItems(); track item.name) {
+                      <span class="bp-spend-legend-item">
+                        <span class="bp-spend-dot" [style.background-color]="item.color"></span>
+                        <span class="bp-spend-name">{{ item.name }}</span>
+                        <span class="bp-spend-amount">{{ item.amount | currencySymbol: store.chartCurrency() }}</span>
+                        <span class="bp-spend-pct">{{ item.pct | number:'1.0-1' }}%</span>
+                      </span>
+                    }
+                  </div>
+                </div>
+              } @else {
+                <p class="bp-charts-empty">No incomes for the selected capitals.</p>
+              }
+    }
+  }
+</div>

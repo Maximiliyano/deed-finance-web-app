@@ -1,0 +1,34 @@
+<div id="expenses" class="card">
+  <div class="card-header">
+    <h2 class="card-title"><i class="fas fa-money-bill-wave"></i> Expenses</h2>
+    <div class="card-header-actions">
+      <span class="badge badge-warning">{{ total() | currencySymbol: userCurrency() }}</span>
+      <button type="button" class="btn btn-danger btn-sm" (click)="openQuickExpense()">
+        <i class="fas fa-plus"></i> Add
+      </button>
+      <a class="btn btn-secondary btn-sm" routerLink="/expenses" aria-label="Open expenses">
+        <i class="fas fa-arrow-up-right-from-square"></i>
+      </a>
+    </div>
+  </div>
+  @if (groups().length > 1) {
+    <app-sort-toolbar [options]="sortOptions" [value]="sortBy()" (changed)="sort($event)" />
+  }
+  <app-panel-state
+    [loading]="loading()"
+    [empty]="groups().length === 0"
+    icon="fa-money-bill-wave"
+    title="No expenses yet"
+    hint="Start tracking your expenses to see a breakdown here.">
+    <app-category-breakdown
+      [groups]="groups()"
+      [currency]="userCurrency()"
+      entity="expense"
+      tone="danger"
+      [reorderable]="reorderable()"
+      [readonly]="isAnonymous()"
+      (reordered)="reorder($event)"
+      (edit)="openQuickExpense($event)"
+      (removed)="deleteExpense($event)" />
+  </app-panel-state>
+</div>

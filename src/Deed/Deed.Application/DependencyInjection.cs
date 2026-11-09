@@ -4,6 +4,7 @@ using System.Threading.RateLimiting;
 using Deed.Application.Abstractions.Behaviours;
 using Deed.Application.Abstractions.Settings;
 using Deed.Application.Auth;
+using Deed.Application.Exchanges;
 using Deed.Application.Exchanges.Service;
 using FluentValidation;
 using Microsoft.AspNetCore.Authentication;
@@ -33,6 +34,8 @@ public static class DependencyInjection
         services.AddAuth();
 
         services.AddMediatrDependencies();
+
+        services.AddScoped<IExchangeRateProvider, ExchangeRateProvider>();
 
         services.AddValidatorsFromAssembly(AssemblyReference.Assembly, includeInternalTypes: true);
 

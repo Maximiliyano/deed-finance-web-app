@@ -9,7 +9,7 @@ COPY src/Deed/Deed.Domain/Deed.Domain.csproj src/Deed/Deed.Domain/
 COPY src/Deed/Deed.Application/Deed.Application.csproj src/Deed/Deed.Application/
 COPY src/Deed/Deed.Infrastructure/Deed.Infrastructure.csproj src/Deed/Deed.Infrastructure/
 COPY src/Deed/Deed.Api/Deed.Api.csproj src/Deed/Deed.Api/
-RUN dotnet restore src/Deed/Deed.Api/Deed.Api.csproj -r linux-x64
+RUN dotnet restore src/Deed/Deed.Api/Deed.Api.csproj -r linux-x64 /p:PublishReadyToRun=true
 
 COPY src/Deed/ src/Deed/
 RUN dotnet publish src/Deed/Deed.Api/Deed.Api.csproj -c Release -r linux-x64 --self-contained false -o /app/publish /p:UseAppHost=false /p:PublishReadyToRun=true --no-restore

@@ -1,5 +1,5 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { Tag } from '../models/tag';
 
@@ -7,9 +7,9 @@ import { Tag } from '../models/tag';
   providedIn: 'root'
 })
 export class TagService {
-  private baseUrl = '/api/tags';
+  private readonly http = inject(HttpClient);
 
-  constructor(private http: HttpClient) {}
+  private baseUrl = '/api/tags';
 
   search(term?: string): Observable<Tag[]> {
     let params = new HttpParams();
@@ -17,14 +17,14 @@ export class TagService {
       params = params.set('term', term);
     }
 
-    return this.http.get<Tag[]>(`${this.baseUrl}`, { params, withCredentials: true });
+    return this.http.get<Tag[]>(`${this.baseUrl}`, { params });
   }
 
   create(expenseId: number, name: string): Observable<number> {
-    return this.http.post<number>(this.baseUrl, { expenseId, name }, { withCredentials: true });
+    return this.http.post<number>(this.baseUrl, { expenseId, name });
   }
 
   delete(tagId: number): Observable<void> {
-    return this.http.delete<void>(`${this.baseUrl}/${tagId}`, { withCredentials: true });
+    return this.http.delete<void>(`${this.baseUrl}/${tagId}`);
   }
 }

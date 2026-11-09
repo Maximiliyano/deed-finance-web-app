@@ -1,12 +1,13 @@
-import { UserSettingsService } from './../home/services/user-settings.service';
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
+import { AuthService } from '../auth/services/auth-service';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, inject, DestroyRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ExpenseCategoryResponse } from './models/expense-category-response';
 import { DialogService } from '../../shared/components/dialogs/services/dialog.service';
 import { AddExpenseDialogComponent } from './components/add-expense-dialog/add-expense-dialog.component';
 import { CapitalResponse } from '../capital/models/capital-response';
 import { ExpenseService } from './services/expense.service';
 import { CapitalService } from '../capital/services/capital.service';
-import { Subject, takeUntil } from 'rxjs';
+
 import { CategoryService } from '../category/services/category.service';
 import { CategoryType } from '../../core/types/category-type';
 import { CreateExpenseRequest } from './models/create-expense-request';
@@ -35,7 +36,20 @@ import { CURRENCY_DEFAULT } from '../../core/types/currency-type';
     standalone: false,
     changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ExpensesComponent implements OnInit, OnDestroy {
+export class ExpensesComponent implements OnInit {
+  private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
+  private readonly expenseService = inject(ExpenseService);
+  private readonly categoryService = inject(CategoryService);
+  private readonly capitalService = inject(CapitalService);
+  private readonly tagService = inject(TagService);
+  private readonly utilityBillService = inject(UtilityBillService);
+  private readonly authService = inject(AuthService);
+  private readonly dialogService = inject(DialogService);
+  private readonly popupMessageService = inject(PopupMessageService);
+  private readonly cdr = inject(ChangeDetectorRef);
+  private readonly destroyRef = inject(DestroyRef);
+
   expenseCategories: ExpenseCategoryResponse[] = [];
   capitals: CapitalResponse[] = [];
 
@@ -51,22 +65,6 @@ export class ExpensesComponent implements OnInit, OnDestroy {
 
   activeTab: 'expenses' | 'bills' = 'expenses';
   utilityBills: UtilityBillResponse[] = [];
-
-  private $unsubscribe = new Subject<void>();
-
-  constructor(
-    private readonly router: Router,
-    private readonly route: ActivatedRoute,
-    private readonly expenseService: ExpenseService,
-    private readonly categoryService: CategoryService,
-    private readonly capitalService: CapitalService,
-    private readonly tagService: TagService,
-    private readonly utilityBillService: UtilityBillService,
-    private readonly userSettingsService: UserSettingsService,
-    private readonly dialogService: DialogService,
-    private readonly popupMessageService: PopupMessageService,
-    private readonly cdr: ChangeDetectorRef
-  ) {}
 
   get pendingBills(): UtilityBillResponse[] {
     return this.utilityBills.filter(b => b.isActive && !b.isPaidThisMonth);
@@ -89,7 +87,7 @@ export class ExpensesComponent implements OnInit, OnDestroy {
 
   fetchUtilityBills(): void {
     this.utilityBillService.getAll()
-      .pipe(takeUntil(this.$unsubscribe))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (bills) => { this.utilityBills = bills; this.cdr.markForCheck(); }
       });
@@ -102,17 +100,17 @@ export class ExpensesComponent implements OnInit, OnDestroy {
       categories: this.currentCategories
     };
     const ref = this.dialogService.open(UtilityBillDialogComponent, { data });
-    ref.afterClosed$.pipe(takeUntil(this.$unsubscribe)).subscribe((result: CreateUtilityBillRequest | null) => {
+    ref.afterClosed$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((result: CreateUtilityBillRequest | null) => {
       if (!result) return;
       if (bill) {
-        this.utilityBillService.update(bill.id, result).pipe(takeUntil(this.$unsubscribe)).subscribe({
+        this.utilityBillService.update(bill.id, result).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
           next: () => {
             this.popupMessageService.success('Utility bill updated');
             this.fetchUtilityBills();
           }
         });
       } else {
-        this.utilityBillService.create(result).pipe(takeUntil(this.$unsubscribe)).subscribe({
+        this.utilityBillService.create(result).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
           next: () => {
             this.popupMessageService.success('Utility bill added');
             this.fetchUtilityBills();
@@ -125,10 +123,10 @@ export class ExpensesComponent implements OnInit, OnDestroy {
   payUtilityBill(bill: UtilityBillResponse): void {
     const data: PayUtilityBillDialogData = { bill };
     const ref = this.dialogService.open(PayUtilityBillDialogComponent, { data });
-    ref.afterClosed$.pipe(takeUntil(this.$unsubscribe)).subscribe((result: PayUtilityBillRequest | null) => {
+    ref.afterClosed$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((result: PayUtilityBillRequest | null) => {
       if (!result) return;
       this.utilityBillService.pay(bill.id, result)
-        .pipe(takeUntil(this.$unsubscribe))
+        .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe({
           next: () => {
             this.popupMessageService.success(`${bill.name} marked paid`);
@@ -148,10 +146,10 @@ export class ExpensesComponent implements OnInit, OnDestroy {
         icon: 'danger'
       }
     });
-    dialogRef.afterClosed$.pipe(takeUntil(this.$unsubscribe)).subscribe({
+    dialogRef.afterClosed$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (confirmed: boolean) => {
         if (!confirmed) return;
-        this.utilityBillService.delete(bill.id).pipe(takeUntil(this.$unsubscribe)).subscribe({
+        this.utilityBillService.delete(bill.id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
           next: () => {
             this.popupMessageService.success('Utility bill deleted');
             this.fetchUtilityBills();
@@ -184,8 +182,11 @@ export class ExpensesComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     document.title = "Deed - Expenses";
 
-    this.userSettingsService.load().subscribe({
-      next: (v) => this.defaultCurrency = v?.currency ?? CURRENCY_DEFAULT
+    this.authService.me().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: (user) => {
+        this.defaultCurrency = user?.currency ?? CURRENCY_DEFAULT;
+        this.cdr.markForCheck();
+      }
     });
 
     this.fetchExpenses();
@@ -193,12 +194,7 @@ export class ExpensesComponent implements OnInit, OnDestroy {
     this.fetchCategories();
     this.fetchTags();
   }
-
-  ngOnDestroy(): void {
-    this.$unsubscribe.next();
-    this.$unsubscribe.complete();
-  }
-
+
   isPlannedPeriodShown(expenseCategory: ExpenseCategoryResponse): boolean {
     return expenseCategory.plannedPeriodAmount > 0.0 && expenseCategory.periodType !== PerPeriodType.None;
   }
@@ -210,7 +206,7 @@ export class ExpensesComponent implements OnInit, OnDestroy {
   fetchTags(): void {
     this.tagService
       .search()
-      .pipe(takeUntil(this.$unsubscribe))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (tags) => {
           this.tags = tags;
@@ -221,8 +217,8 @@ export class ExpensesComponent implements OnInit, OnDestroy {
 
   fetchCategories(): void {
     this.categoryService
-      .getAll(CategoryType.Expenses, true)
-      .pipe(takeUntil(this.$unsubscribe))
+      .load(CategoryType.Expenses, true)
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (responses) => {
           this.currentCategories = responses.filter(c => !c.isDeleted);
@@ -234,8 +230,8 @@ export class ExpensesComponent implements OnInit, OnDestroy {
 
   fetchExpenses(): void {
     this.expenseService
-      .getAllByCategories(this.selectedCapital?.id)
-      .pipe(takeUntil(this.$unsubscribe))
+      .load(this.selectedCapital?.id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (responses) => { this.expenseCategories = responses; this.cdr.markForCheck(); }
       });
@@ -243,13 +239,13 @@ export class ExpensesComponent implements OnInit, OnDestroy {
 
   fetchCapitals(): void {
     this.capitalService
-      .getAll({
+      .load({
         filterBy: 'onlyForSavings',
         searchTerm: null,
         sortBy: null,
         sortDirection: null
       })
-      .pipe(takeUntil(this.$unsubscribe))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (responses) => {
           this.capitals = responses;
@@ -260,7 +256,7 @@ export class ExpensesComponent implements OnInit, OnDestroy {
   }
 
   handleQueryParams(): void {
-    this.route.queryParamMap.pipe(takeUntil(this.$unsubscribe)).subscribe({
+    this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (params) => {
         const queryCapitalId = params.get('capitalId');
         const capital = this.capitals.find(c => c.id === Number(queryCapitalId));
@@ -303,7 +299,7 @@ export class ExpensesComponent implements OnInit, OnDestroy {
 
     categoriesDialogRef
       .afterClosed$
-      .pipe(takeUntil(this.$unsubscribe))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (responses: CategoryResponse[]) => {
           if (responses?.length) {
@@ -313,7 +309,7 @@ export class ExpensesComponent implements OnInit, OnDestroy {
             }));
 
             this.categoryService.updateRange(normalized)
-              .pipe(takeUntil(this.$unsubscribe))
+              .pipe(takeUntilDestroyed(this.destroyRef))
               .subscribe({
                 next: () => {
                   this.popupMessageService.success('Categories successfully updated.');
@@ -340,12 +336,12 @@ export class ExpensesComponent implements OnInit, OnDestroy {
 
     dialogRef
       .afterClosed$
-      .pipe(takeUntil(this.$unsubscribe))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (request: CreateExpenseRequest) => {
           if (request) {
             this.expenseService.create(request)
-              .pipe(takeUntil(this.$unsubscribe))
+              .pipe(takeUntilDestroyed(this.destroyRef))
               .subscribe({
                 next: (id) => {
                   this.addExpenseToList(id, request);
@@ -416,13 +412,13 @@ export class ExpensesComponent implements OnInit, OnDestroy {
 
     dialogRef
       .afterClosed$
-      .pipe(takeUntil(this.$unsubscribe))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (request: UpdateExpenseRequest | null) => {
           if (request) {
             this.expenseService
               .update(request)
-              .pipe(takeUntil(this.$unsubscribe))
+              .pipe(takeUntilDestroyed(this.destroyRef))
               .subscribe({
                 next: () => { this.updateExpense(request, oldCategoryId); this.cdr.markForCheck(); }
               })
@@ -442,13 +438,13 @@ export class ExpensesComponent implements OnInit, OnDestroy {
 
     dialogRef
       .afterClosed$
-      .pipe(takeUntil(this.$unsubscribe))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (result: boolean) => {
           if (result) {
             this.expenseService
               .delete(id)
-              .pipe(takeUntil(this.$unsubscribe))
+              .pipe(takeUntilDestroyed(this.destroyRef))
               .subscribe({
                 next: () => {
                   this.removeExpenseFromList(id, categoryId);

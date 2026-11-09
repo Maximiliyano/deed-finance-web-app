@@ -1,6 +1,7 @@
-import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, inject, DestroyRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormGroup, FormControl, Validators } from '@angular/forms';
-import { Subject } from 'rxjs';
+
 import { PopupMessageService } from '../../../../shared/services/popup-message.service';
 import { CURRENCY_DEFAULT } from '../../../../core/types/currency-type';
 import { AddCapitalRequest } from '../../models/add-capital-request';
@@ -15,30 +16,23 @@ import { FormComponent } from '../../../../shared/components/forms/form.componen
     selector: 'app-add-capital-dialog',
     templateUrl: './add-capital-dialog.component.html',
     standalone: true,
-    imports: [SharedModule, FormComponent]
+    imports: [SharedModule, FormComponent],
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class AddCapitalDialogComponent implements OnInit, OnDestroy {
+export class AddCapitalDialogComponent implements OnInit {
+  readonly currencyOptions = inject<SelectOptionModel[]>(DIALOG_DATA);
+  private readonly dialogRef = inject<DialogRef<AddCapitalRequest | null>>(DialogRef);
+  private readonly popupMessageService = inject(PopupMessageService);
+  private readonly destroyRef = inject(DestroyRef);
+
   form: FormGroup;
   fields: FormField[] = [];
-
-  private readonly unsubscribe$ = new Subject<void>();
-
-  constructor(
-    @Inject(DIALOG_DATA) public currencyOptions: SelectOptionModel[],
-    private readonly dialogRef: DialogRef<AddCapitalRequest | null>,
-    private readonly popupMessageService: PopupMessageService
-  ) {}
 
   ngOnInit(): void {
     this.initForm();
     this.initFields();
   }
-
-  ngOnDestroy(): void {
-    this.unsubscribe$.next();
-    this.unsubscribe$.complete();
-  }
-
+
   private initForm(): void {
     this.form = new FormGroup({
       Name: new FormControl('', [Validators.required, Validators.minLength(1), Validators.maxLength(24)]),

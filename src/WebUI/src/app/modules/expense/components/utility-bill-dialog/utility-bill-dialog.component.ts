@@ -1,4 +1,4 @@
-import { Component, Inject, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { DialogRef } from '../../../../shared/components/dialogs/models/dialog-ref';
@@ -19,20 +19,19 @@ export interface UtilityBillDialogData {
   templateUrl: './utility-bill-dialog.component.html',
   styleUrl: './utility-bill-dialog.component.scss',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule]
+  imports: [CommonModule, ReactiveFormsModule],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class UtilityBillDialogComponent implements OnInit {
+  private readonly fb = inject(FormBuilder);
+  private readonly dialogRef = inject<DialogRef<CreateUtilityBillRequest | null>>(DialogRef);
+  private readonly data = inject<UtilityBillDialogData>(DIALOG_DATA);
+
   form!: FormGroup;
   capitals: CapitalResponse[] = [];
   categories: CategoryResponse[] = [];
   currencies = CURRENCIES;
   isEdit = false;
-
-  constructor(
-    private readonly fb: FormBuilder,
-    private readonly dialogRef: DialogRef<CreateUtilityBillRequest | null>,
-    @Inject(DIALOG_DATA) private readonly data: UtilityBillDialogData
-  ) {}
 
   ngOnInit(): void {
     this.capitals = this.data.capitals ?? [];

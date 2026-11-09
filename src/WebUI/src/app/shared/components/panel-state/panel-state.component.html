@@ -1,0 +1,11 @@
+@if (loading()) {
+  <div class="section-spinner"><span class="circle-spinner"></span></div>
+} @else if (empty()) {
+  <div class="empty-state">
+    <i class="fas empty-icon" [ngClass]="icon()"></i>
+    <p class="empty-title">{{ title() }}</p>
+    <p class="empty-hint">{{ hint() }}</p>
+  </div>
+} @else {
+  <ng-content />
+}

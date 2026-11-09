@@ -3,7 +3,7 @@ import {
   ControlValueAccessor,
   NG_VALUE_ACCESSOR
 } from '@angular/forms';
-import { todayDateString } from '../../../core/utils/date.utils';
+import { todayDateString } from '../../../core/utils/date';
 
 @Component({
     selector: 'app-date-picker',

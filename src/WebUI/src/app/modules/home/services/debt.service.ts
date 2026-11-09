@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, catchError, tap, throwError } from 'rxjs';
 import { Debt } from '../models/debt.model';
@@ -7,23 +7,21 @@ import { UpdateDebtRequest } from '../models/debt-request-update';
 
 @Injectable({ providedIn: 'root' })
 export class DebtService {
+  private readonly http = inject(HttpClient);
+
   private readonly baseUrl = '/api/debts';
 
   private readonly state$ = new BehaviorSubject<Debt[]>([]);
   readonly debts$ = this.state$.asObservable();
 
-  constructor(private readonly http: HttpClient) {}
-
   get current(): Debt[] { return this.state$.value; }
 
   load(): Observable<Debt[]> {
-    return this.http.get<Debt[]>(this.baseUrl, { withCredentials: true })
+    return this.http.get<Debt[]>(this.baseUrl)
       .pipe(tap(items => this.state$.next(items)));
   }
 
   refresh(): void { this.load().subscribe(); }
-
-  getAll(): Observable<Debt[]> { return this.load(); }
 
   create(request: CreateDebtRequest): Observable<number> {
     const tempId = -Date.now();
@@ -45,7 +43,7 @@ export class DebtService {
     };
     this.state$.next([...previous, optimistic]);
 
-    return this.http.post<number>(this.baseUrl, request, { withCredentials: true }).pipe(
+    return this.http.post<number>(this.baseUrl, request).pipe(
       tap(realId => {
         this.state$.next(this.state$.value.map(d => d.id === tempId ? { ...d, id: realId } : d));
         this.refresh();
@@ -62,7 +60,7 @@ export class DebtService {
     this.state$.next(previous.map(d => d.id === id
       ? { ...d, ...request, currency: request.currency.toString(), capitalId: request.payFromCapitalId ?? d.capitalId }
       : d));
-    return this.http.put<void>(`${this.baseUrl}/${id}`, request, { withCredentials: true }).pipe(
+    return this.http.put<void>(`${this.baseUrl}/${id}`, request).pipe(
       tap(() => this.refresh()),
       catchError(err => {
         this.state$.next(previous);
@@ -74,7 +72,7 @@ export class DebtService {
   delete(id: number): Observable<void> {
     const previous = this.state$.value;
     this.state$.next(previous.filter(d => d.id !== id));
-    return this.http.delete<void>(`${this.baseUrl}/${id}`, { withCredentials: true }).pipe(
+    return this.http.delete<void>(`${this.baseUrl}/${id}`).pipe(
       catchError(err => {
         this.state$.next(previous);
         return throwError(() => err);
@@ -90,7 +88,7 @@ export class DebtService {
         (orderMap.get(a.id) ?? a.orderIndex) - (orderMap.get(b.id) ?? b.orderIndex)
       )
     );
-    return this.http.put<void>(`${this.baseUrl}/orders`, { debts }, { withCredentials: true }).pipe(
+    return this.http.put<void>(`${this.baseUrl}/orders`, { debts }).pipe(
       catchError(err => {
         this.state$.next(previous);
         return throwError(() => err);

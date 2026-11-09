@@ -1,4 +1,4 @@
-import { Component, Inject, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, inject } from '@angular/core';
 import { FormComponent } from "../../../../shared/components/forms/form.component";
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { FormField } from '../../../../shared/components/forms/models/form-field';
@@ -13,20 +13,16 @@ import { PopupMessageService } from '../../../../shared/services/popup-message.s
   imports: [FormComponent],
   templateUrl: './create-income-dialog.component.html',
   styleUrl: './create-income-dialog.component.scss',
-  standalone: true
+  standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class CreateIncomeDialogComponent implements OnInit {
+  readonly data = inject<{ capitalsOptions: SelectOptionModel[]; categoryOptions: SelectOptionModel[]; }>(DIALOG_DATA);
+  private readonly dialogRef = inject<DialogRef<CreateIncomeRequest | null>>(DialogRef);
+  private readonly popupMessageService = inject(PopupMessageService);
+
   form: FormGroup;
   fields: FormField[];
-
-  constructor(
-    @Inject(DIALOG_DATA) public data: {
-      capitalsOptions: SelectOptionModel[];
-      categoryOptions: SelectOptionModel[];
-    },
-    private readonly dialogRef: DialogRef<CreateIncomeRequest | null>,
-    private readonly popupMessageService: PopupMessageService
-  ) {}
 
   ngOnInit(): void {
     this.initFields();

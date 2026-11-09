@@ -15,4 +15,6 @@ public interface IIncomeRepository
     void Delete(Income income);
 
     Task<int> CountAsync(ISpecification<Income> specification, CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<CategoryAmount>> GetTotalsByCategoryAsync(string createdBy, IReadOnlyCollection<int>? capitalIds, CancellationToken cancellationToken = default);
 }

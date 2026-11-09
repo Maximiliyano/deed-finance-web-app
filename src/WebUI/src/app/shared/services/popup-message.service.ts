@@ -1,13 +1,13 @@
-import {Injectable, NgZone} from '@angular/core';
+import { Injectable, NgZone, inject } from '@angular/core';
 
 @Injectable({
   providedIn: 'root'
 })
 export class PopupMessageService {
+  private readonly zone = inject(NgZone);
+
   private defaultDuration: number = 3000;
   private messageContainer: HTMLDivElement | null = null;
-
-  constructor(private readonly zone: NgZone) {}
 
   info(message: string, duration: number = this.defaultDuration): void {
     this.display(message, 'info', duration);

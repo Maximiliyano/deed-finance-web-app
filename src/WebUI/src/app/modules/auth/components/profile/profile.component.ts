@@ -1,7 +1,7 @@
-import { UserSettings } from './../../../home/models/user-settings.model';
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, Optional } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, DestroyRef, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AuthService } from '../../services/auth-service';
-import { Subject, takeUntil } from 'rxjs';
+
 import { SharedModule } from "../../../../shared/shared.module";
 import { DialogService } from '../../../../shared/components/dialogs/services/dialog.service';
 import { DialogRef } from '../../../../shared/components/dialogs/models/dialog-ref';
@@ -11,6 +11,7 @@ import { User } from '../../models/user';
 import { UserSettingsService } from '../../../home/services/user-settings.service';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { CURRENCIES, CURRENCY_DEFAULT } from '../../../../core/types/currency-type';
+import { UserSettings } from '../../../home/models/user-settings.model';
 
 @Component({
   selector: 'app-profile',
@@ -20,7 +21,16 @@ import { CURRENCIES, CURRENCY_DEFAULT } from '../../../../core/types/currency-ty
   imports: [SharedModule],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ProfileComponent implements OnInit, OnDestroy {
+export class ProfileComponent implements OnInit {
+  private readonly authService = inject(AuthService);
+  private readonly dialogService = inject(DialogService);
+  private readonly popupMessageService = inject(PopupMessageService);
+  private readonly userSettingsService = inject(UserSettingsService);
+  private readonly fb = inject(FormBuilder);
+  private readonly cdr = inject(ChangeDetectorRef);
+  private readonly dialogRef = inject<DialogRef<void> | null>(DialogRef, { optional: true });
+  private readonly destroyRef = inject(DestroyRef);
+
   user: User | null;
   editMode: boolean;
   settingsForm!: FormGroup;
@@ -35,18 +45,6 @@ export class ProfileComponent implements OnInit, OnDestroy {
     { label: 'Every Friday at 6:00 PM', value: '0 0 18 ? * FRI' },
     { label: '1st of every month at 9:00 AM', value: '0 0 9 1 * ?' },
   ];
-
-  private $unsubscribe = new Subject<void>();
-
-  constructor(
-    private readonly authService: AuthService,
-    private readonly dialogService: DialogService,
-    private readonly popupMessageService: PopupMessageService,
-    private readonly userSettingsService: UserSettingsService,
-    private readonly fb: FormBuilder,
-    private readonly cdr: ChangeDetectorRef,
-    @Optional() private readonly dialogRef: DialogRef<void> | null
-  ) {}
 
   ngOnInit(): void {
     this.settingsForm = this.fb.group({
@@ -64,7 +62,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
     });
 
     this.authService.user$
-      .pipe(takeUntil(this.$unsubscribe))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(user => {
         this.user = user;
         document.title = `Deed - ${this.user?.fullname ?? ''} profile`;
@@ -72,7 +70,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
       });
 
     this.userSettingsService.load()
-      .pipe(takeUntil(this.$unsubscribe))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (settings: UserSettings | null) => {
           if (settings) {
@@ -91,19 +89,14 @@ export class ProfileComponent implements OnInit, OnDestroy {
         }
       });
   }
-
-  ngOnDestroy(): void {
-    this.$unsubscribe.next();
-    this.$unsubscribe.complete();
-  }
-
+
   saveSettings(): void {
     if (this.settingsForm.invalid) return;
     this.savingSettings = true;
     const val = this.settingsForm.value;
     const notif = this.notificationForm.value;
     const payload = {
-      currency: Number(val.currency),
+      currency: val.currency,
       balanceReminderEnabled: notif.balanceReminderEnabled,
       balanceReminderCron: notif.balanceReminderCron,
       expenseReminderEnabled: notif.expenseReminderEnabled,
@@ -112,8 +105,8 @@ export class ProfileComponent implements OnInit, OnDestroy {
       debtReminderCron: notif.debtReminderCron,
       emailNotificationsEnabled: notif.emailNotificationsEnabled
     };
-    this.userSettingsService.upsert(payload as unknown as UserSettings)
-      .pipe(takeUntil(this.$unsubscribe))
+    this.userSettingsService.patch(payload)
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: () => {
           this.savingSettings = false;
@@ -141,7 +134,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
     dialogRef
       .afterClosed$
-      .pipe(takeUntil(this.$unsubscribe))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (submit: boolean) => {
           if (submit) {

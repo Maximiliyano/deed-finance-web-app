@@ -1,3 +1,4 @@
+using System.Net;
 using Deed.Application.Abstractions.Services;
 using Deed.Application.Debts.Specifications;
 using Deed.Domain.Repositories;
@@ -53,7 +54,7 @@ public sealed class DebtReminderJob(
                 {
                     var status = GetDebtStatusLabel(d.DeadlineAt, now);
                     var deadline = d.DeadlineAt.HasValue ? $" (due {d.DeadlineAt.Value:dd MMM yyyy})" : "";
-                    return $"<li>{d.Item}: {d.Amount:N2} {d.Currency}{deadline}{status}</li>";
+                    return $"<li>{WebUtility.HtmlEncode(d.Item)}: {d.Amount:N2} {d.Currency}{deadline}{status}</li>";
                 }));
 
                 var html = $"""

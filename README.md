@@ -75,11 +75,11 @@ HTTP request
 
 ### Frontend architecture
 
-- `src/WebUI/src/app/core` - layout (header/footer/error page), guards, HTTP interceptors, shared models/types, theme service.
+- `src/WebUI/src/app/core` - layout (header/footer/error page), HTTP interceptors, shared models/types, theme service.
 - `src/WebUI/src/app/modules` - feature modules: `home` (dashboard: budget planner, goals, debts, quick transaction/transfer/salary dialogs), `capital`, `expense` (including utility bills and tag service), `incomes`, `category`, `auth`.
 - `src/WebUI/src/app/shared` - reusable components (dialogs, form builder, inputs, icons, currency), pipes and services (notifications, overlays, exchange rates, section loading).
 - Routes (lazy-loaded): `/` (home), `/capitals`, `/expenses`, `/incomes`, `/error` (everything else redirects to `/error`).
-- HTTP interceptor chain (in order): `credentials` (adds `withCredentials`) -> `retry` (GET only, 2 retries with back-off on network/5xx errors) -> `sectionLoading` (per-section loading flags derived from the URL) -> `error` (401 resets the session, other errors become toast messages).
+- HTTP interceptor chain (in order): `credentials` (adds `withCredentials`) -> `error` (401 resets the session, other errors become toast messages; outside `retry` so it toasts once) -> `retry` (GET only, 2 retries with back-off on network/5xx errors) -> `sectionLoading` (per-section loading flags derived from the URL).
 - `AuthService.me()` calls `/api/users/me`; `login()`/`logout()` navigate to `/api/auth/login` and `/api/auth/logout`.
 
 ## Getting started
@@ -182,6 +182,7 @@ All routes are prefixed with `/api`. Request/response bodies are JSON; errors ar
 | Debts | `GET /debts`, `POST /debts`, `PUT /debts/{id}`, `PUT /debts/orders`, `DELETE /debts/{id}` |
 | Utility bills | `GET /utility-bills`, `POST /utility-bills`, `PUT /utility-bills/{id}`, `POST /utility-bills/{id}/pay`, `DELETE /utility-bills/{id}` |
 | Exchanges / Bank | `GET /exchanges`, `GET /bank/details` |
+| Dashboard | `GET /dashboard/summary?currency=&capitalIds=&periodStart=&periodEnd=` (totals, category breakdowns and budget, converted server-side) |
 | User | `GET /auth/login`, `GET /auth/logout`, `GET /users/me`, `GET /user-settings`, `PUT /user-settings` |
 
 Operational endpoints (no `/api` prefix): `GET /health/live` (liveness, no dependency checks) and `GET /health` (SQL Server + Redis checks).

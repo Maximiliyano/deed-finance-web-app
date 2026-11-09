@@ -1,4 +1,4 @@
-import { Component, Inject, OnInit } from '@angular/core';
+import { ChangeDetectorRef, ChangeDetectionStrategy, Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { DialogRef } from '../../../../shared/components/dialogs/models/dialog-ref';
@@ -21,28 +21,24 @@ export interface QuickTransactionDialogData {
   templateUrl: './quick-transaction-dialog.component.html',
   styleUrl: './quick-transaction-dialog.component.scss',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormsModule]
+  imports: [CommonModule, ReactiveFormsModule, FormsModule],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class QuickTransactionDialogComponent implements OnInit {
+  private readonly cdr = inject(ChangeDetectorRef);
+  private readonly fb = inject(FormBuilder);
+  private readonly dialogRef = inject<DialogRef<any>>(DialogRef);
+  private readonly categoryService = inject(CategoryService);
+  private readonly data = inject<QuickTransactionDialogData>(DIALOG_DATA);
+
   form!: FormGroup;
-  type: 'expense' | 'income';
-  capitals: CapitalResponse[] = [];
-  categories: CategoryResponse[] = [];
+  type: 'expense' | 'income' = this.data.type;
+  capitals: CapitalResponse[] = this.data.capitals;
+  categories: CategoryResponse[] = this.data.categories.filter(c => !c.isDeleted);
   showNewCategory = false;
   newCategoryName = '';
   isEdit = false;
   editId: number | null = null;
-
-  constructor(
-    private readonly fb: FormBuilder,
-    private readonly dialogRef: DialogRef<any>,
-    private readonly categoryService: CategoryService,
-    @Inject(DIALOG_DATA) private readonly data: QuickTransactionDialogData
-  ) {
-    this.type = data.type;
-    this.capitals = data.capitals;
-    this.categories = data.categories.filter(c => !c.isDeleted);
-  }
 
   ngOnInit(): void {
     const e = this.data.editItem;
@@ -87,6 +83,7 @@ export class QuickTransactionDialogComponent implements OnInit {
         this.form.patchValue({ categoryId: id });
         this.showNewCategory = false;
         this.newCategoryName = '';
+        this.cdr.markForCheck();
       }
     });
   }

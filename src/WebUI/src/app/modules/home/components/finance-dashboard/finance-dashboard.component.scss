@@ -19,5 +19,5 @@
 .kpi-empty { font-size: .875rem; font-weight: 400; color: var(--text-light); font-style: italic; }
 .kpi-alt { display: block; font-size: .75rem; font-weight: 500; color: var(--text-muted); margin-top: .0625rem; }
 .kpi-link { text-decoration: none; &:hover .kpi-edit-hint { opacity: 1; } }
-.kpi-edit-hint { font-size: .55rem; opacity: 0; transition: opacity .15s; margin-left: .25rem; }
+.kpi-edit-hint { font-size: .55rem; opacity: 0; transition: opacity .15s; margin-left: .25rem; @media (hover: none) { opacity: .7; } }
 

@@ -1,7 +1,8 @@
-import {ChangeDetectionStrategy, Component, HostListener, OnDestroy, OnInit, signal} from '@angular/core';
+import { ChangeDetectionStrategy, Component, NgZone, OnDestroy, OnInit, signal, inject, DestroyRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {AuthService} from './modules/auth/services/auth-service';
 import {NotificationService} from './shared/services/notification.service';
-import {Subject, takeUntil} from 'rxjs';
+
 
 @Component({
     selector: 'app-root',
@@ -11,17 +12,17 @@ import {Subject, takeUntil} from 'rxjs';
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AppComponent implements OnInit, OnDestroy {
+    private readonly authService = inject(AuthService);
+    private readonly notificationService = inject(NotificationService);
+    private readonly zone = inject(NgZone);
+    private readonly destroyRef = inject(DestroyRef);
+
     showScrollTop = signal(false);
 
-    private unsubscribe$ = new Subject<void>();
-
-    constructor(
-        private readonly authService: AuthService,
-        private readonly notificationService: NotificationService
-    ) {}
-
     ngOnInit(): void {
-        this.authService.me().pipe(takeUntil(this.unsubscribe$)).subscribe();
+        this.zone.runOutsideAngular(() => window.addEventListener('scroll', this.onScroll, { passive: true }));
+
+        this.authService.me().pipe(takeUntilDestroyed(this.destroyRef)).subscribe();
 
         if (this.notificationService.isSupported()) {
             this.notificationService.requestPermission();
@@ -29,15 +30,15 @@ export class AppComponent implements OnInit, OnDestroy {
     }
 
     ngOnDestroy(): void {
-        this.unsubscribe$.next();
-        this.unsubscribe$.complete();
+        window.removeEventListener('scroll', this.onScroll);
     }
 
-    @HostListener('window:scroll')
-    onScroll() {
-      const show = window.scrollY > 300;
-      if (show !== this.showScrollTop()) this.showScrollTop.set(show);
-    }
+    private readonly onScroll = (): void => {
+        const show = window.scrollY > 300;
+        if (show !== this.showScrollTop()) {
+            this.zone.run(() => this.showScrollTop.set(show));
+        }
+    };
 
     scrollToTop(): void {
         window.scrollTo({ top: 0, behavior: 'smooth' });

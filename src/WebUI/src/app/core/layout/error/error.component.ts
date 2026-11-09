@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, inject } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { ErrorService } from '../../../shared/services/error.service';
 
@@ -9,13 +9,12 @@ import { ErrorService } from '../../../shared/services/error.service';
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ErrorComponent implements OnInit {
+    private readonly errorService = inject(ErrorService);
+    private readonly route = inject(ActivatedRoute);
+
     statusCode = 500;
     message = 'Unexpected error occurred.';
     previousUrl = '/';
-
-    constructor(
-        private readonly errorService: ErrorService,
-        private readonly route: ActivatedRoute) {}
 
     ngOnInit() {
         const error = this.errorService.getError();

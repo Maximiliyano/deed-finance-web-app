@@ -1,4 +1,4 @@
-import { ApplicationRef, ComponentRef, createComponent, EnvironmentInjector, Injectable, Injector, Type } from '@angular/core';
+import { ApplicationRef, ComponentRef, createComponent, EnvironmentInjector, Injectable, Injector, Type, inject } from '@angular/core';
 import { DialogConfig } from '../models/dialog-config';
 import { DialogRef } from '../models/dialog-ref';
 import { DIALOG_DATA } from '../models/dialog-consts';
@@ -6,12 +6,10 @@ import { DialogComponent } from '../dialog.component';
 
 @Injectable({ providedIn: 'root' })
 export class DialogService {
-  private openDialogs: ComponentRef<DialogComponent>[] = [];
+  private readonly appRef = inject(ApplicationRef);
+  private readonly injector = inject(EnvironmentInjector);
 
-  constructor(
-    private appRef: ApplicationRef,
-    private injector: EnvironmentInjector
-  ) {}
+  private openDialogs: ComponentRef<DialogComponent>[] = [];
 
   open<T, R = any>(
     component: Type<T>,

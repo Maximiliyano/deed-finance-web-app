@@ -39,7 +39,7 @@ internal sealed class CapitalsByQueryParamsSpecification : BaseSpecification<Cap
                 _ => null
             };
 
-#pragma warning disable CA1508 // Avoid dead conditional code — both nullable vars are conditionally assigned
+#pragma warning disable CA1508
         return userFilter is not null && additionalFilter is not null
             ? ExpressionExtension.Combine(userFilter, additionalFilter)
             : userFilter ?? additionalFilter;

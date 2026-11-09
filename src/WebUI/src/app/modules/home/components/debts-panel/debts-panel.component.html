@@ -1,0 +1,97 @@
+<div id="debts" class="card">
+  <div class="card-header">
+    <h2 class="card-title"><i class="fas fa-hand-holding-dollar"></i> Debt Dashboard</h2>
+    <div class="card-header-actions">
+      <span class="badge" [ngClass]="debts().length > 0 ? 'badge-warning' : 'badge-success'">
+        {{ debts().length }} {{ debts().length === 1 ? 'debt' : 'debts' }}
+      </span>
+      @if (!store.isAnonymous()) {
+        <button class="btn btn-primary btn-sm" (click)="openDialog()">
+          <i class="fas fa-plus"></i> Add
+        </button>
+      }
+    </div>
+  </div>
+  @if (debts().length > 1) {
+    <app-sort-toolbar [options]="sortOptions" [value]="sortBy()" (changed)="setSort($event)" />
+  }
+  @if (isLoading()) {
+    <div class="section-spinner"><span class="circle-spinner"></span></div>
+  } @else if (debts().length === 0) {
+    <div class="empty-state">
+      <i class="fas fa-circle-check empty-icon text-success"></i>
+      <p class="empty-title text-success">You're debt-free!</p>
+      <p class="empty-hint">Track borrowed money or obligations here once you add them.</p>
+    </div>
+  } @else {
+    @let draggable = sortBy() === 'custom' && !store.isAnonymous();
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr>
+            @if (draggable) { <th></th> }
+            <th>Item</th>
+            <th>Amount</th>
+            <th>Capital</th>
+            <th>Source</th>
+            <th>Recipient</th>
+            <th>Borrowed At</th>
+            <th>Deadline</th>
+            <th>Status</th>
+            @if (!store.isAnonymous()) { <th></th> }
+          </tr>
+        </thead>
+        <tbody cdkDropList (cdkDropListDropped)="drop($event)" [cdkDropListDisabled]="!draggable">
+          @for (debt of debts(); track debt.id) {
+            @let status = statuses().get(debt.id);
+            <tr cdkDrag [cdkDragDisabled]="!draggable" [ngClass]="{ 'row-paid': debt.isPaid, 'clickable-row': !store.isAnonymous() }" (click)="store.isAnonymous() || openDialog(debt)">
+              @if (draggable) {
+                <td class="drag-cell" cdkDragHandle (click)="$event.stopPropagation()">
+                  <i class="fas fa-grip-vertical bp-drag-handle"></i>
+                </td>
+              }
+              <td class="font-medium">
+                @if (debt.isPaid) { <i class="fas fa-circle-check text-success"></i> }
+                {{ debt.item }}
+              </td>
+              <td class="tabular-nums">{{ debt.amount | currencySymbol: debt.currency }}</td>
+              <td>{{ debt.capitalName ?? '—' }}</td>
+              <td>{{ debt.source }}</td>
+              <td>{{ debt.recipient }}</td>
+              <td>{{ debt.borrowedAt | date: 'dd MMM yyyy' }}</td>
+              <td>{{ (debt.deadlineAt | date: 'dd MMM yyyy') ?? '—' }}</td>
+              <td>
+                @if (debt.isPaid) {
+                  <span class="status-badge status-ok">
+                    <i class="fas fa-circle-check"></i> Paid
+                  </span>
+                } @else {
+                  <span class="status-badge"
+                        [ngClass]="{
+                          'status-overdue': status === 'overdue',
+                          'status-soon': status === 'soon',
+                          'status-ok': status === 'ok'
+                        }">
+                    <i class="fas" [ngClass]="{
+                      'fa-circle-exclamation': status === 'overdue',
+                      'fa-clock': status === 'soon',
+                      'fa-circle-check': status === 'ok'
+                    }"></i>
+                    {{ status === 'overdue' ? 'Overdue' : status === 'soon' ? 'Due soon' : 'On track' }}
+                  </span>
+                }
+              </td>
+              @if (!store.isAnonymous()) {
+                <td class="action-cell">
+                  <button class="icon-btn icon-btn-danger" title="Delete" (click)="$event.stopPropagation(); delete(debt)">
+                    <i class="fas fa-trash-can"></i>
+                  </button>
+                </td>
+              }
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>

@@ -1,11 +1,12 @@
-import { Component, ViewContainerRef, Type, Injector, AfterViewInit, ViewChild, Input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ViewContainerRef, Type, Injector, AfterViewInit, ViewChild, Input } from '@angular/core';
 import { DialogRef } from './models/dialog-ref';
 
 @Component({
     selector: 'app-dialog',
     templateUrl: './dialog.component.html',
     styleUrl: './dialog.component.scss',
-    standalone: true
+    standalone: true,
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class DialogComponent implements AfterViewInit {
   @ViewChild('dialogContainer', { read: ViewContainerRef })

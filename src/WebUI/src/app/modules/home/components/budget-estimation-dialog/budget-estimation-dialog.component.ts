@@ -1,4 +1,4 @@
-import { Component, Inject, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { DialogRef } from '../../../../shared/components/dialogs/models/dialog-ref';
@@ -19,19 +19,18 @@ export interface BudgetEstimationDialogData {
   templateUrl: './budget-estimation-dialog.component.html',
   styleUrl: './budget-estimation-dialog.component.scss',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule]
+  imports: [CommonModule, ReactiveFormsModule],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class BudgetEstimationDialogComponent implements OnInit {
+  private readonly fb = inject(FormBuilder);
+  private readonly dialogRef = inject<DialogRef<BudgetEstimationForm | null>>(DialogRef);
+  private readonly data = inject<BudgetEstimationDialogData>(DIALOG_DATA);
+
   form!: FormGroup;
   capitals: CapitalResponse[] = [];
   currencies = CURRENCIES;
   isEdit = false;
-
-  constructor(
-    private readonly fb: FormBuilder,
-    private readonly dialogRef: DialogRef<BudgetEstimationForm | null>,
-    @Inject(DIALOG_DATA) private readonly data: BudgetEstimationDialogData
-  ) {}
 
   ngOnInit(): void {
     this.capitals = this.data.capitals ?? [];

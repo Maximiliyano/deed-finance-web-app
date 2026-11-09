@@ -28,7 +28,7 @@ import {NgOptimizedImage} from "@angular/common";
   bootstrap: [AppComponent],
   providers: [
     provideHttpClient(
-      withInterceptors([credentialsInterceptor, retryInterceptor, sectionLoadingInterceptor, errorInterceptor])
+      withInterceptors([credentialsInterceptor, errorInterceptor, retryInterceptor, sectionLoadingInterceptor])
     )
   ]
 })

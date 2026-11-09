@@ -1,7 +1,8 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, TrackByFunction } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, TrackByFunction, inject, DestroyRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Exchange } from '../../models/exchange-model';
 import { ExchangeService } from '../../../shared/services/exchange.service';
-import { Subject, takeUntil } from 'rxjs';
+
 import { ExchangeDialogComponent } from '../../../shared/components/dialogs/exchange-dialog/exchange-dialog.component';
 import { ProfileComponent } from '../../../modules/auth/components/profile/profile.component';
 import { Router } from '@angular/router';
@@ -25,7 +26,15 @@ export interface NavItem {
     standalone: false,
     changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class HeaderComponent implements OnInit, OnDestroy {
+export class HeaderComponent implements OnInit {
+  private readonly router = inject(Router);
+  private readonly authService = inject(AuthService);
+  private readonly dialogService = inject(DialogService);
+  private readonly exchangeService = inject(ExchangeService);
+  readonly themeService = inject(ThemeService);
+  private readonly cdr = inject(ChangeDetectorRef);
+  private readonly destroyRef = inject(DestroyRef);
+
   exchanges: Exchange[] = [];
   exchangeUpdatedAt: Date | null = null;
   isSidebarExpanded = false;
@@ -50,22 +59,12 @@ export class HeaderComponent implements OnInit, OnDestroy {
   ];
   user: User | null;
 
-  private unsubscribe = new Subject<void>();
-
   trackByLabel: TrackByFunction<NavItem>;
   trackBySale: TrackByFunction<Exchange>;
 
-  constructor(
-    private readonly router: Router,
-    private readonly authService: AuthService,
-    private readonly dialogService: DialogService,
-    private readonly exchangeService: ExchangeService,
-    readonly themeService: ThemeService,
-    private readonly cdr: ChangeDetectorRef) {}
-
   ngOnInit(): void {
     this.authService.user$
-      .pipe(takeUntil(this.unsubscribe))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(user => {
         this.user = user;
         this.cdr.markForCheck();
@@ -73,7 +72,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
     this.exchangeService
       .getLatest()
-      .pipe(takeUntil(this.unsubscribe))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (exchanges) => {
           this.exchanges = exchanges;
@@ -84,12 +83,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
         }
       });
   }
-
-  ngOnDestroy(): void {
-    this.unsubscribe.next();
-    this.unsubscribe.complete();
-  }
-
+
   navigateTo(item: NavItem): void {
     this.openDropdown = null;
     this.isSidebarExpanded = false;

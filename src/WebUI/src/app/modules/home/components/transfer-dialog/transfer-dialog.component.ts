@@ -1,4 +1,6 @@
-import { Component, Inject, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { merge } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { DialogRef } from '../../../../shared/components/dialogs/models/dialog-ref';
@@ -17,21 +19,18 @@ export interface TransferDialogData {
   templateUrl: './transfer-dialog.component.html',
   styleUrl: './transfer-dialog.component.scss',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule]
+  imports: [CommonModule, ReactiveFormsModule],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class TransferDialogComponent implements OnInit {
-  form!: FormGroup;
-  capitals: CapitalResponse[] = [];
-  exchanges: Exchange[] = [];
+  private readonly fb = inject(FormBuilder);
+  private readonly dialogRef = inject<DialogRef<any>>(DialogRef);
+  private readonly data = inject<TransferDialogData>(DIALOG_DATA);
+  private readonly destroyRef = inject(DestroyRef);
 
-  constructor(
-    private readonly fb: FormBuilder,
-    private readonly dialogRef: DialogRef<any>,
-    @Inject(DIALOG_DATA) private readonly data: TransferDialogData
-  ) {
-    this.capitals = data.capitals;
-    this.exchanges = data.exchanges ?? [];
-  }
+  form!: FormGroup;
+  capitals: CapitalResponse[] = this.data.capitals;
+  exchanges: Exchange[] = this.data.exchanges ?? [];
 
   ngOnInit(): void {
     const presetSource = this.data.sourceCapitalId ?? null;
@@ -42,9 +41,13 @@ export class TransferDialogComponent implements OnInit {
       destinationAmount: [null, [Validators.required, Validators.min(0.01)]]
     });
 
-    this.form.get('amount')!.valueChanges.subscribe(() => this.autoConvert());
-    this.form.get('sourceCapitalId')!.valueChanges.subscribe(() => this.autoConvert());
-    this.form.get('destinationCapitalId')!.valueChanges.subscribe(() => this.autoConvert());
+    merge(
+      this.form.controls['amount'].valueChanges,
+      this.form.controls['sourceCapitalId'].valueChanges,
+      this.form.controls['destinationCapitalId'].valueChanges
+    )
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.autoConvert());
   }
 
   get selectedSource(): CapitalResponse | null {

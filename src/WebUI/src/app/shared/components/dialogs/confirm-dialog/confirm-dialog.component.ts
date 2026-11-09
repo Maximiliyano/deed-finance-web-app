@@ -1,4 +1,4 @@
-import { Component, HostListener, Inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, HostListener, inject } from '@angular/core';
 import { DIALOG_DATA } from '../models/dialog-consts';
 import { DialogRef } from '../models/dialog-ref';
 import { CommonModule } from '@angular/common';
@@ -8,31 +8,19 @@ import { CommonModule } from '@angular/common';
     templateUrl: './confirm-dialog.component.html',
     styleUrl: './confirm-dialog.component.scss',
     imports: [CommonModule],
-    standalone: true
+    standalone: true,
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ConfirmDialogComponent {
-  title: string;
-  message: string;
-  submitText: string;
-  cancelText: string;
-  icon: 'warning' | 'danger' | 'info' | 'none';
+  readonly data = inject<{ title?: string; message?: string; submitText?: string; cancelText?: string; icon?: 'warning' | 'danger' | 'info' | 'none' }>(DIALOG_DATA);
+  private readonly dialogRef = inject<DialogRef<boolean>>(DialogRef);
 
-  constructor(
-    @Inject(DIALOG_DATA) public data: {
-      title?: string;
-      message?: string;
-      submitText?: string;
-      cancelText?: string;
-      icon?: 'warning' | 'danger' | 'info' | 'none'
-    },
-    private dialogRef: DialogRef<boolean>
-  ) {
-    this.title = data.title ?? 'Confirm';
-    this.message = data.message ?? 'Are you sure you want to continue?';
-    this.submitText = data.submitText ?? 'Confirm';
-    this.cancelText = data.cancelText ?? 'Cancel';
-    this.icon = data.icon ?? 'warning';
-  }
+  title: string = this.data.title ?? 'Confirm';
+  message: string = this.data.message ?? 'Are you sure you want to continue?';
+  submitText: string = this.data.submitText ?? 'Confirm';
+  cancelText: string = this.data.cancelText ?? 'Cancel';
+  icon: 'warning' | 'danger' | 'info' | 'none' = this.data.icon ?? 'warning';
+
 
   handleConfirm() {
     this.dialogRef.close(true);

@@ -26,7 +26,7 @@
           </select>
         </div>
 
-        <!-- Sort -->
+        
         <div class="toolbar-ctrl">
           <button class="btn btn-ghost btn-icon sort-dir-btn" (click)="onSortDirectionChange()"
                   [title]="sortDirection === 'asc' ? 'Ascending' : 'Descending'">
@@ -68,18 +68,18 @@
               'cp-card--excluded': !capital.includeInTotal && !capital.onlyForSavings
             }"
           >
-            <!-- Drag handle -->
+            
             <div class="cp-drag-handle" cdkDragHandle title="Drag to reorder">
               <i class="fas fa-grip-vertical"></i>
             </div>
 
-            <!-- Name + meta -->
+            
             <div class="cp-identity">
               <button class="cp-name" (click)="toggleEditDialog(capital)">{{ capital.name }}</button>
               <span class="cp-meta">{{ capital.createdAt | date }} · {{ capital.createdBy }}</span>
             </div>
 
-            <!-- Stats (desktop) -->
+            
             @if (!capital.onlyForSavings) {
               <div class="cp-stats">
                 @for (stat of capitalStatItems; track stat.key) {
@@ -93,7 +93,7 @@
               </div>
             }
 
-            <!-- Balance -->
+            
             <div class="cp-balance">
               <span class="cp-balance-val">{{ capital.balance | currencySymbol: capital.currency }}</span>
               @if (borrowedAmount(capital.id); as borrowed) {
@@ -108,7 +108,7 @@
               }
             </div>
 
-            <!-- Actions (desktop) -->
+            
             <div class="cp-actions">
               <button class="cp-action-btn"
                       [ngClass]="capital.includeInTotal ? 'cp-action-active' : ''"
@@ -129,7 +129,7 @@
               </button>
             </div>
 
-            <!-- Actions (compact / mobile) -->
+            
             <div class="cp-actions-compact">
               <button class="cp-compact-item" [ngClass]="capital.includeInTotal ? 'text-primary' : ''"
                       (click)="toggleIncludeInTotal(capital.id)" title="Toggle in total">

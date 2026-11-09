@@ -1,5 +1,6 @@
-import { Component, Inject, OnDestroy } from '@angular/core';
-import { Subject, takeUntil } from 'rxjs';
+import { ChangeDetectorRef, ChangeDetectionStrategy, Component, inject, DestroyRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+
 import { CategoryType } from '../../../core/types/category-type';
 import { PerPeriodType } from '../../../core/types/per-period-type';
 import { enumToOptions } from '../../../core/utils/enum';
@@ -17,44 +18,31 @@ import { CategoryService } from '../services/category.service';
     templateUrl: './categories-dialog-component.html',
     styleUrl: './categories-dialog-component.scss',
     standalone: true,
-    imports: [SharedModule]
+    imports: [SharedModule],
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class CategoriesDialogComponent implements OnDestroy {
+export class CategoriesDialogComponent {
+  private readonly cdr = inject(ChangeDetectorRef);
+  readonly data = inject<{ originalCategories: CategoryResponse[], deletedCategories: CategoryResponse[], currency: string, type?: string }>(DIALOG_DATA);
+  private readonly dialogRef = inject<DialogRef<CategoryResponse[]>>(DialogRef);
+  private readonly dialogService = inject(DialogService);
+  private readonly popupMessageService = inject(PopupMessageService);
+  private readonly categoryService = inject(CategoryService);
+  private readonly destroyRef = inject(DestroyRef);
+
   periodTypeOptions = enumToOptions(PerPeriodType);
   PerPeriodType = PerPeriodType;
   
   selectedDeletedId: number | null = null;
 
-  editableCategories: CategoryResponse[] = [];
-  deletedCategories: CategoryResponse[] = [];
+  editableCategories: CategoryResponse[] = [...this.data.originalCategories];
+  deletedCategories: CategoryResponse[] = [...this.data.deletedCategories];
 
   changed = new Set<number>();
   
   isEditModeEnabled: boolean = false;
 
-  private $unsubscribe = new Subject<void>();
-  
-  constructor(
-    @Inject(DIALOG_DATA) public data: {
-      originalCategories: CategoryResponse[],
-      deletedCategories: CategoryResponse[],
-      currency: string,
-      type?: string
-    },
-    private dialogRef: DialogRef<CategoryResponse[]>,
-    private readonly dialogService: DialogService,
-    private readonly popupMessageService: PopupMessageService,
-    private readonly categoryService: CategoryService
-  ) {
-    this.editableCategories = [...this.data.originalCategories];
-    this.deletedCategories = [...this.data.deletedCategories];
-  }
-
-  ngOnDestroy(): void {
-    this.$unsubscribe.next();
-    this.$unsubscribe.complete();
-  }
-
+
   get hasChanges(): boolean {
     return this.changed.size > 0;
   }
@@ -66,7 +54,7 @@ export class CategoriesDialogComponent implements OnDestroy {
       data: [CategoryType[CategoryType.Incomes]]
     });
     
-    ref.afterClosed$.subscribe({
+    ref.afterClosed$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (response: CategoryResponse | null) => {
         if (!response) return;
 
@@ -77,14 +65,15 @@ export class CategoriesDialogComponent implements OnDestroy {
             plannedPeriodAmount: response.periodAmount,
             period: Number(response.periodType)
           })
-          .pipe(takeUntil(this.$unsubscribe))
+          .pipe(takeUntilDestroyed(this.destroyRef))
           .subscribe({
             next: (id: number) => {
               response.id = id;
               
               this.changed.add(response.id);
               this.editableCategories.push(response);
-              this.popupMessageService.success(`Category ${response.name} successfully added.`);   
+              this.popupMessageService.success(`Category ${response.name} successfully added.`);
+              this.cdr.markForCheck();
             }
           });
       }
@@ -108,7 +97,7 @@ export class CategoriesDialogComponent implements OnDestroy {
 
     this.categoryService
       .delete(id)
-      .pipe(takeUntil(this.$unsubscribe))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: () => {
           this.editableCategories.splice(idx, 1);
@@ -123,6 +112,7 @@ export class CategoriesDialogComponent implements OnDestroy {
           }
 
           this.popupMessageService.success(`Category ${found.name} removed`);
+          this.cdr.markForCheck();
         }
       });
   }
@@ -131,7 +121,7 @@ export class CategoriesDialogComponent implements OnDestroy {
     if (!this.selectedDeletedId) return;
   
     this.categoryService.restore(this.selectedDeletedId)
-      .pipe(takeUntil(this.$unsubscribe))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (restoredCategory) => {
           this.deletedCategories = this.deletedCategories.filter(c => c.id !== restoredCategory.id);
@@ -143,6 +133,7 @@ export class CategoriesDialogComponent implements OnDestroy {
 
           this.selectedDeletedId = null;
           this.popupMessageService.success('Category restored');
+          this.cdr.markForCheck();
         }
     });
   }

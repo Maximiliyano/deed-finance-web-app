@@ -3,7 +3,7 @@ export interface UpdateExpenseRequest {
     capitalId?: number;
     categoryId?: number;
     amount?: number;
-    purpose?: string;
+    purpose: string | null;
     tagNames?: string[];
     date?: string | null; 
 }

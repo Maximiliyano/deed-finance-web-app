@@ -1,4 +1,4 @@
-import { Component, Inject, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, inject } from '@angular/core';
 import { SharedModule } from "../../../../shared/shared.module";
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { FormField } from '../../../../shared/components/forms/models/form-field';
@@ -18,33 +18,22 @@ import { Tag } from '../../models/tag';
   imports: [SharedModule, FormComponent],
   templateUrl: './edit-expense-dialog.component.html',
   styleUrl: './edit-expense-dialog.component.scss',
-  standalone: true
+  standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class EditExpenseDialogComponent implements OnInit {
+  readonly data = inject<{ expense: ExpenseResponse, categoryId: number, capitalOptions: SelectOptionModel[], categoryOptions: SelectOptionModel[], tags: Tag[] }>(DIALOG_DATA);
+  private readonly dialogRef = inject<DialogRef<UpdateExpenseRequest | null>>(DialogRef);
+  private readonly popupMessageService = inject(PopupMessageService);
+
   form: FormGroup;
   fields: FormField[] = [];
 
-  private expense: ExpenseResponse;
-  private categoryId: number;
-  private capitalsOptions: SelectOptionModel[];
-  private categoryOptions: SelectOptionModel[];
+  private expense: ExpenseResponse = this.data.expense;
+  private categoryId: number = this.data.categoryId;
+  private capitalsOptions: SelectOptionModel[] = this.data.capitalOptions;
+  private categoryOptions: SelectOptionModel[] = this.data.categoryOptions;
 
-  constructor(
-    @Inject(DIALOG_DATA) public data: {
-      expense: ExpenseResponse,
-      categoryId: number,
-      capitalOptions: SelectOptionModel[],
-      categoryOptions: SelectOptionModel[],
-      tags: Tag[]
-    }, 
-    private readonly dialogRef: DialogRef<UpdateExpenseRequest | null>,
-    private readonly popupMessageService: PopupMessageService
-  ) {
-    this.expense = data.expense;
-    this.categoryId = data.categoryId;
-    this.capitalsOptions = data.capitalOptions;
-    this.categoryOptions = data.categoryOptions;
-  }
 
   ngOnInit(): void {
     this.initForm();

@@ -12,6 +12,9 @@ public static class DomainErrors
         public static Error NotFound(string name)
             => Error.NotFound(nameof(NotFound), $"The specified {name} was not found.");
 
+        public static Error ConcurrencyConflict
+            => Error.Conflict(nameof(ConcurrencyConflict), "The data was changed by another request. Reload and try again.");
+
         public static Error UpdateFailed
             => Error.Failure(nameof(UpdateFailed), "Update entity failed.");
 

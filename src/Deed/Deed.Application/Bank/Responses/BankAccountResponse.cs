@@ -5,9 +5,9 @@ public sealed record BankAccountResponse(
     string SendId,
     double Balance,
     double CreditLimit,
-    string Type, // TODO enum
+    string Type,
     int CurrencyCode,
-    string CashbackType, // TODO type enum
+    string CashbackType,
     string[] MaskedPan,
     string Iban
 );

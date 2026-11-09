@@ -26,7 +26,7 @@ public sealed class GetLatestExchangesHandlerTests
         {
             ExchangesTimespanInHours = 1
         });
-        _handler = new GetLatestExchangeQueryHandler(_settings, _repositoryMock, _cacheServiceMock);
+        _handler = new GetLatestExchangeQueryHandler(new ExchangeRateProvider(_settings, _repositoryMock, _cacheServiceMock));
     }
 
     [Fact]

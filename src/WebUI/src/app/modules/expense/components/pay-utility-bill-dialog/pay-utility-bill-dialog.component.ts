@@ -1,4 +1,4 @@
-import { Component, Inject, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { DialogRef } from '../../../../shared/components/dialogs/models/dialog-ref';
@@ -14,17 +14,16 @@ export interface PayUtilityBillDialogData {
   templateUrl: './pay-utility-bill-dialog.component.html',
   styleUrl: './pay-utility-bill-dialog.component.scss',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule]
+  imports: [CommonModule, ReactiveFormsModule],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class PayUtilityBillDialogComponent implements OnInit {
+  private readonly fb = inject(FormBuilder);
+  private readonly dialogRef = inject<DialogRef<PayUtilityBillRequest | null>>(DialogRef);
+  private readonly data = inject<PayUtilityBillDialogData>(DIALOG_DATA);
+
   form!: FormGroup;
   bill!: UtilityBillResponse;
-
-  constructor(
-    private readonly fb: FormBuilder,
-    private readonly dialogRef: DialogRef<PayUtilityBillRequest | null>,
-    @Inject(DIALOG_DATA) private readonly data: PayUtilityBillDialogData
-  ) {}
 
   ngOnInit(): void {
     this.bill = this.data.bill;

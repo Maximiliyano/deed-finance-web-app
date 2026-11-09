@@ -1,0 +1,104 @@
+<div id="goals" class="card">
+  <div class="card-header">
+    <h2 class="card-title"><i class="fas fa-star"></i> Goals</h2>
+    @if (!store.isAnonymous()) {
+      <div class="card-header-actions">
+        <button class="btn btn-primary btn-sm" (click)="openDialog()">
+          <i class="fas fa-plus"></i> Add
+        </button>
+      </div>
+    }
+  </div>
+  @if (goals().length > 1) {
+    <app-sort-toolbar [options]="sortOptions" [value]="sortBy()" (changed)="setSort($event)" />
+  }
+  @if (isLoading()) {
+    <div class="section-spinner"><span class="circle-spinner"></span></div>
+  } @else if (goals().length === 0) {
+    <div class="empty-state">
+      <i class="fas fa-star empty-icon"></i>
+      <p class="empty-title">No goals yet</p>
+      <p class="empty-hint">Set financial goals and track your progress toward them.</p>
+    </div>
+  } @else {
+    @let summary = budgetSummary();
+    @let currency = store.userCurrency();
+    <div class="goal-budget-summary">
+      <div class="goal-budget-stat">
+        <span class="goal-budget-label">Free budget</span>
+        <strong class="goal-budget-value" [ngClass]="summary.freeBudget > 0 ? 'text-success' : 'text-muted'">{{ summary.freeBudget | currencySymbol: currency }}/mo</strong>
+      </div>
+      <div class="goal-budget-stat">
+        <span class="goal-budget-label">Reserved for deadlines</span>
+        <strong class="goal-budget-value" [ngClass]="summary.reservedForDeadlines > summary.freeBudget ? 'text-danger' : ''">{{ summary.reservedForDeadlines | currencySymbol: currency }}/mo</strong>
+      </div>
+      <div class="goal-budget-stat">
+        <span class="goal-budget-label">For open goals ({{ summary.openGoalCount }})</span>
+        <strong class="goal-budget-value">{{ summary.availableForOpenGoals | currencySymbol: currency }}/mo</strong>
+      </div>
+    </div>
+    @let draggable = sortBy() === 'custom' && !store.isAnonymous();
+    <div class="goals-list" cdkDropList (cdkDropListDropped)="drop($event)" [cdkDropListDisabled]="!draggable">
+      @for (goal of goals(); track goal.id) {
+        <div class="goal-item" cdkDrag [cdkDragDisabled]="!draggable" [ngClass]="{ 'goal-completed': goal.isCompleted, 'clickable-row': !store.isAnonymous() }" (click)="store.isAnonymous() || openDialog(goal)">
+          @if (draggable) {
+            <i class="fas fa-grip-vertical bp-drag-handle" cdkDragHandle (click)="$event.stopPropagation()"></i>
+          }
+          <div class="goal-item-header">
+            <span class="goal-item-title">
+              @if (goal.isCompleted) { <i class="fas fa-circle-check text-success"></i> }
+              {{ goal.title }}
+            </span>
+            <div class="goal-item-right">
+              <span class="goal-item-amounts">
+                {{ goal.currentAmount | currencySymbol: goal.currency }}
+                <span class="text-muted"> / </span>
+                {{ goal.targetAmount | currencySymbol: goal.currency }}
+              </span>
+              @if (!store.isAnonymous()) {
+                <button class="icon-btn icon-btn-danger" title="Delete" (click)="$event.stopPropagation(); delete(goal)">
+                  <i class="fas fa-trash-can"></i>
+                </button>
+              }
+            </div>
+          </div>
+          <div class="goal-item-bar">
+            <div class="goal-bar-fill"
+                 [style.width.%]="goalProgress(goal)"
+                 [ngClass]="goal.isCompleted ? 'fill-success' : 'fill-primary'"></div>
+          </div>
+          <div class="goal-item-footer">
+            <span class="goal-pct" [ngClass]="goal.isCompleted ? 'text-success' : ''">{{ goalProgress(goal) }}%</span>
+            @if (goal.deadline) {
+              <span class="goal-deadline"><i class="fas fa-calendar-days"></i> {{ goal.deadline | date: 'dd MMM yyyy' }}</span>
+            }
+          </div>
+          @if (allocations().get(goal.id); as tip) {
+            <div class="goal-tip"
+                 [ngClass]="tip.kind === 'overdue' || tip.kind === 'no-budget' ? 'goal-tip--overdue' : tip.feasible ? 'goal-tip--ok' : 'goal-tip--warn'">
+              <i class="fas"
+                 [ngClass]="tip.kind === 'overdue' ? 'fa-triangle-exclamation' : tip.kind === 'no-budget' ? 'fa-circle-exclamation' : tip.feasible ? 'fa-lightbulb' : 'fa-circle-info'"></i>
+              @switch (tip.kind) {
+                @case ('overdue') {
+                  <span>Deadline passed — <strong>{{ tip.monthly | currencySymbol: currency }}</strong> still needed</span>
+                }
+                @case ('deadline') {
+                  <span>Save <strong>{{ tip.monthly | currencySymbol: currency }}/mo</strong> to hit deadline · {{ tip.months }} month{{ tip.months !== 1 ? 's' : '' }} left</span>
+                  @if (!tip.feasible) {
+                    <span class="goal-tip-extra">· exceeds free budget ({{ store.profit() | currencySymbol: currency }}/mo)</span>
+                  }
+                }
+                @case ('allocated') {
+                  <span>Allocate <strong>{{ tip.monthly | currencySymbol: currency }}/mo</strong> · ETA {{ tip.months }} month{{ tip.months !== 1 ? 's' : '' }}</span>
+                }
+                @case ('no-budget') {
+                  <span>No free budget to allocate · {{ tip.remaining | currencySymbol: currency }} remaining</span>
+                }
+              }
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+</div>

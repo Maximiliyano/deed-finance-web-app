@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, catchError, tap, throwError } from 'rxjs';
 import { CapitalService } from '../../modules/capital/services/capital.service';
@@ -25,29 +25,25 @@ export interface TransferResponse {
 
 @Injectable({ providedIn: 'root' })
 export class TransferService {
+  private readonly http = inject(HttpClient);
+  private readonly capitalService = inject(CapitalService);
+
   private readonly baseUrl = '/api/transfers';
 
   private readonly state$ = new BehaviorSubject<TransferResponse[]>([]);
   readonly transfers$ = this.state$.asObservable();
 
-  constructor(
-    private readonly http: HttpClient,
-    private readonly capitalService: CapitalService
-  ) {}
-
   get current(): TransferResponse[] { return this.state$.value; }
 
   load(): Observable<TransferResponse[]> {
-    return this.http.get<TransferResponse[]>(this.baseUrl, { withCredentials: true })
+    return this.http.get<TransferResponse[]>(this.baseUrl)
       .pipe(tap(items => this.state$.next(items)));
   }
 
   refresh(): void { this.load().subscribe(); }
 
-  getAll(): Observable<TransferResponse[]> { return this.load(); }
-
   create(request: CreateTransferRequest): Observable<number> {
-    return this.http.post<number>(this.baseUrl, request, { withCredentials: true }).pipe(
+    return this.http.post<number>(this.baseUrl, request).pipe(
       tap(() => {
         this.refresh();
         this.capitalService.refresh();
@@ -58,7 +54,7 @@ export class TransferService {
   delete(id: number): Observable<void> {
     const previous = this.state$.value;
     this.state$.next(previous.filter(t => t.id !== id));
-    return this.http.delete<void>(`${this.baseUrl}/${id}`, { withCredentials: true }).pipe(
+    return this.http.delete<void>(`${this.baseUrl}/${id}`).pipe(
       tap(() => this.capitalService.refresh()),
       catchError(err => {
         this.state$.next(previous);

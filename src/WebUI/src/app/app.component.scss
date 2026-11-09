@@ -6,15 +6,15 @@
   > main {
     flex: 1;
     background: var(--bg);
-    padding: var(--header-h) env(safe-area-inset-right) 2rem env(safe-area-inset-left);
+    padding: calc(var(--header-h) + env(safe-area-inset-top)) env(safe-area-inset-right) 2rem env(safe-area-inset-left);
     overflow-x: hidden;
   }
 }
 
 .scroll-top-btn {
   position: fixed;
-  bottom: calc(2rem + env(safe-area-inset-bottom));
-  right: calc(2rem + env(safe-area-inset-right));
+  bottom: calc(1rem + env(safe-area-inset-bottom));
+  right: calc(1rem + env(safe-area-inset-right));
   z-index: 150;
   width: 2.75rem;
   height: 2.75rem;

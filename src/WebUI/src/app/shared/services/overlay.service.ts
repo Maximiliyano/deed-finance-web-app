@@ -1,13 +1,13 @@
 import { Overlay, OverlayRef } from '@angular/cdk/overlay';
 import { ComponentPortal } from '@angular/cdk/portal';
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { OverlayComponent } from '../components/overlay/overlay.component';
 
 @Injectable({
   providedIn: 'root'
 })
 export class OverlayService {
-  constructor(private readonly overlay: Overlay) { }
+  private readonly overlay = inject(Overlay);
 
   create(): OverlayRef {
     const overlayRef = this.overlay.create();

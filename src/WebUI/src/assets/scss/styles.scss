@@ -48,8 +48,19 @@
 }
 
 html {
-  scroll-padding-top: var(--header-h);
+  scroll-padding-top: calc(var(--header-h) + env(safe-area-inset-top));
   scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 [data-theme="light"] {
@@ -114,8 +125,6 @@ button { font-family: inherit; }
 ::-webkit-scrollbar-thumb { background: var(--border-2); border-radius: var(--radius-full); }
 ::-webkit-scrollbar-thumb:hover { background: var(--primary); }
 
-.cdk-overlay-container { max-width: none !important; }
-
 .btn {
   display: inline-flex;
   align-items: center;
@@ -156,12 +165,21 @@ button { font-family: inherit; }
 .btn-sm { padding: 0.3125rem 0.625rem; font-size: 0.8125rem; }
 .btn-icon { width: 2rem; height: 2rem; padding: 0; justify-content: center; border-radius: var(--radius-sm); flex-shrink: 0; }
 
-// ── Touch device tap-target sizing (Apple HIG: 44pt min) ─────────────────────
 @media (pointer: coarse) {
   .btn { padding: 0.625rem 1rem; }
   .btn-sm { padding: 0.4375rem 0.75rem; }
-  .btn-icon { width: 2.5rem; height: 2.5rem; }
+  .btn-icon { width: 2.75rem; height: 2.75rem; }
+
+  .input, .form-input, .form-select,
+  .toolbar-search, .toolbar-select { font-size: 16px; }
+
+  .toolbar-ctrl, .toolbar-search, .cp-action-btn, .cp-compact-item, .exp-act-btn, .icon-btn {
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+  }
 }
+
+.cp-drag-handle, .bp-drag-handle, .chip-grip, .drag-cell { touch-action: none; }
 
 .card {
   background: var(--surface);
@@ -224,7 +242,6 @@ button { font-family: inherit; }
 }
 .form-group { display: flex; flex-direction: column; gap: 0.25rem; }
 
-// ── Badges ────────────────────────────────────────────────────────────────────
 .badge {
   display: inline-flex;
   align-items: center;
@@ -240,7 +257,6 @@ button { font-family: inherit; }
   &.badge-neutral { background: var(--surface-2); color: var(--text-muted); border: 1px solid var(--border); }
 }
 
-// ── Table ─────────────────────────────────────────────────────────────────────
 .table {
   width: 100%;
   border-collapse: collapse;
@@ -267,7 +283,70 @@ button { font-family: inherit; }
   tbody tr:last-child td { border-bottom: none; }
 }
 
-// ── Empty State ───────────────────────────────────────────────────────────────
+.table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  .table { min-width: 36rem; }
+}
+
+.card-header-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.section-spinner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2.5rem;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
+.circle-spinner {
+  width: 1.75rem;
+  height: 1.75rem;
+  border: 3px solid var(--border);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2.5rem 1.5rem;
+  text-align: center;
+}
+.empty-icon { font-size: 2.5rem; color: var(--border-2); margin-bottom: 0.75rem; }
+.empty-title { font-size: 0.95rem; font-weight: 600; color: var(--text-muted); margin-bottom: 0.25rem; }
+.empty-hint { font-size: 0.8rem; color: var(--text-light); max-width: 22rem; }
+
+.icon-btn {
+  width: 1.75rem;
+  height: 1.75rem;
+  flex-shrink: 0;
+  border-radius: var(--radius);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  transition: background var(--t), color var(--t);
+  &:hover { background: var(--surface-2); }
+  &.icon-btn-danger:hover { background: var(--danger-bg); color: var(--danger); }
+}
+
 .empty {
   display: flex; flex-direction: column;
   align-items: center; justify-content: center;
@@ -277,7 +356,6 @@ button { font-family: inherit; }
   span { font-size: 0.8125rem; margin-top: 0.25rem; display: block; }
 }
 
-// ── Page Layout ───────────────────────────────────────────────────────────────
 .page {
   max-width: 1200px;
   margin: 0 auto;
@@ -291,24 +369,20 @@ button { font-family: inherit; }
   font-size: 1.375rem; font-weight: 700; color: var(--text); letter-spacing: -.01em;
 }
 
-// ── Toolbar ───────────────────────────────────────────────────────────────────
 .toolbar {
   display: flex; align-items: center; flex-wrap: wrap;
   gap: 0.625rem; padding: 0.75rem 1rem;
   background: var(--surface-2); border-bottom: 1px solid var(--border);
 }
 
-// ── Divider ───────────────────────────────────────────────────────────────────
 .divider { height: 1px; background: var(--border); }
 
-// ── Stat card ─────────────────────────────────────────────────────────────────
 .stat-card {
   background: var(--surface); border: 1px solid var(--border);
   border-radius: var(--radius-lg); padding: 1rem 1.25rem;
   box-shadow: var(--shadow);
 }
 
-// ── Color utilities (CSS-var-based, dark-theme-safe) ──────────────────────────
 .text-success { color: var(--success-text); }
 .text-danger  { color: var(--danger-text); }
 .text-warning { color: var(--warning-text); }
@@ -318,10 +392,3 @@ button { font-family: inherit; }
 .fill-danger  { background: var(--danger) !important; }
 .fill-warning { background: var(--warning) !important; }
 .fill-primary { background: var(--primary) !important; }
-
-// ── Legacy container ──────────────────────────────────────────────────────────
-[class*='-container'] {
-  max-width: 1200px;
-  padding: 0 1.25rem;
-  margin: 0 auto;
-}

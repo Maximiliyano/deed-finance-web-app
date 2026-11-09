@@ -1,4 +1,5 @@
-import { Component, EventEmitter, forwardRef, Input, Output } from '@angular/core';
+import { Component, DestroyRef, EventEmitter, OnInit, forwardRef, inject, Input, Output } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ControlValueAccessor, FormControl, NG_VALUE_ACCESSOR, ReactiveFormsModule } from '@angular/forms';
 import { debounceTime, distinctUntilChanged } from 'rxjs';
 import { CommonModule } from '@angular/common';
@@ -18,7 +19,9 @@ import { Tag } from '../../../../modules/expense/models/tag';
   ],
   imports: [CommonModule, ReactiveFormsModule],
 })
-export class SelectiveInputComponent implements ControlValueAccessor {
+export class SelectiveInputComponent implements ControlValueAccessor, OnInit {
+  private readonly destroyRef = inject(DestroyRef);
+
   @Input() suggestions: Tag[] = [];
   @Input() placeholder = 'Add tag...';
   
@@ -34,9 +37,9 @@ export class SelectiveInputComponent implements ControlValueAccessor {
   private onChange: (value: string[]) => void = () => {};
   private onTouched: () => void = () => {};
   
-  constructor() {
+  ngOnInit(): void {
     this.inputCtrl.valueChanges
-      .pipe(debounceTime(300), distinctUntilChanged())
+      .pipe(debounceTime(300), distinctUntilChanged(), takeUntilDestroyed(this.destroyRef))
       .subscribe(value => {
         this.inputValue = value ?? '';
         this.filterSuggestions();
@@ -78,7 +81,6 @@ export class SelectiveInputComponent implements ControlValueAccessor {
   }
 
   onSelectSuggestion(tag: Tag) {
-    // select already added
     if (this.selectedTags.some(name => name === tag.name)) return;
 
     this.selectedTags = [...this.selectedTags, tag.name];

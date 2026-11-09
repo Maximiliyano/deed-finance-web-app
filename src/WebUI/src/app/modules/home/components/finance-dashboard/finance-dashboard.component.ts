@@ -1,43 +1,23 @@
-import { Component, inject, input, OnInit } from '@angular/core';
-import { CapitalService } from '../../../capital/services/capital.service';
-import { ExchangeService } from '../../../../shared/services/exchange.service';
-import { Exchange } from '../../../../core/models/exchange-model';
-import { convertCurrency } from '../../../../shared/utils/currency-conversion.util';
-import { IncomeService } from '../../../incomes/services/income.service';
-import { ExpenseService } from '../../../expense/services/expense.service';
-import { SharedModule } from "../../../../shared/shared.module";
+import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import { SharedModule } from '../../../../shared/shared.module';
 import { CURRENCY_DEFAULT } from '../../../../core/types/currency-type';
+import { DashboardSummary } from '../../models/dashboard-summary.model';
 
 @Component({
   selector: 'app-finance-dashboard',
   templateUrl: './finance-dashboard.component.html',
   styleUrl: './finance-dashboard.component.scss',
   standalone: true,
-  imports: [SharedModule]
+  imports: [SharedModule],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class FinanceDashboardComponent implements OnInit {
+export class FinanceDashboardComponent {
   currency = input<string>('');
-
-  private readonly capitalService = inject(CapitalService);
-  private readonly incomeService = inject(IncomeService);
-  private readonly expenseService = inject(ExpenseService);
-  private readonly exchangeService = inject(ExchangeService);
-
-  planFilter: 'day' | 'month' | 'year' = 'month';
-
-  private exchanges: Exchange[];
-
-  constructor()
-  { }
-
-  ngOnInit(): void {
-    this.exchangeService.getLatest().subscribe({
-      next: (exchanges) => this.exchanges = exchanges
-    });
-  }
+  planFilter = input<'day' | 'month' | 'year'>('month');
+  summary = input<DashboardSummary | null>(null);
 
   private get planFactor(): number {
-    switch (this.planFilter) {
+    switch (this.planFilter()) {
       case 'day':  return 1 / 30;
       case 'year': return 12;
       default:     return 1;
@@ -45,19 +25,36 @@ export class FinanceDashboardComponent implements OnInit {
   }
 
   get planFilterLabel(): string {
-    return this.planFilter === 'day' ? 'Daily' : this.planFilter === 'year' ? 'Yearly' : 'Monthly';
+    const filter = this.planFilter();
+    return filter === 'day' ? 'Daily' : filter === 'year' ? 'Yearly' : 'Monthly';
   }
 
-  get profitPerTimeInUah(): number {
-    if (!this.showDualCurrency) {
-      return this.profitPerTime;
-    }
-
-    return convertCurrency(this.profitPerTime, this.currency(), CURRENCY_DEFAULT, this.exchanges);
+  get showDualCurrency(): boolean {
+    return this.currency() !== CURRENCY_DEFAULT;
   }
 
-  get profitPerTime(): number {
-    return this.totalProfit * this.planFactor;
+  get totalCapitalAmount(): number {
+    return this.summary()?.totalCapital ?? 0;
+  }
+
+  get totalCapitalAmountInUah(): number {
+    return this.summary()?.totalCapitalInDefaultCurrency ?? 0;
+  }
+
+  get totalIncomeAmount(): number {
+    return this.summary()?.totalIncome ?? 0;
+  }
+
+  get totalIncomeAmountInUah(): number {
+    return this.summary()?.totalIncomeInDefaultCurrency ?? 0;
+  }
+
+  get totalExpenseAmount(): number {
+    return this.summary()?.totalExpense ?? 0;
+  }
+
+  get totalExpenseAmountInUah(): number {
+    return this.summary()?.totalExpenseInDefaultCurrency ?? 0;
   }
 
   get totalProfit(): number {
@@ -68,54 +65,11 @@ export class FinanceDashboardComponent implements OnInit {
     return this.totalProfit > 0;
   }
 
-  get showDualCurrency(): boolean {
-    return this.currency() !== 'UAH';
+  get profitPerTime(): number {
+    return this.totalProfit * this.planFactor;
   }
 
-  get totalExpenseAmount(): number {
-    let sum = 0;
-
-    for (const expenseCategoryResponse of this.expenseService.objects) {
-      for (const e of expenseCategoryResponse.expenses) {
-        sum += convertCurrency(e.amount, this.capitalService.getCurrency(e.capitalId) ?? CURRENCY_DEFAULT, this.currency(), this.exchanges);
-      }
-    }
-
-    return sum;
-  }
-
-  get totalExpenseAmountInUah(): number {
-    if (!this.showDualCurrency) {
-      return this.totalExpenseAmount;
-    }
-
-    return convertCurrency(this.totalExpenseAmount, this.currency(), CURRENCY_DEFAULT, this.exchanges);
-  }
-
-  get totalIncomeAmount(): number {
-    return this.incomeService.currentIncomes.length > 0 ? this.incomeService.currentIncomes
-      .reduce(
-        (sum, i) => sum + convertCurrency(i.amount, this.capitalService.getCurrency(i.capitalId) ?? CURRENCY_DEFAULT, this.currency(), this.exchanges), 0
-      ) : 0;
-  }
-
-  get totalIncomeAmountInUah(): number {
-    if (!this.showDualCurrency) {
-      return this.totalIncomeAmount;
-    }
-
-    return convertCurrency(this.totalIncomeAmount, this.currency(), CURRENCY_DEFAULT, this.exchanges);
-  }
-
-  get totalCapitalAmount(): number {
-    return this.capitalService.getTotalAmount(this.currency(), this.exchanges);
-  }
-
-  get totalCapitalAmountInUah(): number {
-    if (!this.showDualCurrency) {
-      return this.totalCapitalAmount;
-    }
-
-    return convertCurrency(this.totalCapitalAmount, this.currency(), CURRENCY_DEFAULT, this.exchanges );
+  get profitPerTimeInUah(): number {
+    return (this.totalIncomeAmountInUah - this.totalExpenseAmountInUah) * this.planFactor;
   }
 }

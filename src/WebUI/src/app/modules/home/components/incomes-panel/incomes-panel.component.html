@@ -1,0 +1,35 @@
+<div id="incomes" class="card">
+  <div class="card-header">
+    <h2 class="card-title"><i class="fas fa-arrow-trend-up"></i> Incomes</h2>
+    <div class="card-header-actions">
+      <span class="badge badge-success">{{ total() | currencySymbol: userCurrency() }}</span>
+      <button type="button" class="btn btn-success btn-sm" (click)="openQuickIncome()">
+        <i class="fas fa-plus"></i> Add
+      </button>
+      <a class="btn btn-secondary btn-sm" routerLink="/incomes" aria-label="Open incomes">
+        <i class="fas fa-arrow-up-right-from-square"></i>
+      </a>
+    </div>
+  </div>
+  @if (groups().length > 1) {
+    <app-sort-toolbar [options]="sortOptions" [value]="sortBy()" (changed)="sort($event)" />
+  }
+  <app-panel-state
+    [loading]="loading()"
+    [empty]="groups().length === 0"
+    icon="fa-arrow-trend-up"
+    title="No incomes yet"
+    hint="Start tracking your incomes to see a breakdown here.">
+    <app-category-breakdown
+      [groups]="groups()"
+      [currency]="userCurrency()"
+      entity="income"
+      tone="success"
+      percentFormat="1.0-0"
+      [reorderable]="reorderable()"
+      [readonly]="isAnonymous()"
+      (reordered)="reorder($event)"
+      (edit)="openQuickIncome($event)"
+      (removed)="deleteIncome($event)" />
+  </app-panel-state>
+</div>

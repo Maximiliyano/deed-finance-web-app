@@ -1,8 +1,9 @@
-import { Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output, DestroyRef, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AbstractControl, FormGroup, ReactiveFormsModule,  } from '@angular/forms';
 import { FormField } from './models/form-field';
 import { FormButton } from './models/form-button';
-import { Subject, takeUntil } from 'rxjs';
+
 import { FormErrorComponent } from "./form-error/form-error.component";
 import { DatePickerComponent } from '../date-picker/date-picker.component';
 import { SelectiveInputComponent } from "../inputs/selective-input.component/selective-input.component";
@@ -14,7 +15,9 @@ import { SelectiveInputComponent } from "../inputs/selective-input.component/sel
     imports: [ReactiveFormsModule, FormErrorComponent, DatePickerComponent, SelectiveInputComponent],
     standalone: true
 })
-export class FormComponent implements OnInit, OnDestroy {
+export class FormComponent implements OnInit {
+  private readonly destroyRef = inject(DestroyRef);
+
   @Input() headerText: string = 'Default form';
   @Input() headerIcon: string = '';
   @Input({ required: true }) form: FormGroup = new FormGroup({});
@@ -36,26 +39,19 @@ export class FormComponent implements OnInit, OnDestroy {
   @Output() submitForm = new EventEmitter<void>();
   @Output() cancelForm = new EventEmitter<void>();
   
-  private $unsubscribe = new Subject<void>();
-
   formControl(controlName: string): AbstractControl<any, any, any> | null {
     return this.form.get(controlName);
   }
   
   ngOnInit(): void {
     this.form.statusChanges
-    .pipe(takeUntil(this.$unsubscribe))
+    .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: () => this.updateSubmitButtonState()
       });
     this.updateSubmitButtonState();
   }
-
-  ngOnDestroy(): void {
-    this.$unsubscribe.next();
-    this.$unsubscribe.complete();
-  }
-
+
   onSubmit() {
     this.submitForm.emit();
   }

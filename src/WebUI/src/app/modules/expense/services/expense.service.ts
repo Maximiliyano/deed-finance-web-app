@@ -1,5 +1,5 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { BehaviorSubject, Observable, catchError, tap, throwError } from 'rxjs';
 import { CreateExpenseRequest } from '../models/create-expense-request';
 import { ExpenseCategoryResponse } from '../models/expense-category-response';
@@ -10,37 +10,32 @@ import { UpdateExpenseRequest } from '../models/update-expense.request';
   providedIn: 'root'
 })
 export class ExpenseService {
+  private readonly http = inject(HttpClient);
+
   private readonly baseUrl = '/api/expenses';
 
   private readonly state$ = new BehaviorSubject<ExpenseCategoryResponse[]>([]);
   readonly expenses$ = this.state$.asObservable();
 
-  constructor(private readonly http: HttpClient) { }
-
-  get objects(): ExpenseCategoryResponse[] { return this.state$.value; }
+  get current(): ExpenseCategoryResponse[] { return this.state$.value; }
 
   load(capitalId?: number): Observable<ExpenseCategoryResponse[]> {
     let params = new HttpParams();
     if (capitalId != null) params = params.set("capitalId", capitalId);
-    return this.http.get<ExpenseCategoryResponse[]>(this.baseUrl, { params, withCredentials: true })
+    return this.http.get<ExpenseCategoryResponse[]>(this.baseUrl, { params })
       .pipe(tap(items => this.state$.next(items)));
   }
 
   refresh(capitalId?: number): void { this.load(capitalId).subscribe(); }
 
-  getAllByCategories(capitalId?: number): Observable<ExpenseCategoryResponse[]> {
-    return this.load(capitalId);
-  }
-
   create(request: CreateExpenseRequest): Observable<number> {
-    return this.http.post<number>(this.baseUrl, request, { withCredentials: true }).pipe(
+    return this.http.post<number>(this.baseUrl, request).pipe(
       tap(() => this.refresh())
     );
   }
 
   update(request: UpdateExpenseRequest): Observable<void> {
-    // Update may move an expense across categories, change date, etc. — refresh after success.
-    return this.http.put<void>(this.baseUrl, request, { withCredentials: true }).pipe(
+    return this.http.put<void>(this.baseUrl, request).pipe(
       tap(() => this.refresh())
     );
   }
@@ -54,7 +49,7 @@ export class ExpenseService {
         return { ...cat, expenses, categorySum };
       })
       .filter(cat => cat.expenses.length > 0));
-    return this.http.delete<void>(`${this.baseUrl}/${id}`, { withCredentials: true }).pipe(
+    return this.http.delete<void>(`${this.baseUrl}/${id}`).pipe(
       tap(() => this.refresh()),
       catchError(err => {
         this.state$.next(previous);

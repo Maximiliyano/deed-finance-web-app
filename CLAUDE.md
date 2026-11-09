@@ -42,6 +42,9 @@ Follow the structure
 - **Handlers**: Use primary constructors, inject repository + IUnitOfWork + IUser
 - **Specifications**: `BaseSpecification<T>` with expression filters and ordering
 - **Extensions**: `ToEntity()`, `ToResponse()`, `ToResponses()`, `ApplyUpdate()` on each entity
+- **Update handlers**: load the tracked entity, return NotFound, then `if (HasNoChanges(command, entity)) return Result.Success();` (a `private static bool HasNoChanges(TCommand, TEntity)` at the bottom of every update handler). A `null` for a nullable entity property clears it (`Purpose`, `Note`); a `null` for a required property or a collection (`TagNames`) means keep. Mutate tracked entities and let `SaveChanges` detect changes; do not call `Update()` on them
+- **Tags**: `TagLinkSynchronizer` (Application/Tags) normalizes names, reuses existing `Tag` rows and revives soft-deleted `ExpenseTag`/`IncomeTag` links
+- **Queries/performance**: specifications only use `AsSplitQuery` when `UseSplitQuery` is set (several collection includes); never include entities the response does not need. Aggregates are projected in SQL (`ICapitalRepository.GetSummariesAsync` returns `CapitalSummary` with the four totals in one query); existence checks use `HasReferencesAsync` (single `EXISTS`). Category validators use `MustBeCategoryOfType` (one lookup). `UseSqlServer` has `EnableRetryOnFailure` and a 30s command timeout, so do not open manual transactions without an execution strategy
 - **Result pattern**: All handlers return `Result<T>` or `Result`, check with `IsSuccess`/`Errors`. `ErrorType` -> HTTP: Failure 500, Validation/BadRequest 400, NotFound 404, Conflict 409 (`ResultExtensions.Process()`)
 - **Pipeline**: `ValidationPipelineBehavior` (FluentValidation) then `RequestLoggingPipelineBehavior`; both require `TResponse : Result`
 - **Soft delete**: Entities implement `ISoftDeletableEntity` with `IsDeleted` bool and query filters; `UpdateAuditableEntitiesInterceptor` converts `Deleted` into `IsDeleted = true`
@@ -54,7 +57,12 @@ Follow the structure
 - Standalone components need explicit `imports: []` (e.g., `CommonModule`)
 - CSS custom properties in `:root` — `--primary`, `--bg`, `--surface`, `--border`, `--text` (dark theme default; `[data-theme="light"]` overrides, toggled by `ThemeService`, persisted as `deed-theme`)
 - Global utility classes: `.btn`, `.card`, `.input`, `.badge`, `.table`, `.empty`, `.page`
-- Interceptor order (`app.module.ts`): credentials -> retry (GET only) -> sectionLoading -> error (401 => `AuthService.invalidate()`, others => toast)
+- Interceptor order (`app.module.ts`): credentials -> error (401 => `AuthService.invalidate()`, others => toast) -> retry (GET only) -> sectionLoading. `error` sits outside `retry` so a failing GET toasts once, not per attempt. `credentialsInterceptor` sets `withCredentials`, so services never pass it
+- Mobile: dialogs are bottom sheets under 576px, wrap wide tables in `.table-wrap`, inputs are 16px on touch (`pointer: coarse`), cdk drag handles need `touch-action: none`, grids use `minmax(min(Npx, 100%), 1fr)`, fixed bars add `env(safe-area-inset-*)`
+- User settings: the API replaces every field, so change a single setting with `UserSettingsService.patch()` (merges into the current settings) instead of `upsert()`
+- Budget estimations: `periodEnd` is exclusive (`CreatedAt < periodEnd`); send the start of the next day/month/year
+- The home page is a thin shell (`home.component`) that lazy-renders standalone panels with `@defer (on viewport)`: `budget-planner`, `capitals-panel`, `expenses-panel`, `incomes-panel`, `goals-panel`, `debts-panel` (+ presentational `finance-dashboard`). Shared state lives in `DashboardStore` (signals: plan filter, period, capital filter, user currency, exchanges, server `summary`/`chartSummary`); each panel loads its own data. Do not compute currency totals in the frontend: add them to `GET api/dashboard/summary` (handler `GetDashboardSummaryQueryHandler`, `CurrencyConverter`, `IExchangeRateProvider`)
+- Frontend conventions: standalone components with `ChangeDetectionStrategy.OnPush`, `inject()` instead of constructor DI, `takeUntilDestroyed(destroyRef)` instead of unsubscribe subjects, services expose `load()` / `refresh()` / `current` / `<entities>$`, shared UI primitives (`.section-spinner`, `.empty-state`, `.icon-btn`, `.card-header-actions`, `.table-wrap`) live in `assets/scss/styles.scss`, one sort bar (`app-sort-toolbar`), no code comments. Format with `npm run format` (Prettier, CRLF)
 - Routes are lazy-loaded: `/` home, `/capitals`, `/expenses`, `/incomes`, `/error` (wildcard redirects there)
 - API calls use relative `/api/...` URLs (dev proxy in `src/WebUI/proxy.conf.json`, nginx `/api/` proxy, Netlify function in prod)
 
@@ -91,7 +99,7 @@ Settings classes live in `Deed.Application/Abstractions/Settings/` and are bound
 - Quartz jobs in `Deed.Infrastructure/BackgroundJobs/<Name>/` (`<Name>Job` + `<Name>JobSetup : IConfigureOptions<QuartzOptions>`), all `[DisallowConcurrentExecution]`:
   - `UpsertLatestExchangeJob` — `CronExchangeSchedule` (default 09:00) and once at startup; updates `Exchanges` and evicts `CacheKeys.Exchanges`
   - `BalanceReminderJob`, `ExpenseReminderJob`, `DebtReminderJob` — run every 15 min (`CronReminderCheckSchedule`); send e-mail (SMTP, Polly retry) only for users whose own UTC cron fired in the last 15 min (`CronHelper.HasFiredInWindow`)
-- `ICacheService` (Redis via `IDistributedCache`, instance prefix `deed:`) caches exchanges (12h) and categories (1h). Failures are logged and swallowed, so Redis outages fall back to the DB
+- `ICacheService` (Redis via `IDistributedCache`, instance prefix `deed:`) caches exchanges (12h) and categories (1h). Category keys come from `CacheKeys.Category(type, includeDeleted)`; every category write (create, delete, restore, updateRange) calls `cache.RemoveCategoriesAsync()` after saving. Failures are logged and swallowed, so Redis outages fall back to the DB
 - `ExchangeHttpService` uses the standard resilience handler and keeps only USD, EUR, PLN, CZK
 
 ## API Endpoints (summary)
@@ -152,6 +160,8 @@ Ports: API 8000 (http) / 8001 (https) locally, 8080 on Fly.io; SQL Server 8002 -
 - Initial bundle: ~630kB (warning threshold 600kB — not a real issue, ~163kB transferred)
 
 ## Gotchas
+- The API `Dockerfile` publishes ReadyToRun for `linux-x64`: `dotnet restore` must also get `-r linux-x64 /p:PublishReadyToRun=true`, otherwise the later `publish --no-restore` fails with NETSDK1094
+- `fly.toml` keeps one machine running (`min_machines_running = 1`) so requests do not hit a cold start and the Quartz jobs keep ticking
 - `src/Deed/Deed.Infrastructure/Persistence/Migrations` is in `.gitignore`: a fresh clone has no migrations. Create one (see command above) before running the API in Development or the integration tests
 - `docker-compose.yml` `dev` profile builds `src/WebUI/Dockerfile.dev`, which does not exist in the repo
 - `src/Deed/docker-compose*.yml` and `src/Deed/launchSettings.json` are Visual Studio copies with context `src/Deed`; use the root compose file from the CLI
