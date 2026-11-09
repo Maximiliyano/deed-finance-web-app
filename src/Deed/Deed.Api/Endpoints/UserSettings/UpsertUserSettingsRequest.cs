@@ -1,5 +1,3 @@
-using Deed.Domain.Enums;
-
 namespace Deed.Api.Endpoints.UserSettings;
 
 internal sealed record UpsertUserSettingsRequest(

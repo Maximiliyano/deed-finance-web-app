@@ -1,5 +1,3 @@
-using Deed.Domain.Enums;
-
 namespace Deed.Api.Endpoints.Goals;
 
 internal sealed record UpdateGoalRequest(

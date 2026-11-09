@@ -12,7 +12,6 @@ export interface UtilityBillResponse {
   isPaidThisMonth: boolean;
   paidAmount: number | null;
   paidAt: string | null;
-  paidExpenseId: number | null;
 }
 
 export interface CreateUtilityBillRequest {

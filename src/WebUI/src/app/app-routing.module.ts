@@ -30,8 +30,7 @@ const routes: Routes = [
   {
     path: '**',
     redirectTo: '/error',
-    pathMatch: 'full',
-    data: { status: 404 }
+    pathMatch: 'full'
   },
 ];
 

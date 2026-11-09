@@ -1,29 +1,23 @@
-import { ChangeDetectionStrategy, Component, OnInit, inject, DestroyRef } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ChangeDetectionStrategy, Component, OnInit, inject } from '@angular/core';
 import { FormGroup, FormControl, Validators } from '@angular/forms';
 
 import { PopupMessageService } from '../../../../shared/services/popup-message.service';
-import { CURRENCY_DEFAULT } from '../../../../core/types/currency-type';
+import { CURRENCY_DEFAULT, CURRENCY_OPTIONS } from '../../../../core/types/currency-type';
 import { AddCapitalRequest } from '../../models/add-capital-request';
 import { FormField } from '../../../../shared/components/forms/models/form-field';
-import { SelectOptionModel } from '../../../../shared/components/forms/models/select-option-model';
-import { DIALOG_DATA } from '../../../../shared/components/dialogs/models/dialog-consts';
 import { DialogRef } from '../../../../shared/components/dialogs/models/dialog-ref';
-import { SharedModule } from "../../../../shared/shared.module";
 import { FormComponent } from '../../../../shared/components/forms/form.component';
 
 @Component({
     selector: 'app-add-capital-dialog',
     templateUrl: './add-capital-dialog.component.html',
     standalone: true,
-    imports: [SharedModule, FormComponent],
+    imports: [FormComponent],
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AddCapitalDialogComponent implements OnInit {
-  readonly currencyOptions = inject<SelectOptionModel[]>(DIALOG_DATA);
   private readonly dialogRef = inject<DialogRef<AddCapitalRequest | null>>(DialogRef);
   private readonly popupMessageService = inject(PopupMessageService);
-  private readonly destroyRef = inject(DestroyRef);
 
   form: FormGroup;
   fields: FormField[] = [];
@@ -58,7 +52,7 @@ export class AddCapitalDialogComponent implements OnInit {
       {
         label: 'Currency',
         controlName: 'Currency',
-        select: { options: this.currencyOptions }
+        select: { options: CURRENCY_OPTIONS }
       },
       {
         label: 'Include in Total balance',

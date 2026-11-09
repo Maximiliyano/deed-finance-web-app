@@ -1,6 +1,5 @@
 using Deed.Application.Abstractions;
 using Deed.Domain.Entities;
-using Microsoft.EntityFrameworkCore;
 
 namespace Deed.Application.Capitals.Specifications;
 

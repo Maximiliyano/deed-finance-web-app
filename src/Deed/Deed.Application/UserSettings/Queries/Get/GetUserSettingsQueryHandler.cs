@@ -1,5 +1,4 @@
 using Deed.Application.Abstractions.Messaging;
-using Deed.Application.Auth;
 using Deed.Application.UserSettings.Responses;
 using Deed.Domain.Repositories;
 using Deed.Domain.Results;

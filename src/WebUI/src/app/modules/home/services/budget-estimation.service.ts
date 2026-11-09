@@ -16,8 +16,6 @@ export class BudgetEstimationService {
   private readonly state$ = new BehaviorSubject<BudgetEstimation[]>([]);
   readonly estimations$ = this.state$.asObservable();
 
-  get current(): BudgetEstimation[] { return this.state$.value; }
-
   load(query: QueryTimeRange): Observable<BudgetEstimation[]> {
     return this.http.post<BudgetEstimation[]>(`${this.baseUrl}/all`, query)
       .pipe(tap(items => this.state$.next(items)));
@@ -34,7 +32,6 @@ export class BudgetEstimationService {
       capitalId: capital?.id ?? null,
       capitalName: capital?.name ?? null,
       capitalBalance: capital?.balance ?? 0,
-      capitalCurrency: capital?.currency ?? null,
       orderIndex: previous.length,
       isCompleted: false
     };

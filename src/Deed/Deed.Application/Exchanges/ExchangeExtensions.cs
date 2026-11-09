@@ -24,7 +24,4 @@ internal static class ExchangeExtensions
             Buy = response.Buy,
             Sale = response.Sale
         };
-
-    internal static IEnumerable<Exchange> ToEntities(this IEnumerable<ExchangeResponse> responses)
-        => responses.Select(x => x.ToEntity());
 }

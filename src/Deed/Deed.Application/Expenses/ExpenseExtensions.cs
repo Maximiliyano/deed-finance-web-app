@@ -1,6 +1,5 @@
 using Deed.Application.Expenses.Commands.Create;
 using Deed.Application.Expenses.Responses;
-using Deed.Application.Capitals;
 using Deed.Application.Categories;
 using Deed.Domain.Entities;
 

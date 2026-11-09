@@ -14,8 +14,6 @@ export class DebtService {
   private readonly state$ = new BehaviorSubject<Debt[]>([]);
   readonly debts$ = this.state$.asObservable();
 
-  get current(): Debt[] { return this.state$.value; }
-
   load(): Observable<Debt[]> {
     return this.http.get<Debt[]>(this.baseUrl)
       .pipe(tap(items => this.state$.next(items)));

@@ -1,6 +1,4 @@
-﻿using System.Security.Claims;
-
-namespace Deed.Application.Auth;
+﻿namespace Deed.Application.Auth;
 
 public static class AuthClaimTypes
 {

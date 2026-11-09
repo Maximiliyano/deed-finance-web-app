@@ -1,7 +1,5 @@
-using System.IO.Compression;
 using Deed.Api.Middlewares;
 using Deed.Domain.Providers;
-using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 namespace Deed.Api;

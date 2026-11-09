@@ -1,13 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Text;
 using System.Threading.Tasks;
 using Deed.Application.Abstractions;
 using Deed.Domain.Entities;
 using Deed.Domain.Enums;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace Deed.Application.Categories.Specifications;
 

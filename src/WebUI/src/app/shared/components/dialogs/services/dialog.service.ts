@@ -55,12 +55,4 @@ export class DialogService {
     this.openDialogs = this.openDialogs.filter(x => x !== ref);
     this.openDialogs.forEach((d, i) => d.instance.index = i);
   }
-
-  closeAll() {
-    this.openDialogs.forEach(ref => {
-      this.appRef.detachView(ref.hostView);
-      ref.destroy();
-    });
-    this.openDialogs = [];
-  }
 }

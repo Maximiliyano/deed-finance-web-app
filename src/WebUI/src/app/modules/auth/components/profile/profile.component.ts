@@ -32,12 +32,10 @@ export class ProfileComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
 
   user: User | null;
-  editMode: boolean;
   settingsForm!: FormGroup;
   savingSettings = false;
   currencies = CURRENCIES;
   notificationForm!: FormGroup;
-  savingNotifications = false;
   cronPresets = [
     { label: 'Daily at 9:00 AM', value: '0 0 9 * * ?' },
     { label: 'Daily at 8:00 PM', value: '0 0 20 * * ?' },

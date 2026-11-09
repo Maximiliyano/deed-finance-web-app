@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -16,7 +15,6 @@ internal static class TagExtensions
     public static ExpenseTagResponse ToResponse(this ExpenseTag expenseTag)
         => new(
             expenseTag.TagId,
-            expenseTag.Id,
             expenseTag.Tag.Name
         );
 }

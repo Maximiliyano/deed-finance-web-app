@@ -9,10 +9,7 @@ export interface FormField {
     placeholder?: string
   },
   selectiveInput?: {
-    placeholder?: string,
-    data: Tag[],
-    onSearch: (term?: string) => void;
-    onCreate: (collection: string[]) => void;
+    data: Tag[]
   }
   select?: {
     options: SelectOptionModel[],

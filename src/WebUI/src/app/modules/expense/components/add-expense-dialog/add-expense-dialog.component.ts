@@ -67,9 +67,7 @@ export class AddExpenseDialogComponent implements OnInit {
         label: 'Tags',
         controlName: 'TagNames',
         selectiveInput: {
-          data: this.data.tags,
-          onSearch: this.onSearch,
-          onCreate: this.onCreate
+          data: this.data.tags
         }
       },
       {
@@ -79,9 +77,6 @@ export class AddExpenseDialogComponent implements OnInit {
       }
     ]
   }
-
-  onCreate(names: string[]): void {}
-  onSearch(term?: string): void {}
 
   private initForm(): void {
     this.form = new FormGroup({

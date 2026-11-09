@@ -1,6 +1,5 @@
 using Deed.Domain.Results;
 using MediatR;
-using Microsoft.Extensions.Logging;
 using Serilog;
 using Serilog.Context;
 

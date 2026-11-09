@@ -1,5 +1,4 @@
 using Deed.Application.Abstractions.Messaging;
-using Deed.Domain.Enums;
 
 namespace Deed.Application.Goals.Commands.Create;
 

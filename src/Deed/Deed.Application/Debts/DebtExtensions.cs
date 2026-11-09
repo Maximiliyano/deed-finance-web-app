@@ -1,5 +1,4 @@
 using Deed.Application.Debts.Commands.Create;
-using Deed.Application.Debts.Commands.Update;
 using Deed.Application.Debts.Responses;
 using Deed.Domain.Entities;
 using Deed.Domain.Enums;

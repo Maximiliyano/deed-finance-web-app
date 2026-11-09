@@ -1,5 +1,4 @@
 export interface UserSettings {
-  salary?: number;
   currency: string;
   balanceReminderEnabled?: boolean;
   balanceReminderCron?: string;

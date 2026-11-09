@@ -1,7 +1,6 @@
 using Deed.Application.Abstractions.Data;
 using Deed.Domain.Entities;
 using Deed.Domain.Repositories;
-using Microsoft.EntityFrameworkCore;
 
 namespace Deed.Infrastructure.Persistence.Repositories;
 

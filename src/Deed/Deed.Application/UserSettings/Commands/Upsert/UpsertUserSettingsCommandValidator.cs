@@ -1,5 +1,4 @@
 using Deed.Application.Abstractions;
-using Deed.Domain.Constants;
 using Deed.Domain.Enums;
 using Deed.Domain.Errors;
 using FluentValidation;

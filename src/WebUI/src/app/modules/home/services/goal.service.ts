@@ -31,8 +31,6 @@ export class GoalService {
   private readonly state$ = new BehaviorSubject<Goal[]>([]);
   readonly goals$ = this.state$.asObservable();
 
-  get current(): Goal[] { return this.state$.value; }
-
   load(): Observable<Goal[]> {
     return this.http.get<Goal[]>(this.baseUrl)
       .pipe(tap(items => this.state$.next(items)));

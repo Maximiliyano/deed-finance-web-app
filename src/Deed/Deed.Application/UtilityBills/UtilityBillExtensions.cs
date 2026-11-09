@@ -1,5 +1,4 @@
 using Deed.Application.UtilityBills.Commands.Create;
-using Deed.Application.UtilityBills.Commands.Update;
 using Deed.Application.UtilityBills.Responses;
 using Deed.Domain.Entities;
 using Deed.Domain.Enums;
@@ -32,8 +31,7 @@ internal static class UtilityBillExtensions
             bill.IsActive,
             payment is not null,
             payment?.Amount,
-            payment?.PaymentDate,
-            payment?.Id
+            payment?.PaymentDate
         );
     }
 

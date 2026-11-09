@@ -157,10 +157,6 @@ export class DashboardStore {
     return this.selectedCapitalIds().has(id);
   }
 
-  capitalAllowed(id: number | null | undefined): boolean {
-    return !this.hasCapitalFilter() || (id != null && this.selectedCapitalIds().has(id));
-  }
-
   private loadSummaries(): Observable<[DashboardSummary, DashboardSummary | null]> {
     const { periodStart, periodEnd } = this.period();
     const base: DashboardSummaryParams = { periodStart, periodEnd };

@@ -1,6 +1,4 @@
-import { ChangeDetectionStrategy, Component, OnInit, inject } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
-import { ErrorService } from '../../../shared/services/error.service';
+import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
 
 @Component({
     selector: 'app-error',
@@ -9,30 +7,10 @@ import { ErrorService } from '../../../shared/services/error.service';
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ErrorComponent implements OnInit {
-    private readonly errorService = inject(ErrorService);
-    private readonly route = inject(ActivatedRoute);
-
-    statusCode = 500;
-    message = 'Unexpected error occurred.';
-    previousUrl = '/';
+    readonly statusCode = 404;
+    readonly message = 'The requested page could not be found.';
 
     ngOnInit() {
-        const error = this.errorService.getError();
-        const routeStatus = this.route.snapshot.data['status'];
-
-        if (error) {
-            this.statusCode = error.status ?? 500;
-            this.message = error.message ?? 'Unexpected error';
-            this.previousUrl = this.errorService.getPreviousUrl() ?? '/';
-            this.errorService.clear();
-        } else if (routeStatus) {
-            this.statusCode = routeStatus;
-            this.message = 'The requested page could not be found.';
-        } else {
-            this.statusCode = 404;
-            this.message = 'The requested page could not be found.';
-        }
-
         document.title = `Deed - ${this.statusCode} error`;
     }
 }

@@ -1,5 +1,3 @@
-import { Tag } from "./tag";
-
 export interface CreateExpenseRequest {
   capitalId: number;
   categoryId: number;

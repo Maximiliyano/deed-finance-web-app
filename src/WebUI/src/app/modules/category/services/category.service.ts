@@ -16,10 +16,6 @@ export class CategoryService {
   private readonly state$ = new BehaviorSubject<CategoryResponse[]>([]);
   readonly categories$ = this.state$.asObservable();
 
-  get current(): CategoryResponse[] {
-    return this.state$.value;
-  }
-
   load(type: CategoryType | null = null, includeDeleted: boolean | null = null): Observable<CategoryResponse[]> {
     let params = new HttpParams();
 

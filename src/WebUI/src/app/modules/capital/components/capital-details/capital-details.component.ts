@@ -3,7 +3,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { PopupMessageService } from '../../../../shared/services/popup-message.service';
 import { UpdateCapitalRequest } from '../../models/update-capital-request';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
-import { Exchange } from '../../../../core/models/exchange-model';
+import { CURRENCY_OPTIONS } from '../../../../core/types/currency-type';
 import { CapitalResponse } from '../../models/capital-response';
 import { FormField } from '../../../../shared/components/forms/models/form-field';
 import { FormButton } from '../../../../shared/components/forms/models/form-button';
@@ -11,7 +11,6 @@ import { FormButton } from '../../../../shared/components/forms/models/form-butt
 import { DIALOG_DATA } from '../../../../shared/components/dialogs/models/dialog-consts';
 import { DialogRef } from '../../../../shared/components/dialogs/models/dialog-ref';
 import { FormComponent } from '../../../../shared/components/forms/form.component';
-import { SelectOptionModel } from '../../../../shared/components/forms/models/select-option-model';
 
 @Component({
     selector: 'app-capital-details',
@@ -23,7 +22,7 @@ import { SelectOptionModel } from '../../../../shared/components/forms/models/se
 })
 export class CapitalDetailsComponent implements OnInit {
   private readonly cdr = inject(ChangeDetectorRef);
-  readonly data = inject<{ capital: CapitalResponse; currencyOptions: SelectOptionModel[]; exchanges: Exchange[]; }>(DIALOG_DATA);
+  readonly data = inject<{ capital: CapitalResponse }>(DIALOG_DATA);
   private readonly dialogRef = inject<DialogRef<UpdateCapitalRequest | null>>(DialogRef);
   private readonly popupMessageService = inject(PopupMessageService);
   private readonly destroyRef = inject(DestroyRef);
@@ -94,7 +93,7 @@ export class CapitalDetailsComponent implements OnInit {
         label: 'Currency',
         controlName: 'Currency',
         select: {
-          options: this.data.currencyOptions
+          options: CURRENCY_OPTIONS
         }
       },
       {

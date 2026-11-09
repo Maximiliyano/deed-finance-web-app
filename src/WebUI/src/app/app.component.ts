@@ -1,7 +1,6 @@
 import { ChangeDetectionStrategy, Component, NgZone, OnDestroy, OnInit, signal, inject, DestroyRef } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {AuthService} from './modules/auth/services/auth-service';
-import {NotificationService} from './shared/services/notification.service';
 
 
 @Component({
@@ -13,7 +12,6 @@ import {NotificationService} from './shared/services/notification.service';
 })
 export class AppComponent implements OnInit, OnDestroy {
     private readonly authService = inject(AuthService);
-    private readonly notificationService = inject(NotificationService);
     private readonly zone = inject(NgZone);
     private readonly destroyRef = inject(DestroyRef);
 
@@ -23,10 +21,6 @@ export class AppComponent implements OnInit, OnDestroy {
         this.zone.runOutsideAngular(() => window.addEventListener('scroll', this.onScroll, { passive: true }));
 
         this.authService.me().pipe(takeUntilDestroyed(this.destroyRef)).subscribe();
-
-        if (this.notificationService.isSupported()) {
-            this.notificationService.requestPermission();
-        }
     }
 
     ngOnDestroy(): void {

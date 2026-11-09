@@ -33,8 +33,6 @@ export class TransferService {
   private readonly state$ = new BehaviorSubject<TransferResponse[]>([]);
   readonly transfers$ = this.state$.asObservable();
 
-  get current(): TransferResponse[] { return this.state$.value; }
-
   load(): Observable<TransferResponse[]> {
     return this.http.get<TransferResponse[]>(this.baseUrl)
       .pipe(tap(items => this.state$.next(items)));

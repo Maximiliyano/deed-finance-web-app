@@ -13,5 +13,6 @@ export const CURRENCIES = [
   'CZK'
 ] as const;
 export const CURRENCY_DEFAULT: string = CURRENCIES[0];
+export const CURRENCY_OPTIONS = CURRENCIES.map(currency => ({ key: currency, value: currency }));
 
 export type Currency = typeof CURRENCIES[number];

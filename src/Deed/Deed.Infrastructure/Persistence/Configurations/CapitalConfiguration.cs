@@ -1,6 +1,5 @@
 using Deed.Domain.Constants;
 using Deed.Domain.Entities;
-using Deed.Domain.Enums;
 using Deed.Infrastructure.Persistence.Constants;
 using Deed.Infrastructure.Persistence.DataSeed;
 using Microsoft.EntityFrameworkCore;

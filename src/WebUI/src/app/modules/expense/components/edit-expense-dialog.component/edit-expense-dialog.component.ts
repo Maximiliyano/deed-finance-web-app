@@ -87,9 +87,7 @@ export class EditExpenseDialogComponent implements OnInit {
         label: 'Tags',
         controlName: 'TagNames',
         selectiveInput: {
-          data: this.data.tags,
-          onSearch: this.onSearch,
-          onCreate: this.onCreate
+          data: this.data.tags
         }
       },
       {
@@ -106,9 +104,6 @@ export class EditExpenseDialogComponent implements OnInit {
       }
     ];
   }
-
-  onCreate(tags: string[]): void {}
-  onSearch(term?: string): void {}
 
   handleSubmit(): void {
     if (this.form.invalid) {

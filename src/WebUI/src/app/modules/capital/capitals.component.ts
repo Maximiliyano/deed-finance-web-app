@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, HostListener, OnDestroy, OnInit, inject, DestroyRef } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, inject, DestroyRef } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { debounceTime, Subject } from 'rxjs';
 import { Exchange } from '../../core/models/exchange-model';
@@ -20,6 +20,7 @@ import { Debt } from '../home/models/debt.model';
 import { DebtService } from '../home/services/debt.service';
 import { CURRENCIES, CURRENCY_DEFAULT } from '../../core/types/currency-type';
 import { UserSettingsService } from '../home/services/user-settings.service';
+import { convertCurrency } from '../../shared/utils/currency-conversion.util';
 
 @Component({
     selector: 'app-capitals',
@@ -66,29 +67,11 @@ export class CapitalsComponent implements OnInit, OnDestroy {
     { label: 'transfers out', key: 'totalTransferOut' },
   ];
 
-  createDialogOpened: boolean = false;
-
-  isCapitalActionsOpen: boolean = false;
-  openMenuId: number | null = null;
-
   currencyOptions = CURRENCIES;
 
   user: User | null = null;
 
   private queryParams$ = new Subject<void>();
-  @HostListener('document:click', ['$event.target'])
-  onClickOutside(targetElement: EventTarget | null): void {
-    if (!(targetElement instanceof HTMLElement)) {
-      return;
-    }
-
-    const clickedInside = targetElement.closest('.cp-actions-compact');
-
-    if (!clickedInside) {
-      this.onMenuItemClick();
-    }
-  }
-
   ngOnInit(): void {
     document.title = "Deed - Capitals";
 
@@ -187,14 +170,8 @@ export class CapitalsComponent implements OnInit, OnDestroy {
   }
 
   toggleEditDialog(capital: CapitalResponse) {
-    this.onMenuItemClick();
-
     const ref = this.dialogService.open(CapitalDetailsComponent, {
-      data: {
-        capital: capital,
-        currencyOptions: this.currencyOptions,
-        exchanges: this.exchanges
-      }
+      data: { capital }
     });
 
     ref
@@ -232,11 +209,7 @@ export class CapitalsComponent implements OnInit, OnDestroy {
   }
 
   openToCreateCapitalDialog(): void {
-    this.onMenuItemClick();
-
-    const dialogRef = this.dialogService.open(AddCapitalDialogComponent, {
-      data: this.currencyOptions
-    });
+    const dialogRef = this.dialogService.open(AddCapitalDialogComponent);
 
     dialogRef
       .afterClosed$
@@ -279,41 +252,12 @@ export class CapitalsComponent implements OnInit, OnDestroy {
   }
 
   get totalCapitalBalance(): number {
-    return this.capitals?.reduce((accumulator, capital) => {
-      if (!capital.includeInTotal) return accumulator;
-
-      const balance = Number(capital.balance) || 0;
-
-      if (capital.currency === this.mainCurrency) {
-        return accumulator + balance;
-      }
-
-      const direct = this.exchanges?.find(
-        e => e.nationalCurrency === this.mainCurrency && e.targetCurrency === capital.currency
-      );
-
-      if (direct) {
-        return accumulator + balance * direct.sale;
-      }
-
-      const reverse = this.exchanges?.find(
-        e => e.nationalCurrency === capital.currency && e.targetCurrency === this.mainCurrency
-      );
-
-      return reverse && reverse.buy > 0
-        ? accumulator + balance / reverse.buy
-        : accumulator;
-    }, 0) ?? 0;
-  }
-
-  toggleMenu(id: number): void {
-    if (this.openMenuId === id) {
-      this.openMenuId = null;
-      this.isCapitalActionsOpen = false;
-    } else {
-      this.openMenuId = id;
-      this.isCapitalActionsOpen = true;
-    }
+    return this.capitals.reduce(
+      (sum, capital) => capital.includeInTotal
+        ? sum + convertCurrency(Number(capital.balance) || 0, capital.currency, this.mainCurrency, this.exchanges)
+        : sum,
+      0
+    );
   }
 
   toggleIncludeInTotal(id: number): void {
@@ -351,8 +295,6 @@ export class CapitalsComponent implements OnInit, OnDestroy {
   }
 
   deleteCapital(id: number): void {
-    this.onMenuItemClick();
-
     const ref = this.dialogService.open(ConfirmDialogComponent, {
       data: {
         title: 'Deletion of capital',
@@ -379,11 +321,6 @@ export class CapitalsComponent implements OnInit, OnDestroy {
         }
       }
     });
-  }
-
-  onMenuItemClick(): void {
-    this.isCapitalActionsOpen = false;
-    this.openMenuId = null;
   }
 
   drop(event: CdkDragDrop<any[]>) {

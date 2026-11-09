@@ -17,7 +17,6 @@ internal static class BudgetEstimationExtensions
             est.CapitalId,
             est.Capital?.Name,
             est.Capital?.Balance ?? 0m,
-            est.Capital?.Currency.ToString(),
             est.OrderIndex,
             est.IsCompleted
         );

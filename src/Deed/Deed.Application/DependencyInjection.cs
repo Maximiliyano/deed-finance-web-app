@@ -1,4 +1,3 @@
-using System.Net;
 using System.Security.Claims;
 using System.Threading.RateLimiting;
 using Deed.Application.Abstractions.Behaviours;
@@ -7,19 +6,15 @@ using Deed.Application.Auth;
 using Deed.Application.Exchanges;
 using Deed.Application.Exchanges.Service;
 using FluentValidation;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authentication.OAuth;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
@@ -104,10 +99,7 @@ public static class DependencyInjection
             });
 
         services.AddAuthorization(options =>
-        {
-            options.AddPolicy(AuthConstants.AdminOnlyPolicy, p => p.RequireRole("admin"));
-            options.AddPolicy("AnyUser", p => p.RequireRole("admin", "user"));
-        });
+            options.AddPolicy(AuthConstants.AdminOnlyPolicy, p => p.RequireRole("admin")));
     }
 
     private static IServiceCollection AddMediatrDependencies(this IServiceCollection services)

@@ -2,7 +2,6 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { BehaviorSubject, Observable, catchError, tap, throwError } from 'rxjs';
 import { IncomeResponse } from '../models/income-response';
-import { CategoryResponse } from '../../category/models/category-model';
 import { CreateIncomeRequest } from '../models/create-income-request';
 
 @Injectable({
@@ -14,12 +13,8 @@ export class IncomeService {
   private readonly baseUrl = '/api/incomes';
 
   private readonly state$ = new BehaviorSubject<IncomeResponse[]>([]);
-  private readonly categoriesState$ = new BehaviorSubject<CategoryResponse[]>([]);
 
   readonly incomes$ = this.state$.asObservable();
-  readonly categories$ = this.categoriesState$.asObservable();
-
-  get current(): IncomeResponse[] { return this.state$.value; }
 
   load(): Observable<IncomeResponse[]> {
     return this.http.get<IncomeResponse[]>(this.baseUrl).pipe(

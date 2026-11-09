@@ -1,7 +1,6 @@
 using Deed.Api.Extensions;
 using Deed.Application.Goals.Commands.Create;
 using Deed.Application.Goals.Requests;
-using Deed.Domain.Enums;
 using MediatR;
 
 namespace Deed.Api.Endpoints.Goals;

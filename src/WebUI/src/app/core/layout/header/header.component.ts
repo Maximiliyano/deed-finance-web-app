@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, TrackByFunction, inject, DestroyRef } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, inject, DestroyRef } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Exchange } from '../../models/exchange-model';
 import { ExchangeService } from '../../../shared/services/exchange.service';
@@ -36,7 +36,6 @@ export class HeaderComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
 
   exchanges: Exchange[] = [];
-  exchangeUpdatedAt: Date | null = null;
   isSidebarExpanded = false;
   openDropdown: string | null = null;
   expandedSidebarGroup: string | null = null;
@@ -44,7 +43,7 @@ export class HeaderComponent implements OnInit {
   navItems: NavItem[] = [
     {
       label: 'Dashboard', icon: 'fa-gauge-high', children: [
-        { label: 'Budget Planner', icon: 'fa-compass-drafting', link: '/', fragment: 'estimations' },
+        { label: 'Budget Planner', icon: 'fa-compass-drafting', link: '/', fragment: 'budgetEstimations' },
         { label: 'Goals', icon: 'fa-star', link: '/', fragment: 'goals' },
         { label: 'Debts', icon: 'fa-hand-holding-dollar', link: '/', fragment: 'debts' },
       ]
@@ -58,9 +57,6 @@ export class HeaderComponent implements OnInit {
     },
   ];
   user: User | null;
-
-  trackByLabel: TrackByFunction<NavItem>;
-  trackBySale: TrackByFunction<Exchange>;
 
   ngOnInit(): void {
     this.authService.user$
@@ -76,9 +72,6 @@ export class HeaderComponent implements OnInit {
       .subscribe({
         next: (exchanges) => {
           this.exchanges = exchanges;
-          if (exchanges.length > 0) {
-            this.exchangeUpdatedAt = exchanges[0].updatedAt;
-          }
           this.cdr.markForCheck();
         }
       });

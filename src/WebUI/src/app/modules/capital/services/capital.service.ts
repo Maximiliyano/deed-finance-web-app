@@ -18,10 +18,6 @@ export class CapitalService {
   private readonly state$ = new BehaviorSubject<CapitalResponse[]>([]);
   readonly capitals$ = this.state$.asObservable();
 
-  get current(): CapitalResponse[] {
-    return this.state$.value;
-  }
-
   load(params: QueryParams): Observable<CapitalResponse[]> {
     const isFiltered = !!params.searchTerm || !!params.filterBy;
 
@@ -35,10 +31,6 @@ export class CapitalService {
 
   refresh(params: QueryParams = { searchTerm: null, sortBy: null, sortDirection: null, filterBy: null }): void {
     this.load(params).subscribe();
-  }
-
-  getById(id: number): Observable<CapitalResponse> {
-    return this.httpClient.get<CapitalResponse>(`${this.baseApiUrl}/${id}`);
   }
 
   create(request: AddCapitalRequest): Observable<number> {

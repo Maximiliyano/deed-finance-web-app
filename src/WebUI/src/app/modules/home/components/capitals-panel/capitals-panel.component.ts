@@ -3,7 +3,6 @@ import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, computed, injec
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { EMPTY, catchError } from 'rxjs';
-import { CURRENCIES } from '../../../../core/types/currency-type';
 import { DialogService } from '../../../../shared/components/dialogs/services/dialog.service';
 import { PopupMessageService } from '../../../../shared/services/popup-message.service';
 import { SectionLoadingService } from '../../../../shared/services/section-loading.service';
@@ -128,7 +127,7 @@ export class CapitalsPanelComponent implements OnInit {
 
   openCapitalDetail(cap: CapitalResponse): void {
     const ref = this.dialogService.open(CapitalDetailsComponent, {
-      data: { capital: cap, currencyOptions: CURRENCIES, exchanges: this.store.exchanges() }
+      data: { capital: cap }
     });
 
     ref.afterClosed$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((result: UpdateCapitalRequest | null) => {
@@ -142,7 +141,7 @@ export class CapitalsPanelComponent implements OnInit {
   }
 
   openAddCapital(): void {
-    const ref = this.dialogService.open(AddCapitalDialogComponent, { data: CURRENCIES });
+    const ref = this.dialogService.open(AddCapitalDialogComponent);
 
     ref.afterClosed$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((result: AddCapitalRequest | null) => {
       if (!result) return;

@@ -1,5 +1,4 @@
 using Deed.Application.Goals.Commands.Create;
-using Deed.Application.Goals.Commands.Update;
 using Deed.Application.Goals.Responses;
 using Deed.Domain.Entities;
 using Deed.Domain.Enums;

@@ -1,5 +1,4 @@
 using Deed.Application.Categories.Commands.Create;
-using Deed.Application.Categories.Commands.UpdateRange;
 using Deed.Application.Categories.Requests;
 using Deed.Application.Categories.Response;
 using Deed.Domain.Entities;

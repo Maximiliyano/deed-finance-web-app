@@ -1,4 +1,4 @@
-import { Component, DestroyRef, EventEmitter, OnInit, forwardRef, inject, Input, Output } from '@angular/core';
+import { Component, DestroyRef, OnInit, forwardRef, inject, Input } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ControlValueAccessor, FormControl, NG_VALUE_ACCESSOR, ReactiveFormsModule } from '@angular/forms';
 import { debounceTime, distinctUntilChanged } from 'rxjs';
@@ -25,9 +25,6 @@ export class SelectiveInputComponent implements ControlValueAccessor, OnInit {
   @Input() suggestions: Tag[] = [];
   @Input() placeholder = 'Add tag...';
   
-  @Output() searchChange = new EventEmitter<string>();
-  @Output() createChange = new EventEmitter<string[]>();
-  
   filteredSuggestions: Tag[] = [];
   inputCtrl = new FormControl('');
   selectedTags: string[] = [];
@@ -43,7 +40,6 @@ export class SelectiveInputComponent implements ControlValueAccessor, OnInit {
       .subscribe(value => {
         this.inputValue = value ?? '';
         this.filterSuggestions();
-        this.searchChange.emit(this.inputValue);
       });
   }
 
@@ -75,15 +71,16 @@ export class SelectiveInputComponent implements ControlValueAccessor, OnInit {
   }
 
   onBlur() {
+    this.onTouched();
     setTimeout(() => {
       this.showDropdown = false;
     });
   }
 
-  onSelectSuggestion(tag: Tag) {
-    if (this.selectedTags.some(name => name === tag.name)) return;
+  selectTag(tagName: string) {
+    if (this.selectedTags.includes(tagName)) return;
 
-    this.selectedTags = [...this.selectedTags, tag.name];
+    this.selectedTags = [...this.selectedTags, tagName];
     
     this.inputCtrl.reset();
     this.onChange(this.selectedTags);
@@ -97,10 +94,8 @@ export class SelectiveInputComponent implements ControlValueAccessor, OnInit {
     const value = this.inputCtrl.value?.trim();
     if (!value) return;
 
-    this.onSelectSuggestion({ tagId: 0, expenseId: 0, name: value });
+    this.selectTag(value);
     this.inputCtrl.reset();
-
-    this.createChange.emit(this.selectedTags);
   }
 
   removeTag(tagName: string) {

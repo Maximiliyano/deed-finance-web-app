@@ -90,7 +90,7 @@ Follow the structure
 - Anonymous visitors share the `System` user and may create at most `AuthConstants.EntityLimit` (3) items per entity (create handlers check `!user.IsAuthenticated`)
 - `.RequireAuthorization()`: `api/users/me`, `GET api/user-settings`, `POST api/budget-estimations`, and category writes (create, updateRange, delete, restore) and `POST api/tags`. `GET api/bank/details` and `DELETE api/tags/{id}` need the `AdminOnly` policy (`AuthConstants.AdminOnlyPolicy`, role `admin`). Everything else is anonymous-accessible
 - Handlers that touch a `Capital` must look it up with `new CapitalByIdSpecification(id, user.Name)`; an unscoped lookup lets one user change another user's balance
-- Policy `AnyUser` is defined but not applied; the roles claim is `https://deed.app/roles` in `AuthClaimTypes` but `https://deed-app/roles` in the OIDC `TokenValidationParameters` (inconsistent)
+- The roles claim is `https://deed.app/roles` in `AuthClaimTypes` but `https://deed-app/roles` in the OIDC `TokenValidationParameters` (inconsistent)
 
 ## Configuration
 Settings classes live in `Deed.Application/Abstractions/Settings/` and are bound from the same-named section (`GetRequiredSection`, so each section must exist): `BankSettings`, `WebUrlSettings` (CORS origin + redirects), `BackgroundJobsSettings`, `MemoryCacheSettings`, `AuthSettings`, `SmtpSettings`; plus top-level `DatabaseConnection` and `ConnectionStrings:Redis`. Override with environment variables using `__` (e.g. `AuthSettings__ClientSecret`) or user secrets. `appsettings.Development.json` holds placeholders only; never commit real secrets.
@@ -166,4 +166,4 @@ Ports: API 8000 (http) / 8001 (https) locally, 8080 on Fly.io; SQL Server 8002 -
 - `docker-compose.yml` `dev` profile builds `src/WebUI/Dockerfile.dev`, which does not exist in the repo
 - `src/Deed/docker-compose*.yml` and `src/Deed/launchSettings.json` are Visual Studio copies with context `src/Deed`; use the root compose file from the CLI
 - `ForwardedHeadersOptions` is configured but `UseForwardedHeaders()` is never called, and the backend does not validate `X-Internal-Proxy-Key`
-- `MemoryCacheSettings` is named "Memory" but backs the Redis cache; `appsettings.Testing.json` still uses an old `ExpirationMinutes` key that is not read
+- `MemoryCacheSettings` is named "Memory" but backs the Redis cache

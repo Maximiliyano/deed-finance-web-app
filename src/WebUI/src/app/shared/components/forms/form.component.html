@@ -44,8 +44,6 @@
           <app-selective-input
             [formControlName]="field.controlName"
             [suggestions]="field.selectiveInput.data"
-            (searchChange)="field.selectiveInput.onSearch($event)"
-            (createChange)="field.selectiveInput.onCreate($event)"
           />
         }
 

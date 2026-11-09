@@ -48,9 +48,6 @@ public static class DomainErrors
 
     public static class Category
     {
-        public static Error InvalidPerPeriod
-            => Error.BadRequest(nameof(InvalidPerPeriod), "Category per period is invalid.");
-
         public static Error PeriodAmountGreaterEqualZero
             => Error.BadRequest(nameof(PeriodAmountGreaterEqualZero), "Period amount should be greater or equal zero.");
 

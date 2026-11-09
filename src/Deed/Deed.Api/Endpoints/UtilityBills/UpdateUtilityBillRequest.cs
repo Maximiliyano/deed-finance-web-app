@@ -1,5 +1,3 @@
-using Deed.Domain.Enums;
-
 namespace Deed.Api.Endpoints.UtilityBills;
 
 internal sealed record UpdateUtilityBillRequest(

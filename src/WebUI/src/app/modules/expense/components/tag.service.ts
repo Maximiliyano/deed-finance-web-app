@@ -19,12 +19,4 @@ export class TagService {
 
     return this.http.get<Tag[]>(`${this.baseUrl}`, { params });
   }
-
-  create(expenseId: number, name: string): Observable<number> {
-    return this.http.post<number>(this.baseUrl, { expenseId, name });
-  }
-
-  delete(tagId: number): Observable<void> {
-    return this.http.delete<void>(`${this.baseUrl}/${tagId}`);
-  }
 }

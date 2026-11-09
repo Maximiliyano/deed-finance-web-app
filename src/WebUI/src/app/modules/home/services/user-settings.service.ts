@@ -27,7 +27,7 @@ export class UserSettingsService {
     );
   }
 
-  upsert(settings: UserSettings): Observable<void> {
+  private upsert(settings: UserSettings): Observable<void> {
     const previous = this.state$.value;
     this.state$.next({ ...(previous ?? {} as UserSettings), ...settings });
     return this.http.put<void>(this.baseUrl, settings).pipe(

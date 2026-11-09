@@ -1,8 +1,6 @@
-﻿using Deed.Api.Extensions;
-using Deed.Application.Auth;
+﻿using Deed.Application.Auth;
 using Deed.Application.UserSettings.Queries.Get;
 using Deed.Application.UserSettings.Responses;
-using Deed.Domain.Entities;
 using Deed.Domain.Errors;
 using MediatR;
 

@@ -1,5 +1,4 @@
 using Deed.Domain.Entities;
-using Deed.Domain.Enums;
 
 namespace Deed.Domain.Repositories;
 

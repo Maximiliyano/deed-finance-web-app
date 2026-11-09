@@ -1,7 +1,6 @@
 using Deed.Api.Extensions;
 using Deed.Application.Debts.Commands.Update;
 using Deed.Application.Debts.Requests;
-using Deed.Domain.Enums;
 using Deed.Domain.Results;
 using MediatR;
 

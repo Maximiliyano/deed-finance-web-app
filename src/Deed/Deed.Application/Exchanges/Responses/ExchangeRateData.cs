@@ -4,18 +4,6 @@ namespace Deed.Application.Exchanges.Responses;
 
 public class ExchangeRateData
 {
-    [JsonPropertyName("date")]
-    public string Date { get; set; }
-
-    [JsonPropertyName("bank")]
-    public string Bank { get; set; }
-
-    [JsonPropertyName("baseCurrency")]
-    public int BaseCurrency { get; set; }
-
-    [JsonPropertyName("baseCurrencyLit")]
-    public string BaseCurrencyLit { get; set; }
-
     [JsonPropertyName("exchangeRate")]
     public IEnumerable<ExchangeRate> ExchangeRates { get; set; }
 }

@@ -1,5 +1,4 @@
-﻿using System.Security.Principal;
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 
 namespace Deed.Application.Auth;
 

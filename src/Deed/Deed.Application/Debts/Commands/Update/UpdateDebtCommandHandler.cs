@@ -7,7 +7,6 @@ using Deed.Domain.Enums;
 using Deed.Domain.Errors;
 using Deed.Domain.Repositories;
 using Deed.Domain.Results;
-using Microsoft.EntityFrameworkCore.Diagnostics;
 using Serilog;
 
 namespace Deed.Application.Debts.Commands.Update;
