@@ -1,4 +1,5 @@
 using Deed.Application.Auth;
+using Deed.Application.Capitals.Specifications;
 using Deed.Application.Debts.Commands.Update;
 using Deed.Application.Debts.Specifications;
 using Deed.Domain.Entities;
@@ -81,4 +82,117 @@ public sealed class UpdateDebtCommandHandlerTests
         _repositoryMock.DidNotReceive().Update(Arg.Any<Debt>());
         await _unitOfWorkMock.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
     }
+
+    [Fact]
+    public async Task Handle_WhenOnlyAmountChanges_AndIsPaidNotProvided_SavesChange()
+    {
+        // Arrange
+        var debt = CreateDebt();
+        var command = new UpdateDebtCommand(1, Amount: 1500m);
+
+        _repositoryMock.GetAsync(Arg.Any<DebtByIdSpecification>()).Returns(debt);
+
+        // Act
+        var result = await _handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        debt.Amount.Should().Be(1500m);
+
+        _repositoryMock.Received(1).Update(debt);
+        await _unitOfWorkMock.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Handle_WhenNothingChanges_DoesNotSave()
+    {
+        // Arrange
+        var debt = CreateDebt();
+        var command = new UpdateDebtCommand(1);
+
+        _repositoryMock.GetAsync(Arg.Any<DebtByIdSpecification>()).Returns(debt);
+
+        // Act
+        var result = await _handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+
+        _repositoryMock.DidNotReceive().Update(Arg.Any<Debt>());
+        await _unitOfWorkMock.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Handle_WhenBecomingPaidFromCapital_DeductsDebtAmountFromCapital()
+    {
+        // Arrange
+        var debt = CreateDebt();
+        var capital = new Capital(5) { Name = "Wallet", Balance = 500m, Currency = CurrencyType.USD };
+        var command = new UpdateDebtCommand(1, IsPaid: true, PayFromCapitalId: 5);
+
+        _repositoryMock.GetAsync(Arg.Any<DebtByIdSpecification>()).Returns(debt);
+        _capitalRepositoryMock.GetAsync(Arg.Any<CapitalByIdSpecification>()).Returns(capital);
+
+        // Act
+        var result = await _handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        debt.IsPaid.Should().BeTrue();
+        capital.Balance.Should().Be(400m);
+
+        _capitalRepositoryMock.Received(1).Update(capital);
+        await _unitOfWorkMock.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Handle_WhenAlreadyPaid_DoesNotDeductAgain()
+    {
+        // Arrange
+        var debt = CreateDebt();
+        debt.IsPaid = true;
+        var command = new UpdateDebtCommand(1, Note: "changed", IsPaid: true, PayFromCapitalId: 5);
+
+        _repositoryMock.GetAsync(Arg.Any<DebtByIdSpecification>()).Returns(debt);
+
+        // Act
+        var result = await _handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+
+        _capitalRepositoryMock.DidNotReceive().Update(Arg.Any<Capital>());
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("   ")]
+    public async Task Handle_WhenNoteIsEmpty_ClearsNote(string? note)
+    {
+        // Arrange
+        var debt = CreateDebt();
+        debt.Note = "Old note";
+
+        _repositoryMock.GetAsync(Arg.Any<DebtByIdSpecification>()).Returns(debt);
+
+        // Act
+        var result = await _handler.Handle(new UpdateDebtCommand(1, Note: note), CancellationToken.None);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        debt.Note.Should().BeNull();
+
+        _repositoryMock.Received(1).Update(debt);
+        await _unitOfWorkMock.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+
+    private static Debt CreateDebt() => new(1)
+    {
+        Item = "Laptop",
+        Amount = 100m,
+        Currency = CurrencyType.USD,
+        Source = "John",
+        Recipient = "Me",
+        BorrowedAt = DateTimeOffset.UtcNow
+    };
 }

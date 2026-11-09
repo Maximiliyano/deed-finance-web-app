@@ -12,8 +12,9 @@ namespace Deed.Application.Tags.Specifications;
 internal sealed class ExpenseTagsByQuerySpefication
     : BaseSpecification<ExpenseTag>
 {
-    public ExpenseTagsByQuerySpefication(string? term)
-        : base(et => string.IsNullOrEmpty(term) || EF.Functions.Like(et.Tag.Name, $"%{term}%"))
+    public ExpenseTagsByQuerySpefication(string? term, string createdBy)
+        : base(et => et.Expense.CreatedBy == createdBy
+                     && (string.IsNullOrEmpty(term) || EF.Functions.Like(et.Tag.Name, $"%{term}%")))
     {
         AddInclude(et => et.Tag);
     }

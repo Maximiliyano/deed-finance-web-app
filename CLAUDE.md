@@ -80,8 +80,9 @@ Follow the structure
 - Cookie auth (HttpOnly, SameSite=Lax, Secure, 1h sliding) + Auth0 OpenID Connect scheme `Auth0` (code flow). Challenges on `/api/*` return 401 unless the explicit `api/auth/login` endpoint is used
 - `IUser.Name` is the `name` claim, or `"System"` for anonymous callers. **Per-user data isolation is `CreatedBy == IUser.Name`** in the specifications
 - Anonymous visitors share the `System` user and may create at most `AuthConstants.EntityLimit` (3) items per entity (create handlers check `!user.IsAuthenticated`)
-- Only `api/users/me`, `GET api/user-settings` and `POST api/budget-estimations` call `.RequireAuthorization()`
-- Policies `AdminOnly`/`AnyUser` are defined but not applied; the roles claim is `https://deed.app/roles` in `AuthClaimTypes` but `https://deed-app/roles` in the OIDC `TokenValidationParameters` (inconsistent)
+- `.RequireAuthorization()`: `api/users/me`, `GET api/user-settings`, `POST api/budget-estimations`, and category writes (create, updateRange, delete, restore) and `POST api/tags`. `GET api/bank/details` and `DELETE api/tags/{id}` need the `AdminOnly` policy (`AuthConstants.AdminOnlyPolicy`, role `admin`). Everything else is anonymous-accessible
+- Handlers that touch a `Capital` must look it up with `new CapitalByIdSpecification(id, user.Name)`; an unscoped lookup lets one user change another user's balance
+- Policy `AnyUser` is defined but not applied; the roles claim is `https://deed.app/roles` in `AuthClaimTypes` but `https://deed-app/roles` in the OIDC `TokenValidationParameters` (inconsistent)
 
 ## Configuration
 Settings classes live in `Deed.Application/Abstractions/Settings/` and are bound from the same-named section (`GetRequiredSection`, so each section must exist): `BankSettings`, `WebUrlSettings` (CORS origin + redirects), `BackgroundJobsSettings`, `MemoryCacheSettings`, `AuthSettings`, `SmtpSettings`; plus top-level `DatabaseConnection` and `ConnectionStrings:Redis`. Override with environment variables using `__` (e.g. `AuthSettings__ClientSecret`) or user secrets. `appsettings.Development.json` holds placeholders only; never commit real secrets.

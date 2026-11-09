@@ -1,7 +1,7 @@
 ﻿using Deed.Application.Abstractions;
+using Deed.Application.Auth;
 using Deed.Application.Capitals.Specifications;
 using Deed.Application.Categories.Specifications;
-using Deed.Application.Expenses.Specifications;
 using Deed.Domain.Constants;
 using Deed.Domain.Enums;
 using Deed.Domain.Errors;
@@ -14,24 +14,32 @@ namespace Deed.Application.Expenses.Commands.Update;
 internal sealed class UpdateExpenseCommandValidator : AbstractValidator<UpdateExpenseCommand>
 {
     public UpdateExpenseCommandValidator(
-        IExpenseRepository expenseRepository,
         ICategoryRepository categoryRepository,
         ICapitalRepository capitalRepository,
-        IDateTimeProvider provider)
+        IDateTimeProvider provider,
+        IUser user)
     {
         RuleFor(i => i.Amount)
             .GreaterThanOrEqualTo(ValidationConstants.ZeroValue)
             .WithError(ValidationErrors.General.AmountMustBeGreaterThanZero);
 
+        RuleFor(e => e.Purpose)
+            .MaximumLength(ValidationConstants.MaxLengthPurpose)
+            .When(e => e.Purpose is not null);
+
+        RuleForEach(e => e.TagNames)
+            .MaximumLength(ValidationConstants.MaxLengthTagName)
+            .When(e => e.TagNames is not null);
+
         RuleFor(e => e.CapitalId)
             .MustAsync(async (capitalId, ct) => await capitalRepository
-                .AnyAsync(new CapitalByIdSpecification(capitalId!.Value), ct).ConfigureAwait(false))
+                .AnyAsync(new CapitalByIdSpecification(capitalId!.Value, user.Name), ct).ConfigureAwait(false))
             .WithError(ValidationErrors.General.NotFound("capital"))
             .When(e => e.CapitalId.HasValue);
 
         RuleFor(e => e.CategoryId)
-            .MustAsync(async (categoryId, ct) => !await expenseRepository
-                .AnyAsync(new ExpenseByIdSpecification(categoryId!.Value), ct).ConfigureAwait(false))
+            .MustAsync(async (categoryId, ct) => await categoryRepository
+                .AnyAsync(new CategoryByIdSpecification(categoryId!.Value), ct).ConfigureAwait(false))
             .WithError(ValidationErrors.General.NotFound("category"))
             .MustAsync(async (categoryId, ct) => (await categoryRepository
                 .GetAsync(new CategoryByIdSpecification(categoryId!.Value), ct).ConfigureAwait(false))?.Type == CategoryType.Expenses)

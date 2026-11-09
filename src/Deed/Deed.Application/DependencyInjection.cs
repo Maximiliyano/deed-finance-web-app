@@ -102,7 +102,7 @@ public static class DependencyInjection
 
         services.AddAuthorization(options =>
         {
-            options.AddPolicy("AdminOnly", p => p.RequireRole("admin"));
+            options.AddPolicy(AuthConstants.AdminOnlyPolicy, p => p.RequireRole("admin"));
             options.AddPolicy("AnyUser", p => p.RequireRole("admin", "user"));
         });
     }

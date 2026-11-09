@@ -28,11 +28,11 @@ internal sealed class DeleteTransferCommandHandler(
         }
 
         var source = await capitalRepository
-            .GetAsync(new CapitalByIdSpecification(transfer.SourceCapitalId), cancellationToken)
+            .GetAsync(new CapitalByIdSpecification(transfer.SourceCapitalId, user.Name), cancellationToken)
             .ConfigureAwait(false);
 
         var destination = await capitalRepository
-            .GetAsync(new CapitalByIdSpecification(transfer.DestinationCapitalId), cancellationToken)
+            .GetAsync(new CapitalByIdSpecification(transfer.DestinationCapitalId, user.Name), cancellationToken)
             .ConfigureAwait(false);
 
         if (source is not null)

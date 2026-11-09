@@ -1,6 +1,7 @@
 using Deed.Application.Abstractions.Messaging;
 using Deed.Application.Auth;
 using Deed.Application.Goals.Specifications;
+using Deed.Domain.Entities;
 using Deed.Domain.Enums;
 using Deed.Domain.Errors;
 using Deed.Domain.Repositories;
@@ -26,24 +27,17 @@ internal sealed class UpdateGoalCommandHandler(
             return Result.Failure(DomainErrors.General.NotFound("goal"));
         }
 
-        CurrencyType updatedCurrencyType = Enum.Parse<CurrencyType>(command.Currency);
-        if (goal.Title == command.Title.Trim() &&
-            goal.TargetAmount == command.TargetAmount &&
-            updatedCurrencyType == goal.Currency &&
-            goal.CurrentAmount == command.CurrentAmount &&
-            goal.Deadline == command.Deadline &&
-            goal.Note == command.Note?.Trim() &&
-            goal.IsCompleted == command.IsCompleted)
+        if (HasNoChanges(command, goal))
         {
             return Result.Success();
         }
 
         goal.Title = command.Title.Trim();
         goal.TargetAmount = command.TargetAmount;
-        goal.Currency = updatedCurrencyType;
+        goal.Currency = Enum.Parse<CurrencyType>(command.Currency);
         goal.CurrentAmount = command.CurrentAmount;
         goal.Deadline = command.Deadline;
-        goal.Note = command.Note?.Trim();
+        goal.Note = NormalizeNote(command.Note);
         goal.IsCompleted = command.IsCompleted;
 
         repository.Update(goal);
@@ -54,4 +48,15 @@ internal sealed class UpdateGoalCommandHandler(
 
         return Result.Success();
     }
+
+    private static bool HasNoChanges(UpdateGoalCommand command, Goal goal) =>
+        goal.Title == command.Title.Trim() &&
+        goal.TargetAmount == command.TargetAmount &&
+        goal.Currency == Enum.Parse<CurrencyType>(command.Currency) &&
+        goal.CurrentAmount == command.CurrentAmount &&
+        goal.Deadline == command.Deadline &&
+        goal.Note == NormalizeNote(command.Note) &&
+        goal.IsCompleted == command.IsCompleted;
+
+    private static string? NormalizeNote(string? note) => string.IsNullOrWhiteSpace(note) ? null : note.Trim();
 }

@@ -1,6 +1,6 @@
 namespace Deed.Domain.Entities;
 
-public sealed class ExpenseTag : Entity, ISoftDeletableEntity
+public sealed class ExpenseTag : Entity, ITagLink
 {
     public Expense Expense { get; init; } = null!;
 

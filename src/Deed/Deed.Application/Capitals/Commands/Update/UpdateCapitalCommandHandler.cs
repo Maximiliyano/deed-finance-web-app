@@ -1,6 +1,7 @@
 using Deed.Application.Abstractions.Messaging;
 using Deed.Application.Auth;
 using Deed.Application.Capitals.Specifications;
+using Deed.Domain.Entities;
 using Deed.Domain.Enums;
 using Deed.Domain.Errors;
 using Deed.Domain.Repositories;
@@ -20,25 +21,14 @@ internal sealed class UpdateCapitalCommandHandler(ICapitalRepository repository,
             return Result.Failure(DomainErrors.General.NotFound(nameof(capital)));
         }
 
-        CurrencyType? updatedCurrencyType = null;
-
-        if (command.Currency is not null)
-        {
-            updatedCurrencyType = Enum.Parse<CurrencyType>(command.Currency);
-        }
-
-        if ((command.Name is null || command.Name.Trim() == capital.Name) &&
-            (command.Balance is null || command.Balance == capital.Balance) &&
-            (updatedCurrencyType is null || updatedCurrencyType == capital.Currency) &&
-            (command.IncludeInTotal is null || command.IncludeInTotal == capital.IncludeInTotal) &&
-            (command.OnlyForSavings is null || command.OnlyForSavings == capital.OnlyForSavings))
+        if (HasNoChanges(command, capital))
         {
             return Result.Success();
         }
 
         capital.Name = command.Name?.Trim() ?? capital.Name;
         capital.Balance = command.Balance ?? capital.Balance;
-        capital.Currency = updatedCurrencyType ?? capital.Currency;
+        capital.Currency = command.Currency is null ? capital.Currency : Enum.Parse<CurrencyType>(command.Currency);
         capital.IncludeInTotal = command.IncludeInTotal ?? capital.IncludeInTotal;
         capital.OnlyForSavings = command.OnlyForSavings ?? capital.OnlyForSavings;
 
@@ -48,4 +38,11 @@ internal sealed class UpdateCapitalCommandHandler(ICapitalRepository repository,
 
         return Result.Success();
     }
+
+    private static bool HasNoChanges(UpdateCapitalCommand command, Capital capital) =>
+        (command.Name is null || command.Name.Trim() == capital.Name) &&
+        (command.Balance is null || command.Balance == capital.Balance) &&
+        (command.Currency is null || Enum.Parse<CurrencyType>(command.Currency) == capital.Currency) &&
+        (command.IncludeInTotal is null || command.IncludeInTotal == capital.IncludeInTotal) &&
+        (command.OnlyForSavings is null || command.OnlyForSavings == capital.OnlyForSavings);
 }

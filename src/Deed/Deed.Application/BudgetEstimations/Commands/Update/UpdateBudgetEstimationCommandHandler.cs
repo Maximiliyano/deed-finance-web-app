@@ -1,6 +1,7 @@
 using Deed.Application.Abstractions.Messaging;
 using Deed.Application.Auth;
 using Deed.Application.BudgetEstimations.Specifications;
+using Deed.Domain.Entities;
 using Deed.Domain.Enums;
 using Deed.Domain.Errors;
 using Deed.Domain.Repositories;
@@ -26,11 +27,7 @@ internal sealed class UpdateBudgetEstimationCommandHandler(
             return Result.Failure(DomainErrors.General.NotFound("budget estimation"));
         }
 
-        if (estimation.Description == command.Description.Trim() &&
-            estimation.BudgetAmount == command.BudgetAmount &&
-            estimation.BudgetCurrency == Enum.Parse<CurrencyType>(command.BudgetCurrency) &&
-            estimation.CapitalId == command.CapitalId &&
-            estimation.IsCompleted == command.IsCompleted)
+        if (HasNoChanges(command, estimation))
         {
             return Result.Success();
         }
@@ -45,4 +42,11 @@ internal sealed class UpdateBudgetEstimationCommandHandler(
 
         return Result.Success();
     }
+
+    private static bool HasNoChanges(UpdateBudgetEstimationCommand command, BudgetEstimation estimation) =>
+        estimation.Description == command.Description.Trim() &&
+        estimation.BudgetAmount == command.BudgetAmount &&
+        estimation.BudgetCurrency == Enum.Parse<CurrencyType>(command.BudgetCurrency) &&
+        estimation.CapitalId == command.CapitalId &&
+        estimation.IsCompleted == command.IsCompleted;
 }

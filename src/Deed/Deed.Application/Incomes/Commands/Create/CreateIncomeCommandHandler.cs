@@ -31,7 +31,7 @@ internal sealed class CreateIncomeCommandHandler(
             }
         }
 
-        var capital = await capitalRepository.GetAsync(new CapitalByIdSpecification(command.CapitalId), cancellationToken).ConfigureAwait(false);
+        var capital = await capitalRepository.GetAsync(new CapitalByIdSpecification(command.CapitalId, user.Name), cancellationToken).ConfigureAwait(false);
 
         if (capital is null)
         {

@@ -8,6 +8,8 @@ public static class AuthConstants
 
     public const string ExplicitLoginKey = "explicit_login";
 
+    public const string AdminOnlyPolicy = "AdminOnly";
+
     public const string DefaultUserName = "System";
 
     public const int EntityLimit = 3;

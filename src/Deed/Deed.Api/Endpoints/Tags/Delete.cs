@@ -1,5 +1,6 @@
 ﻿
 using Deed.Api.Extensions;
+using Deed.Application.Auth;
 using Deed.Application.Tags.Commands.Delete;
 using Deed.Domain.Results;
 using MediatR;
@@ -14,7 +15,7 @@ internal sealed class Delete : IEndpoint
             (await sender
                 .Send(new DeleteTagCommand(id), token))
                 .Process(ResultType.NoContent))
-            .AllowAnonymous()
+            .RequireAuthorization(AuthConstants.AdminOnlyPolicy)
             .WithTags(nameof(Tags));
     }
 }

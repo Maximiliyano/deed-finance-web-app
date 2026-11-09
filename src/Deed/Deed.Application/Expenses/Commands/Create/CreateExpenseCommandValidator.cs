@@ -1,5 +1,6 @@
 using Deed.Application.Categories.Specifications;
 using Deed.Application.Abstractions;
+using Deed.Application.Auth;
 using Deed.Domain.Constants;
 using Deed.Domain.Enums;
 using Deed.Domain.Errors;
@@ -15,11 +16,12 @@ internal sealed class CreateExpenseCommandValidator : AbstractValidator<CreateEx
     public CreateExpenseCommandValidator(
         ICategoryRepository categoryRepository,
         ICapitalRepository capitalRepository,
-        IDateTimeProvider provider)
+        IDateTimeProvider provider,
+        IUser user)
     {
         RuleFor(e => e.CapitalId)
             .MustAsync(async (capitalId, ct) => await capitalRepository
-                .AnyAsync(new CapitalByIdSpecification(capitalId), ct).ConfigureAwait(false))
+                .AnyAsync(new CapitalByIdSpecification(capitalId, user.Name), ct).ConfigureAwait(false))
             .WithError(ValidationErrors.General.NotFound("capital"));
 
         RuleFor(e => e.CategoryId)

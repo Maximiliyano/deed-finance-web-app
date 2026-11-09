@@ -162,7 +162,7 @@ Never commit real secrets - the values in `appsettings.Development.json` are pla
 - Cookie authentication (HttpOnly, `SameSite=Lax`, secure, 1 hour sliding expiration) backed by an Auth0 OpenID Connect challenge (authorization-code flow, scopes `openid profile email offline_access`).
 - `GET /api/auth/login?returnUrl=/path` starts the login, `GET /api/auth/logout` clears the cookie and redirects through Auth0's `/v2/logout`, `GET /api/users/me` returns the profile, roles and user settings.
 - API calls from the SPA never get redirected to Auth0: a challenge on `/api/*` returns `401` unless it is the explicit login endpoint.
-- Only `/api/users/me`, `/api/user-settings` (GET) and creating budget estimations require a signed-in user. All other endpoints are anonymous-accessible and operate on the `System` user until the visitor signs in (see anonymous limits above).
+- Signed-in users are required for `/api/users/me`, `GET /api/user-settings`, creating budget estimations, category writes (create, update, delete, restore) and `POST /api/tags`. `GET /api/bank/details` and `DELETE /api/tags/{id}` additionally require the `admin` role. All other endpoints are anonymous-accessible and operate on the `System` user until the visitor signs in (see anonymous limits above).
 - Data protection keys are persisted in the database (`DataProtectionKeys` table) so cookies survive restarts and multiple instances.
 
 ## API overview

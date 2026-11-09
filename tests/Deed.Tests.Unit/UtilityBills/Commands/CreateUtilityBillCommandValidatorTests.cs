@@ -1,12 +1,54 @@
+using Deed.Application.Auth;
 using Deed.Application.UtilityBills.Commands.Create;
+using Deed.Domain.Entities;
 using Deed.Domain.Enums;
+using Deed.Domain.Repositories;
 using FluentValidation.TestHelper;
+using NSubstitute;
 
 namespace Deed.Tests.Unit.UtilityBills.Commands;
 
 public sealed class CreateUtilityBillCommandValidatorTests
 {
-    private readonly CreateUtilityBillCommandValidator _validator = new();
+    private readonly ICapitalRepository _capitalRepository = Substitute.For<ICapitalRepository>();
+    private readonly ICategoryRepository _categoryRepository = Substitute.For<ICategoryRepository>();
+    private readonly IUser _user = Substitute.For<IUser>();
+    private readonly CreateUtilityBillCommandValidator _validator;
+
+    public CreateUtilityBillCommandValidatorTests()
+    {
+        _user.Name.Returns("testuser");
+        _capitalRepository.AnyAsync(Arg.Any<ISpecification<Capital>>(), Arg.Any<CancellationToken>()).Returns(true);
+        _categoryRepository.AnyAsync(Arg.Any<ISpecification<Category>>(), Arg.Any<CancellationToken>()).Returns(true);
+        _categoryRepository.GetAsync(Arg.Any<ISpecification<Category>>(), Arg.Any<CancellationToken>())
+            .Returns(new Category { Name = "Utilities", Type = CategoryType.Expenses });
+        _validator = new CreateUtilityBillCommandValidator(_capitalRepository, _categoryRepository, _user);
+    }
+
+    [Fact]
+    public async Task Validate_CapitalNotOwnedOrMissing_FailsValidation()
+    {
+        _capitalRepository.AnyAsync(Arg.Any<ISpecification<Capital>>(), Arg.Any<CancellationToken>()).Returns(false);
+        var result = await _validator.TestValidateAsync(ValidCommand);
+        result.ShouldHaveValidationErrorFor(c => c.CapitalId);
+    }
+
+    [Fact]
+    public async Task Validate_CategoryMissing_FailsValidation()
+    {
+        _categoryRepository.AnyAsync(Arg.Any<ISpecification<Category>>(), Arg.Any<CancellationToken>()).Returns(false);
+        var result = await _validator.TestValidateAsync(ValidCommand);
+        result.ShouldHaveValidationErrorFor(c => c.CategoryId);
+    }
+
+    [Fact]
+    public async Task Validate_IncomeCategory_FailsValidation()
+    {
+        _categoryRepository.GetAsync(Arg.Any<ISpecification<Category>>(), Arg.Any<CancellationToken>())
+            .Returns(new Category { Name = "Salary", Type = CategoryType.Incomes });
+        var result = await _validator.TestValidateAsync(ValidCommand);
+        result.ShouldHaveValidationErrorFor(c => c.CategoryId);
+    }
 
     private static CreateUtilityBillCommand ValidCommand => new(
         "Electric", 500m, nameof(CurrencyType.UAH), 15, 1, 7, true);

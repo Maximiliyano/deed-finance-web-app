@@ -1,6 +1,8 @@
 using Deed.Application.Abstractions.Messaging;
 using Deed.Application.Auth;
+using Deed.Application.Capitals.Specifications;
 using Deed.Application.Expenses.Specifications;
+using Deed.Application.Tags;
 using Deed.Domain.Entities;
 using Deed.Domain.Errors;
 using Deed.Domain.Repositories;
@@ -10,6 +12,8 @@ namespace Deed.Application.Expenses.Commands.Update;
 
 internal sealed class UpdateExpenseCommandHandler(
     IExpenseRepository expenseRepository,
+    ICapitalRepository capitalRepository,
+    ITagRepository tagRepository,
     IUnitOfWork unitOfWork,
     IUser user)
     : ICommandHandler<UpdateExpenseCommand>
@@ -34,35 +38,54 @@ internal sealed class UpdateExpenseCommandHandler(
         }
 
         var changed = false;
-
-        if (command.Amount is not null && command.Amount != expense.Amount)
-        {
-            var difference = expense.Amount - command.Amount.Value;
-
-            expense.Capital.Balance += difference;
-
-            expense.Amount = command.Amount.Value;
-            changed = true;
-        }
+        var newAmount = command.Amount ?? expense.Amount;
 
         if (command.CapitalId.HasValue && command.CapitalId.Value != expense.CapitalId)
         {
-            expense.CapitalId = command.CapitalId.Value;
-            changed = true;
-        }
+            var target = await capitalRepository
+                .GetAsync(new CapitalByIdSpecification(command.CapitalId.Value, user.Name), cancellationToken)
+                .ConfigureAwait(false);
 
-        if (command.TagNames is not null && command.TagNames.Any())
-        {
-            expense.Tags.Clear();
-            expense.Tags.AddRange(command.TagNames.Select(t => new ExpenseTag
+            if (target is null)
             {
-                Expense = expense,
-                Tag = new Tag { Name = t },
-            }));
+                return Result.Failure(DomainErrors.General.NotFound("capital"));
+            }
+
+            if (target.OnlyForSavings)
+            {
+                return Result.Failure(DomainErrors.Capital.ForSavingsOnly);
+            }
+
+            expense.Capital.Balance += expense.Amount;
+            target.Balance -= newAmount;
+
+            capitalRepository.Update(target);
+
+            expense.CapitalId = target.Id;
+            expense.Amount = newAmount;
+            changed = true;
+        }
+        else if (newAmount != expense.Amount)
+        {
+            expense.Capital.Balance += expense.Amount - newAmount;
+            expense.Amount = newAmount;
             changed = true;
         }
 
-        if (command.Purpose is not null && command.Purpose != expense.Purpose)
+        if (command.TagNames is not null)
+        {
+            var desiredTags = TagLinkSynchronizer.Normalize(command.TagNames);
+
+            if (!TagLinkSynchronizer.HasSameTags(expense.Tags, desiredTags))
+            {
+                await TagLinkSynchronizer
+                    .SyncAsync(expense.Tags, desiredTags, tagRepository, tag => new ExpenseTag { Expense = expense, Tag = tag }, cancellationToken)
+                    .ConfigureAwait(false);
+                changed = true;
+            }
+        }
+
+        if (command.Purpose != expense.Purpose)
         {
             expense.Purpose = command.Purpose;
             changed = true;
@@ -86,19 +109,16 @@ internal sealed class UpdateExpenseCommandHandler(
             return Result.Success();
         }
 
-        expenseRepository.Update(expense);
-
         await unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         return Result.Success();
     }
 
-    private bool HasNoChanges(UpdateExpenseCommand command, Domain.Entities.Expense expense) =>
+    private static bool HasNoChanges(UpdateExpenseCommand command, Expense expense) =>
         (command.CategoryId is null || command.CategoryId == expense.CategoryId) &&
         (command.CapitalId is null || command.CapitalId == expense.CapitalId) &&
         (command.Amount is null || command.Amount == expense.Amount) &&
         (command.Date is null || command.Date == expense.PaymentDate) &&
-        (command.Purpose is null || command.Purpose == expense.Purpose) &&
-        (command.TagNames is null || command.TagNames.All(name => expense.Tags.Exists(t => t.Tag.Name.Equals(name, StringComparison.OrdinalIgnoreCase)))
-    );
+        command.Purpose == expense.Purpose &&
+        (command.TagNames is null || TagLinkSynchronizer.HasSameTags(expense.Tags, TagLinkSynchronizer.Normalize(command.TagNames)));
 }

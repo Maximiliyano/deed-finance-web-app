@@ -1,7 +1,9 @@
+using Deed.Application.Auth;
 using Deed.Application.Capitals.Commands.Update;
 using Deed.Domain.Enums;
 using Deed.Domain.Repositories;
 using Deed.Domain.Entities;
+using FluentAssertions;
 using FluentValidation.TestHelper;
 using NSubstitute;
 
@@ -10,12 +12,14 @@ namespace Deed.Tests.Unit.Capitals.Commands;
 public sealed class UpdateCapitalCommandValidatorTests
 {
     private readonly ICapitalRepository _repository = Substitute.For<ICapitalRepository>();
+    private readonly IUser _user = Substitute.For<IUser>();
     private readonly UpdateCapitalCommandValidator _validator;
 
     public UpdateCapitalCommandValidatorTests()
     {
+        _user.Name.Returns("testuser");
         _repository.AnyAsync(Arg.Any<ISpecification<Capital>>(), Arg.Any<CancellationToken>()).Returns(false);
-        _validator = new UpdateCapitalCommandValidator(_repository);
+        _validator = new UpdateCapitalCommandValidator(_repository, _user);
     }
 
     private static UpdateCapitalCommand ValidCommand => new(1);
@@ -59,6 +63,29 @@ public sealed class UpdateCapitalCommandValidatorTests
         var result = await _validator.TestValidateAsync(command);
         result.ShouldHaveValidationErrorFor(c => c.Name);
     }
+
+    [Fact]
+    public async Task Validate_NameLookup_IsScopedToCurrentUserAndExcludesOwnId()
+    {
+        // Arrange
+        ISpecification<Capital>? captured = null;
+        _repository.AnyAsync(Arg.Do<ISpecification<Capital>>(s => captured = s), Arg.Any<CancellationToken>()).Returns(false);
+        var command = ValidCommand with { Name = " Wallet " };
+
+        // Act
+        await _validator.TestValidateAsync(command);
+
+        // Assert
+        captured.Should().NotBeNull();
+        var matches = captured!.Criteria!.Compile();
+
+        matches(NewCapital(id: 2, createdBy: "testuser")).Should().BeTrue();
+        matches(NewCapital(id: 1, createdBy: "testuser")).Should().BeFalse();
+        matches(NewCapital(id: 2, createdBy: "other")).Should().BeFalse();
+    }
+
+    private static Capital NewCapital(int id, string createdBy) =>
+        new(id) { Name = "Wallet", Balance = 0, Currency = CurrencyType.USD, CreatedBy = createdBy };
 
     [Fact]
     public async Task Validate_CurrencyNone_FailsValidation()

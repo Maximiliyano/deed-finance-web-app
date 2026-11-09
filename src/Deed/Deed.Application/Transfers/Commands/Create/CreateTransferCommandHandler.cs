@@ -36,7 +36,7 @@ internal sealed class CreateTransferCommandHandler(
         }
 
         var source = await capitalRepository
-            .GetAsync(new CapitalByIdSpecification(command.SourceCapitalId), cancellationToken)
+            .GetAsync(new CapitalByIdSpecification(command.SourceCapitalId, user.Name), cancellationToken)
             .ConfigureAwait(false);
 
         if (source is null)
@@ -45,7 +45,7 @@ internal sealed class CreateTransferCommandHandler(
         }
 
         var destination = await capitalRepository
-            .GetAsync(new CapitalByIdSpecification(command.DestinationCapitalId), cancellationToken)
+            .GetAsync(new CapitalByIdSpecification(command.DestinationCapitalId, user.Name), cancellationToken)
             .ConfigureAwait(false);
 
         if (destination is null)

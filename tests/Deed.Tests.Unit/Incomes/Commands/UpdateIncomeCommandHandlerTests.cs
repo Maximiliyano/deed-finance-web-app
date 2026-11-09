@@ -13,8 +13,7 @@ namespace Deed.Tests.Unit.Incomes.Commands;
 public sealed class UpdateIncomeCommandHandlerTests
 {
     private readonly IIncomeRepository _incomeRepository = Substitute.For<IIncomeRepository>();
-    private readonly ICapitalRepository _capitalRepository = Substitute.For<ICapitalRepository>();
-    private readonly ICategoryRepository _categoryRepository = Substitute.For<ICategoryRepository>();
+    private readonly ITagRepository _tagRepository = Substitute.For<ITagRepository>();
     private readonly IUnitOfWork _unitOfWork = Substitute.For<IUnitOfWork>();
     private readonly IUser _userMock = Substitute.For<IUser>();
 
@@ -23,7 +22,9 @@ public sealed class UpdateIncomeCommandHandlerTests
     public UpdateIncomeCommandHandlerTests()
     {
         _userMock.Name.Returns("testuser");
-        _handler = new UpdateIncomeCommandHandler(_incomeRepository, _capitalRepository, _categoryRepository, _unitOfWork, _userMock);
+        _tagRepository.GetAllAsync(Arg.Any<ISpecification<Tag>>(), Arg.Any<CancellationToken>())
+            .Returns(Enumerable.Empty<Tag>());
+        _handler = new UpdateIncomeCommandHandler(_incomeRepository, _tagRepository, _unitOfWork, _userMock);
     }
 
     [Theory]
@@ -88,32 +89,82 @@ public sealed class UpdateIncomeCommandHandlerTests
         income.Id.Should().Be(id);
         income.Amount.Should().Be(newAmount ?? oldAmount);
         income.Capital.Balance.Should().Be(expectedCapitalBalance);
-        income.Purpose.Should().Be(purpose ?? oldPurpose);
+        income.Purpose.Should().Be(purpose);
         income.PaymentDate.Should().Be(utcNow);
         income.CategoryId.Should().Be(categoryId ?? oldCategoryId);
 
-        _incomeRepository.Received(1).Update(income);
-
-        if (amount.HasValue)
-        {
-            _capitalRepository.Received(1).Update(income.Capital);
-        }
-        else
-        {
-            _capitalRepository.DidNotReceive().Update(income.Capital);
-        }
-
-        if (categoryId.HasValue)
-        {
-            _categoryRepository.Received(1).Update(income.Category);
-        }
-        else
-        {
-            _categoryRepository.DidNotReceive().Update(income.Category);
-        }
+        _incomeRepository.DidNotReceive().Update(Arg.Any<Income>());
 
         await _unitOfWork.Received(1).SaveChangesAsync();
     }
+
+    [Fact]
+    public async Task Handle_WhenTagNamesIsEmpty_RemovesAllTags()
+    {
+        // Arrange
+        var income = CreateIncome();
+        income.Tags.Add(new IncomeTag { Income = income, Tag = new Tag { Id = 5, Name = "bonus" }, TagId = 5 });
+
+        _incomeRepository.GetAsync(Arg.Any<IncomeByIdSpecification>()).Returns(income);
+
+        // Act
+        var result = await _handler.Handle(new UpdateIncomeCommand(1, Purpose: income.Purpose, TagNames: []), CancellationToken.None);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        income.Tags.Should().ContainSingle().Which.IsDeleted.Should().BeTrue();
+        await _unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Handle_WhenTagAlreadyExistsInDatabase_ReusesItInsteadOfCreatingDuplicate()
+    {
+        // Arrange
+        var income = CreateIncome();
+        var existingTag = new Tag { Id = 9, Name = "Bonus" };
+
+        _incomeRepository.GetAsync(Arg.Any<IncomeByIdSpecification>()).Returns(income);
+        _tagRepository.GetAllAsync(Arg.Any<ISpecification<Tag>>(), Arg.Any<CancellationToken>())
+            .Returns(new[] { existingTag });
+
+        // Act
+        await _handler.Handle(new UpdateIncomeCommand(1, Purpose: income.Purpose, TagNames: ["bonus"]), CancellationToken.None);
+
+        // Assert
+        income.Tags.Should().ContainSingle().Which.Tag.Should().BeSameAs(existingTag);
+    }
+
+    [Fact]
+    public async Task Handle_WhenReAddingRemovedTag_RevivesSoftDeletedLink()
+    {
+        // Arrange
+        var income = CreateIncome();
+        var tag = new Tag { Id = 9, Name = "bonus" };
+        var deletedLink = new IncomeTag { Income = income, Tag = tag, TagId = 9, IsDeleted = true };
+        income.Tags.Add(deletedLink);
+
+        _incomeRepository.GetAsync(Arg.Any<IncomeByIdSpecification>()).Returns(income);
+        _tagRepository.GetAllAsync(Arg.Any<ISpecification<Tag>>(), Arg.Any<CancellationToken>())
+            .Returns(new[] { tag });
+
+        // Act
+        await _handler.Handle(new UpdateIncomeCommand(1, Purpose: income.Purpose, TagNames: ["bonus"]), CancellationToken.None);
+
+        // Assert
+        income.Tags.Should().ContainSingle().Which.Should().BeSameAs(deletedLink);
+        deletedLink.IsDeleted.Should().BeFalse();
+    }
+
+    private static Income CreateIncome() => new(1)
+    {
+        Amount = 100m,
+        PaymentDate = DateTimeOffset.UtcNow,
+        CategoryId = 2,
+        Category = new Category(2) { Name = "TestCategory", Type = CategoryType.Incomes },
+        CapitalId = 1,
+        Capital = new Capital(1) { Name = "TestCapital", Balance = 1000, Currency = CurrencyType.UAH },
+        Purpose = "Hello"
+    };
 
     [Fact]
     public async Task Handle_ShouldReturnFailure_WhenIncomeNotFound()
@@ -132,8 +183,6 @@ public sealed class UpdateIncomeCommandHandlerTests
         result.Errors.Should().OnlyContain(x => x == DomainErrors.General.NotFound("income"));
 
         _incomeRepository.DidNotReceive().Update(Arg.Any<Income>());
-        _capitalRepository.DidNotReceive().Update(Arg.Any<Capital>());
-        _categoryRepository.DidNotReceive().Update(Arg.Any<Category>());
 
         await _unitOfWork.DidNotReceive().SaveChangesAsync();
     }

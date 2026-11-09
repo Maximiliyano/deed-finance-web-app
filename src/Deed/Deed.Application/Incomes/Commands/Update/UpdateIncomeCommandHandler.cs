@@ -1,6 +1,7 @@
 using Deed.Application.Abstractions.Messaging;
 using Deed.Application.Auth;
 using Deed.Application.Incomes.Specifications;
+using Deed.Application.Tags;
 using Deed.Domain.Entities;
 using Deed.Domain.Errors;
 using Deed.Domain.Repositories;
@@ -10,8 +11,7 @@ namespace Deed.Application.Incomes.Commands.Update;
 
 internal sealed class UpdateIncomeCommandHandler(
     IIncomeRepository incomeRepository,
-    ICapitalRepository capitalRepository,
-    ICategoryRepository categoryRepository,
+    ITagRepository tagRepository,
     IUnitOfWork unitOfWork,
     IUser user)
     : ICommandHandler<UpdateIncomeCommand>
@@ -27,51 +27,41 @@ internal sealed class UpdateIncomeCommandHandler(
             return Result.Failure(DomainErrors.General.NotFound(nameof(income)));
         }
 
-        if ((command.CategoryId is null || command.CategoryId == income.CategoryId) &&
-            (command.Amount is null || command.Amount == income.Amount) &&
-            (command.Purpose is null || command.Purpose == income.Purpose) &&
-            (command.PaymentDate is null || command.PaymentDate == income.PaymentDate) &&
-            (command.TagNames is null || !command.TagNames.Any() ||
-             command.TagNames.All(name => income.Tags.Exists(t => t.Tag.Name.Equals(name, StringComparison.OrdinalIgnoreCase)))))
+        if (HasNoChanges(command, income))
         {
             return Result.Success();
         }
 
         if (command.Amount.HasValue)
         {
-            var difference = (decimal)(command.Amount - income.Amount);
-
-            income.Capital.Balance += difference;
-
+            income.Capital.Balance += command.Amount.Value - income.Amount;
             income.Amount = command.Amount.Value;
-
-            capitalRepository.Update(income.Capital);
         }
 
-        income.Purpose = command.Purpose ?? income.Purpose;
+        income.Purpose = command.Purpose;
         income.PaymentDate = command.PaymentDate ?? income.PaymentDate;
 
         if (command.CategoryId.HasValue)
         {
             income.CategoryId = command.CategoryId.Value;
-
-            categoryRepository.Update(income.Category);
         }
 
-        if (command.TagNames is not null && command.TagNames.Any())
+        if (command.TagNames is not null)
         {
-            income.Tags.Clear();
-            income.Tags.AddRange(command.TagNames.Select(t => new IncomeTag
-            {
-                Income = income,
-                Tag = new Tag { Name = t },
-            }));
+            await TagLinkSynchronizer
+                .SyncAsync(income.Tags, TagLinkSynchronizer.Normalize(command.TagNames), tagRepository, tag => new IncomeTag { Income = income, Tag = tag }, cancellationToken)
+                .ConfigureAwait(false);
         }
-
-        incomeRepository.Update(income);
 
         await unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         return Result.Success();
     }
+
+    private static bool HasNoChanges(UpdateIncomeCommand command, Income income) =>
+        (command.CategoryId is null || command.CategoryId == income.CategoryId) &&
+        (command.Amount is null || command.Amount == income.Amount) &&
+        command.Purpose == income.Purpose &&
+        (command.PaymentDate is null || command.PaymentDate == income.PaymentDate) &&
+        (command.TagNames is null || TagLinkSynchronizer.HasSameTags(income.Tags, TagLinkSynchronizer.Normalize(command.TagNames)));
 }

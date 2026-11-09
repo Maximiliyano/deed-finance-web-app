@@ -34,7 +34,7 @@ internal sealed class CreateDebtCommandHandler(
         if (command.CapitalId.HasValue)
         {
             var capital = await capitalRepository
-                .GetAsync(new CapitalByIdSpecification(command.CapitalId.Value), cancellationToken)
+                .GetAsync(new CapitalByIdSpecification(command.CapitalId.Value, user.Name), cancellationToken)
                 .ConfigureAwait(false);
 
             if (capital is null)

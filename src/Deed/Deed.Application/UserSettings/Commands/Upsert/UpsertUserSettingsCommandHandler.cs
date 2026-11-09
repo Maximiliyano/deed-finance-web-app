@@ -1,6 +1,7 @@
 using Deed.Application.Abstractions.Messaging;
 using Deed.Application.Auth;
 using Deed.Domain.Enums;
+using UserSettingsEntity = Deed.Domain.Entities.UserSettings;
 using Deed.Domain.Repositories;
 using Deed.Domain.Results;
 using Serilog;
@@ -25,21 +26,12 @@ internal sealed class UpsertUserSettingsCommandHandler(
         }
         else
         {
-            var updatedCurrency = Enum.Parse<CurrencyType>(command.Currency);
-            if (existing.Currency == updatedCurrency &&
-                existing.BalanceReminderEnabled == command.BalanceReminderEnabled &&
-                existing.BalanceReminderCron == command.BalanceReminderCron &&
-                existing.ExpenseReminderEnabled == command.ExpenseReminderEnabled &&
-                existing.ExpenseReminderCron == command.ExpenseReminderCron &&
-                existing.DebtReminderEnabled == command.DebtReminderEnabled &&
-                existing.DebtReminderCron == command.DebtReminderCron &&
-                existing.EmailNotificationsEnabled == command.EmailNotificationsEnabled &&
-                existing.Email == user.Email)
+            if (HasNoChanges(command, existing))
             {
                 return Result.Success();
             }
 
-            existing.Currency = updatedCurrency;
+            existing.Currency = Enum.Parse<CurrencyType>(command.Currency);
             existing.BalanceReminderEnabled = command.BalanceReminderEnabled;
             existing.BalanceReminderCron = command.BalanceReminderCron;
             existing.ExpenseReminderEnabled = command.ExpenseReminderEnabled;
@@ -58,4 +50,15 @@ internal sealed class UpsertUserSettingsCommandHandler(
 
         return Result.Success();
     }
+
+    private bool HasNoChanges(UpsertUserSettingsCommand command, UserSettingsEntity existing) =>
+        existing.Currency == Enum.Parse<CurrencyType>(command.Currency) &&
+        existing.BalanceReminderEnabled == command.BalanceReminderEnabled &&
+        existing.BalanceReminderCron == command.BalanceReminderCron &&
+        existing.ExpenseReminderEnabled == command.ExpenseReminderEnabled &&
+        existing.ExpenseReminderCron == command.ExpenseReminderCron &&
+        existing.DebtReminderEnabled == command.DebtReminderEnabled &&
+        existing.DebtReminderCron == command.DebtReminderCron &&
+        existing.EmailNotificationsEnabled == command.EmailNotificationsEnabled &&
+        existing.Email == user.Email;
 }

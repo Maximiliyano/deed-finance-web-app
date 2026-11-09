@@ -1,4 +1,5 @@
 using Deed.Api.Extensions;
+using Deed.Application.Auth;
 using Deed.Application.Bank.Queries.GetAllBankDetails;
 using MediatR;
 
@@ -12,7 +13,7 @@ internal sealed class GetDetails : IEndpoint
                 (await sender
                     .Send(new GetBankDetailsQuery(), ct))
                     .Process())
-            .AllowAnonymous()
+            .RequireAuthorization(AuthConstants.AdminOnlyPolicy)
             .WithTags(nameof(Bank));
     }
 }

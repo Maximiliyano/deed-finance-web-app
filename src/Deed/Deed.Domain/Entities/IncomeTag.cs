@@ -1,6 +1,6 @@
 namespace Deed.Domain.Entities;
 
-public sealed class IncomeTag : Entity, ISoftDeletableEntity
+public sealed class IncomeTag : Entity, ITagLink
 {
     public Income Income { get; init; } = null!;
 

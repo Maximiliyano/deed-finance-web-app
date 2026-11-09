@@ -1,3 +1,4 @@
+using Deed.Application.Auth;
 using Deed.Application.Expenses.Commands.Create;
 using Deed.Domain.Entities;
 using Deed.Domain.Enums;
@@ -13,6 +14,7 @@ public sealed class CreateExpenseCommandValidatorTests
     private readonly ICategoryRepository _categoryRepository = Substitute.For<ICategoryRepository>();
     private readonly ICapitalRepository _capitalRepository = Substitute.For<ICapitalRepository>();
     private readonly IDateTimeProvider _provider = Substitute.For<IDateTimeProvider>();
+    private readonly IUser _user = Substitute.For<IUser>();
     private readonly CreateExpenseCommandValidator _validator;
 
     public CreateExpenseCommandValidatorTests()
@@ -23,7 +25,8 @@ public sealed class CreateExpenseCommandValidatorTests
             .Returns(new Category { Name = "Food", Type = CategoryType.Expenses });
         _provider.UtcNow.Returns(DateTimeOffset.UtcNow);
         _provider.MinValue.Returns(DateTime.MinValue);
-        _validator = new CreateExpenseCommandValidator(_categoryRepository, _capitalRepository, _provider);
+        _user.Name.Returns("testuser");
+        _validator = new CreateExpenseCommandValidator(_categoryRepository, _capitalRepository, _provider, _user);
     }
 
     private static CreateExpenseCommand ValidCommand => new(

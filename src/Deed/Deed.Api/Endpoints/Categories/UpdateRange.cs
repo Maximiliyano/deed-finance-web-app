@@ -18,7 +18,7 @@ internal sealed class UpdateRange : IEndpoint
             (await sender
                 .Send(new UpdateCategoriesCommand(requests), ct))
                 .Process())
-            .AllowAnonymous()
+            .RequireAuthorization()
             .WithTags(nameof(Categories));
     }
 }

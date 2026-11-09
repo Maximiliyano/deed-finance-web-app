@@ -30,7 +30,7 @@ internal sealed class PayUtilityBillCommandHandler(
         }
 
         var capital = await capitalRepository
-            .GetAsync(new CapitalByIdSpecification(bill.CapitalId), cancellationToken)
+            .GetAsync(new CapitalByIdSpecification(bill.CapitalId, user.Name), cancellationToken)
             .ConfigureAwait(false);
 
         if (capital is null)
