@@ -49,47 +49,62 @@ public static class DependencyInjection
         AuthSettings authSettings = services.BuildServiceProvider().GetRequiredService<IOptions<AuthSettings>>().Value;
 
         services.AddAuthentication(options =>
-        {
-            options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-            options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-            options.DefaultChallengeScheme = AuthConstants.AuthenticationScheme;
-        })
-        .AddCookie(options =>
-        {
-            options.Cookie.HttpOnly = true;
-            options.Cookie.SameSite = SameSiteMode.Lax;
-            options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
-
-            options.ExpireTimeSpan = TimeSpan.FromHours(1);
-            options.SlidingExpiration = true;
-        })
-        .AddOpenIdConnect(AuthConstants.AuthenticationScheme, options =>
-        {
-            options.Authority = authSettings.Domain;
-            options.ClientId = authSettings.ClientId;
-            options.ClientSecret = authSettings.ClientSecret;
-            options.ResponseType = AuthConstants.ResponseType;
-            options.SaveTokens = true;
-
-            options.Scope.Clear();
-            options.Scope.Add("openid");
-            options.Scope.Add("profile");
-            options.Scope.Add("email");
-
-            options.Events.OnRedirectToIdentityProvider = ctx =>
             {
-                var isExplicitLogin = ctx.Properties.Items.ContainsKey(AuthConstants.ExplicitLoginKey);
-                if (ctx.Request.Path.StartsWithSegments("/api") && !isExplicitLogin)
-                {
-                    ctx.Response.StatusCode = StatusCodes.Status401Unauthorized;
-                    ctx.HandleResponse();
-                }
-                return Task.CompletedTask;
-            };
-        })
-        .AddJwtBearer(option => option.Audience = authSettings.Audience);
+                options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+                options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = AuthConstants.AuthenticationScheme;
+            })
+            .AddCookie(options =>
+            {
+                options.Cookie.HttpOnly = true;
+                options.Cookie.SameSite = SameSiteMode.Lax;
+                options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
 
-        services.AddAuthorization();
+                options.ExpireTimeSpan = TimeSpan.FromHours(1);
+                options.SlidingExpiration = true;
+            })
+            .AddOpenIdConnect(AuthConstants.AuthenticationScheme, options =>
+            {
+                options.Authority = authSettings.Domain;
+                options.ClientId = authSettings.ClientId;
+                options.ClientSecret = authSettings.ClientSecret;
+                options.ResponseType = AuthConstants.ResponseType;
+                options.SaveTokens = true;
+                options.MapInboundClaims = false;
+
+                options.Scope.Clear();
+                options.Scope.Add("openid");
+                options.Scope.Add("profile");
+                options.Scope.Add("email");
+                options.Scope.Add("offline_access");
+                
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    NameClaimType = "name",
+                    RoleClaimType = "https://deed-app/roles"
+                };
+
+
+                options.Events.OnRedirectToIdentityProvider = ctx =>
+                {
+                    ctx.ProtocolMessage.SetParameter("audience", authSettings.Audience);
+                    
+                    var isExplicitLogin = ctx.Properties.Items.ContainsKey(AuthConstants.ExplicitLoginKey);
+                    if (ctx.Request.Path.StartsWithSegments("/api") && !isExplicitLogin)
+                    {
+                        ctx.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                        ctx.HandleResponse();
+                    }
+
+                    return Task.CompletedTask;
+                };
+            });
+
+        services.AddAuthorization(options =>
+        {
+            options.AddPolicy("AdminOnly", p => p.RequireRole("admin"));
+            options.AddPolicy("AnyUser", p => p.RequireRole("admin", "user"));
+        });
     }
 
     private static IServiceCollection AddMediatrDependencies(this IServiceCollection services)

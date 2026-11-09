@@ -4,10 +4,11 @@ namespace Deed.Application.Auth;
 
 public static class AuthClaimTypes
 {
-    public const string Email = ClaimTypes.Email;
+    public const string Email = "email";
     public const string EmailVerified = "email_verified";
 
     public const string Sub = "sub";
     public const string Name = "name";
     public const string Picture = "picture";
+    public const string Role = "https://deed.app/roles";
 }

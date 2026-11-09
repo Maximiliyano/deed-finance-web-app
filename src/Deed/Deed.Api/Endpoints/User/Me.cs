@@ -20,19 +20,16 @@ internal sealed class Me : IEndpoint
             }
 
             var userSettingRetrievalResult = await sender.Send(new GetUserSettingsQuery(user.Name));
+            UserSettingsResponse? userSetting = userSettingRetrievalResult.Value;
             
-            if (!userSettingRetrievalResult.IsSuccess)
-            {
-                return userSettingRetrievalResult.Process();
-            }
-
             return Results.Ok(new UserResponse(
                 user.ExternalId,
                 user.Email,
                 user.IsEmailVerified,
                 user.Name,
+                user.Roles,
                 user.PictureUrl,
-                userSettingRetrievalResult.Value));
+                userSetting));
         })
         .RequireAuthorization()
         .WithTags(nameof(User));

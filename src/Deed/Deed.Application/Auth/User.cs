@@ -16,6 +16,8 @@ public sealed class User(IHttpContextAccessor accessor)
         ? GetValue(AuthClaimTypes.Name)
         : AuthConstants.DefaultUserName;
 
+    public IReadOnlyCollection<string> Roles => GetValueList(AuthClaimTypes.Role);
+
     public Uri? PictureUrl
     {
         get
@@ -34,5 +36,10 @@ public sealed class User(IHttpContextAccessor accessor)
     private string? GetValue(string claimType)
     {
         return accessor.HttpContext?.User?.FindFirst(c => c.Type == claimType)?.Value;
+    }
+
+    private List<string> GetValueList(string claimType)
+    {
+        return accessor.HttpContext?.User?.FindAll(claimType).Select(c => c.Value)?.ToList();
     }
 }

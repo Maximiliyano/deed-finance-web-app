@@ -82,14 +82,15 @@ public sealed class UpdateCapitalCommandHandlerTests
         const string oldName = "Old Name";
         const decimal oldBalance = 100m;
         const bool oldIncludeInTotal = true;
+        const CurrencyType oldCurrency = CurrencyType.USD;
 
         decimal? currentBalance = balance is null ? null : (decimal)balance;
-        var capital = new Capital(1) { Name = oldName, Balance = oldBalance, Currency = CurrencyType.USD, IncludeInTotal = oldIncludeInTotal };
+        var capital = new Capital(1) { Name = oldName, Balance = oldBalance, Currency = oldCurrency, IncludeInTotal = oldIncludeInTotal };
         var command = new UpdateCapitalCommand(
             1,
             name,
             currentBalance,
-            currency.ToString(),
+            currency?.ToString(),
             includeInTotal);
 
         _repositoryMock.GetAsync(Arg.Any<CapitalByIdSpecification>()).Returns(capital);
@@ -102,9 +103,7 @@ public sealed class UpdateCapitalCommandHandlerTests
 
         capital.Name.Should().Be(name ?? oldName);
         capital.Balance.Should().Be(currentBalance ?? oldBalance);
-        capital.Currency.Should().Be(currency is not null
-            ? currency
-            : CurrencyType.USD);
+        capital.Currency.Should().Be(currency ?? oldCurrency);
         capital.IncludeInTotal.Should().Be(includeInTotal ?? oldIncludeInTotal);
 
         _repositoryMock.Received(1).Update(capital);

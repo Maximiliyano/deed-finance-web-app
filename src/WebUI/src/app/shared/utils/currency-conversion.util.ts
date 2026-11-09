@@ -7,7 +7,7 @@ export function convertCurrency(
   exchanges: Exchange[]
 ): number {
   if (!from || !to || from === to) return amount;
-
+// TODO incapsulate logic on BE
   const direct = exchanges.find(e => e.nationalCurrency === to && e.targetCurrency === from);
   if (direct) return amount * direct.sale;
 

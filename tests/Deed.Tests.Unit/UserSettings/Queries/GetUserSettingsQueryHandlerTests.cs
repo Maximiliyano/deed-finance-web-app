@@ -23,10 +23,10 @@ public sealed class GetUserSettingsQueryHandlerTests
     public async Task Handle_WhenSettingsExist_ReturnsResponse()
     {
         // Arrange
-        var query = new GetUserSettingsQuery("testname");
+        var name = "testName";
+        var query = new GetUserSettingsQuery(name);
         var settings = new DomainUserSettings(1) { Currency = CurrencyType.USD };
-
-        _repositoryMock.GetAsync("testuser", Arg.Any<CancellationToken>()).Returns(settings);
+        _repositoryMock.GetAsync(name, Arg.Any<CancellationToken>()).Returns(settings);
 
         // Act
         var result = await _handler.Handle(query, CancellationToken.None);
@@ -41,8 +41,9 @@ public sealed class GetUserSettingsQueryHandlerTests
     public async Task Handle_WhenSettingsNotExist_ReturnsNull()
     {
         // Arrange
-        var query = new GetUserSettingsQuery("testName");
-        _repositoryMock.GetAsync("testuser", Arg.Any<CancellationToken>()).Returns((DomainUserSettings?)null);
+        var name = "testName";
+        var query = new GetUserSettingsQuery(name);
+        _repositoryMock.GetAsync(name, Arg.Any<CancellationToken>()).Returns((DomainUserSettings?)null);
 
         // Act
         var result = await _handler.Handle(query, CancellationToken.None);

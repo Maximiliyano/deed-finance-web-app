@@ -7,6 +7,7 @@ public sealed record UserResponse(
     string? Email,
     bool? EmailVerified,
     string? Fullname,
+    IReadOnlyCollection<string> Roles,
     Uri? PictureUrl,
     UserSettingsResponse? Settings
 );
