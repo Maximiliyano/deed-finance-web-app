@@ -2,6 +2,7 @@ import { ChangeDetectorRef, ChangeDetectionStrategy, Component, OnInit, inject }
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { DialogRef } from '../../../../shared/components/dialogs/models/dialog-ref';
+import { NumericInputDirective } from '../../../../shared/directives/numeric-input.directive';
 import { DIALOG_DATA } from '../../../../shared/components/dialogs/models/dialog-consts';
 import { CapitalResponse } from '../../../capital/models/capital-response';
 import { CategoryResponse } from '../../../category/models/category-model';
@@ -21,7 +22,7 @@ export interface QuickTransactionDialogData {
   templateUrl: './quick-transaction-dialog.component.html',
   styleUrl: './quick-transaction-dialog.component.scss',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormsModule],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, NumericInputDirective],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class QuickTransactionDialogComponent implements OnInit {

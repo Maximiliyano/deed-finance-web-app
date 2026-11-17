@@ -100,12 +100,14 @@
   </div>
 
   @if (user) {
-    <div class="sidebar-user">
-      <img class="sidebar-avatar" [ngSrc]="user.pictureUrl" width="40" height="40" alt="Avatar" />
+    <button class="sidebar-user" (click)="profile()" aria-label="Open profile">
+      <img class="sidebar-avatar" [ngSrc]="user.pictureUrl" width="40" height="40" alt="" />
       <div class="sidebar-user-info">
         <p class="sidebar-user-name">{{ user.fullname }}</p>
+        <p class="sidebar-user-hint">Profile and settings</p>
       </div>
-    </div>
+      <i class="fas fa-chevron-right sidebar-user-chevron"></i>
+    </button>
   }
 
   <nav class="sidebar-nav">

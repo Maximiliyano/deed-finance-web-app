@@ -3,11 +3,13 @@ import { DialogConfig } from '../models/dialog-config';
 import { DialogRef } from '../models/dialog-ref';
 import { DIALOG_DATA } from '../models/dialog-consts';
 import { DialogComponent } from '../dialog.component';
+import { ScrollLockService } from '../../../../core/services/scroll-lock.service';
 
 @Injectable({ providedIn: 'root' })
 export class DialogService {
   private readonly appRef = inject(ApplicationRef);
   private readonly injector = inject(EnvironmentInjector);
+  private readonly scrollLock = inject(ScrollLockService);
 
   private openDialogs: ComponentRef<DialogComponent>[] = [];
 
@@ -37,6 +39,7 @@ export class DialogService {
     document.body.appendChild(containerRef.location.nativeElement);
     
     this.openDialogs.push(containerRef);
+    this.scrollLock.lock();
 
     const sub = dialogRef.afterClosed$.subscribe({
       next: () => {
@@ -51,6 +54,7 @@ export class DialogService {
   private close(ref: ComponentRef<DialogComponent>) {
     this.appRef.detachView(ref.hostView);
     ref.destroy();
+    this.scrollLock.unlock();
 
     this.openDialogs = this.openDialogs.filter(x => x !== ref);
     this.openDialogs.forEach((d, i) => d.instance.index = i);

@@ -3,18 +3,11 @@
     <h1 class="page-title">Dashboard</h1>
   </header>
 
-  <div class="panel-editor">
-    <span class="panel-editor-label">Quick navigation</span>
-
-    <nav class="nav">
-      @for (item of navItems; track item.label) {
-        <a class="nav-item" [routerLink]="item.link" [fragment]="item.fragment">
-          <i class="fas {{ item.icon }}"></i>
-          {{ item.label }}
-        </a>
-      }
-    </nav>
-  </div>
+  <nav class="section-links" aria-label="Dashboard sections">
+    @for (item of navItems; track item.label) {
+      <a class="section-link" [routerLink]="item.link" [fragment]="item.fragment">{{ item.label }}</a>
+    }
+  </nav>
 
   @if (store.summary(); as summary) {
     <app-finance-dashboard [currency]="store.userCurrency()" [planFilter]="store.planFilter()" [summary]="summary" />
@@ -46,6 +39,12 @@
     <app-incomes-panel />
   } @placeholder {
     <div class="section-spinner" id="incomes"><span class="circle-spinner"></span></div>
+  }
+
+  @defer (on viewport) {
+    <app-utility-bills-panel />
+  } @placeholder {
+    <div class="section-spinner" id="utilityBills"><span class="circle-spinner"></span></div>
   }
 
   @defer (on viewport) {

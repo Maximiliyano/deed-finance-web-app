@@ -235,11 +235,15 @@
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.25s cubic-bezier(.4,0,.2,1);
+  touch-action: none;
+  overscroll-behavior: contain;
 
   &.backdrop-visible {
     opacity: 1;
     pointer-events: auto;
   }
+
+  @include mixin.respond-to('xl') { display: none; }
 }
 
 .sidebar {
@@ -257,10 +261,18 @@
   display: flex;
   flex-direction: column;
   transform: translateX(-100%);
-  transition: transform 0.25s cubic-bezier(.4,0,.2,1);
+  visibility: hidden;
+  transition: transform 0.25s cubic-bezier(.4,0,.2,1), visibility 0s linear 0.25s;
   will-change: transform;
+  overscroll-behavior: contain;
 
-  &.sidebar-open { transform: translateX(0); }
+  &.sidebar-open {
+    transform: translateX(0);
+    visibility: visible;
+    transition-delay: 0s;
+  }
+
+  @include mixin.respond-to('xl') { display: none; }
 }
 
 .sidebar-top {
@@ -282,8 +294,29 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  width: 100%;
   padding: 1rem;
+  border: none;
   border-bottom: 1px solid var(--border);
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--t);
+
+  &:hover, &:active { background: var(--surface-2); }
+}
+
+.sidebar-user-info { flex: 1; min-width: 0; }
+
+.sidebar-user-hint {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.sidebar-user-chevron {
+  font-size: 0.75rem;
+  color: var(--text-light);
 }
 
 .sidebar-avatar {

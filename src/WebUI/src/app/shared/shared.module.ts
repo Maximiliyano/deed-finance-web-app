@@ -5,6 +5,7 @@ import { LayoutComponent } from './components/layout/layout.component';
 import { CurrencySymbolPipe } from './components/currency/pipes/currency-symbol-pipe';
 import { EnumTextPipe } from '../core/utils/enum';
 import { IconComponent } from './components/icon/icon.component';
+import { NumericInputDirective } from './directives/numeric-input.directive';
 
 @NgModule({
   declarations: [
@@ -16,7 +17,8 @@ import { IconComponent } from './components/icon/icon.component';
     CommonModule,
     FormsModule,
     ReactiveFormsModule,
-    IconComponent
+    IconComponent,
+    NumericInputDirective
 ],
   exports: [
     CommonModule,
@@ -24,6 +26,7 @@ import { IconComponent } from './components/icon/icon.component';
     ReactiveFormsModule,
     LayoutComponent,
     IconComponent,
+    NumericInputDirective,
     CurrencySymbolPipe,
     EnumTextPipe
   ]

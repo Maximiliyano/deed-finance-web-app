@@ -27,7 +27,15 @@
           @default {
             <label [for]="field.controlName" class="form-label">{{ field.label }}</label>
 
-            @if (field.input) {
+            @if (field.input?.type === 'number') {
+              <input
+                appNumeric
+                class="input"
+                [id]="field.controlName"
+                [formControlName]="field.controlName"
+                [placeholder]="field.input?.placeholder ?? ''"
+              />
+            } @else if (field.input) {
               <input
                 [type]="field.input.type"
                 class="input"

@@ -4,6 +4,7 @@ import { merge } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { DialogRef } from '../../../../shared/components/dialogs/models/dialog-ref';
+import { NumericInputDirective } from '../../../../shared/directives/numeric-input.directive';
 import { DIALOG_DATA } from '../../../../shared/components/dialogs/models/dialog-consts';
 import { CapitalResponse } from '../../../capital/models/capital-response';
 import { Exchange } from '../../../../core/models/exchange-model';
@@ -19,7 +20,7 @@ export interface TransferDialogData {
   templateUrl: './transfer-dialog.component.html',
   styleUrl: './transfer-dialog.component.scss',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, NumericInputDirective],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class TransferDialogComponent implements OnInit {

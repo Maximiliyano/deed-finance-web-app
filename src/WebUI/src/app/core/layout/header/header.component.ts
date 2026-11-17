@@ -10,6 +10,7 @@ import { DialogService } from '../../../shared/components/dialogs/services/dialo
 import { AuthService } from '../../../modules/auth/services/auth-service';
 import { User } from '../../../modules/auth/models/user';
 import { ThemeService } from '../../services/theme.service';
+import { ScrollLockService } from '../../services/scroll-lock.service';
 
 export interface NavItem {
   label: string;
@@ -35,8 +36,26 @@ export class HeaderComponent implements OnInit {
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly destroyRef = inject(DestroyRef);
 
+  private readonly scrollLock = inject(ScrollLockService);
+  private sidebarOpen = false;
+
   exchanges: Exchange[] = [];
-  isSidebarExpanded = false;
+
+  get isSidebarExpanded(): boolean {
+    return this.sidebarOpen;
+  }
+
+  set isSidebarExpanded(open: boolean) {
+    if (open === this.sidebarOpen) return;
+
+    this.sidebarOpen = open;
+    if (open) {
+      this.scrollLock.lock();
+    } else {
+      this.scrollLock.unlock();
+    }
+  }
+
   openDropdown: string | null = null;
   expandedSidebarGroup: string | null = null;
 
@@ -44,6 +63,7 @@ export class HeaderComponent implements OnInit {
     {
       label: 'Dashboard', icon: 'fa-gauge-high', children: [
         { label: 'Budget Planner', icon: 'fa-compass-drafting', link: '/', fragment: 'budgetEstimations' },
+        { label: 'Utility Bills', icon: 'fa-bolt', link: '/', fragment: 'utilityBills' },
         { label: 'Goals', icon: 'fa-star', link: '/', fragment: 'goals' },
         { label: 'Debts', icon: 'fa-hand-holding-dollar', link: '/', fragment: 'debts' },
       ]
@@ -59,6 +79,8 @@ export class HeaderComponent implements OnInit {
   user: User | null;
 
   ngOnInit(): void {
+    this.destroyRef.onDestroy(() => { this.isSidebarExpanded = false; });
+
     this.authService.user$
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(user => {
@@ -119,6 +141,7 @@ export class HeaderComponent implements OnInit {
   }
 
   profile(): void {
+    this.isSidebarExpanded = false;
     this.dialogService.open(ProfileComponent);
   }
 }

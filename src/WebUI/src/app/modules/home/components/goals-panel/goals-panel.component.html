@@ -1,6 +1,6 @@
 <div id="goals" class="card">
   <div class="card-header">
-    <h2 class="card-title"><i class="fas fa-star"></i> Goals</h2>
+    <h2 class="card-title">Goals</h2>
     @if (!store.isAnonymous()) {
       <div class="card-header-actions">
         <button class="btn btn-primary btn-sm" (click)="openDialog()">
@@ -18,7 +18,7 @@
     <div class="empty-state">
       <i class="fas fa-star empty-icon"></i>
       <p class="empty-title">No goals yet</p>
-      <p class="empty-hint">Set financial goals and track your progress toward them.</p>
+      <p class="empty-hint">Add a target amount and a deadline to see how far along you are.</p>
     </div>
   } @else {
     @let summary = budgetSummary();

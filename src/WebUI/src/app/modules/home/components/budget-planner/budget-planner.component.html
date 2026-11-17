@@ -1,6 +1,6 @@
 <div id="budgetEstimations" class="card">
   <div class="card-header">
-    <h2 class="card-title"><i class="fas fa-compass-drafting"></i> Budget Planner</h2>
+    <h2 class="card-title">Budget planner</h2>
     <div class="card-header-actions">
       <button class="bp-charts-toggle"
               [ngClass]="{ active: showCharts() }"
@@ -36,7 +36,7 @@
     <div class="empty-state">
       <i class="fas fa-compass-drafting empty-icon"></i>
       <p class="empty-title">No budget items yet</p>
-      <p class="empty-hint">Plan recurring expenses like rent or one-off costs like a trip.</p>
+      <p class="empty-hint">Add planned costs, such as rent or a trip, to compare them with what you actually spend.</p>
     </div>
   } @else {
     @if (store.totalCapital() > 0) {

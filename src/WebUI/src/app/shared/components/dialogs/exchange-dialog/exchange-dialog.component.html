@@ -1,66 +1,53 @@
-<div class="exchange-header">
-  <i class="fas fa-money-bill-wave"></i>
-  Exchange Rates
-</div>
+<div class="exchange-header">Exchange rates</div>
 
 <div class="exchange-calculator">
-  <input
-    type="number"
-    class="calc-amount"
-    [(ngModel)]="amount"
-    min="0"
-    step="0.01"
-    aria-label="Amount" />
-  <select class="calc-currency" [(ngModel)]="fromCurrency" aria-label="From currency">
-    @for (c of currencies; track c) {
-      <option [value]="c">{{ c }}</option>
-    }
-  </select>
-  <button type="button" class="calc-swap" (click)="swap()" title="Swap currencies" aria-label="Swap currencies">
-    <i class="fas fa-right-left"></i>
-  </button>
-  <select class="calc-currency" [(ngModel)]="toCurrency" aria-label="To currency">
-    @for (c of currencies; track c) {
-      <option [value]="c">{{ c }}</option>
-    }
-  </select>
-  <button class="calc-result" [cdkCopyToClipboard]="result.toString()" (cdkCopyToClipboardCopied)="onCopied($event)">
-    <span aria-live="polite">≈ {{ result | number: '1.2-2' }}</span>
+  <div class="calc-inputs">
+    <input appNumeric class="calc-amount" [(ngModel)]="amount" aria-label="Amount" />
+    <select class="calc-currency" [(ngModel)]="fromCurrency" aria-label="From currency">
+      @for (c of currencies; track c) {
+        <option [value]="c">{{ c }}</option>
+      }
+    </select>
+    <button type="button" class="calc-swap" (click)="swap()" title="Swap currencies" aria-label="Swap currencies">
+      <i class="fas fa-right-left"></i>
+    </button>
+    <select class="calc-currency" [(ngModel)]="toCurrency" aria-label="To currency">
+      @for (c of currencies; track c) {
+        <option [value]="c">{{ c }}</option>
+      }
+    </select>
+  </div>
+  <button class="calc-result" [cdkCopyToClipboard]="result.toString()" (cdkCopyToClipboardCopied)="onCopied($event)" title="Copy result">
+    <span aria-live="polite">≈ {{ result | number: '1.2-2' }} {{ toCurrency }}</span>
     <app-icon name="fas fa-copy"></app-icon>
   </button>
 </div>
 
 <div class="exchange-dialog">
-  <div class="table-wrap">
-<table class="table">
+  <table class="rates">
     <thead>
       <tr>
-        <th>Currency</th>
-        <th>Buy</th>
-        <th>National</th>
-        <th>Sale</th>
+        <th>Pair</th>
+        <th>Buy / Sale</th>
       </tr>
     </thead>
     <tbody>
       @if (loading('exchanges')) {
         <tr>
-          <td colspan="4" class="exchange-empty"><div class="section-spinner"><span class="circle-spinner"></span></div></td>
+          <td colspan="2" class="exchange-empty"><div class="section-spinner"><span class="circle-spinner"></span></div></td>
         </tr>
       } @else {
-        @for (exchange of exchanges; track exchange.sale) {
+        @for (exchange of exchanges; track exchange.targetCurrency) {
           <tr>
-            <td class="font-medium">{{ exchange?.targetCurrency ?? '—' }}</td>
-            <td>{{ exchange?.buy | number: '1.2-2' }}</td>
-            <td class="text-muted">{{ exchange?.nationalCurrency ?? '—' }}</td>
-            <td class="text-muted">{{ exchange?.sale | number: '1.2-2' }}</td>
+            <td class="rate-pair">{{ exchange.targetCurrency }}<span class="text-muted"> / {{ exchange.nationalCurrency }}</span></td>
+            <td class="rate-values">{{ exchange.buy | number: '1.2-2' }} / {{ exchange.sale | number: '1.2-2' }}</td>
           </tr>
         }
       }
     </tbody>
   </table>
 </div>
-</div>
 
-<div class="exchange-footer">
-  <p class="text-center text-muted">Exchange rates are updated in {{exchanges[0].updatedAt | date }}.</p>
-</div>
+@if (exchanges[0]; as latest) {
+  <p class="exchange-footer">Updated {{ latest.updatedAt | date }}</p>
+}

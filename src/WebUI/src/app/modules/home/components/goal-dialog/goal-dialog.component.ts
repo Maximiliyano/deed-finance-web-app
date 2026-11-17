@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, OnInit, inject } from '@angular/cor
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { DialogRef } from '../../../../shared/components/dialogs/models/dialog-ref';
+import { NumericInputDirective } from '../../../../shared/directives/numeric-input.directive';
 import { DIALOG_DATA } from '../../../../shared/components/dialogs/models/dialog-consts';
 import { Goal } from '../../models/goal.model';
 import { GoalDialogForm } from '../../models/goal-dialog-form';
@@ -16,7 +17,7 @@ export interface GoalDialogData {
   templateUrl: './goal-dialog.component.html',
   styleUrl: './goal-dialog.component.scss',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, NumericInputDirective],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class GoalDialogComponent implements OnInit {

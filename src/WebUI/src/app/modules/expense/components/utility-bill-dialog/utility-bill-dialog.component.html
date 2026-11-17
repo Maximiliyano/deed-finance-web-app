@@ -13,7 +13,7 @@
     <div class="ub-row">
       <div class="form-group" style="flex:1">
         <label class="form-label">Estimated Amount</label>
-        <input type="number" class="input" formControlName="estimatedAmount" min="0" step="0.01" autocomplete="off">
+        <input appNumeric class="input" formControlName="estimatedAmount">
       </div>
       <div class="form-group" style="min-width:100px">
         <label class="form-label">Currency</label>
@@ -27,7 +27,7 @@
 
     <div class="form-group">
       <label class="form-label">Due Day of Month</label>
-      <input type="number" class="input" formControlName="dueDayOfMonth" min="1" max="31" step="1" autocomplete="off">
+      <input appNumeric="integer" class="input" formControlName="dueDayOfMonth">
     </div>
 
     <div class="form-group">

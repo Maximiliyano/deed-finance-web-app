@@ -40,10 +40,8 @@
 .exp-summary-sep { width: 1px; height: 2rem; background: var(--border); }
 
 .exp-summary-label {
-  font-size: 0.7rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: .04em;
+  font-size: 0.75rem;
+  font-weight: 500;
   color: var(--text-muted);
   display: block;
 }
@@ -171,10 +169,8 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
   color: var(--text-muted);
   margin: 1.25rem 0 0.625rem;
   i { font-size: 0.75rem; }

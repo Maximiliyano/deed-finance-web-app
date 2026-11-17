@@ -10,6 +10,7 @@ import { ExpensesPanelComponent } from './components/expenses-panel/expenses-pan
 import { FinanceDashboardComponent } from './components/finance-dashboard/finance-dashboard.component';
 import { GoalsPanelComponent } from './components/goals-panel/goals-panel.component';
 import { IncomesPanelComponent } from './components/incomes-panel/incomes-panel.component';
+import { UtilityBillsPanelComponent } from './components/utility-bills-panel/utility-bills-panel.component';
 import { DashboardStore } from './services/dashboard-store.service';
 
 @Component({
@@ -25,6 +26,7 @@ import { DashboardStore } from './services/dashboard-store.service';
     CapitalsPanelComponent,
     ExpensesPanelComponent,
     IncomesPanelComponent,
+    UtilityBillsPanelComponent,
     GoalsPanelComponent,
     DebtsPanelComponent
   ],
@@ -40,6 +42,7 @@ export class HomeComponent implements OnInit {
     { label: 'Capitals', icon: 'fa-wallet', link: '/capitals' },
     { label: 'Expenses', icon: 'fa-money-bill-wave', link: '/expenses' },
     { label: 'Incomes', icon: 'fa-dollar-sign', link: '/incomes' },
+    { label: 'Utility Bills', icon: 'fa-bolt', link: '/', fragment: 'utilityBills' },
     { label: 'Goals', icon: 'fa-star', link: '/', fragment: 'goals' },
     { label: 'Debts', icon: 'fa-hand-holding-dollar', link: '/', fragment: 'debts' }
   ];

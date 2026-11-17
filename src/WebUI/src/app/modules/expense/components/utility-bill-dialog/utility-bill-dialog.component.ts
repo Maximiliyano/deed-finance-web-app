@@ -7,6 +7,7 @@ import { CapitalResponse } from '../../../capital/models/capital-response';
 import { CategoryResponse } from '../../../category/models/category-model';
 import { CreateUtilityBillRequest, UtilityBillResponse } from '../../models/utility-bill';
 import { CURRENCIES } from '../../../../core/types/currency-type';
+import { NumericInputDirective } from '../../../../shared/directives/numeric-input.directive';
 
 export interface UtilityBillDialogData {
   bill?: UtilityBillResponse;
@@ -19,7 +20,7 @@ export interface UtilityBillDialogData {
   templateUrl: './utility-bill-dialog.component.html',
   styleUrl: './utility-bill-dialog.component.scss',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, NumericInputDirective],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class UtilityBillDialogComponent implements OnInit {

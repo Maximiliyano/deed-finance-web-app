@@ -25,7 +25,7 @@
           <input type="month" class="input bp-period-input" [value]="selectedMonth()" (change)="onMonthChange($any($event.target).value)" [title]="'Pick a month — ' + selectedPeriodLabel()" />
         }
         @case ('year') {
-          <input type="number" class="input bp-period-input bp-period-input--year" min="2000" max="2100" step="1" [value]="selectedYear()" (change)="onYearChange($any($event.target).value)" [title]="'Pick a year — ' + selectedPeriodLabel()" />
+          <input appNumeric="integer" class="input bp-period-input bp-period-input--year" [value]="selectedYear()" (change)="onYearChange($any($event.target).value)" [title]="'Pick a year — ' + selectedPeriodLabel()" />
         }
       }
 

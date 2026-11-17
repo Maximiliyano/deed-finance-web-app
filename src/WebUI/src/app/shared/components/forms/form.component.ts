@@ -7,12 +7,13 @@ import { FormButton } from './models/form-button';
 import { FormErrorComponent } from "./form-error/form-error.component";
 import { DatePickerComponent } from '../date-picker/date-picker.component';
 import { SelectiveInputComponent } from "../inputs/selective-input.component/selective-input.component";
+import { NumericInputDirective } from '../../directives/numeric-input.directive';
 
 @Component({
     selector: 'app-form',
     templateUrl: './form.component.html',
     styleUrl: './form.component.scss',
-    imports: [ReactiveFormsModule, FormErrorComponent, DatePickerComponent, SelectiveInputComponent],
+    imports: [ReactiveFormsModule, FormErrorComponent, DatePickerComponent, SelectiveInputComponent, NumericInputDirective],
     standalone: true
 })
 export class FormComponent implements OnInit {

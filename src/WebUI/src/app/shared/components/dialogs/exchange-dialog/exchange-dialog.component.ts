@@ -7,6 +7,7 @@ import { FormsModule } from '@angular/forms';
 import { DIALOG_DATA } from '../models/dialog-consts';
 import { convertCurrency } from '../../../utils/currency-conversion.util';
 import { IconComponent } from "../../icon/icon.component";
+import { NumericInputDirective } from '../../../directives/numeric-input.directive';
 import { ClipboardModule } from '@angular/cdk/clipboard'
 import { SectionKey, SectionLoadingService } from '../../../services/section-loading.service';
 
@@ -16,7 +17,7 @@ import { CURRENCIES } from '../../../../core/types/currency-type';
     selector: 'app-exchange-dialog',
     templateUrl: './exchange-dialog.component.html',
     styleUrl: './exchange-dialog.component.scss',
-    imports: [DecimalPipe, FormsModule, IconComponent, ClipboardModule, DatePipe],
+    imports: [DecimalPipe, FormsModule, IconComponent, ClipboardModule, DatePipe, NumericInputDirective],
     standalone: true,
     changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -27,7 +28,7 @@ export class ExchangeDialogComponent implements OnInit {
   readonly exchanges = inject<Exchange[]>(DIALOG_DATA);
   private readonly destroyRef = inject(DestroyRef);
 
-  amount = 1;
+  amount: number | null = 1;
   fromCurrency: string;
   toCurrency: string;
 

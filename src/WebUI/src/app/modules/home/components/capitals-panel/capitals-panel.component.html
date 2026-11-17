@@ -1,6 +1,6 @@
 <div id="capitals" class="card">
   <div class="card-header">
-    <h2 class="card-title"><i class="fas fa-wallet"></i> Capitals</h2>
+    <h2 class="card-title">Capitals</h2>
     <div class="card-header-actions">
       @if (!isAnonymous()) {
         <button class="btn btn-primary btn-sm" (click)="openAddCapital()" title="Add capital">
@@ -24,7 +24,7 @@
     <div class="empty-state">
       <i class="fas fa-wallet empty-icon"></i>
       <p class="empty-title">No capitals yet</p>
-      <p class="empty-hint">Add your bank accounts, cash wallets and investment accounts.</p>
+      <p class="empty-hint">Add the accounts and wallets you want to track.</p>
     </div>
   } @else {
     <div class="summary-grid" cdkDropList (cdkDropListDropped)="dropCapital($event)" [cdkDropListDisabled]="dragDisabled()">
