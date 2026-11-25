@@ -3,8 +3,7 @@
 .dashboard {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
-  margin-bottom: 0;
+  gap: var(--space-6);
 }
 
 .dashboard > .page-header {
@@ -14,19 +13,26 @@
 .section-links {
   display: none;
   flex-wrap: wrap;
-  gap: 0.25rem 0.5rem;
-  margin-top: -0.75rem;
+  gap: var(--space-1) var(--space-2);
+  margin-top: calc(var(--space-3) * -1);
 
-  @include respond-to('md') { display: flex; }
+  @include respond-to('md') {
+    display: flex;
+  }
 }
 
 .section-link {
-  padding: 0.25rem 0.625rem;
+  padding: var(--space-1) 0.625rem;
   border-radius: var(--radius);
-  font-size: 0.875rem;
+  font-size: var(--fs-md);
   font-weight: 500;
   color: var(--text-muted);
-  transition: background var(--t), color var(--t);
+  transition:
+    background var(--t),
+    color var(--t);
 
-  &:hover { background: var(--surface-2); color: var(--text); }
+  &:hover {
+    background: var(--surface-2);
+    color: var(--text);
+  }
 }

@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, DestroyR
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AuthService } from '../../services/auth-service';
 
-import { SharedModule } from "../../../../shared/shared.module";
+import { SharedModule } from '../../../../shared/shared.module';
 import { DialogService } from '../../../../shared/components/dialogs/services/dialog.service';
 import { DialogRef } from '../../../../shared/components/dialogs/models/dialog-ref';
 import { ConfirmDialogComponent } from '../../../../shared/components/dialogs/confirm-dialog/confirm-dialog.component';
@@ -12,6 +12,14 @@ import { UserSettingsService } from '../../../home/services/user-settings.servic
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { CURRENCIES, CURRENCY_DEFAULT } from '../../../../core/types/currency-type';
 import { UserSettings } from '../../../home/models/user-settings.model';
+
+const DEFAULT_REMINDER_CRON = '0 0 9 * * ?';
+
+const REMINDERS = [
+  { key: 'balance', label: 'Balance reminder', hint: 'Get periodic summaries of your total balance' },
+  { key: 'expense', label: 'Expense reminder', hint: 'Remind you to log your expenses' },
+  { key: 'debt', label: 'Debt reminder', hint: 'Get alerts about upcoming or overdue debts' }
+] as const;
 
 @Component({
   selector: 'app-profile',
@@ -36,50 +44,50 @@ export class ProfileComponent implements OnInit {
   savingSettings = false;
   currencies = CURRENCIES;
   notificationForm!: FormGroup;
+  reminders = REMINDERS;
   cronPresets = [
-    { label: 'Daily at 9:00 AM', value: '0 0 9 * * ?' },
+    { label: 'Daily at 9:00 AM', value: DEFAULT_REMINDER_CRON },
     { label: 'Daily at 8:00 PM', value: '0 0 20 * * ?' },
     { label: 'Every Monday at 9:00 AM', value: '0 0 9 ? * MON' },
     { label: 'Every Friday at 6:00 PM', value: '0 0 18 ? * FRI' },
-    { label: '1st of every month at 9:00 AM', value: '0 0 9 1 * ?' },
+    { label: '1st of every month at 9:00 AM', value: '0 0 9 1 * ?' }
   ];
 
   ngOnInit(): void {
     this.settingsForm = this.fb.group({
-        currency: [this.user?.currency ?? CURRENCY_DEFAULT, Validators.required]
+      currency: [this.user?.currency ?? CURRENCY_DEFAULT, Validators.required]
     });
 
     this.notificationForm = this.fb.group({
-      balanceReminderEnabled: [false],
-      balanceReminderCron: ['0 0 9 * * ?'],
-      expenseReminderEnabled: [false],
-      expenseReminderCron: ['0 0 9 * * ?'],
-      debtReminderEnabled: [false],
-      debtReminderCron: ['0 0 9 * * ?'],
+      ...Object.fromEntries(
+        REMINDERS.flatMap(({ key }) => [
+          [`${key}ReminderEnabled`, [false]],
+          [`${key}ReminderCron`, [DEFAULT_REMINDER_CRON]]
+        ])
+      ),
       emailNotificationsEnabled: [false]
     });
 
-    this.authService.user$
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(user => {
-        this.user = user;
-        document.title = `Deed - ${this.user?.fullname ?? ''} profile`;
-        this.cdr.markForCheck();
-      });
+    this.authService.user$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(user => {
+      this.user = user;
+      document.title = `Deed - ${this.user?.fullname ?? ''} profile`;
+      this.cdr.markForCheck();
+    });
 
-    this.userSettingsService.load()
+    this.userSettingsService
+      .load()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (settings: UserSettings | null) => {
           if (settings) {
             this.settingsForm.patchValue({ currency: settings.currency });
             this.notificationForm.patchValue({
-              balanceReminderEnabled: settings.balanceReminderEnabled ?? false,
-              balanceReminderCron: settings.balanceReminderCron ?? '0 0 9 * * ?',
-              expenseReminderEnabled: settings.expenseReminderEnabled ?? false,
-              expenseReminderCron: settings.expenseReminderCron ?? '0 0 9 * * ?',
-              debtReminderEnabled: settings.debtReminderEnabled ?? false,
-              debtReminderCron: settings.debtReminderCron ?? '0 0 9 * * ?',
+              ...Object.fromEntries(
+                REMINDERS.flatMap(({ key }) => [
+                  [`${key}ReminderEnabled`, settings[`${key}ReminderEnabled`] ?? false],
+                  [`${key}ReminderCron`, settings[`${key}ReminderCron`] ?? DEFAULT_REMINDER_CRON]
+                ])
+              ),
               emailNotificationsEnabled: settings.emailNotificationsEnabled ?? false
             });
             this.cdr.markForCheck();
@@ -87,23 +95,20 @@ export class ProfileComponent implements OnInit {
         }
       });
   }
-
-  saveSettings(): void {
+
+  saveCurrency(): void {
     if (this.settingsForm.invalid) return;
+    this.save({ currency: this.settingsForm.value.currency });
+  }
+
+  saveNotifications(): void {
+    this.save(this.notificationForm.value);
+  }
+
+  private save(changes: Partial<UserSettings>): void {
     this.savingSettings = true;
-    const val = this.settingsForm.value;
-    const notif = this.notificationForm.value;
-    const payload = {
-      currency: val.currency,
-      balanceReminderEnabled: notif.balanceReminderEnabled,
-      balanceReminderCron: notif.balanceReminderCron,
-      expenseReminderEnabled: notif.expenseReminderEnabled,
-      expenseReminderCron: notif.expenseReminderCron,
-      debtReminderEnabled: notif.debtReminderEnabled,
-      debtReminderCron: notif.debtReminderCron,
-      emailNotificationsEnabled: notif.emailNotificationsEnabled
-    };
-    this.userSettingsService.patch(payload)
+    this.userSettingsService
+      .patch(changes)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: () => {
@@ -130,17 +135,14 @@ export class ProfileComponent implements OnInit {
       }
     });
 
-    dialogRef
-      .afterClosed$
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (submit: boolean) => {
-          if (submit) {
-            this.authService.logout();
-            this.popupMessageService.warning('You logged out your account.');
-            this.dialogRef?.close();
-          }
+    dialogRef.afterClosed$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: (submit: boolean) => {
+        if (submit) {
+          this.authService.logout();
+          this.popupMessageService.warning('You logged out your account.');
+          this.dialogRef?.close();
         }
-      });
+      }
+    });
   }
 }

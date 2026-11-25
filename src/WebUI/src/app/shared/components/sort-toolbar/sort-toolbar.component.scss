@@ -1,52 +1,15 @@
 @use '../../../../assets/scss/mixins.scss' as *;
 
-.bp-toolbar {
-  display: flex;
-  align-items: center;
-  padding: 0.5rem 1rem;
+.sort-bar {
+  padding: var(--space-2) var(--space-4);
   border-bottom: 1px solid var(--border);
-}
 
-.bp-sort-group {
-  display: flex;
-  gap: 0.5rem;
-  width: 100%;
+  .segmented-btn {
+    flex: 1;
 
-  @include respond-to('sm') {
-    width: auto;
-  }
-}
-
-.bp-sort-btn {
-  flex: 1;
-  min-height: 2.25rem;
-  padding: 0.35rem 0.75rem;
-  border: 1px solid var(--border-2);
-  border-radius: var(--radius);
-  background: transparent;
-  color: var(--text-muted);
-  font-size: 0.8125rem;
-  font-variant-numeric: tabular-nums;
-  cursor: pointer;
-  transition: all 0.15s;
-
-  &:hover {
-    background: var(--surface-2);
-    color: var(--text);
-  }
-
-  &.active {
-    background: var(--primary);
-    color: #fff;
-    border-color: var(--primary);
-  }
-
-  @include respond-to('sm') {
-    flex: none;
-    padding: 0.35rem 1.25rem;
-  }
-
-  @media (pointer: coarse) {
-    min-height: 2.75rem;
+    @include respond-to('sm') {
+      flex: none;
+      padding-inline: var(--space-5);
+    }
   }
 }

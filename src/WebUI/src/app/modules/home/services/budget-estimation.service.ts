@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, Observable, catchError, tap, throwError } from 'rxjs';
+import { BehaviorSubject, Observable, catchError, map, tap, throwError } from 'rxjs';
 import { BudgetEstimation } from '../models/budget-estimation';
 import { QueryTimeRange } from '../models/query-time-range';
 import { CapitalResponse } from '../../capital/models/capital-response';
@@ -19,6 +19,13 @@ export class BudgetEstimationService {
   load(query: QueryTimeRange): Observable<BudgetEstimation[]> {
     return this.http.post<BudgetEstimation[]>(`${this.baseUrl}/all`, query)
       .pipe(tap(items => this.state$.next(items)));
+  }
+
+  findByCapital(capitalId: number): Observable<BudgetEstimation[]> {
+    const allTime: QueryTimeRange = { periodStart: new Date(2000, 0, 1), periodEnd: new Date(2100, 0, 1) };
+
+    return this.http.post<BudgetEstimation[]>(`${this.baseUrl}/all`, allTime)
+      .pipe(map(items => items.filter(item => item.capitalId === capitalId)));
   }
 
   create(request: CreateBudgetEstimationRequest, capital?: CapitalResponse | null): Observable<number> {

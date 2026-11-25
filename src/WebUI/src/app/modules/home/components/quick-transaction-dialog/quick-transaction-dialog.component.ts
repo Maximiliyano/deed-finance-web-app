@@ -14,7 +14,14 @@ export interface QuickTransactionDialogData {
   type: 'expense' | 'income';
   capitals: CapitalResponse[];
   categories: CategoryResponse[];
-  editItem?: { id: number; capitalId: number; categoryId: number; amount: number; paymentDate: string; purpose: string | null };
+  editItem?: {
+    id: number;
+    capitalId: number;
+    categoryId: number;
+    amount: number;
+    paymentDate: string;
+    purpose: string | null;
+  };
 }
 
 @Component({
@@ -50,12 +57,17 @@ export class QuickTransactionDialogComponent implements OnInit {
       capitalId: [e?.capitalId ?? null, Validators.required],
       categoryId: [e?.categoryId ?? null, Validators.required],
       amount: [e?.amount ?? null, [Validators.required, Validators.min(0.01)]],
-      paymentDate: [e?.paymentDate ? new Date(e.paymentDate).toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10), Validators.required],
+      paymentDate: [
+        e?.paymentDate ? new Date(e.paymentDate).toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10),
+        Validators.required
+      ],
       purpose: [e?.purpose ?? '']
     });
   }
 
-  get isExpense(): boolean { return this.type === 'expense'; }
+  get isExpense(): boolean {
+    return this.type === 'expense';
+  }
 
   toggleNewCategory(): void {
     this.showNewCategory = !this.showNewCategory;
@@ -65,28 +77,30 @@ export class QuickTransactionDialogComponent implements OnInit {
   createCategory(): void {
     if (!this.newCategoryName.trim()) return;
     const catType = this.isExpense ? CategoryType.Expenses : CategoryType.Incomes;
-    this.categoryService.create({
-      name: this.newCategoryName.trim(),
-      type: catType,
-      plannedPeriodAmount: 0,
-      period: PerPeriodType.None
-    }).subscribe({
-      next: (id) => {
-        const newCat: CategoryResponse = {
-          id,
-          name: this.newCategoryName.trim(),
-          type: catType,
-          periodAmount: 0,
-          periodType: PerPeriodType.None,
-          isDeleted: false
-        };
-        this.categories = [...this.categories, newCat];
-        this.form.patchValue({ categoryId: id });
-        this.showNewCategory = false;
-        this.newCategoryName = '';
-        this.cdr.markForCheck();
-      }
-    });
+    this.categoryService
+      .create({
+        name: this.newCategoryName.trim(),
+        type: catType,
+        plannedPeriodAmount: 0,
+        period: PerPeriodType.None
+      })
+      .subscribe({
+        next: id => {
+          const newCat: CategoryResponse = {
+            id,
+            name: this.newCategoryName.trim(),
+            type: catType,
+            periodAmount: 0,
+            periodType: PerPeriodType.None,
+            isDeleted: false
+          };
+          this.categories = [...this.categories, newCat];
+          this.form.patchValue({ categoryId: id });
+          this.showNewCategory = false;
+          this.newCategoryName = '';
+          this.cdr.markForCheck();
+        }
+      });
   }
 
   submit(): void {

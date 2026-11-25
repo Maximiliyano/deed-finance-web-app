@@ -1,14 +1,28 @@
-@use "sass:map";
+@use 'sass:map';
 @use './variables.scss' as vars;
 
 @mixin respond-to($breakpoint) {
-    @if map.has-key(vars.$breakpoints, $breakpoint) {
-        @media (min-width: map.get(vars.$breakpoints, $breakpoint)) {
-            @content;
-        }
+  @if map.has-key(vars.$breakpoints, $breakpoint) {
+    @media (min-width: map.get(vars.$breakpoints, $breakpoint)) {
+      @content;
     }
+  } @else {
+    @warn "No breakpoint named `#{$breakpoint}` found.";
+  }
+}
 
-    @else {
-        @warn "No breakpoint named `#{$breakpoint}` found.";
+@mixin respond-below($breakpoint) {
+  @if map.has-key(vars.$breakpoints, $breakpoint) {
+    @media (max-width: map.get(vars.$breakpoints, $breakpoint) - 0.02px) {
+      @content;
     }
+  } @else {
+    @warn "No breakpoint named `#{$breakpoint}` found.";
+  }
+}
+
+@mixin touch {
+  @media (pointer: coarse) {
+    @content;
+  }
 }

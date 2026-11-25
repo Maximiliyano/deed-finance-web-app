@@ -1,92 +1,53 @@
 <div id="kpi" class="kpi-grid">
-
-  
-  <div class="kpi-card">
-    <div class="kpi-icon wallet-icon"><i class="fas fa-vault"></i></div>
-    <div class="kpi-body">
-      <p class="kpi-label">Total Capital Amount</p>
-      <p class="kpi-value">
-        @if (!!totalCapitalAmount) {
-          {{ totalCapitalAmount | currencySymbol: currency() }}
-          @if (showDualCurrency) {
-            <p class="kpi-alt">{{ totalCapitalAmountInUah | currencySymbol: 'UAH' }}</p>
-          }
-        } @else {
-          <p class="kpi-empty">No capitals yet</p>
-        }
-      </p>
-    </div>
-  </div>
-
-  
-  <div class="kpi-card">
-    <div class="kpi-icon income-icon">
-      <i class="fas fa-arrow-trend-up"></i>
-    </div>
-    <div class="kpi-body">
-      <p class="kpi-label">Incomes</p>
-      <p class="kpi-value">
-        @if (!!totalIncomeAmount) {
-          <p class="text-success">
-            {{ totalIncomeAmount | currencySymbol: currency() }}
-          </p>
-          @if (showDualCurrency) {
-            <p class="kpi-alt">{{ totalIncomeAmountInUah | currencySymbol: 'UAH' }}</p>
-          }
-        } @else {
-          <p class="kpi-empty">No incomes yet</p>
-        }
-      </p>
-    </div>
-  </div>
-
-  
-  <div class="kpi-card">
-    <div class="kpi-icon expense-icon"><i class="fas fa-arrow-trend-down"></i></div>
-    <div class="kpi-body">
-      <p class="kpi-label">Expenses</p>
-      <p class="kpi-value">
-        @if (!!totalExpenseAmount) {
-          <p class="text-danger">
-            {{ totalExpenseAmount | currencySymbol: currency() }}
-          </p>
-          @if (showDualCurrency) {
-            <p class="kpi-alt">{{ totalExpenseAmountInUah | currencySymbol: 'UAH' }}</p>
-          }
-        } @else {
-          <p class="kpi-empty">No expenses yet</p>
-        }
-      </p>
-    </div>
-  </div>
-
-  
-  <div class="kpi-card">
-    @if (!!profitPerTime) {
-      <div class="kpi-icon" [ngClass]="isProfitable ? 'profit-icon' : 'deficit-icon'">
-        <i class="fas" [ngClass]="isProfitable ? 'fa-shield-halved' : 'fa-triangle-exclamation'"></i>
-      </div>
-      <div class="kpi-body">
-        <p class="kpi-label">{{ planFilterLabel }} {{ isProfitable ? 'Profit' : 'Deficit' }}</p>
-        <div class="kpi-value">
-          <div [ngClass]="isProfitable ? 'text-success' : 'text-danger'">
-            {{ profitPerTime | currencySymbol: currency() }}
-            @if (showDualCurrency) {
-              <p class="bp-stat-alt">{{ profitPerTimeInUah | currencySymbol: 'UAH' }}</p>
-            }
-          </div>
-        </div>
-      </div>
+  <div class="stat-tile">
+    <span class="stat-label">Total capital</span>
+    @if (summary().totalCapital) {
+      <span class="stat-value">{{ summary().totalCapital | currencySymbol: store.userCurrency() }}</span>
+      @if (store.showDualCurrency()) {
+        <span class="stat-alt">{{ summary().totalCapitalInDefaultCurrency | currencySymbol: defaultCurrency }}</span>
+      }
     } @else {
-      <div class="kpi-icon">
-        <i class="fas fa-question"></i>
-      </div>
-      <div class="kpi-body">
-        <p class="kpi-label">{{ planFilterLabel }} Break-even</p>
-        <div class="kpi-value">
-          <p class="kpi-empty">No data yet</p>
-        </div>
-      </div>
+      <span class="stat-empty">No capitals yet</span>
+    }
+  </div>
+
+  <div class="stat-tile">
+    <span class="stat-label">Incomes</span>
+    @if (summary().totalIncome) {
+      <span class="stat-value text-success">{{ summary().totalIncome | currencySymbol: store.userCurrency() }}</span>
+      @if (store.showDualCurrency()) {
+        <span class="stat-alt">{{ summary().totalIncomeInDefaultCurrency | currencySymbol: defaultCurrency }}</span>
+      }
+    } @else {
+      <span class="stat-empty">No incomes yet</span>
+    }
+  </div>
+
+  <div class="stat-tile">
+    <span class="stat-label">Expenses</span>
+    @if (summary().totalExpense) {
+      <span class="stat-value text-danger">{{ summary().totalExpense | currencySymbol: store.userCurrency() }}</span>
+      @if (store.showDualCurrency()) {
+        <span class="stat-alt">{{ summary().totalExpenseInDefaultCurrency | currencySymbol: defaultCurrency }}</span>
+      }
+    } @else {
+      <span class="stat-empty">No expenses yet</span>
+    }
+  </div>
+
+  @let result = profit();
+  <div class="stat-tile">
+    @if (result.amount) {
+      <span class="stat-label">{{ store.planFilterLabel() }} {{ result.amount > 0 ? 'profit' : 'deficit' }}</span>
+      <span class="stat-value" [class]="result.amount > 0 ? 'text-success' : 'text-danger'">
+        {{ result.amount | currencySymbol: store.userCurrency() }}
+      </span>
+      @if (store.showDualCurrency()) {
+        <span class="stat-alt">{{ result.inDefaultCurrency | currencySymbol: defaultCurrency }}</span>
+      }
+    } @else {
+      <span class="stat-label">{{ store.planFilterLabel() }} break-even</span>
+      <span class="stat-empty">No data yet</span>
     }
   </div>
 </div>

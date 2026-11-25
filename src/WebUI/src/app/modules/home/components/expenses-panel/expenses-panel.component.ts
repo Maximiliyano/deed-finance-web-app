@@ -6,7 +6,11 @@ import { catchError, forkJoin, of } from 'rxjs';
 import { CategoryType } from '../../../../core/types/category-type';
 import { DialogService } from '../../../../shared/components/dialogs/services/dialog.service';
 import { PanelStateComponent } from '../../../../shared/components/panel-state/panel-state.component';
-import { AMOUNT_SORT_OPTIONS, AmountSort, SortToolbarComponent } from '../../../../shared/components/sort-toolbar/sort-toolbar.component';
+import {
+  AMOUNT_SORT_OPTIONS,
+  AmountSort,
+  SortToolbarComponent
+} from '../../../../shared/components/sort-toolbar/sort-toolbar.component';
 import { PopupMessageService } from '../../../../shared/services/popup-message.service';
 import { SectionLoadingService } from '../../../../shared/services/section-loading.service';
 import { SharedModule } from '../../../../shared/shared.module';
@@ -23,7 +27,6 @@ import { QuickTransactionDialogComponent } from '../quick-transaction-dialog/qui
 @Component({
   selector: 'app-expenses-panel',
   templateUrl: './expenses-panel.component.html',
-  styleUrl: './expenses-panel.component.scss',
   standalone: true,
   imports: [SharedModule, RouterLink, CategoryBreakdownComponent, SortToolbarComponent, PanelStateComponent],
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -59,7 +62,8 @@ export class ExpensesPanelComponent implements OnInit {
       total: category.categorySum,
       percentage: category.percentage,
       items: category.expenses.map(expense => ({ ...expense, categoryId: category.categoryId }))
-    })));
+    }))
+  );
 
   ngOnInit(): void {
     this.expenseService.expenses$
@@ -110,10 +114,19 @@ export class ExpensesPanelComponent implements OnInit {
 
       if (result._edit) {
         this.expenseService
-          .update({ id: result.id, categoryId: result.categoryId, amount: result.amount, purpose: result.purpose, date: result.date })
+          .update({
+            id: result.id,
+            categoryId: result.categoryId,
+            amount: result.amount,
+            purpose: result.purpose,
+            date: result.date
+          })
           .pipe(takeUntilDestroyed(this.destroyRef))
           .subscribe({
-            next: () => { this.popup.success('Expense updated'); this.capitalService.refresh(); },
+            next: () => {
+              this.popup.success('Expense updated');
+              this.capitalService.refresh();
+            },
             error: () => this.popup.error('Failed to update expense')
           });
       } else {
@@ -121,7 +134,10 @@ export class ExpensesPanelComponent implements OnInit {
           .create(result)
           .pipe(takeUntilDestroyed(this.destroyRef))
           .subscribe({
-            next: () => { this.popup.success('Expense added'); this.capitalService.refresh(); },
+            next: () => {
+              this.popup.success('Expense added');
+              this.capitalService.refresh();
+            },
             error: () => this.popup.error('Failed to add expense')
           });
       }
@@ -133,7 +149,10 @@ export class ExpensesPanelComponent implements OnInit {
       .delete(id)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: () => { this.popup.success('Expense deleted'); this.capitalService.refresh(); },
+        next: () => {
+          this.popup.success('Expense deleted');
+          this.capitalService.refresh();
+        },
         error: () => this.popup.error('Failed to delete expense')
       });
   }
@@ -142,11 +161,16 @@ export class ExpensesPanelComponent implements OnInit {
     const sorted = [...data];
 
     switch (this.sortBy()) {
-      case 'amount-desc': return sorted.sort((a, b) => b.categorySum - a.categorySum);
-      case 'amount-asc': return sorted.sort((a, b) => a.categorySum - b.categorySum);
-      case 'name': return sorted.sort((a, b) => a.name.localeCompare(b.name));
-      case 'default': return sorted.sort((a, b) => b.percentage - a.percentage);
-      default: return sorted;
+      case 'amount-desc':
+        return sorted.sort((a, b) => b.categorySum - a.categorySum);
+      case 'amount-asc':
+        return sorted.sort((a, b) => a.categorySum - b.categorySum);
+      case 'name':
+        return sorted.sort((a, b) => a.name.localeCompare(b.name));
+      case 'default':
+        return sorted.sort((a, b) => b.percentage - a.percentage);
+      default:
+        return sorted;
     }
   }
 }

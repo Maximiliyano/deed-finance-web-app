@@ -53,12 +53,12 @@ export class TransferDialogComponent implements OnInit {
 
   get selectedSource(): CapitalResponse | null {
     const id = this.form.get('sourceCapitalId')?.value;
-    return id ? this.capitals.find(c => c.id === Number(id)) ?? null : null;
+    return id ? (this.capitals.find(c => c.id === Number(id)) ?? null) : null;
   }
 
   get selectedDest(): CapitalResponse | null {
     const id = this.form.get('destinationCapitalId')?.value;
-    return id ? this.capitals.find(c => c.id === Number(id)) ?? null : null;
+    return id ? (this.capitals.find(c => c.id === Number(id)) ?? null) : null;
   }
 
   get isCrossCurrency(): boolean {

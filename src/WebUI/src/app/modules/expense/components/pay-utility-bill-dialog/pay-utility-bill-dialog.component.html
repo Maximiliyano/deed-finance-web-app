@@ -1,29 +1,27 @@
-<form [formGroup]="form" (ngSubmit)="submit()" class="pub-dialog">
-  <div class="pub-header">
-    <i class="fas fa-circle-check"></i>
-    Pay {{ bill.name }}
+<form [formGroup]="form" (ngSubmit)="submit()">
+  <div class="dialog-header">
+    <h2 class="dialog-title">Pay {{ bill.name }}</h2>
   </div>
 
-  <div class="pub-body">
-    <p class="pub-hint">
-      Estimated: <strong>{{ bill.estimatedAmount }} {{ bill.currency }}</strong> · adjust to the actual amount if different.
+  <div class="dialog-body">
+    <p class="pay-hint">
+      Estimated: <strong>{{ bill.estimatedAmount }} {{ bill.currency }}</strong
+      >. Adjust to the actual amount if different.
     </p>
 
     <div class="form-group">
-      <label class="form-label">Actual Amount ({{ bill.currency }})</label>
-      <input appNumeric class="input" formControlName="amount">
+      <label for="amount" class="form-label">Actual amount ({{ bill.currency }})</label>
+      <input id="amount" appNumeric class="input" formControlName="amount" />
     </div>
 
     <div class="form-group">
-      <label class="form-label">Payment Date</label>
-      <input type="date" class="input" formControlName="paymentDate">
+      <label for="paymentDate" class="form-label">Payment date</label>
+      <input id="paymentDate" type="date" class="input" formControlName="paymentDate" />
     </div>
   </div>
 
-  <div class="pub-footer">
+  <div class="dialog-footer">
     <button type="button" class="btn btn-secondary btn-sm" (click)="cancel()">Cancel</button>
-    <button type="submit" class="btn btn-success btn-sm" [disabled]="form.invalid">
-      <i class="fas fa-check"></i> Mark Paid
-    </button>
+    <button type="submit" class="btn btn-success btn-sm" [disabled]="form.invalid">Mark paid</button>
   </div>
 </form>

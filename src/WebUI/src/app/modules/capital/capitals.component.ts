@@ -1,6 +1,14 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, inject, DestroyRef } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  OnDestroy,
+  OnInit,
+  inject,
+  DestroyRef
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { debounceTime, Subject } from 'rxjs';
+import { Observable, Subject, debounceTime } from 'rxjs';
 import { Exchange } from '../../core/models/exchange-model';
 import { DialogService } from '../../shared/components/dialogs/services/dialog.service';
 import { ExchangeService } from '../../shared/services/exchange.service';
@@ -9,6 +17,7 @@ import { AddCapitalRequest } from './models/add-capital-request';
 import { CapitalItem } from './models/capital-item';
 import { CapitalResponse } from './models/capital-response';
 import { CapitalService } from './services/capital.service';
+import { CapitalCurrencyService } from './services/capital-currency.service';
 import { UpdateCapitalRequest } from './models/update-capital-request';
 import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import { AddCapitalDialogComponent } from './components/capital-dialog/add-capital-dialog.component';
@@ -23,15 +32,16 @@ import { UserSettingsService } from '../home/services/user-settings.service';
 import { convertCurrency } from '../../shared/utils/currency-conversion.util';
 
 @Component({
-    selector: 'app-capitals',
-    templateUrl: './capitals.component.html',
-    styleUrl: './capitals.component.scss',
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone: false
+  selector: 'app-capitals',
+  templateUrl: './capitals.component.html',
+  styleUrl: './capitals.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  standalone: false
 })
 export class CapitalsComponent implements OnInit, OnDestroy {
   private readonly capitalService = inject(CapitalService);
   private readonly popupMessageService = inject(PopupMessageService);
+  private readonly capitalCurrencyService = inject(CapitalCurrencyService);
   private readonly exchangeService = inject(ExchangeService);
   private readonly dialogService = inject(DialogService);
   private readonly authService = inject(AuthService);
@@ -45,7 +55,7 @@ export class CapitalsComponent implements OnInit, OnDestroy {
     { key: 'totalIncome', title: 'Incomes', icon: 'fa-dollar-sign', style: 'cp-incomes' },
     { key: 'totalExpense', title: 'Expenses', icon: 'fa-money-bill-wave', style: 'cp-expenses', url: '/expenses' },
     { key: 'totalTransferOut', title: 'Transfer Out', icon: 'fa-arrow-up', style: 'cp-transfer-out' },
-    { key: 'totalTransferIn', title: 'Transfer In', icon: 'fa-arrow-down', style: 'cp-transfer-in' },
+    { key: 'totalTransferIn', title: 'Transfer In', icon: 'fa-arrow-down', style: 'cp-transfer-in' }
   ];
   exchanges: Exchange[] = [];
   debts: Debt[] = [];
@@ -55,16 +65,16 @@ export class CapitalsComponent implements OnInit, OnDestroy {
   sortDirection: 'asc' | 'desc' = 'asc';
   filterBy: 'onlyForSavings' | null = null;
 
-  mainCurrency: string;
+  mainCurrency = CURRENCY_DEFAULT;
 
-  sortOptions: {label: string; key: string}[] = [
+  sortOptions: { label: string; key: string }[] = [
     { label: 'custom', key: '' },
     { label: 'name', key: 'name' },
     { label: 'balance', key: 'balance' },
     { label: 'expenses', key: 'totalExpense' },
     { label: 'incomes', key: 'totalIncome' },
     { label: 'transfers in', key: 'totalTransferIn' },
-    { label: 'transfers out', key: 'totalTransferOut' },
+    { label: 'transfers out', key: 'totalTransferOut' }
   ];
 
   currencyOptions = CURRENCIES;
@@ -73,37 +83,33 @@ export class CapitalsComponent implements OnInit, OnDestroy {
 
   private queryParams$ = new Subject<void>();
   ngOnInit(): void {
-    document.title = "Deed - Capitals";
+    document.title = 'Deed - Capitals';
 
-    this.authService.user$
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(user => {
-        this.user = user;
-        this.cdr.markForCheck();
-      });
+    this.authService.user$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(user => {
+      this.user = user;
+      this.mainCurrency = user?.currency ?? this.mainCurrency;
+      this.cdr.markForCheck();
+    });
 
-    this.mainCurrency = this.user?.currency ?? CURRENCY_DEFAULT;
-
-    this.queryParams$
-      .pipe(
-        debounceTime(300),
-        takeUntilDestroyed(this.destroyRef)
-      )
-      .subscribe({
-        next: () => this.fetchCapitals()
-      })
+    this.queryParams$.pipe(debounceTime(300), takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: () => this.fetchCapitals()
+    });
 
     this.fetchCapitals();
     this.fetchExchanges();
-    this.debtService.load().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: debts => { this.debts = debts; this.cdr.markForCheck(); }
-    });
+    this.debtService
+      .load()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: debts => {
+          this.debts = debts;
+          this.cdr.markForCheck();
+        }
+      });
   }
 
   borrowedAmount(capitalId: number): number {
-    return this.debts
-      .filter(d => d.capitalId === capitalId && !d.isPaid)
-      .reduce((sum, d) => sum + d.amount, 0);
+    return this.debts.filter(d => d.capitalId === capitalId && !d.isPaid).reduce((sum, d) => sum + d.amount, 0);
   }
 
   ngOnDestroy(): void {
@@ -115,13 +121,17 @@ export class CapitalsComponent implements OnInit, OnDestroy {
       .getLatest()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: (response) => { this.exchanges = response; this.cdr.markForCheck(); },
+        next: response => {
+          this.exchanges = response;
+          this.cdr.markForCheck();
+        },
         error: () => this.popupMessageService.error('Failed to load exchanges')
       });
   }
 
   fetchCapitals(): void {
-    this.capitalService.load({
+    this.capitalService
+      .load({
         searchTerm: this.searchTerm,
         sortBy: this.selectedSortOption,
         sortDirection: this.sortDirection,
@@ -129,44 +139,36 @@ export class CapitalsComponent implements OnInit, OnDestroy {
       })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: (response) => {
+        next: response => {
           this.capitals = response;
           this.cdr.markForCheck();
         },
         error: () => this.popupMessageService.error('Failed to load capitals')
-    });
+      });
   }
 
-  onFilterChange(): void {
+  reload(): void {
     this.queryParams$.next();
   }
 
-  onSearchChange(): void {
-    this.queryParams$.next();
-  }
-
-  onSortChange(): void {
-    this.queryParams$.next();
-  }
-
-  onSortDirectionChange(): void {
+  toggleSortDirection(): void {
     this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
-    this.queryParams$.next();
+    this.reload();
   }
 
-  onCurrencyChange(event: Event): void {
-    const newCurrency = (event.target as HTMLSelectElement).value;
+  changeCurrency(currency: string): void {
+    if (!currency) return;
 
-    if (newCurrency) {
-      this.userSettingsService.patch({
-        currency: newCurrency
-      }).subscribe({
+    this.userSettingsService
+      .patch({ currency })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
         next: () => {
-          this.mainCurrency = newCurrency;
-          this.popupMessageService.success(`Shown currency updated to <b>${this.mainCurrency}</b>`);
+          this.mainCurrency = currency;
+          this.popupMessageService.success(`Shown currency updated to ${currency}`);
+          this.cdr.markForCheck();
         }
       });
-    }
   }
 
   toggleEditDialog(capital: CapitalResponse) {
@@ -174,22 +176,23 @@ export class CapitalsComponent implements OnInit, OnDestroy {
       data: { capital }
     });
 
-    ref
-      .afterClosed$
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (request: UpdateCapitalRequest | null) => {
-          if (request) {
-            this.capitalService
-              .update(request.id, request)
-              .pipe(takeUntilDestroyed(this.destroyRef))
-              .subscribe({
-                next: () => this.capitalUpdated(request),
-                error: () => this.popupMessageService.error('Failed to update capital')
-              });
-          }
+    ref.afterClosed$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: (request: UpdateCapitalRequest | null) => {
+        if (request) {
+          this.capitalService
+            .update(request.id, request)
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe({
+              next: () => {
+                this.capitalUpdated(request);
+                if (request.currency)
+                  this.capitalCurrencyService.offerBudgetRecalculation(request.id, request.currency);
+              },
+              error: () => this.popupMessageService.error('Failed to update capital')
+            });
         }
-      });
+      }
+    });
   }
 
   capitalUpdated(request: UpdateCapitalRequest): void {
@@ -211,24 +214,21 @@ export class CapitalsComponent implements OnInit, OnDestroy {
   openToCreateCapitalDialog(): void {
     const dialogRef = this.dialogService.open(AddCapitalDialogComponent);
 
-    dialogRef
-      .afterClosed$
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (request: AddCapitalRequest | null) => {
-          if (request) {
-            this.capitalService.create(request)
-              .pipe(takeUntilDestroyed(this.destroyRef))
-              .subscribe({
-                next: (id) => {
-                  this.addCapitalToTheList(id, request);
-                },
-                error: () => this.popupMessageService.error('Failed to create capital')
-              });
-          }
+    dialogRef.afterClosed$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: (request: AddCapitalRequest | null) => {
+        if (request) {
+          this.capitalService
+            .create(request)
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe({
+              next: id => {
+                this.addCapitalToTheList(id, request);
+              },
+              error: () => this.popupMessageService.error('Failed to create capital')
+            });
         }
       }
-    );
+    });
   }
 
   addCapitalToTheList(id: number, request: AddCapitalRequest): void {
@@ -253,45 +253,53 @@ export class CapitalsComponent implements OnInit, OnDestroy {
 
   get totalCapitalBalance(): number {
     return this.capitals.reduce(
-      (sum, capital) => capital.includeInTotal
-        ? sum + convertCurrency(Number(capital.balance) || 0, capital.currency, this.mainCurrency, this.exchanges)
-        : sum,
+      (sum, capital) =>
+        capital.includeInTotal
+          ? sum + convertCurrency(Number(capital.balance) || 0, capital.currency, this.mainCurrency, this.exchanges)
+          : sum,
       0
     );
   }
 
   toggleIncludeInTotal(id: number): void {
-    const capital = this.capitals.find(c => c.id === id);
-
-    if (capital) {
-      this.capitalService
-        .patchIncludeTotal(id, !capital.includeInTotal)
-        .pipe(takeUntilDestroyed(this.destroyRef))
-        .subscribe({
-          next: () => {
-            capital.includeInTotal = !capital.includeInTotal;
-            this.popupMessageService.success(`${capital.name} ${capital.includeInTotal ? 'included into' : 'excluded from'} total balance`);
-          },
-          error: () => this.popupMessageService.error('Failed to update capital')
-        });
-    }
+    this.patchCapital(
+      id,
+      capital => this.capitalService.patchIncludeTotal(id, !capital.includeInTotal),
+      capital => {
+        capital.includeInTotal = !capital.includeInTotal;
+        return `${capital.name} ${capital.includeInTotal ? 'included into' : 'excluded from'} total balance`;
+      }
+    );
   }
 
   toggleSavingsOnly(id: number): void {
-    const capital = this.capitals.find(c => c.id === id);
+    this.patchCapital(
+      id,
+      capital => this.capitalService.patchSavingsOnly(id, !capital.onlyForSavings),
+      capital => {
+        capital.onlyForSavings = !capital.onlyForSavings;
+        return `${capital.name} set to ${capital.onlyForSavings ? 'only for savings' : 'regular'} capital`;
+      }
+    );
+  }
 
-    if (capital) {
-      this.capitalService
-        .patchSavingsOnly(id, !capital.onlyForSavings)
-        .pipe(takeUntilDestroyed(this.destroyRef))
-        .subscribe({
-          next: () => {
-            capital.onlyForSavings = !capital.onlyForSavings;
-            this.popupMessageService.success(`${capital.name} set to ${capital.onlyForSavings ? 'only for savings' : 'regular'} capital`);
-          },
-          error: () => this.popupMessageService.error('Failed to update capital')
-        });
-    }
+  private patchCapital(
+    id: number,
+    request: (capital: CapitalResponse) => Observable<unknown>,
+    apply: (capital: CapitalResponse) => string
+  ): void {
+    const capital = this.capitals.find(c => c.id === id);
+    if (!capital) return;
+
+    request(capital)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.popupMessageService.success(apply(capital));
+          this.cdr.markForCheck();
+        },
+        error: () => this.popupMessageService.error('Failed to update capital')
+      });
   }
 
   deleteCapital(id: number): void {
@@ -302,7 +310,7 @@ export class CapitalsComponent implements OnInit, OnDestroy {
           Are you sure you want to perform this action?<br><br>
           <b>Note!</b> It may contain references and cannot be deleted.`,
         icon: 'danger'
-      },
+      }
     });
 
     ref.afterClosed$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
@@ -314,7 +322,7 @@ export class CapitalsComponent implements OnInit, OnDestroy {
             .subscribe({
               next: () => {
                 this.capitals = this.capitals.filter(x => x.id !== id);
-                this.popupMessageService.success("The capital was successful deleted.");
+                this.popupMessageService.success('The capital was successful deleted.');
               },
               error: () => this.popupMessageService.error('Failed to delete capital')
             });
@@ -336,7 +344,7 @@ export class CapitalsComponent implements OnInit, OnDestroy {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: () => {
-          this.popupMessageService.success("Sort order is changed.");
+          this.popupMessageService.success('Sort order is changed.');
         },
         error: () => this.popupMessageService.error('Failed to update sort order')
       });

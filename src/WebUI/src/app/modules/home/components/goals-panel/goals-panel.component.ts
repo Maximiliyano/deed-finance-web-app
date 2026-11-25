@@ -2,6 +2,7 @@ import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-
 import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { EMPTY, catchError, finalize } from 'rxjs';
+import { PanelStateComponent } from '../../../../shared/components/panel-state/panel-state.component';
 import { DialogService } from '../../../../shared/components/dialogs/services/dialog.service';
 import { SortOption, SortToolbarComponent } from '../../../../shared/components/sort-toolbar/sort-toolbar.component';
 import { PopupMessageService } from '../../../../shared/services/popup-message.service';
@@ -12,30 +13,16 @@ import { Goal } from '../../models/goal.model';
 import { DashboardStore } from '../../services/dashboard-store.service';
 import { GoalService, UpdateGoalRequest } from '../../services/goal.service';
 import { GoalDialogComponent, GoalDialogData } from '../goal-dialog/goal-dialog.component';
+import { allocateGoal, summarizeBudget, toTip } from './goal-allocation';
 
 type GoalSort = 'custom' | 'progress-desc' | 'progress-asc' | 'name';
-
-interface GoalBudgetSummary {
-  freeBudget: number;
-  reservedForDeadlines: number;
-  availableForOpenGoals: number;
-  openGoalCount: number;
-}
-
-interface GoalAllocation {
-  kind: 'deadline' | 'allocated' | 'overdue' | 'no-budget';
-  monthly: number;
-  months: number;
-  remaining: number;
-  feasible: boolean;
-}
 
 @Component({
   selector: 'app-goals-panel',
   templateUrl: './goals-panel.component.html',
   styleUrl: './goals-panel.component.scss',
   standalone: true,
-  imports: [SharedModule, DragDropModule, SortToolbarComponent],
+  imports: [SharedModule, DragDropModule, SortToolbarComponent, PanelStateComponent],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class GoalsPanelComponent implements OnInit {
@@ -64,46 +51,42 @@ export class GoalsPanelComponent implements OnInit {
     const goals = [...this.storeGoals()];
 
     switch (this.sortBy()) {
-      case 'progress-desc': return goals.sort((a, b) => this.goalProgress(b) - this.goalProgress(a));
-      case 'progress-asc': return goals.sort((a, b) => this.goalProgress(a) - this.goalProgress(b));
-      case 'name': return goals.sort((a, b) => a.title.localeCompare(b.title));
-      default: return goals.sort((a, b) => a.orderIndex - b.orderIndex);
+      case 'progress-desc':
+        return goals.sort((a, b) => this.goalProgress(b) - this.goalProgress(a));
+      case 'progress-asc':
+        return goals.sort((a, b) => this.goalProgress(a) - this.goalProgress(b));
+      case 'name':
+        return goals.sort((a, b) => a.title.localeCompare(b.title));
+      default:
+        return goals.sort((a, b) => a.orderIndex - b.orderIndex);
     }
   });
 
-  readonly budgetSummary = computed<GoalBudgetSummary>(() => {
-    const free = Math.max(0, this.store.profit());
-    let reserved = 0;
-    let openCount = 0;
+  private readonly remainingOf = (goal: Goal): number =>
+    convertCurrency(
+      goal.targetAmount - goal.currentAmount,
+      goal.currency,
+      this.store.userCurrency(),
+      this.store.exchanges()
+    );
+
+  readonly budgetSummary = computed(() => summarizeBudget(this.goals(), this.store.profit(), this.remainingOf));
+
+  readonly tips = computed(() => {
+    const summary = this.budgetSummary();
+    const tips = new Map<number, ReturnType<typeof toTip>>();
 
     for (const goal of this.goals()) {
-      if (goal.isCompleted) continue;
-      const remaining = this.remaining(goal);
-      if (remaining <= 0) continue;
-
-      if (goal.deadline) {
-        const months = this.monthsUntil(goal.deadline);
-        if (months > 0) reserved += Math.ceil(remaining / months);
-      } else {
-        openCount++;
-      }
+      const allocation = allocateGoal(goal, summary, this.remainingOf);
+      if (allocation) tips.set(goal.id, toTip(allocation));
     }
 
-    return {
-      freeBudget: free,
-      reservedForDeadlines: Math.min(free, reserved),
-      availableForOpenGoals: Math.max(0, free - reserved),
-      openGoalCount: openCount
-    };
-  });
-
-  readonly allocations = computed(() => {
-    const summary = this.budgetSummary();
-    return new Map(this.goals().map(goal => [goal.id, this.allocate(goal, summary)]));
+    return tips;
   });
 
   ngOnInit(): void {
-    this.goalService.load()
+    this.goalService
+      .load()
       .pipe(
         catchError(() => EMPTY),
         finalize(() => this.loaded.set(true)),
@@ -126,7 +109,8 @@ export class GoalsPanelComponent implements OnInit {
 
     const moved = [...this.goals()];
     moveItemInArray(moved, event.previousIndex, event.currentIndex);
-    this.goalService.updateOrder(moved.map((goal, index) => ({ id: goal.id, orderIndex: index })))
+    this.goalService
+      .updateOrder(moved.map((goal, index) => ({ id: goal.id, orderIndex: index })))
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe();
   }
@@ -140,57 +124,32 @@ export class GoalsPanelComponent implements OnInit {
 
       if (goal) {
         const request: UpdateGoalRequest = { ...result, isCompleted: result.isCompleted ?? goal.isCompleted };
-        this.goalService.update(goal.id, request).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-          next: () => this.popup.success('Goal updated'),
-          error: () => this.popup.error('Failed to update goal')
-        });
+        this.goalService
+          .update(goal.id, request)
+          .pipe(takeUntilDestroyed(this.destroyRef))
+          .subscribe({
+            next: () => this.popup.success('Goal updated'),
+            error: () => this.popup.error('Failed to update goal')
+          });
       } else {
-        this.goalService.create(result).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-          next: () => this.popup.success('Goal added'),
-          error: () => this.popup.error('Failed to add goal')
-        });
+        this.goalService
+          .create(result)
+          .pipe(takeUntilDestroyed(this.destroyRef))
+          .subscribe({
+            next: () => this.popup.success('Goal added'),
+            error: () => this.popup.error('Failed to add goal')
+          });
       }
     });
   }
 
   delete(goal: Goal): void {
-    this.goalService.delete(goal.id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: () => this.popup.success('Goal deleted'),
-      error: () => this.popup.error('Failed to delete goal')
-    });
-  }
-
-  private monthsUntil(deadline: string): number {
-    const now = new Date();
-    const date = new Date(deadline);
-    return Math.max(0, (date.getFullYear() - now.getFullYear()) * 12 + (date.getMonth() - now.getMonth()));
-  }
-
-  private remaining(goal: Goal): number {
-    return convertCurrency(goal.targetAmount - goal.currentAmount, goal.currency, this.store.userCurrency(), this.store.exchanges());
-  }
-
-  private allocate(goal: Goal, summary: GoalBudgetSummary): GoalAllocation | null {
-    if (goal.isCompleted || !goal.targetAmount) return null;
-
-    const remaining = this.remaining(goal);
-    if (remaining <= 0) return null;
-
-    if (goal.deadline) {
-      const months = this.monthsUntil(goal.deadline);
-      if (months === 0) return { kind: 'overdue', monthly: Math.ceil(remaining), months: 0, remaining, feasible: false };
-
-      const monthly = Math.ceil(remaining / months);
-      const feasible = summary.freeBudget >= summary.reservedForDeadlines && summary.freeBudget >= monthly;
-      return { kind: 'deadline', monthly, months, remaining, feasible };
-    }
-
-    if (summary.openGoalCount === 0 || summary.availableForOpenGoals <= 0) {
-      return { kind: 'no-budget', monthly: 0, months: 0, remaining, feasible: false };
-    }
-
-    const share = summary.availableForOpenGoals / summary.openGoalCount;
-    const months = share > 0 ? Math.ceil(remaining / share) : 0;
-    return { kind: 'allocated', monthly: Math.round(share), months, remaining, feasible: true };
+    this.goalService
+      .delete(goal.id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => this.popup.success('Goal deleted'),
+        error: () => this.popup.error('Failed to delete goal')
+      });
   }
 }

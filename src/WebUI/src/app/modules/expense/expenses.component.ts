@@ -25,16 +25,22 @@ import { TagService } from './components/tag.service';
 import { Tag } from './models/tag';
 import { UtilityBillService } from './services/utility-bill.service';
 import { CreateUtilityBillRequest, PayUtilityBillRequest, UtilityBillResponse } from './models/utility-bill';
-import { UtilityBillDialogComponent, UtilityBillDialogData } from './components/utility-bill-dialog/utility-bill-dialog.component';
-import { PayUtilityBillDialogComponent, PayUtilityBillDialogData } from './components/pay-utility-bill-dialog/pay-utility-bill-dialog.component';
+import {
+  UtilityBillDialogComponent,
+  UtilityBillDialogData
+} from './components/utility-bill-dialog/utility-bill-dialog.component';
+import {
+  PayUtilityBillDialogComponent,
+  PayUtilityBillDialogData
+} from './components/pay-utility-bill-dialog/pay-utility-bill-dialog.component';
 import { CURRENCY_DEFAULT } from '../../core/types/currency-type';
 
 @Component({
-    selector: 'app-expenses',
-    templateUrl: './expenses.component.html',
-    styleUrl: './expenses.component.scss',
-    standalone: false,
-    changeDetection: ChangeDetectionStrategy.OnPush
+  selector: 'app-expenses',
+  templateUrl: './expenses.component.html',
+  styleUrl: './expenses.component.scss',
+  standalone: false,
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ExpensesComponent implements OnInit {
   private readonly router = inject(Router);
@@ -58,10 +64,11 @@ export class ExpensesComponent implements OnInit {
   tags: Tag[] = [];
 
   selectedCapital: CapitalResponse | null = null;
+  private capitalIdFromQuery: number | null = null;
   openedExpensesCategoryId: number | null = null;
 
   defaultCurrency: string;
-  PerPeriodType=  PerPeriodType;
+  PerPeriodType = PerPeriodType;
 
   activeTab: 'expenses' | 'bills' = 'expenses';
   utilityBills: UtilityBillResponse[] = [];
@@ -86,10 +93,14 @@ export class ExpensesComponent implements OnInit {
   }
 
   fetchUtilityBills(): void {
-    this.utilityBillService.getAll()
+    this.utilityBillService
+      .getAll()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: (bills) => { this.utilityBills = bills; this.cdr.markForCheck(); }
+        next: bills => {
+          this.utilityBills = bills;
+          this.cdr.markForCheck();
+        }
       });
   }
 
@@ -103,19 +114,25 @@ export class ExpensesComponent implements OnInit {
     ref.afterClosed$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((result: CreateUtilityBillRequest | null) => {
       if (!result) return;
       if (bill) {
-        this.utilityBillService.update(bill.id, result).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-          next: () => {
-            this.popupMessageService.success('Utility bill updated');
-            this.fetchUtilityBills();
-          }
-        });
+        this.utilityBillService
+          .update(bill.id, result)
+          .pipe(takeUntilDestroyed(this.destroyRef))
+          .subscribe({
+            next: () => {
+              this.popupMessageService.success('Utility bill updated');
+              this.fetchUtilityBills();
+            }
+          });
       } else {
-        this.utilityBillService.create(result).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-          next: () => {
-            this.popupMessageService.success('Utility bill added');
-            this.fetchUtilityBills();
-          }
-        });
+        this.utilityBillService
+          .create(result)
+          .pipe(takeUntilDestroyed(this.destroyRef))
+          .subscribe({
+            next: () => {
+              this.popupMessageService.success('Utility bill added');
+              this.fetchUtilityBills();
+            }
+          });
       }
     });
   }
@@ -125,7 +142,8 @@ export class ExpensesComponent implements OnInit {
     const ref = this.dialogService.open(PayUtilityBillDialogComponent, { data });
     ref.afterClosed$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((result: PayUtilityBillRequest | null) => {
       if (!result) return;
-      this.utilityBillService.pay(bill.id, result)
+      this.utilityBillService
+        .pay(bill.id, result)
         .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe({
           next: () => {
@@ -149,22 +167,29 @@ export class ExpensesComponent implements OnInit {
     dialogRef.afterClosed$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (confirmed: boolean) => {
         if (!confirmed) return;
-        this.utilityBillService.delete(bill.id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-          next: () => {
-            this.popupMessageService.success('Utility bill deleted');
-            this.fetchUtilityBills();
-          }
-        });
+        this.utilityBillService
+          .delete(bill.id)
+          .pipe(takeUntilDestroyed(this.destroyRef))
+          .subscribe({
+            next: () => {
+              this.popupMessageService.success('Utility bill deleted');
+              this.fetchUtilityBills();
+            }
+          });
       }
     });
   }
 
   get capitalOptions(): SelectOptionModel[] {
-    return this.capitals.map(x => { return { key: x.name, value: x.id } })
+    return this.capitals.map(x => {
+      return { key: x.name, value: x.id };
+    });
   }
 
   get categoryOptions(): SelectOptionModel[] {
-    return this.currentCategories.map(x => { return { key: x.name, value: x.id } });
+    return this.currentCategories.map(x => {
+      return { key: x.name, value: x.id };
+    });
   }
 
   get capitalBalance(): number {
@@ -172,7 +197,10 @@ export class ExpensesComponent implements OnInit {
   }
 
   get capitalTotalExpenses(): number {
-    return this.selectedCapital?.totalExpense ?? this.expenseCategories.flatMap(ec => ec.expenses).reduce((sum, expense) => sum + expense.amount, 0);
+    return (
+      this.selectedCapital?.totalExpense ??
+      this.expenseCategories.flatMap(ec => ec.expenses).reduce((sum, expense) => sum + expense.amount, 0)
+    );
   }
 
   get capitalCurrency(): string {
@@ -180,13 +208,21 @@ export class ExpensesComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    document.title = "Deed - Expenses";
+    document.title = 'Deed - Expenses';
 
-    this.authService.me().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: (user) => {
-        this.defaultCurrency = user?.currency ?? CURRENCY_DEFAULT;
-        this.cdr.markForCheck();
-      }
+    this.authService
+      .me()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: user => {
+          this.defaultCurrency = user?.currency ?? CURRENCY_DEFAULT;
+          this.cdr.markForCheck();
+        }
+      });
+
+    this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(params => {
+      this.capitalIdFromQuery = Number(params.get('capitalId')) || null;
+      this.selectCapitalFromQuery();
     });
 
     this.fetchExpenses();
@@ -194,7 +230,7 @@ export class ExpensesComponent implements OnInit {
     this.fetchCategories();
     this.fetchTags();
   }
-
+
   isPlannedPeriodShown(expenseCategory: ExpenseCategoryResponse): boolean {
     return expenseCategory.plannedPeriodAmount > 0.0 && expenseCategory.periodType !== PerPeriodType.None;
   }
@@ -208,11 +244,11 @@ export class ExpensesComponent implements OnInit {
       .search()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: (tags) => {
+        next: tags => {
           this.tags = tags;
           this.cdr.markForCheck();
         }
-      })
+      });
   }
 
   fetchCategories(): void {
@@ -220,7 +256,7 @@ export class ExpensesComponent implements OnInit {
       .load(CategoryType.Expenses, true)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: (responses) => {
+        next: responses => {
           this.currentCategories = responses.filter(c => !c.isDeleted);
           this.deletedCategories = responses.filter(c => c.isDeleted);
           this.cdr.markForCheck();
@@ -233,7 +269,10 @@ export class ExpensesComponent implements OnInit {
       .load(this.selectedCapital?.id)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: (responses) => { this.expenseCategories = responses; this.cdr.markForCheck(); }
+        next: responses => {
+          this.expenseCategories = responses;
+          this.cdr.markForCheck();
+        }
       });
   }
 
@@ -247,156 +286,99 @@ export class ExpensesComponent implements OnInit {
       })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: (responses) => {
+        next: responses => {
           this.capitals = responses;
-          this.handleQueryParams();
-          this.cdr.markForCheck();
+          this.selectCapitalFromQuery();
         }
       });
   }
 
-  handleQueryParams(): void {
-    this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: (params) => {
-        const queryCapitalId = params.get('capitalId');
-        const capital = this.capitals.find(c => c.id === Number(queryCapitalId));
-        this.selectedCapital = capital ?? null;
-        this.cdr.markForCheck();
-      }
-    })
+  private selectCapitalFromQuery(): void {
+    this.selectedCapital = this.capitals.find(c => c.id === this.capitalIdFromQuery) ?? null;
+    this.cdr.markForCheck();
   }
 
   onCapitalChange(capital: CapitalResponse | null): void {
-    if (capital) {
-      this.router.navigate([], {
-        relativeTo: this.route,
-        queryParams: { capitalId: capital.id },
-        queryParamsHandling: 'merge'
-      })
-    }
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { capitalId: capital?.id ?? null },
+      queryParamsHandling: 'merge'
+    });
     this.selectedCapital = capital;
     this.fetchExpenses();
   }
 
+  private refreshExpenses(message: string): void {
+    this.popupMessageService.success(message);
+    this.fetchExpenses();
+    this.fetchCapitals();
+  }
+
   toggleExpensesList(categoryId: number): void {
     if (this.openedExpensesCategoryId === categoryId) {
-      this.openedExpensesCategoryId = null
+      this.openedExpensesCategoryId = null;
     } else {
       this.openedExpensesCategoryId = categoryId;
     }
   }
 
   toggleCategories(): void {
-
     const categoriesDialogRef = this.dialogService.open(CategoriesDialogComponent, {
       data: {
-        type: "Expense",
+        type: 'Expense',
         currency: this.capitalCurrency,
         originalCategories: this.currentCategories,
         deletedCategories: this.deletedCategories
-      },
+      }
     });
 
-    categoriesDialogRef
-      .afterClosed$
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (responses: CategoryResponse[]) => {
-          if (responses?.length) {
-            const normalized = responses.map(c => ({
-              ...c,
-              periodType: Number(c.periodType)
-            }));
+    categoriesDialogRef.afterClosed$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: (responses: CategoryResponse[]) => {
+        if (responses?.length) {
+          const normalized = responses.map(c => ({
+            ...c,
+            periodType: Number(c.periodType)
+          }));
 
-            this.categoryService.updateRange(normalized)
-              .pipe(takeUntilDestroyed(this.destroyRef))
-              .subscribe({
-                next: () => {
-                  this.popupMessageService.success('Categories successfully updated.');
-                  this.fetchCategories();
-                  this.fetchExpenses();
-                }
-              });
-          } else {
-            this.fetchCategories();
-            this.fetchExpenses();
-          }
+          this.categoryService
+            .updateRange(normalized)
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe({
+              next: () => {
+                this.popupMessageService.success('Categories successfully updated.');
+                this.fetchCategories();
+                this.fetchExpenses();
+              }
+            });
+        } else {
+          this.fetchCategories();
+          this.fetchExpenses();
         }
-      });
+      }
+    });
   }
 
   toggleCreateDialog(): void {
     const dialogRef = this.dialogService.open(AddExpenseDialogComponent, {
-        data: {
-          capitalsOptions: this.capitalOptions,
-          categoryOptions: this.categoryOptions,
-          tags: this.tags
-        },
+      data: {
+        capitalsOptions: this.capitalOptions,
+        categoryOptions: this.categoryOptions,
+        tags: this.tags
+      }
     });
 
-    dialogRef
-      .afterClosed$
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (request: CreateExpenseRequest) => {
-          if (request) {
-            this.expenseService.create(request)
-              .pipe(takeUntilDestroyed(this.destroyRef))
-              .subscribe({
-                next: (id) => {
-                  this.addExpenseToList(id, request);
-                  this.cdr.markForCheck();
-                }
-              });
-          }
+    dialogRef.afterClosed$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: (request: CreateExpenseRequest) => {
+        if (request) {
+          this.expenseService
+            .create(request)
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe({
+              next: () => this.refreshExpenses('New expense added')
+            });
         }
       }
-    );
-  }
-
-  addExpenseToList(expenseId: number, request: CreateExpenseRequest): void {
-    const existingCategoryExpense = this.expenseCategories.find(c => c.categoryId === request.categoryId);
-
-    const newExpense: ExpenseResponse = {
-      id: expenseId,
-      capitalId: request.capitalId,
-      amount: request.amount,
-      paymentDate: request.paymentDate,
-      purpose: request.purpose,
-      tagNames: request.tagNames
-    };
-
-    if (existingCategoryExpense) {
-      existingCategoryExpense.categorySum = existingCategoryExpense.categorySum + request.amount;
-      existingCategoryExpense.expenses.push(newExpense);
-    } else {
-      const category = this.currentCategories.find(c => c.id === request.categoryId);
-      if (!category) return;
-
-      this.expenseCategories.push({
-        categoryId: request.categoryId,
-        name: category.name,
-        categorySum: request.amount,
-        percentage: 0,
-        plannedPeriodAmount: category.periodAmount,
-        periodType: category.periodType,
-        expenses: [newExpense]
-      });
-    }
-
-    const capital = this.capitals.find(c => c.id === request.capitalId);
-    if (!capital) return;
-
-    capital.balance -= newExpense.amount;
-
-    const totalSum = this.expenseCategories.reduce((sum, c) => sum + c.categorySum, 0);
-    this.expenseCategories.forEach(c => {
-        c.percentage = totalSum === 0
-            ? 0
-            : parseFloat(((c.categorySum / totalSum) * 100).toFixed(2));
     });
-
-    this.popupMessageService.success(`New expense added`);
   }
 
   toggleEditExpenseDialog(expense: ExpenseResponse, oldCategoryId: number): void {
@@ -410,24 +392,21 @@ export class ExpensesComponent implements OnInit {
       }
     });
 
-    dialogRef
-      .afterClosed$
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (request: UpdateExpenseRequest | null) => {
-          if (request) {
-            this.expenseService
-              .update(request)
-              .pipe(takeUntilDestroyed(this.destroyRef))
-              .subscribe({
-                next: () => { this.updateExpense(request, oldCategoryId); this.cdr.markForCheck(); }
-              })
-          }
+    dialogRef.afterClosed$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: (request: UpdateExpenseRequest | null) => {
+        if (request) {
+          this.expenseService
+            .update(request)
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe({
+              next: () => this.refreshExpenses('Expense updated.')
+            });
         }
-      });
+      }
+    });
   }
 
-  deleteExpense(id: number, categoryId: number): void {
+  deleteExpense(id: number): void {
     const dialogRef = this.dialogService.open(ConfirmDialogComponent, {
       data: {
         title: 'Deletion of expense',
@@ -436,125 +415,17 @@ export class ExpensesComponent implements OnInit {
       }
     });
 
-    dialogRef
-      .afterClosed$
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (result: boolean) => {
-          if (result) {
-            this.expenseService
-              .delete(id)
-              .pipe(takeUntilDestroyed(this.destroyRef))
-              .subscribe({
-                next: () => {
-                  this.removeExpenseFromList(id, categoryId);
-                  this.cdr.markForCheck();
-                }
-              });
-          }
+    dialogRef.afterClosed$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: (result: boolean) => {
+        if (result) {
+          this.expenseService
+            .delete(id)
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe({
+              next: () => this.refreshExpenses('Expense deleted')
+            });
         }
       }
-    );
-  }
-
-  updateExpense(update: UpdateExpenseRequest, currentCategoryId: number): void {
-    const currentExpenseCategory = this.expenseCategories.find(ec => ec.categoryId === currentCategoryId);
-    if (!currentExpenseCategory) return;
-
-    const currentExpense = currentExpenseCategory.expenses.find(e => e.id === update.id);
-    if (!currentExpense) return;
-
-    const currentCapital = this.capitals.find(c => c.id === currentExpense.capitalId);
-    if (!currentCapital) return;
-
-    currentExpense.purpose = update.purpose ?? null;
-    currentExpense.paymentDate = new Date(update.date ?? currentExpense.paymentDate);
-
-    if (!!update.amount) {
-      const difference = update.amount - currentExpense.amount;
-
-      currentExpense.amount = update.amount;
-
-      currentExpenseCategory.categorySum += difference;
-      currentCapital.balance -= difference;
-    }
-
-    if (!!update.capitalId) {
-      const newCapital = this.capitals.find(c => c.id === update.capitalId);
-      if (!newCapital) return;
-
-      currentCapital.balance += currentExpense.amount;
-
-      newCapital.balance -= currentExpense.amount;
-
-      currentExpense.capitalId = update.capitalId;
-    }
-
-    if (!!update.categoryId && update.categoryId !== currentCategoryId) {
-      const newCategory = this.expenseCategories.find(ec => ec.categoryId === update.categoryId);
-
-      currentExpenseCategory.categorySum -= currentExpense.amount;
-      currentExpenseCategory.expenses = currentExpenseCategory.expenses.filter(e => e.id !== update.id);
-
-      if (currentExpenseCategory.categorySum === 0) {
-        this.expenseCategories = this.expenseCategories.filter(ec => ec.categoryId !== currentCategoryId);
-      }
-
-      if (newCategory) {
-        newCategory.expenses.push(currentExpense);
-        newCategory.categorySum += currentExpense.amount;
-      }
-      else {
-        const category = this.currentCategories.find(c => c.id == update.categoryId);
-        if (!category) return;
-
-        this.expenseCategories.push({
-          categoryId: category.id,
-          name: category.name,
-          categorySum: currentExpense.amount,
-          percentage: 0,
-          plannedPeriodAmount: category.periodAmount,
-          periodType: category.periodType,
-          expenses: [currentExpense]
-        });
-
-        const totalSum = this.expenseCategories.reduce((sum, c) => sum + c.categorySum, 0);
-        this.expenseCategories.forEach(c => {
-            c.percentage = totalSum === 0
-                ? 0
-                : parseFloat(((c.categorySum / totalSum) * 100).toFixed(2));
-        });
-      }
-    }
-
-    this.popupMessageService.success('Expense updated.');
-  }
-
-  removeExpenseFromList(id: number, categoryId: number): void {
-    const response = this.expenseCategories.find(e => e.categoryId === categoryId);
-
-    if (!response) {
-      return;
-    }
-
-    const expense = response.expenses.find(e => e.id === id);
-
-    if (!expense) {
-      return
-    }
-
-    const capital = this.capitals.find(c => c.id === expense.capitalId);
-    if (capital) {
-      capital.balance += expense.amount;
-    }
-
-    response.categorySum -= expense.amount;
-    response.expenses = response.expenses.filter(e => e.id !== id);
-
-    if (response.categorySum === 0) {
-      this.expenseCategories = this.expenseCategories.filter(e => e.categoryId !== response.categoryId);
-    }
-
-    this.popupMessageService.success('Expense deleted');
+    });
   }
 }

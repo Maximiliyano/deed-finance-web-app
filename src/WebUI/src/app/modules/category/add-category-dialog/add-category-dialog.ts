@@ -13,7 +13,6 @@ import { FormComponent } from '../../../shared/components/forms/form.component';
 @Component({
   selector: 'app-add-category-dialog',
   templateUrl: './add-category-dialog.html',
-  styleUrl: './add-category-dialog.scss',
   standalone: true,
   imports: [SharedModule, FormComponent],
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -38,7 +37,9 @@ export class AddCategoryDialog implements OnInit {
   private initForm(): void {
     this.form = new FormGroup({
       Name: new FormControl('', [Validators.required, Validators.minLength(1), Validators.maxLength(32)]),
-      Type: new FormControl({ value: CategoryType.Expenses, disabled: this.categoryTypeOptions.length < 2 }, [Validators.required]),
+      Type: new FormControl({ value: CategoryType.Expenses, disabled: this.categoryTypeOptions.length < 2 }, [
+        Validators.required
+      ]),
       PeriodAmount: new FormControl(0, [Validators.min(0)]),
       PeriodType: new FormControl(PerPeriodType.None)
     });

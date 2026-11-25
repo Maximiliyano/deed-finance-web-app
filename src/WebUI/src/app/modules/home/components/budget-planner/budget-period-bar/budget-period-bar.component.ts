@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { SharedModule } from '../../../../../shared/shared.module';
-import { DashboardStore } from '../../../services/dashboard-store.service';
+import { DashboardStore, PlanFilter } from '../../../services/dashboard-store.service';
 
 @Component({
   selector: 'app-budget-period-bar',
@@ -12,6 +12,12 @@ import { DashboardStore } from '../../../services/dashboard-store.service';
 })
 export class BudgetPeriodBarComponent {
   protected readonly store = inject(DashboardStore);
+
+  protected readonly periods: { key: PlanFilter; label: string }[] = [
+    { key: 'day', label: 'Day' },
+    { key: 'month', label: 'Month' },
+    { key: 'year', label: 'Year' }
+  ];
 
   protected readonly selectedDay = computed(() => {
     const d = this.store.selectedDate();
@@ -27,22 +33,13 @@ export class BudgetPeriodBarComponent {
 
   protected readonly selectedPeriodLabel = computed(() => {
     const options: Intl.DateTimeFormatOptions =
-      this.store.planFilter() === 'day' ? { year: 'numeric', month: 'short', day: 'numeric' } :
-      this.store.planFilter() === 'year' ? { year: 'numeric' } :
-      { year: 'numeric', month: 'long' };
+      this.store.planFilter() === 'day'
+        ? { year: 'numeric', month: 'short', day: 'numeric' }
+        : this.store.planFilter() === 'year'
+          ? { year: 'numeric' }
+          : { year: 'numeric', month: 'long' };
 
     return this.store.selectedDate().toLocaleDateString(undefined, options);
-  });
-
-  protected readonly scaledLoss = computed(() => this.store.loss() * this.store.planFactor());
-  protected readonly scaledLossInDefault = computed(() => this.store.lossInDefaultCurrency() * this.store.planFactor());
-  protected readonly scaledProfit = computed(() => this.store.profit() * this.store.planFactor());
-  protected readonly scaledProfitInDefault = computed(() => this.store.profitInDefaultCurrency() * this.store.planFactor());
-  protected readonly isProfitable = computed(() => this.store.profit() >= 0);
-
-  protected readonly lossPercent = computed(() => {
-    const capital = this.store.totalCapital();
-    return capital > 0 ? Math.min(100, Math.round((this.store.loss() / capital) * 100)) : 0;
   });
 
   protected onDayChange(value: string): void {

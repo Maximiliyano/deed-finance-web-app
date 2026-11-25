@@ -1,17 +1,21 @@
 <div class="confirm-dialog">
-  <div class="confirm-icon-wrap">
-    @switch(icon) {
-      @case('warning') { <div class="confirm-icon warning"><i class="fas fa-triangle-exclamation"></i></div> }
-      @case('danger')  { <div class="confirm-icon danger"><i class="fas fa-circle-xmark"></i></div> }
-      @case('info')    { <div class="confirm-icon info"><i class="fas fa-circle-info"></i></div> }
+  @switch (icon) {
+    @case ('warning') {
+      <div class="confirm-icon warning"><i class="fas fa-triangle-exclamation"></i></div>
     }
-  </div>
+    @case ('danger') {
+      <div class="confirm-icon danger"><i class="fas fa-circle-xmark"></i></div>
+    }
+    @case ('info') {
+      <div class="confirm-icon info"><i class="fas fa-circle-info"></i></div>
+    }
+  }
 
   <h2 class="confirm-title">{{ title }}</h2>
   <p class="confirm-message" [innerHTML]="message"></p>
 
   <div class="confirm-actions">
-    <button class="btn btn-secondary" (click)="handleCancel()">{{ cancelText }}</button>
-    <button class="btn btn-danger" (click)="handleConfirm()">{{ submitText }}</button>
+    <button type="button" class="btn btn-secondary" (click)="handleCancel()">{{ cancelText }}</button>
+    <button type="button" class="btn btn-danger" (click)="handleConfirm()">{{ submitText }}</button>
   </div>
 </div>

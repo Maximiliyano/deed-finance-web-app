@@ -15,7 +15,7 @@
   gap: 0.625rem;
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 0.625rem;
+  border-radius: var(--radius);
   box-shadow: var(--shadow-md);
   padding: 0.75rem 2.25rem 0.75rem 0.875rem;
   font-size: 0.875rem;
@@ -32,8 +32,15 @@
   &.error   { border-left: 3px solid var(--danger);   .popup-icon { color: var(--danger-text); } }
   &.info    { border-left: 3px solid var(--primary);  .popup-icon { color: var(--primary); } }
   &.fade-out { animation: toast-out 0.18s ease-in forwards; }
+  &.clickable {
+    cursor: pointer;
+    transition: border-color var(--t), background var(--t);
+    &:hover, &:focus-visible { background: var(--surface-2); border-color: var(--primary); outline: none; }
+    .popup-link { color: var(--primary); font-weight: 600; text-decoration: underline; }
+  }
 
-  .popup-icon { flex-shrink: 0; margin-top: 1px; font-size: 1rem; }
+  .popup-icon { flex-shrink: 0; margin-top: 2px; font-size: var(--fs-lg); }
+  .popup-text { white-space: pre-line; min-width: 0; }
 
   .close-btn {
     position: absolute;
@@ -44,7 +51,7 @@
     cursor: pointer;
     line-height: 1;
     padding: 0.125rem;
-    transition: color 0.15s;
+    transition: color var(--t);
     &:hover { color: var(--text); }
   }
 }

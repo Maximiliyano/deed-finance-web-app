@@ -1,14 +1,11 @@
-<form [formGroup]="form" (ngSubmit)="onSubmit()" class="modal-form">
+<form [formGroup]="form" (ngSubmit)="onSubmit()">
   @if (headerText) {
-    <div class="modal-form-header">
-      @if (headerIcon) {
-        <i class="fas {{ headerIcon }}" style="color: var(--text-muted); font-size: 0.875rem"></i>
-      }
-      <h2 class="modal-form-title">{{ headerText }}</h2>
+    <div class="dialog-header">
+      <h2 class="dialog-title">{{ headerText }}</h2>
     </div>
   }
 
-  <div class="modal-form-body">
+  <div class="dialog-body">
     @for (field of fields; track field.controlName) {
       <div class="form-group">
         @switch (field.input?.type) {
@@ -16,16 +13,16 @@
             <label class="checkbox-row">
               <input
                 type="checkbox"
+                class="checkbox"
                 [id]="field.controlName"
                 [formControlName]="field.controlName"
-                class="checkbox"
                 autocomplete="off"
-              >
+              />
               <span class="checkbox-label">{{ field.label }}</span>
             </label>
           }
           @default {
-            <label [for]="field.controlName" class="form-label">{{ field.label }}</label>
+            <label class="form-label" [for]="field.controlName">{{ field.label }}</label>
 
             @if (field.input?.type === 'number') {
               <input
@@ -37,8 +34,8 @@
               />
             } @else if (field.input) {
               <input
-                [type]="field.input.type"
                 class="input"
+                [type]="field.input.type"
                 [id]="field.controlName"
                 [formControlName]="field.controlName"
                 [placeholder]="field.input.placeholder ?? ''"
@@ -49,18 +46,11 @@
         }
 
         @if (field.selectiveInput) {
-          <app-selective-input
-            [formControlName]="field.controlName"
-            [suggestions]="field.selectiveInput.data"
-          />
+          <app-selective-input [formControlName]="field.controlName" [suggestions]="field.selectiveInput.data" />
         }
 
         @if (field.select) {
-          <select
-            [formControlName]="field.controlName"
-            class="input"
-            [class.disabled]="formControl(field.controlName)?.disabled"
-          >
+          <select class="input" [formControlName]="field.controlName">
             @if (field.select.optionCaption) {
               <option value="">{{ field.select.optionCaption }}</option>
             }
@@ -74,28 +64,25 @@
           <app-date-picker
             [formControlName]="field.controlName"
             [restrictFuture]="field.dateTimePicker.restrictFuture ?? false"
-          ></app-date-picker>
+          />
         }
 
         @if (field.textArea) {
-          <textarea
-            [formControlName]="field.controlName"
-            class="input textarea"
-          ></textarea>
+          <textarea class="input textarea" [formControlName]="field.controlName"></textarea>
         }
 
-        <app-form-error [form]="form" [controlName]="field.controlName"></app-form-error>
+        <app-form-error [form]="form" [controlName]="field.controlName" />
       </div>
     }
   </div>
 
-  <div class="modal-form-footer">
+  <div class="dialog-footer">
     @for (button of buttons; track button.text) {
       <button
+        class="btn {{ button.styles }}"
         [type]="button.type"
         [disabled]="button.disabled"
         (click)="button.onClick?.()"
-        class="btn {{ button.styles }}"
       >
         {{ button.text }}
       </button>

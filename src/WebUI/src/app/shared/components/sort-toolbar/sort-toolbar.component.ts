@@ -1,5 +1,4 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
-import { NgClass } from '@angular/common';
 
 export interface SortOption<TKey extends string = string> {
   key: TKey;
@@ -29,7 +28,7 @@ export const AMOUNT_SORT_OPTIONS: SortOption<AmountSort>[] = [
   templateUrl: './sort-toolbar.component.html',
   styleUrl: './sort-toolbar.component.scss',
   standalone: true,
-  imports: [NgClass],
+
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class SortToolbarComponent {

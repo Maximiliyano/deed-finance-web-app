@@ -1,17 +1,20 @@
 <div id="budgetEstimations" class="card">
   <div class="card-header">
-    <h2 class="card-title">Budget planner</h2>
+    <h2>Budget planner</h2>
     <div class="card-header-actions">
-      <button class="bp-charts-toggle"
-              [ngClass]="{ active: showCharts() }"
-              (click)="toggleCharts()"
-              [attr.aria-pressed]="showCharts()"
-              [title]="showCharts() ? 'Hide charts' : 'Show charts'">
-        <i class="fa-solid fa-chart-pie"></i>
+      <button
+        type="button"
+        class="icon-btn charts-toggle"
+        [class.active]="showCharts()"
+        [attr.aria-pressed]="showCharts()"
+        [attr.aria-label]="showCharts() ? 'Hide charts' : 'Show charts'"
+        (click)="toggleCharts()"
+      >
+        <i class="fas fa-chart-pie"></i>
       </button>
 
       @if (!store.isAnonymous()) {
-        <button class="btn btn-primary btn-sm" (click)="openEstimationDialog()">
+        <button type="button" class="btn btn-primary btn-sm" (click)="openEstimationDialog()">
           <i class="fas fa-plus"></i> Add
         </button>
       }
@@ -30,74 +33,95 @@
     <app-sort-toolbar [options]="sortOptions" [value]="sortBy()" (changed)="setSort($event)" />
   }
 
-  @if (loading() || !loaded()) {
-    <div class="section-spinner"><span class="circle-spinner"></span></div>
-  } @else if (items.length === 0) {
-    <div class="empty-state">
-      <i class="fas fa-compass-drafting empty-icon"></i>
-      <p class="empty-title">No budget items yet</p>
-      <p class="empty-hint">Add planned costs, such as rent or a trip, to compare them with what you actually spend.</p>
-    </div>
-  } @else {
+  <app-panel-state
+    [loading]="loading() || !loaded()"
+    [empty]="items.length === 0"
+    icon="fa-compass-drafting"
+    title="No budget items yet"
+    hint="Add planned costs, such as rent or a trip, to compare them with what you actually spend."
+  >
     @if (store.totalCapital() > 0) {
       <div class="bp-bar-wrap">
         <div class="bp-bar">
           @for (est of items; track est.id) {
-            <div class="bp-bar-seg"
-                 [style.flex-grow]="convertUserCurrency(est.budgetAmount, est.budgetCurrency)"
-                 [style.background-color]="barColors[$index % barColors.length]"
-                 [title]="est.description + ' — ' + budgetPercent(est.budgetAmount, est.budgetCurrency) + '%'">
-            </div>
+            <div
+              class="bp-bar-seg"
+              [style.flex-grow]="convertUserCurrency(est.budgetAmount, est.budgetCurrency)"
+              [style.background-color]="barColors[$index % barColors.length]"
+              [title]="est.description + ' — ' + budgetPercent(est.budgetAmount, est.budgetCurrency) + '%'"
+            ></div>
           }
           @if (store.profit() > 0) {
-            <div class="bp-bar-seg bp-bar-free" [style.flex-grow]="store.profit()" title="Free"></div>
+            <div class="bp-bar-seg bp-bar-free" [style.flex-grow]="store.profit()"></div>
           }
         </div>
       </div>
     }
-    <div class="bp-list" cdkDropList (cdkDropListDropped)="dropEstimation($event)" [cdkDropListDisabled]="isDragDisabled()">
+
+    <div
+      class="bp-list"
+      cdkDropList
+      [cdkDropListDisabled]="isDragDisabled()"
+      (cdkDropListDropped)="dropEstimation($event)"
+    >
       @for (est of items; track est.id) {
-        <div class="bp-item" cdkDrag [cdkDragDisabled]="isDragDisabled()" [ngClass]="{ 'bp-completed': est.isCompleted, 'clickable-row': !store.isAnonymous() }" (click)="store.isAnonymous() || openEstimationDialog(est)">
+        @let color = est.isCompleted ? 'var(--success)' : barColors[$index % barColors.length];
+        <div
+          class="bp-item"
+          cdkDrag
+          [cdkDragDisabled]="isDragDisabled()"
+          [class.bp-completed]="est.isCompleted"
+          [class.clickable-row]="!store.isAnonymous()"
+          (click)="store.isAnonymous() || openEstimationDialog(est)"
+        >
           @if (sortBy() === 'custom' && !store.isAnonymous()) {
-            <i class="fas fa-grip-vertical bp-drag-handle" cdkDragHandle [style.background-color]="barColors[$index % barColors.length] + '18'"></i>
+            <i class="fas fa-grip-vertical drag-handle" cdkDragHandle aria-label="Drag to reorder"></i>
           }
-          <div class="bp-item-color" [style.background-color]="barColors[$index % barColors.length]"></div>
+          <div class="bp-item-color" [style.background-color]="color"></div>
           <div class="bp-item-body">
             <div class="bp-item-top">
               <span class="bp-item-name">
-                @if (est.isCompleted) { <i class="fas fa-circle-check text-success"></i> }
+                @if (est.isCompleted) {
+                  <i class="fas fa-circle-check text-success"></i>
+                }
                 {{ est.description }}
               </span>
               <div class="bp-item-actions">
                 <span class="bp-item-amount">
                   {{ est.budgetAmount | currencySymbol: est.budgetCurrency }}
                   @if (est.budgetCurrency !== store.userCurrency()) {
-                    <span class="bp-item-converted">{{ convertUserCurrency(est.budgetAmount, est.budgetCurrency) | currencySymbol: store.userCurrency() }}</span>
+                    <span class="bp-item-converted">{{
+                      convertUserCurrency(est.budgetAmount, est.budgetCurrency) | currencySymbol: store.userCurrency()
+                    }}</span>
                   }
                 </span>
                 @if (!store.isAnonymous()) {
-                  <label class="bp-complete-toggle"
-                         [title]="est.isCompleted ? 'Mark as incomplete' : 'Mark as completed'"
-                         (click)="$event.stopPropagation()">
-                    <input type="checkbox"
-                           [checked]="est.isCompleted"
-                           (change)="toggleEstimationCompleted(est, $event)" />
+                  <label class="bp-complete-toggle" (click)="$event.stopPropagation()">
+                    <input
+                      type="checkbox"
+                      [checked]="est.isCompleted"
+                      [attr.aria-label]="est.isCompleted ? 'Mark as incomplete' : 'Mark as completed'"
+                      (change)="toggleEstimationCompleted(est, $event)"
+                    />
                   </label>
-                  <button class="icon-btn" title="Duplicate"
-                          (click)="$event.stopPropagation(); copyEstimation(est)">
+                  <button
+                    type="button"
+                    class="icon-btn"
+                    aria-label="Duplicate"
+                    (click)="$event.stopPropagation(); copyEstimation(est)"
+                  >
                     <i class="fas fa-copy"></i>
                   </button>
-                  <button class="icon-btn icon-btn-danger" title="Delete"
-                          (click)="$event.stopPropagation(); deleteEstimation(est)">
+                  <button
+                    type="button"
+                    class="icon-btn icon-btn-danger"
+                    aria-label="Delete"
+                    (click)="$event.stopPropagation(); deleteEstimation(est)"
+                  >
                     <i class="fas fa-trash-can"></i>
                   </button>
                 }
               </div>
-            </div>
-            <div class="bp-item-bar">
-              <div class="bp-item-bar-fill"
-                   [style.width.%]="budgetPercent(est.budgetAmount, est.budgetCurrency)"
-                   [style.background-color]="barColors[$index % barColors.length]"></div>
             </div>
             <div class="bp-item-meta">
               @if (store.totalCapital() > 0) {
@@ -105,10 +129,10 @@
               }
               @if (est.capitalName) {
                 <span class="bp-item-capital">
-                  <i class="fas fa-wallet"></i> {{ est.capitalName }}
+                  {{ est.capitalName }}
                   @if (est.capitalId) {
-                    <span [ngClass]="(est.capitalBalance - est.budgetAmount) < 0 ? 'text-danger' : 'text-success'">
-                      ({{ (est.capitalBalance - est.budgetAmount) | currencySymbol: est.budgetCurrency }} left)
+                    <span [class]="est.capitalBalance - est.budgetAmount < 0 ? 'text-danger' : 'text-success'">
+                      ({{ est.capitalBalance - est.budgetAmount | currencySymbol: est.budgetCurrency }} left)
                     </span>
                   }
                 </span>
@@ -118,25 +142,26 @@
         </div>
       }
     </div>
+
     <div class="bp-summary">
       <div class="bp-summary-row">
         <span class="bp-summary-label">Total planned</span>
         <span class="bp-summary-val text-danger">
           {{ store.loss() | currencySymbol: store.userCurrency() }}
           @if (store.showDualCurrency()) {
-            <span class="bp-summary-alt">{{ store.lossInDefaultCurrency() | currencySymbol: 'UAH' }}</span>
+            <span class="bp-summary-alt">{{ store.lossInDefaultCurrency() | currencySymbol: defaultCurrency }}</span>
           }
         </span>
       </div>
       <div class="bp-summary-row">
         <span class="bp-summary-label">{{ isProfitable() ? 'Free to spend' : 'Deficit' }}</span>
-        <span class="bp-summary-val" [ngClass]="isProfitable() ? 'text-success' : 'text-danger'">
+        <span class="bp-summary-val" [class]="isProfitable() ? 'text-success' : 'text-danger'">
           {{ store.profit() | currencySymbol: store.userCurrency() }}
           @if (store.showDualCurrency()) {
-            <span class="bp-summary-alt">{{ store.profitInDefaultCurrency() | currencySymbol: 'UAH' }}</span>
+            <span class="bp-summary-alt">{{ store.profitInDefaultCurrency() | currencySymbol: defaultCurrency }}</span>
           }
         </span>
       </div>
     </div>
-  }
+  </app-panel-state>
 </div>

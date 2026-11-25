@@ -2,7 +2,10 @@
   @if (text) {
     <div class="page-header">
       <h1 class="page-title">{{ text }}</h1>
+      <div class="card-header-actions">
+        <ng-content select="[actions]" />
+      </div>
     </div>
   }
-  <ng-content></ng-content>
+  <ng-content />
 </div>

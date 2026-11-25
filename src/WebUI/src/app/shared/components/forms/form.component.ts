@@ -12,7 +12,6 @@ import { NumericInputDirective } from '../../directives/numeric-input.directive'
 @Component({
     selector: 'app-form',
     templateUrl: './form.component.html',
-    styleUrl: './form.component.scss',
     imports: [ReactiveFormsModule, FormErrorComponent, DatePickerComponent, SelectiveInputComponent, NumericInputDirective],
     standalone: true
 })
@@ -20,7 +19,6 @@ export class FormComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
 
   @Input() headerText: string = 'Default form';
-  @Input() headerIcon: string = '';
   @Input({ required: true }) form: FormGroup = new FormGroup({});
   @Input({ required: true }) fields: FormField[] = [];
   @Input() buttons: FormButton[] = [
@@ -52,7 +50,7 @@ export class FormComponent implements OnInit {
       });
     this.updateSubmitButtonState();
   }
-
+
   onSubmit() {
     this.submitForm.emit();
   }

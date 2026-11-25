@@ -5,6 +5,7 @@ import { RouterLink } from '@angular/router';
 import { EMPTY, catchError } from 'rxjs';
 import { DialogService } from '../../../../shared/components/dialogs/services/dialog.service';
 import { PopupMessageService } from '../../../../shared/services/popup-message.service';
+import { PanelStateComponent } from '../../../../shared/components/panel-state/panel-state.component';
 import { SectionLoadingService } from '../../../../shared/services/section-loading.service';
 import { TransferService } from '../../../../shared/services/transfer.service';
 import { SortOption, SortToolbarComponent } from '../../../../shared/components/sort-toolbar/sort-toolbar.component';
@@ -15,6 +16,7 @@ import { AddCapitalRequest } from '../../../capital/models/add-capital-request';
 import { CapitalResponse } from '../../../capital/models/capital-response';
 import { UpdateCapitalRequest } from '../../../capital/models/update-capital-request';
 import { CapitalService } from '../../../capital/services/capital.service';
+import { CapitalCurrencyService } from '../../../capital/services/capital-currency.service';
 import { DashboardStore } from '../../services/dashboard-store.service';
 import { DebtService } from '../../services/debt.service';
 import { TransferDialogComponent, TransferDialogData } from '../transfer-dialog/transfer-dialog.component';
@@ -26,7 +28,7 @@ export type CapitalSort = 'custom' | 'balance-desc' | 'balance-asc' | 'name';
   templateUrl: './capitals-panel.component.html',
   styleUrl: './capitals-panel.component.scss',
   standalone: true,
-  imports: [SharedModule, RouterLink, DragDropModule, SortToolbarComponent],
+  imports: [SharedModule, RouterLink, DragDropModule, SortToolbarComponent, PanelStateComponent],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class CapitalsPanelComponent implements OnInit {
@@ -36,6 +38,7 @@ export class CapitalsPanelComponent implements OnInit {
   private readonly debtService = inject(DebtService);
   private readonly dialogService = inject(DialogService);
   private readonly popup = inject(PopupMessageService);
+  private readonly capitalCurrency = inject(CapitalCurrencyService);
   private readonly sectionLoading = inject(SectionLoadingService);
   private readonly destroyRef = inject(DestroyRef);
 
@@ -59,10 +62,14 @@ export class CapitalsPanelComponent implements OnInit {
     const items = [...this.store.capitals()];
 
     switch (this.sortBy()) {
-      case 'balance-desc': return items.sort((a, b) => b.balance - a.balance);
-      case 'balance-asc': return items.sort((a, b) => a.balance - b.balance);
-      case 'name': return items.sort((a, b) => a.name.localeCompare(b.name));
-      default: return items;
+      case 'balance-desc':
+        return items.sort((a, b) => b.balance - a.balance);
+      case 'balance-asc':
+        return items.sort((a, b) => a.balance - b.balance);
+      case 'name':
+        return items.sort((a, b) => a.name.localeCompare(b.name));
+      default:
+        return items;
     }
   });
 
@@ -83,19 +90,24 @@ export class CapitalsPanelComponent implements OnInit {
   readonly expandedTransfers = computed(() => {
     const id = this.expandedCapitalId();
 
-    return id == null
-      ? []
-      : this.transfers().filter(t => t.sourceCapitalId === id || t.destinationCapitalId === id);
+    return id == null ? [] : this.transfers().filter(t => t.sourceCapitalId === id || t.destinationCapitalId === id);
   });
 
   ngOnInit(): void {
     this.capitalService
       .load({ searchTerm: null, sortBy: null, sortDirection: null, filterBy: null })
-      .pipe(catchError(() => EMPTY), takeUntilDestroyed(this.destroyRef))
+      .pipe(
+        catchError(() => EMPTY),
+        takeUntilDestroyed(this.destroyRef)
+      )
       .subscribe();
 
-    this.debtService.load()
-      .pipe(catchError(() => EMPTY), takeUntilDestroyed(this.destroyRef))
+    this.debtService
+      .load()
+      .pipe(
+        catchError(() => EMPTY),
+        takeUntilDestroyed(this.destroyRef)
+      )
       .subscribe();
   }
 
@@ -119,8 +131,12 @@ export class CapitalsPanelComponent implements OnInit {
 
     if (expanding && !this.transfersRequested) {
       this.transfersRequested = true;
-      this.transferService.load()
-        .pipe(catchError(() => EMPTY), takeUntilDestroyed(this.destroyRef))
+      this.transferService
+        .load()
+        .pipe(
+          catchError(() => EMPTY),
+          takeUntilDestroyed(this.destroyRef)
+        )
         .subscribe();
     }
   }
@@ -133,10 +149,16 @@ export class CapitalsPanelComponent implements OnInit {
     ref.afterClosed$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((result: UpdateCapitalRequest | null) => {
       if (!result) return;
 
-      this.capitalService.update(result.id, result).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-        next: () => this.popup.success('Capital updated'),
-        error: () => this.popup.error('Failed to update capital')
-      });
+      this.capitalService
+        .update(result.id, result)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: () => {
+            this.popup.success('Capital updated');
+            if (result.currency) this.capitalCurrency.offerBudgetRecalculation(result.id, result.currency);
+          },
+          error: () => this.popup.error('Failed to update capital')
+        });
     });
   }
 
@@ -146,10 +168,13 @@ export class CapitalsPanelComponent implements OnInit {
     ref.afterClosed$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((result: AddCapitalRequest | null) => {
       if (!result) return;
 
-      this.capitalService.create(result).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-        next: () => this.popup.success('Capital added'),
-        error: () => this.popup.error('Failed to add capital')
-      });
+      this.capitalService
+        .create(result)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: () => this.popup.success('Capital added'),
+          error: () => this.popup.error('Failed to add capital')
+        });
     });
   }
 
@@ -164,17 +189,23 @@ export class CapitalsPanelComponent implements OnInit {
     ref.afterClosed$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(result => {
       if (!result) return;
 
-      this.transferService.create(result).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-        next: () => this.popup.success('Transfer completed'),
-        error: () => this.popup.error('Failed to create transfer')
-      });
+      this.transferService
+        .create(result)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: () => this.popup.success('Transfer completed'),
+          error: () => this.popup.error('Failed to create transfer')
+        });
     });
   }
 
   deleteTransfer(id: number): void {
-    this.transferService.delete(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: () => this.popup.success('Transfer reversed and deleted'),
-      error: () => this.popup.error('Failed to delete transfer')
-    });
+    this.transferService
+      .delete(id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => this.popup.success('Transfer reversed and deleted'),
+        error: () => this.popup.error('Failed to delete transfer')
+      });
   }
 }

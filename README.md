@@ -28,7 +28,7 @@ Built with Clean Architecture (ASP.NET Core 9 + CQRS/MediatR) and an Angular 20 
 
 - **Backend:** ASP.NET Core 9 (Minimal APIs), EF Core 9 (SQL Server), MediatR (CQRS), FluentValidation, Quartz.NET (background jobs), Serilog, Polly/`Microsoft.Extensions.Http.Resilience`, Swashbuckle (Swagger), health checks.
 - **Infrastructure:** SQL Server 2022, Redis 7 (distributed cache), SMTP (e-mail), Auth0 (OpenID Connect).
-- **Frontend:** Angular 20 (NgModules + standalone components), SCSS with CSS custom properties, Tailwind, Font Awesome 7, Inter font, RxJS.
+- **Frontend:** Angular 20 (NgModules + standalone components), SCSS with CSS custom properties, Font Awesome 7, Inter font, RxJS.
 - **Tests:** xUnit, NSubstitute, FluentAssertions, `Microsoft.AspNetCore.Mvc.Testing`.
 - **Delivery:** Docker / Docker Compose, GitHub Actions, Fly.io (API), Netlify (UI).
 

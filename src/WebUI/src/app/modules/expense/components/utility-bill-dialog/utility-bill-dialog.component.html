@@ -1,23 +1,29 @@
-<form [formGroup]="form" (ngSubmit)="submit()" class="ub-dialog">
-  <div class="ub-header">
-    <i class="fas fa-bolt"></i>
-    {{ isEdit ? 'Edit Utility Bill' : 'Add Utility Bill' }}
+<form [formGroup]="form" (ngSubmit)="submit()">
+  <div class="dialog-header">
+    <h2 class="dialog-title">{{ isEdit ? 'Edit utility bill' : 'Add utility bill' }}</h2>
   </div>
 
-  <div class="ub-body">
+  <div class="dialog-body">
     <div class="form-group">
-      <label class="form-label">Name</label>
-      <input type="text" class="input" formControlName="name" placeholder="e.g. Electric, Water, Internet" autocomplete="off">
+      <label for="name" class="form-label">Name</label>
+      <input
+        id="name"
+        type="text"
+        class="input"
+        formControlName="name"
+        placeholder="e.g. Electric, Water, Internet"
+        autocomplete="off"
+      />
     </div>
 
-    <div class="ub-row">
-      <div class="form-group" style="flex:1">
-        <label class="form-label">Estimated Amount</label>
-        <input appNumeric class="input" formControlName="estimatedAmount">
+    <div class="form-row">
+      <div class="form-group">
+        <label for="estimatedAmount" class="form-label">Estimated amount</label>
+        <input id="estimatedAmount" appNumeric class="input" formControlName="estimatedAmount" />
       </div>
-      <div class="form-group" style="min-width:100px">
-        <label class="form-label">Currency</label>
-        <select class="input" formControlName="currency">
+      <div class="form-group">
+        <label for="currency" class="form-label">Currency</label>
+        <select id="currency" class="input" formControlName="currency">
           @for (c of currencies; track c) {
             <option [value]="c">{{ c }}</option>
           }
@@ -26,13 +32,13 @@
     </div>
 
     <div class="form-group">
-      <label class="form-label">Due Day of Month</label>
-      <input appNumeric="integer" class="input" formControlName="dueDayOfMonth">
+      <label for="dueDayOfMonth" class="form-label">Due day of month</label>
+      <input id="dueDayOfMonth" appNumeric="integer" class="input" formControlName="dueDayOfMonth" />
     </div>
 
     <div class="form-group">
-      <label class="form-label">Capital</label>
-      <select class="input" formControlName="capitalId">
+      <label for="capitalId" class="form-label">Capital</label>
+      <select id="capitalId" class="input" formControlName="capitalId">
         @for (cap of capitals; track cap.id) {
           <option [value]="cap.id">{{ cap.name }} ({{ cap.currency }})</option>
         }
@@ -40,8 +46,8 @@
     </div>
 
     <div class="form-group">
-      <label class="form-label">Category</label>
-      <select class="input" formControlName="categoryId">
+      <label for="categoryId" class="form-label">Category</label>
+      <select id="categoryId" class="input" formControlName="categoryId">
         @for (cat of categories; track cat.id) {
           <option [value]="cat.id">{{ cat.name }}</option>
         }
@@ -49,12 +55,12 @@
     </div>
 
     <label class="checkbox-row">
-      <input type="checkbox" formControlName="isActive" class="checkbox">
+      <input type="checkbox" formControlName="isActive" class="checkbox" />
       <span class="checkbox-label">Active (show as pending each month)</span>
     </label>
   </div>
 
-  <div class="ub-footer">
+  <div class="dialog-footer">
     <button type="button" class="btn btn-secondary btn-sm" (click)="cancel()">Cancel</button>
     <button type="submit" class="btn btn-primary btn-sm" [disabled]="form.invalid || (isEdit && form.pristine)">
       {{ isEdit ? 'Save' : 'Add' }}

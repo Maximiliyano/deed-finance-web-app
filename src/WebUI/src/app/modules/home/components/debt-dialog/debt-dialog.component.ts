@@ -83,7 +83,7 @@ export class DebtDialogComponent implements OnInit {
       note: val.note || null,
       isPaid: val.isPaid,
       capitalId: val.capitalId || null,
-      payFromCapitalId: (val.isPaid && !this.wasPaid) ? (val.payFromCapitalId || null) : null
+      payFromCapitalId: val.isPaid && !this.wasPaid ? val.payFromCapitalId || null : null
     });
   }
 

@@ -1,23 +1,29 @@
-<form [formGroup]="form" (ngSubmit)="submit()" class="debt-dialog">
-  <div class="debt-header">
-    <i class="fas fa-hand-holding-dollar"></i>
-    {{ isEdit ? 'Edit Debt' : 'Add Debt' }}
+<form [formGroup]="form" (ngSubmit)="submit()">
+  <div class="dialog-header">
+    <h2 class="dialog-title">{{ isEdit ? 'Edit debt' : 'Add debt' }}</h2>
   </div>
 
-  <div class="debt-body">
+  <div class="dialog-body">
     <div class="form-group">
       <label for="item" class="form-label">Item</label>
-      <input type="text" class="input" formControlName="item" placeholder="e.g. Laptop, Rent…" autocomplete="off">
+      <input
+        id="item"
+        type="text"
+        class="input"
+        formControlName="item"
+        placeholder="e.g. Laptop, Rent"
+        autocomplete="off"
+      />
     </div>
 
-    <div class="debt-row">
-      <div class="form-group" style="flex:1">
+    <div class="form-row">
+      <div class="form-group">
         <label for="amount" class="form-label">Amount</label>
-        <input appNumeric class="input" formControlName="amount">
+        <input id="amount" appNumeric class="input" formControlName="amount" />
       </div>
-      <div class="form-group" style="min-width:100px">
+      <div class="form-group">
         <label for="currency" class="form-label">Currency</label>
-        <select class="input" formControlName="currency">
+        <select id="currency" class="input" formControlName="currency">
           @for (c of currencies; track c) {
             <option [value]="c">{{ c }}</option>
           }
@@ -25,35 +31,51 @@
       </div>
     </div>
 
-    <div class="debt-row">
-      <div class="form-group" style="flex:1">
+    <div class="form-row">
+      <div class="form-group">
         <label for="source" class="form-label">Source (lender)</label>
-        <input type="text" class="input" formControlName="source" placeholder="Who provided the money" autocomplete="off">
+        <input
+          id="source"
+          type="text"
+          class="input"
+          formControlName="source"
+          placeholder="Who provided the money"
+          autocomplete="off"
+        />
       </div>
-      <div class="form-group" style="flex:1">
+      <div class="form-group">
         <label for="recipient" class="form-label">Recipient (borrower)</label>
-        <input type="text" class="input" formControlName="recipient" placeholder="Who received the money" autocomplete="off">
+        <input
+          id="recipient"
+          type="text"
+          class="input"
+          formControlName="recipient"
+          placeholder="Who received the money"
+          autocomplete="off"
+        />
       </div>
     </div>
 
-    <div class="debt-row">
-      <div class="form-group" style="flex:1">
-        <label for="borrowedAt" class="form-label">Borrowed At</label>
-        <input type="date" class="input" formControlName="borrowedAt">
+    <div class="form-row">
+      <div class="form-group">
+        <label for="borrowedAt" class="form-label">Borrowed at</label>
+        <input id="borrowedAt" type="date" class="input" formControlName="borrowedAt" />
       </div>
-      <div class="form-group" style="flex:1">
+      <div class="form-group">
         <label for="deadlineAt" class="form-label">Deadline (optional)</label>
-        <input type="date" class="input" formControlName="deadlineAt">
+        <input id="deadlineAt" type="date" class="input" formControlName="deadlineAt" />
       </div>
     </div>
 
     @if (!wasPaid) {
       <div class="form-group">
-        <label for="capitalId" class="form-label">{{ isEdit ? 'Linked capital' : 'Deposit into capital' }} (optional)</label>
-        <select class="input" formControlName="capitalId" [attr.disabled]="isEdit ? true : null">
+        <label for="capitalId" class="form-label"
+          >{{ isEdit ? 'Linked capital' : 'Deposit into capital' }} (optional)</label
+        >
+        <select id="capitalId" class="input" formControlName="capitalId" [attr.disabled]="isEdit ? true : null">
           <option [ngValue]="null">None</option>
           @for (cap of capitals; track cap.id) {
-            <option [ngValue]="cap.id">{{ cap.name }} ({{ cap.balance | number:'1.2-2' }} {{ cap.currency }})</option>
+            <option [ngValue]="cap.id">{{ cap.name }} ({{ cap.balance | number: '1.2-2' }} {{ cap.currency }})</option>
           }
         </select>
         @if (!isEdit) {
@@ -64,26 +86,27 @@
 
     <div class="form-group">
       <label for="note" class="form-label">Note (optional)</label>
-      <textarea class="input textarea" formControlName="note" placeholder="Any notes…"></textarea>
+      <textarea id="note" class="input textarea" formControlName="note" placeholder="Any notes"></textarea>
     </div>
 
     @if (isEdit && !wasPaid) {
       <label class="checkbox-row" (change)="onPaidChange()">
-        <input type="checkbox" formControlName="isPaid" class="checkbox">
+        <input type="checkbox" formControlName="isPaid" class="checkbox" />
         <span class="checkbox-label">Mark as paid</span>
       </label>
 
       @if (showPayConfirm) {
         <div class="pay-confirm">
-          <div class="pay-confirm-header">
-            <i class="fas fa-circle-info"></i>
-            <span>Confirm payment</span>
-          </div>
-          <p class="pay-confirm-text">Select a capital to deduct <strong>{{ form.get('amount')?.value | number:'1.2-2' }} {{ form.get('currency')?.value }}</strong> from:</p>
-          <select class="input" formControlName="payFromCapitalId">
+          <label for="payFromCapitalId" class="pay-confirm-text">
+            Select a capital to deduct
+            <strong>{{ form.get('amount')?.value | number: '1.2-2' }} {{ form.get('currency')?.value }}</strong> from:
+          </label>
+          <select id="payFromCapitalId" class="input" formControlName="payFromCapitalId">
             <option [ngValue]="null">Don't deduct from any capital</option>
             @for (cap of capitals; track cap.id) {
-              <option [ngValue]="cap.id">{{ cap.name }} ({{ cap.balance | number:'1.2-2' }} {{ cap.currency }})</option>
+              <option [ngValue]="cap.id">
+                {{ cap.name }} ({{ cap.balance | number: '1.2-2' }} {{ cap.currency }})
+              </option>
             }
           </select>
         </div>
@@ -91,10 +114,10 @@
     }
   </div>
 
-  <div class="debt-footer">
+  <div class="dialog-footer">
     <button type="button" class="btn btn-secondary btn-sm" (click)="cancel()">Cancel</button>
     <button type="submit" class="btn btn-primary btn-sm" [disabled]="form.invalid || (isEdit && form.pristine)">
-      {{ isEdit ? 'Save' : 'Add Debt' }}
+      {{ isEdit ? 'Save' : 'Add debt' }}
     </button>
   </div>
 </form>

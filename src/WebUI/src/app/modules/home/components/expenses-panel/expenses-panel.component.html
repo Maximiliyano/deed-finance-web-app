@@ -1,6 +1,6 @@
 <div id="expenses" class="card">
   <div class="card-header">
-    <h2 class="card-title">Expenses</h2>
+    <h2>Expenses</h2>
     <div class="card-header-actions">
       <span class="badge badge-warning">{{ total() | currencySymbol: userCurrency() }}</span>
       <button type="button" class="btn btn-danger btn-sm" (click)="openQuickExpense()">
@@ -19,7 +19,8 @@
     [empty]="groups().length === 0"
     icon="fa-money-bill-wave"
     title="No expenses yet"
-    hint="Start tracking your expenses to see a breakdown here.">
+    hint="Start tracking your expenses to see a breakdown here."
+  >
     <app-category-breakdown
       [groups]="groups()"
       [currency]="userCurrency()"
@@ -29,6 +30,7 @@
       [readonly]="isAnonymous()"
       (reordered)="reorder($event)"
       (edit)="openQuickExpense($event)"
-      (removed)="deleteExpense($event)" />
+      (removed)="deleteExpense($event)"
+    />
   </app-panel-state>
 </div>

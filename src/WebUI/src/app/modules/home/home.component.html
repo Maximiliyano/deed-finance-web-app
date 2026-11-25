@@ -10,7 +10,7 @@
   </nav>
 
   @if (store.summary(); as summary) {
-    <app-finance-dashboard [currency]="store.userCurrency()" [planFilter]="store.planFilter()" [summary]="summary" />
+    <app-finance-dashboard [summary]="summary" />
   } @else {
     <div class="section-spinner" id="kpi">
       <span class="circle-spinner"></span>

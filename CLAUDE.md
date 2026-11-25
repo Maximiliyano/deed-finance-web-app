@@ -7,7 +7,7 @@ Domain: multi-currency accounts ("capitals"), expenses/incomes with categories a
 
 ## Tech Stack
 - **Backend**: ASP.NET Core 9, EF Core 9, MediatR (CQRS), FluentValidation, SQL Server, Redis (distributed cache), Quartz.NET (jobs), Serilog, Auth0 (OIDC) + cookie auth
-- **Frontend**: Angular 20, SCSS, Font Awesome 7, Inter font (Tailwind is also configured)
+- **Frontend**: Angular 20, SCSS, Font Awesome 7, Inter font
 - **Hosting**: API on Fly.io (`fly.toml`), UI on Netlify, DB on FreeAspNetHosting
 
 ## Architecture
@@ -56,13 +56,13 @@ Follow the structure
 - Mixed NgModule + standalone components
 - Standalone components need explicit `imports: []` (e.g., `CommonModule`)
 - CSS custom properties in `:root` — `--primary`, `--bg`, `--surface`, `--border`, `--text` (dark theme default; `[data-theme="light"]` overrides, toggled by `ThemeService`, persisted as `deed-theme`)
-- Global utility classes: `.btn`, `.card`, `.input`, `.badge`, `.table`, `.empty`, `.page`
+- Global utility classes: `.btn`, `.card`, `.input`, `.badge`, `.table`, `.empty-state`, `.page`
 - Interceptor order (`app.module.ts`): credentials -> error (401 => `AuthService.invalidate()`, others => toast) -> retry (GET only) -> sectionLoading. `error` sits outside `retry` so a failing GET toasts once, not per attempt. `credentialsInterceptor` sets `withCredentials`, so services never pass it
 - Mobile: dialogs are bottom sheets under 576px, wrap wide tables in `.table-wrap`, inputs are 16px on touch (`pointer: coarse`), cdk drag handles need `touch-action: none`, grids use `minmax(min(Npx, 100%), 1fr)`, fixed bars add `env(safe-area-inset-*)`
 - User settings: the API replaces every field, so change a single setting with `UserSettingsService.patch()` (merges into the current settings) instead of `upsert()`
 - Budget estimations: `periodEnd` is exclusive (`CreatedAt < periodEnd`); send the start of the next day/month/year
 - The home page is a thin shell (`home.component`) that lazy-renders standalone panels with `@defer (on viewport)`: `budget-planner`, `capitals-panel`, `expenses-panel`, `incomes-panel`, `goals-panel`, `debts-panel` (+ presentational `finance-dashboard`). Shared state lives in `DashboardStore` (signals: plan filter, period, capital filter, user currency, exchanges, server `summary`/`chartSummary`); each panel loads its own data. Do not compute currency totals in the frontend: add them to `GET api/dashboard/summary` (handler `GetDashboardSummaryQueryHandler`, `CurrencyConverter`, `IExchangeRateProvider`)
-- Frontend conventions: standalone components with `ChangeDetectionStrategy.OnPush`, `inject()` instead of constructor DI, `takeUntilDestroyed(destroyRef)` instead of unsubscribe subjects, services expose `load()` / `refresh()` / `current` / `<entities>$`, shared UI primitives (`.section-spinner`, `.empty-state`, `.icon-btn`, `.card-header-actions`, `.table-wrap`) live in `assets/scss/styles.scss`, one sort bar (`app-sort-toolbar`), no code comments. Format with `npm run format` (Prettier, CRLF)
+- Frontend conventions: standalone components with `ChangeDetectionStrategy.OnPush`, `inject()` instead of constructor DI, `takeUntilDestroyed(destroyRef)` instead of unsubscribe subjects, services expose `load()` / `refresh()` / `current` / `<entities>$`, shared UI primitives live in `assets/scss/styles.scss` (`.segmented`, `.progress` + `.tone-*`, `.stat-tile`, `.drag-handle`, `.icon-btn`, `.empty-state`, `.section-spinner`, `.toolbar*`, `.dialog-header/body/footer`, `.form-row`, `.table-stack` with `data-label` cells for stacked cards under 576px); spacing/type tokens are `--space-*` / `--fs-*`; breakpoints only via the `respond-to` / `respond-below` / `touch` mixins in `assets/scss/mixins.scss` (no raw media queries, no Tailwind), one sort bar (`app-sort-toolbar`), no code comments. Format with `npm run format` (Prettier, CRLF)
 - Routes are lazy-loaded: `/` home, `/capitals`, `/expenses`, `/incomes`, `/error` (wildcard redirects there)
 - API calls use relative `/api/...` URLs (dev proxy in `src/WebUI/proxy.conf.json`, nginx `/api/` proxy, Netlify function in prod)
 

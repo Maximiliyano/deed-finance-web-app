@@ -6,7 +6,11 @@ import { catchError, forkJoin, of } from 'rxjs';
 import { CategoryType } from '../../../../core/types/category-type';
 import { DialogService } from '../../../../shared/components/dialogs/services/dialog.service';
 import { PanelStateComponent } from '../../../../shared/components/panel-state/panel-state.component';
-import { AMOUNT_SORT_OPTIONS, AmountSort, SortToolbarComponent } from '../../../../shared/components/sort-toolbar/sort-toolbar.component';
+import {
+  AMOUNT_SORT_OPTIONS,
+  AmountSort,
+  SortToolbarComponent
+} from '../../../../shared/components/sort-toolbar/sort-toolbar.component';
 import { PopupMessageService } from '../../../../shared/services/popup-message.service';
 import { SectionLoadingService } from '../../../../shared/services/section-loading.service';
 import { SharedModule } from '../../../../shared/shared.module';
@@ -23,7 +27,6 @@ import { QuickTransactionDialogComponent } from '../quick-transaction-dialog/qui
 @Component({
   selector: 'app-incomes-panel',
   templateUrl: './incomes-panel.component.html',
-  styleUrl: './incomes-panel.component.scss',
   standalone: true,
   imports: [SharedModule, RouterLink, CategoryBreakdownComponent, SortToolbarComponent, PanelStateComponent],
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -55,19 +58,15 @@ export class IncomesPanelComponent implements OnInit {
   protected readonly reorderable = computed(() => this.sortBy() === 'custom' && !this.isAnonymous());
 
   ngOnInit(): void {
-    this.incomeService.incomes$
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(data => {
-        this.incomes.set(data);
-        this.rebuild();
-      });
+    this.incomeService.incomes$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(data => {
+      this.incomes.set(data);
+      this.rebuild();
+    });
 
-    this.categoryService.categories$
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(data => {
-        this.categories.set(data.filter(category => category.type === CategoryType.Incomes));
-        this.rebuild();
-      });
+    this.categoryService.categories$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(data => {
+      this.categories.set(data.filter(category => category.type === CategoryType.Incomes));
+      this.rebuild();
+    });
 
     forkJoin([
       this.categoryService.load().pipe(catchError(() => of([]))),
@@ -109,10 +108,19 @@ export class IncomesPanelComponent implements OnInit {
 
       if (result._edit) {
         this.incomeService
-          .update({ id: result.id, categoryId: result.categoryId, amount: result.amount, purpose: result.purpose, paymentDate: result.date })
+          .update({
+            id: result.id,
+            categoryId: result.categoryId,
+            amount: result.amount,
+            purpose: result.purpose,
+            paymentDate: result.date
+          })
           .pipe(takeUntilDestroyed(this.destroyRef))
           .subscribe({
-            next: () => { this.popup.success('Income updated'); this.capitalService.refresh(); },
+            next: () => {
+              this.popup.success('Income updated');
+              this.capitalService.refresh();
+            },
             error: () => this.popup.error('Failed to update income')
           });
       } else {
@@ -120,7 +128,10 @@ export class IncomesPanelComponent implements OnInit {
           .create(result)
           .pipe(takeUntilDestroyed(this.destroyRef))
           .subscribe({
-            next: () => { this.popup.success('Income added'); this.capitalService.refresh(); },
+            next: () => {
+              this.popup.success('Income added');
+              this.capitalService.refresh();
+            },
             error: () => this.popup.error('Failed to add income')
           });
       }
@@ -132,7 +143,10 @@ export class IncomesPanelComponent implements OnInit {
       .delete(id)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: () => { this.popup.success('Income deleted'); this.capitalService.refresh(); },
+        next: () => {
+          this.popup.success('Income deleted');
+          this.capitalService.refresh();
+        },
         error: () => this.popup.error('Failed to delete income')
       });
   }
@@ -161,17 +175,24 @@ export class IncomesPanelComponent implements OnInit {
       byCategory.set(income.categoryId, group);
     }
 
-    return [...byCategory.values()].map(group => ({ ...group, percentage: total > 0 ? group.total / total * 100 : null }));
+    return [...byCategory.values()].map(group => ({
+      ...group,
+      percentage: total > 0 ? (group.total / total) * 100 : null
+    }));
   }
 
   private applySort(data: BreakdownGroup[]): BreakdownGroup[] {
     const sorted = [...data];
 
     switch (this.sortBy()) {
-      case 'amount-asc': return sorted.sort((a, b) => a.total - b.total);
-      case 'name': return sorted.sort((a, b) => a.name.localeCompare(b.name));
-      case 'custom': return sorted;
-      default: return sorted.sort((a, b) => b.total - a.total);
+      case 'amount-asc':
+        return sorted.sort((a, b) => a.total - b.total);
+      case 'name':
+        return sorted.sort((a, b) => a.name.localeCompare(b.name));
+      case 'custom':
+        return sorted;
+      default:
+        return sorted.sort((a, b) => b.total - a.total);
     }
   }
 }

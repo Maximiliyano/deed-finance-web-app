@@ -1,65 +1,80 @@
 <div id="utilityBills" class="card">
   <div class="card-header">
-    <h2 class="card-title">Utility bills</h2>
+    <h2>Utility bills</h2>
     <div class="card-header-actions">
       @if (unpaidCount() > 0) {
         <span class="badge badge-neutral">{{ unpaidCount() }} to pay this month</span>
       }
       @if (!store.isAnonymous()) {
-        <button class="btn btn-primary btn-sm" (click)="openDialog()">
+        <button type="button" class="btn btn-primary btn-sm" (click)="openDialog()">
           <i class="fas fa-plus"></i> Add
         </button>
       }
     </div>
   </div>
-  @if (isLoading()) {
-    <div class="section-spinner"><span class="circle-spinner"></span></div>
-  } @else if (rows().length === 0) {
-    <div class="empty-state">
-      <i class="fas fa-bolt empty-icon"></i>
-      <p class="empty-title">No utility bills</p>
-      <p class="empty-hint">Add recurring bills like rent or electricity, then mark each one paid when the month's payment goes out.</p>
-    </div>
-  } @else {
+  <app-panel-state
+    [loading]="isLoading()"
+    [empty]="rows().length === 0"
+    icon="fa-bolt"
+    title="No utility bills"
+    hint="Add recurring bills like rent or electricity, then mark each one paid when the month's payment goes out."
+  >
     <div class="table-wrap">
-      <table class="table">
+      <table class="table table-stack">
         <thead>
           <tr>
             <th>Bill</th>
             <th>Amount</th>
             <th>Due day</th>
-            <th>Capital</th>
             <th>Status</th>
-            @if (!store.isAnonymous()) { <th></th> }
+            @if (!store.isAnonymous()) {
+              <th></th>
+            }
           </tr>
         </thead>
         <tbody>
           @for (row of rows(); track row.bill.id) {
             <tr [class.row-muted]="row.status === 'inactive'">
-              <td class="font-medium">{{ row.bill.name }}</td>
-              <td class="tabular-nums">
+              <td class="cell-item">
+                <span class="bill-name">{{ row.bill.name }}</span>
+                @if (row.bill.capitalName) {
+                  <span class="bill-meta">{{ row.bill.capitalName }}</span>
+                }
+              </td>
+              <td class="cell-num" data-label="Amount">
                 @if (row.status === 'paid') {
-                  {{ (row.bill.paidAmount ?? 0) | currencySymbol: row.bill.currency }}
+                  {{ row.bill.paidAmount ?? 0 | currencySymbol: row.bill.currency }}
                 } @else {
                   ~{{ row.bill.estimatedAmount | currencySymbol: row.bill.currency }}
                 }
               </td>
-              <td class="tabular-nums">{{ row.bill.dueDayOfMonth }}</td>
-              <td>{{ row.bill.capitalName ?? '—' }}</td>
-              <td><span class="badge" [ngClass]="statusClass(row.status)">{{ statusLabel(row.status) }}</span></td>
+              <td class="cell-num" data-label="Due day">{{ row.bill.dueDayOfMonth }}</td>
+              <td data-label="Status">
+                <span class="badge {{ row.view.badge }}">{{ row.view.label }}</span>
+              </td>
               @if (!store.isAnonymous()) {
-                <td class="action-cell">
-                  <div class="action-group">
-                    @if (row.status !== 'paid' && row.status !== 'inactive') {
-                      <button class="btn btn-success btn-sm" (click)="pay(row.bill)">Pay</button>
-                    }
-                    <button class="icon-btn" title="Edit" aria-label="Edit utility bill" (click)="openDialog(row.bill)">
-                      <i class="fas fa-pen"></i>
-                    </button>
-                    <button class="icon-btn icon-btn-danger" title="Delete" aria-label="Delete utility bill" (click)="delete(row.bill)">
-                      <i class="fas fa-trash-can"></i>
-                    </button>
-                  </div>
+                <td class="cell-actions">
+                  @if (row.status !== 'paid' && row.status !== 'inactive') {
+                    <button type="button" class="btn btn-success btn-sm" (click)="pay(row.bill)">Pay</button>
+                  }
+                  <button
+                    type="button"
+                    class="icon-btn"
+                    title="Edit"
+                    aria-label="Edit utility bill"
+                    (click)="openDialog(row.bill)"
+                  >
+                    <i class="fas fa-pen"></i>
+                  </button>
+                  <button
+                    type="button"
+                    class="icon-btn icon-btn-danger"
+                    title="Delete"
+                    aria-label="Delete utility bill"
+                    (click)="delete(row.bill)"
+                  >
+                    <i class="fas fa-trash-can"></i>
+                  </button>
                 </td>
               }
             </tr>
@@ -67,5 +82,5 @@
         </tbody>
       </table>
     </div>
-  }
+  </app-panel-state>
 </div>

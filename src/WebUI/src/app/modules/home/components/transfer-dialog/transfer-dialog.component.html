@@ -1,52 +1,49 @@
-<form [formGroup]="form" (ngSubmit)="submit()" class="tf-dialog">
-  <div class="tf-header">
-    <i class="fas fa-exchange-alt"></i>
-    Transfer Between Capitals
+<form [formGroup]="form" (ngSubmit)="submit()">
+  <div class="dialog-header">
+    <h2 class="dialog-title">Transfer between capitals</h2>
   </div>
 
-  <div class="tf-body">
+  <div class="dialog-body">
     <div class="form-group">
-      <label class="form-label">From</label>
-      <select class="input" formControlName="sourceCapitalId">
-        <option [ngValue]="null" disabled>Select source…</option>
+      <label for="sourceCapitalId" class="form-label">From</label>
+      <select id="sourceCapitalId" class="input" formControlName="sourceCapitalId">
+        <option [ngValue]="null" disabled>Select source</option>
         @for (cap of capitals; track cap.id) {
-          <option [ngValue]="cap.id">{{ cap.name }} — {{ cap.balance | number:'1.2-2' }} {{ cap.currency }}</option>
+          <option [ngValue]="cap.id">{{ cap.name }} — {{ cap.balance | number: '1.2-2' }} {{ cap.currency }}</option>
         }
       </select>
     </div>
 
     <div class="form-group">
-      <label class="form-label">Send ({{ selectedSource?.currency ?? '...' }})</label>
-      <input appNumeric class="input" formControlName="amount" placeholder="0.00">
+      <label for="amount" class="form-label">Send ({{ selectedSource?.currency ?? '...' }})</label>
+      <input id="amount" appNumeric class="input" formControlName="amount" placeholder="0.00" />
       @if (selectedSource) {
-        <span class="tf-hint">Available: {{ selectedSource.balance | number:'1.2-2' }} {{ selectedSource.currency }}</span>
+        <span class="form-hint"
+          >Available: {{ selectedSource.balance | number: '1.2-2' }} {{ selectedSource.currency }}</span
+        >
       }
     </div>
 
-    <div class="tf-arrow">
-      <i class="fas fa-arrow-down"></i>
-    </div>
-
     <div class="form-group">
-      <label class="form-label">To</label>
-      <select class="input" formControlName="destinationCapitalId">
-        <option [ngValue]="null" disabled>Select destination…</option>
+      <label for="destinationCapitalId" class="form-label">To</label>
+      <select id="destinationCapitalId" class="input" formControlName="destinationCapitalId">
+        <option [ngValue]="null" disabled>Select destination</option>
         @for (cap of capitals; track cap.id) {
-          <option [ngValue]="cap.id">{{ cap.name }} — {{ cap.balance | number:'1.2-2' }} {{ cap.currency }}</option>
+          <option [ngValue]="cap.id">{{ cap.name }} — {{ cap.balance | number: '1.2-2' }} {{ cap.currency }}</option>
         }
       </select>
     </div>
 
     <div class="form-group">
-      <label class="form-label">Receive ({{ selectedDest?.currency ?? '...' }})</label>
-      <input appNumeric class="input" formControlName="destinationAmount" placeholder="0.00">
+      <label for="destinationAmount" class="form-label">Receive ({{ selectedDest?.currency ?? '...' }})</label>
+      <input id="destinationAmount" appNumeric class="input" formControlName="destinationAmount" placeholder="0.00" />
       @if (isCrossCurrency) {
-        <span class="tf-hint">Auto-calculated from exchange rate — edit if needed</span>
+        <span class="form-hint">Calculated from the exchange rate, edit if needed</span>
       }
     </div>
   </div>
 
-  <div class="tf-footer">
+  <div class="dialog-footer">
     <button type="button" class="btn btn-secondary btn-sm" (click)="cancel()">Cancel</button>
     <button type="submit" class="btn btn-primary btn-sm" [disabled]="form.invalid">Transfer</button>
   </div>

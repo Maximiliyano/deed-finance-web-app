@@ -1,53 +1,61 @@
-<div class="exchange-header">Exchange rates</div>
+<div class="dialog-header">
+  <h2 class="dialog-title">Exchange rates</h2>
+</div>
 
 <div class="exchange-calculator">
   <div class="calc-inputs">
-    <input appNumeric class="calc-amount" [(ngModel)]="amount" aria-label="Amount" />
-    <select class="calc-currency" [(ngModel)]="fromCurrency" aria-label="From currency">
+    <input appNumeric class="input calc-amount" [(ngModel)]="amount" aria-label="Amount" />
+    <select class="input calc-currency" [(ngModel)]="fromCurrency" aria-label="From currency">
       @for (c of currencies; track c) {
         <option [value]="c">{{ c }}</option>
       }
     </select>
-    <button type="button" class="calc-swap" (click)="swap()" title="Swap currencies" aria-label="Swap currencies">
+    <button type="button" class="icon-btn" aria-label="Swap currencies" (click)="swap()">
       <i class="fas fa-right-left"></i>
     </button>
-    <select class="calc-currency" [(ngModel)]="toCurrency" aria-label="To currency">
+    <select class="input calc-currency" [(ngModel)]="toCurrency" aria-label="To currency">
       @for (c of currencies; track c) {
         <option [value]="c">{{ c }}</option>
       }
     </select>
   </div>
-  <button class="calc-result" [cdkCopyToClipboard]="result.toString()" (cdkCopyToClipboardCopied)="onCopied($event)" title="Copy result">
+  <button
+    type="button"
+    class="calc-result"
+    title="Copy result"
+    [cdkCopyToClipboard]="result.toString()"
+    (cdkCopyToClipboardCopied)="onCopied($event)"
+  >
     <span aria-live="polite">≈ {{ result | number: '1.2-2' }} {{ toCurrency }}</span>
     <app-icon name="fas fa-copy"></app-icon>
   </button>
 </div>
 
-<div class="exchange-dialog">
-  <table class="rates">
-    <thead>
-      <tr>
-        <th>Pair</th>
-        <th>Buy / Sale</th>
-      </tr>
-    </thead>
-    <tbody>
-      @if (loading('exchanges')) {
+<div class="exchange-rates">
+  @if (loading('exchanges')) {
+    <div class="empty-state compact"><span class="circle-spinner"></span></div>
+  } @else {
+    <table class="table">
+      <thead>
         <tr>
-          <td colspan="2" class="exchange-empty"><div class="section-spinner"><span class="circle-spinner"></span></div></td>
+          <th>Pair</th>
+          <th>Buy / Sale</th>
         </tr>
-      } @else {
+      </thead>
+      <tbody>
         @for (exchange of exchanges; track exchange.targetCurrency) {
           <tr>
-            <td class="rate-pair">{{ exchange.targetCurrency }}<span class="text-muted"> / {{ exchange.nationalCurrency }}</span></td>
+            <td class="rate-pair">
+              {{ exchange.targetCurrency }}<span class="text-muted"> / {{ exchange.nationalCurrency }}</span>
+            </td>
             <td class="rate-values">{{ exchange.buy | number: '1.2-2' }} / {{ exchange.sale | number: '1.2-2' }}</td>
           </tr>
         }
-      }
-    </tbody>
-  </table>
+      </tbody>
+    </table>
+  }
 </div>
 
 @if (exchanges[0]; as latest) {
-  <p class="exchange-footer">Updated {{ latest.updatedAt | date }}</p>
+  <p class="exchange-updated">Updated {{ latest.updatedAt | date }}</p>
 }

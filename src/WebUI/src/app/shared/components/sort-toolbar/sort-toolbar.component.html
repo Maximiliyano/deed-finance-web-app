@@ -1,9 +1,15 @@
-<div class="bp-toolbar">
-  <div class="bp-sort-group">
-    @for (option of options(); track option.key) {
-      <button type="button" class="bp-sort-btn" [ngClass]="{ active: value() === option.key }" [title]="option.title" [attr.aria-label]="option.title" [attr.aria-pressed]="value() === option.key" (click)="changed.emit(option.key)">
-        <i class="fas" [ngClass]="option.icon"></i>
-      </button>
-    }
-  </div>
+<div class="sort-bar segmented">
+  @for (option of options(); track option.key) {
+    <button
+      type="button"
+      class="segmented-btn"
+      [class.active]="value() === option.key"
+      [attr.aria-label]="option.title"
+      [attr.aria-pressed]="value() === option.key"
+      [title]="option.title"
+      (click)="changed.emit(option.key)"
+    >
+      <i class="fas" [class]="option.icon"></i>
+    </button>
+  }
 </div>

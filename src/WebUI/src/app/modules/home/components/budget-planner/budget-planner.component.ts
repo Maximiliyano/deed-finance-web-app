@@ -4,8 +4,13 @@ import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-i
 import { catchError, of, switchMap } from 'rxjs';
 import { DialogService } from '../../../../shared/components/dialogs/services/dialog.service';
 import { PopupMessageService } from '../../../../shared/services/popup-message.service';
+import { CURRENCY_DEFAULT } from '../../../../core/types/currency-type';
+import { PanelStateComponent } from '../../../../shared/components/panel-state/panel-state.component';
 import { SectionLoadingService } from '../../../../shared/services/section-loading.service';
-import { NAMED_AMOUNT_SORT_OPTIONS, SortToolbarComponent } from '../../../../shared/components/sort-toolbar/sort-toolbar.component';
+import {
+  NAMED_AMOUNT_SORT_OPTIONS,
+  SortToolbarComponent
+} from '../../../../shared/components/sort-toolbar/sort-toolbar.component';
 import { SharedModule } from '../../../../shared/shared.module';
 import { convertCurrency } from '../../../../shared/utils/currency-conversion.util';
 import { BudgetEstimation } from '../../models/budget-estimation';
@@ -28,10 +33,14 @@ function sortEstimations(items: readonly BudgetEstimation[], by: EstimationSort)
   const sorted = [...items];
 
   switch (by) {
-    case 'amount-desc': return sorted.sort((a, b) => b.budgetAmount - a.budgetAmount);
-    case 'amount-asc': return sorted.sort((a, b) => a.budgetAmount - b.budgetAmount);
-    case 'name': return sorted.sort((a, b) => a.description.localeCompare(b.description));
-    default: return sorted.sort((a, b) => a.orderIndex - b.orderIndex);
+    case 'amount-desc':
+      return sorted.sort((a, b) => b.budgetAmount - a.budgetAmount);
+    case 'amount-asc':
+      return sorted.sort((a, b) => a.budgetAmount - b.budgetAmount);
+    case 'name':
+      return sorted.sort((a, b) => a.description.localeCompare(b.description));
+    default:
+      return sorted.sort((a, b) => a.orderIndex - b.orderIndex);
   }
 }
 
@@ -40,7 +49,14 @@ function sortEstimations(items: readonly BudgetEstimation[], by: EstimationSort)
   templateUrl: './budget-planner.component.html',
   styleUrl: './budget-planner.component.scss',
   standalone: true,
-  imports: [SharedModule, DragDropModule, BudgetPeriodBarComponent, BudgetChartsComponent, SortToolbarComponent],
+  imports: [
+    SharedModule,
+    DragDropModule,
+    BudgetPeriodBarComponent,
+    BudgetChartsComponent,
+    SortToolbarComponent,
+    PanelStateComponent
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class BudgetPlannerComponent implements OnInit {
@@ -52,6 +68,7 @@ export class BudgetPlannerComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
 
   protected readonly barColors = BUDGET_BAR_COLORS;
+  protected readonly defaultCurrency = CURRENCY_DEFAULT;
   protected readonly showCharts = signal(false);
   protected readonly sortOptions = NAMED_AMOUNT_SORT_OPTIONS;
   protected readonly sortBy = signal<EstimationSort>('custom');
@@ -118,17 +135,23 @@ export class BudgetPlannerComponent implements OnInit {
       if (estimation) {
         const request: UpdateBudgetEstimationRequest = result;
 
-        this.budgetEstimationService.update(estimation.id, request).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-          next: () => this.popup.success('Estimation updated'),
-          error: () => this.popup.error('Failed to update estimation')
-        });
+        this.budgetEstimationService
+          .update(estimation.id, request)
+          .pipe(takeUntilDestroyed(this.destroyRef))
+          .subscribe({
+            next: () => this.popup.success('Estimation updated'),
+            error: () => this.popup.error('Failed to update estimation')
+          });
       } else {
         const request: CreateBudgetEstimationRequest = result;
 
-        this.budgetEstimationService.create(request, result.capital ?? null).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-          next: () => this.popup.success('Estimation added'),
-          error: () => this.popup.error('Failed to add estimation')
-        });
+        this.budgetEstimationService
+          .create(request, result.capital ?? null)
+          .pipe(takeUntilDestroyed(this.destroyRef))
+          .subscribe({
+            next: () => this.popup.success('Estimation added'),
+            error: () => this.popup.error('Failed to add estimation')
+          });
       }
     });
   }
@@ -142,18 +165,24 @@ export class BudgetPlannerComponent implements OnInit {
 
       const request: CreateBudgetEstimationRequest = result;
 
-      this.budgetEstimationService.create(request).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-        next: () => this.popup.success('Estimation copied'),
-        error: () => this.popup.error('Failed to copy estimation')
-      });
+      this.budgetEstimationService
+        .create(request)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: () => this.popup.success('Estimation copied'),
+          error: () => this.popup.error('Failed to copy estimation')
+        });
     });
   }
 
   protected deleteEstimation(estimation: BudgetEstimation): void {
-    this.budgetEstimationService.delete(estimation.id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: () => this.popup.success('Estimation deleted'),
-      error: () => this.popup.error('Failed to delete estimation')
-    });
+    this.budgetEstimationService
+      .delete(estimation.id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => this.popup.success('Estimation deleted'),
+        error: () => this.popup.error('Failed to delete estimation')
+      });
   }
 
   protected toggleEstimationCompleted(estimation: BudgetEstimation, event: Event): void {
@@ -167,9 +196,12 @@ export class BudgetPlannerComponent implements OnInit {
       isCompleted: (event.target as HTMLInputElement).checked
     };
 
-    this.budgetEstimationService.update(estimation.id, request).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: () => this.popup.success('Estimation updated'),
-      error: () => this.popup.error('Failed to update estimation')
-    });
+    this.budgetEstimationService
+      .update(estimation.id, request)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => this.popup.success('Estimation updated'),
+        error: () => this.popup.error('Failed to update estimation')
+      });
   }
 }

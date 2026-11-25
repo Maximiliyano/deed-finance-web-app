@@ -1,40 +1,59 @@
-<form [formGroup]="form" (ngSubmit)="submit()" class="qt-dialog">
-  <div class="qt-header" [ngClass]="isExpense ? 'qt-header--expense' : 'qt-header--income'">
-    <i class="fas" [ngClass]="isExpense ? 'fa-arrow-trend-down' : 'fa-arrow-trend-up'"></i>
-    {{ isEdit ? 'Edit' : 'Add' }} {{ isExpense ? 'Expense' : 'Income' }}
+<form [formGroup]="form" (ngSubmit)="submit()">
+  <div class="dialog-header" [class.is-expense]="isExpense" [class.is-income]="!isExpense">
+    <h2 class="dialog-title">{{ isEdit ? 'Edit' : 'Add' }} {{ isExpense ? 'expense' : 'income' }}</h2>
   </div>
 
-  <div class="qt-body">
+  <div class="dialog-body">
     <div class="form-group">
-      <label class="form-label">Amount</label>
-      <input appNumeric class="input" formControlName="amount" placeholder="0.00">
+      <label for="amount" class="form-label">Amount</label>
+      <input id="amount" appNumeric class="input" formControlName="amount" placeholder="0.00" />
     </div>
 
-    <div class="qt-row">
-      <div class="form-group" style="flex:1">
-        <label class="form-label">Capital</label>
-        <select class="input" formControlName="capitalId" [attr.disabled]="isEdit ? true : null">
-          <option [ngValue]="null" disabled>Select capital…</option>
+    <div class="form-row">
+      <div class="form-group">
+        <label for="capitalId" class="form-label">Capital</label>
+        <select id="capitalId" class="input" formControlName="capitalId" [attr.disabled]="isEdit ? true : null">
+          <option [ngValue]="null" disabled>Select capital</option>
           @for (cap of capitals; track cap.id) {
             <option [ngValue]="cap.id">{{ cap.name }} ({{ cap.currency }})</option>
           }
         </select>
       </div>
-      <div class="form-group" style="flex:1">
-        <label class="form-label">
+      <div class="form-group">
+        <label for="categoryId" class="form-label">
           Category
-          <button type="button" class="qt-new-cat-btn" (click)="toggleNewCategory()" title="New category">
-            <i class="fas" [ngClass]="showNewCategory ? 'fa-times' : 'fa-plus'"></i>
+          <button
+            type="button"
+            class="new-category-btn"
+            [attr.aria-label]="showNewCategory ? 'Cancel new category' : 'New category'"
+            (click)="toggleNewCategory()"
+          >
+            <i class="fas" [class.fa-xmark]="showNewCategory" [class.fa-plus]="!showNewCategory"></i>
           </button>
         </label>
         @if (showNewCategory) {
-          <div class="qt-new-cat">
-            <input type="text" class="input" [(ngModel)]="newCategoryName" [ngModelOptions]="{standalone: true}" placeholder="Category name" maxlength="64">
-            <button type="button" class="btn btn-primary btn-sm" (click)="createCategory()" [disabled]="!newCategoryName.trim()">Add</button>
+          <div class="new-category">
+            <input
+              type="text"
+              class="input"
+              aria-label="New category name"
+              [(ngModel)]="newCategoryName"
+              [ngModelOptions]="{ standalone: true }"
+              placeholder="Category name"
+              maxlength="64"
+            />
+            <button
+              type="button"
+              class="btn btn-primary btn-sm"
+              [disabled]="!newCategoryName.trim()"
+              (click)="createCategory()"
+            >
+              Add
+            </button>
           </div>
         } @else {
-          <select class="input" formControlName="categoryId">
-            <option [ngValue]="null" disabled>Select category…</option>
+          <select id="categoryId" class="input" formControlName="categoryId">
+            <option [ngValue]="null" disabled>Select category</option>
             @for (cat of categories; track cat.id) {
               <option [ngValue]="cat.id">{{ cat.name }}</option>
             }
@@ -43,22 +62,35 @@
       </div>
     </div>
 
-    <div class="qt-row">
-      <div class="form-group" style="flex:1">
-        <label class="form-label">Date</label>
-        <input type="date" class="input" formControlName="paymentDate">
+    <div class="form-row">
+      <div class="form-group">
+        <label for="paymentDate" class="form-label">Date</label>
+        <input id="paymentDate" type="date" class="input" formControlName="paymentDate" />
       </div>
-      <div class="form-group" style="flex:1">
-        <label class="form-label">Purpose (optional)</label>
-        <input type="text" class="input" formControlName="purpose" placeholder="What for…" autocomplete="off">
+      <div class="form-group">
+        <label for="purpose" class="form-label">Purpose (optional)</label>
+        <input
+          id="purpose"
+          type="text"
+          class="input"
+          formControlName="purpose"
+          placeholder="What for"
+          autocomplete="off"
+        />
       </div>
     </div>
   </div>
 
-  <div class="qt-footer">
+  <div class="dialog-footer">
     <button type="button" class="btn btn-secondary btn-sm" (click)="cancel()">Cancel</button>
-    <button type="submit" class="btn btn-sm" [ngClass]="isExpense ? 'btn-danger' : 'btn-success'" [disabled]="form.invalid || (isEdit && form.pristine)">
-      {{ isEdit ? 'Save' : (isExpense ? 'Add Expense' : 'Add Income') }}
+    <button
+      type="submit"
+      class="btn btn-sm"
+      [class.btn-danger]="isExpense"
+      [class.btn-success]="!isExpense"
+      [disabled]="form.invalid || (isEdit && form.pristine)"
+    >
+      {{ isEdit ? 'Save' : isExpense ? 'Add expense' : 'Add income' }}
     </button>
   </div>
 </form>

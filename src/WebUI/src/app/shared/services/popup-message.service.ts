@@ -1,5 +1,19 @@
 import { Injectable, NgZone, inject } from '@angular/core';
 
+type PopupType = 'success' | 'warning' | 'error' | 'info';
+
+interface PopupAction {
+  label: string;
+  onClick: () => void;
+}
+
+const ICONS: Record<PopupType, string> = {
+  success: 'fa-circle-check',
+  warning: 'fa-triangle-exclamation',
+  error: 'fa-circle-xmark',
+  info: 'fa-circle-info'
+};
+
 @Injectable({
   providedIn: 'root'
 })
@@ -25,13 +39,17 @@ export class PopupMessageService {
     this.display(message, 'success', duration);
   }
 
-  private display(message: string, type: 'success' | 'warning' | 'error' | 'info', duration: number): void {
+  prompt(message: string, actionLabel: string, onClick: () => void, duration: number = 12000): void {
+    this.display(message, 'info', duration, { label: actionLabel, onClick });
+  }
+
+  private display(message: string, type: PopupType, duration: number, action?: PopupAction): void {
     this.zone.run(() => {
       if (!this.messageContainer) {
         this.createMessageContainer();
       }
 
-      this.addMessage(message, type, duration);
+      this.addMessage(message, type, duration, action);
     });
   }
 
@@ -42,43 +60,56 @@ export class PopupMessageService {
     document.body.appendChild(this.messageContainer);
   }
 
-  private addMessage(message: string, type: 'success' | 'warning' | 'error' | 'info', duration: number): void {
+  private addMessage(message: string, type: PopupType, duration: number, action?: PopupAction): void {
     const messageElement = document.createElement('div');
+    messageElement.className = `popup-message ${type}${action ? ' clickable' : ''}`;
 
-    messageElement.className = `popup-message ${type}`;
-    messageElement.innerHTML = `
-      <div class="popup-icon">${this.getIcon(type)}</div>
-      <div class="popup-text">${message}</div>
-      <button class="close-btn">&times;</button>
-    `;
+    const icon = document.createElement('i');
+    icon.className = `popup-icon fas ${ICONS[type]}`;
 
+    const text = document.createElement('div');
+    text.className = 'popup-text';
+    text.textContent = message;
+
+    if (action) {
+      const link = document.createElement('span');
+      link.className = 'popup-link';
+      link.textContent = action.label;
+      text.append(' ', link);
+    }
+
+    const closeButton = document.createElement('button');
+    closeButton.type = 'button';
+    closeButton.className = 'close-btn';
+    closeButton.setAttribute('aria-label', 'Close');
+    closeButton.textContent = '×';
+    closeButton.addEventListener('click', event => {
+      event.stopPropagation();
+      this.removePopup(messageElement);
+    });
+
+    messageElement.append(icon, text, closeButton);
     this.messageContainer!.prepend(messageElement);
 
-    const closeButton = messageElement.querySelector('.close-btn');
-
-    if (closeButton) {
-      closeButton.addEventListener('click', () => this.removePopup(messageElement));
+    if (action) {
+      messageElement.setAttribute('role', 'button');
+      messageElement.tabIndex = 0;
+      messageElement.addEventListener('click', () => {
+        this.removePopup(messageElement);
+        this.zone.run(action.onClick);
+      });
+      messageElement.addEventListener('keydown', event => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          messageElement.click();
+        }
+      });
     }
 
     setTimeout(() => {
       messageElement.classList.add('fade-out');
       setTimeout(() => this.removePopup(messageElement), 200);
     }, duration);
-  }
-
-  private getIcon(type: 'success' | 'warning' | 'error' | 'info'): string {
-    switch (type) {
-      case 'success':
-        return '✔️';
-      case 'warning':
-        return '⚠️';
-      case 'error':
-        return '❌';
-      case 'info':
-        return 'ℹ️';
-      default:
-        return '';
-    }
   }
 
   private removePopup(element: HTMLDivElement): void {

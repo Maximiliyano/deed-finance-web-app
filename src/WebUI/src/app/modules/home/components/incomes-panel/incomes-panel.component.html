@@ -1,6 +1,6 @@
 <div id="incomes" class="card">
   <div class="card-header">
-    <h2 class="card-title">Incomes</h2>
+    <h2>Incomes</h2>
     <div class="card-header-actions">
       <span class="badge badge-success">{{ total() | currencySymbol: userCurrency() }}</span>
       <button type="button" class="btn btn-success btn-sm" (click)="openQuickIncome()">
@@ -19,7 +19,8 @@
     [empty]="groups().length === 0"
     icon="fa-arrow-trend-up"
     title="No incomes yet"
-    hint="Start tracking your incomes to see a breakdown here.">
+    hint="Start tracking your incomes to see a breakdown here."
+  >
     <app-category-breakdown
       [groups]="groups()"
       [currency]="userCurrency()"
@@ -30,6 +31,7 @@
       [readonly]="isAnonymous()"
       (reordered)="reorder($event)"
       (edit)="openQuickIncome($event)"
-      (removed)="deleteIncome($event)" />
+      (removed)="deleteIncome($event)"
+    />
   </app-panel-state>
 </div>

@@ -1,110 +1,112 @@
-<div class="cat-dialog">
-  <div class="cat-header">{{ data.type ? data.type + ' categories' : 'Categories' }}</div>
+<div class="dialog-header">
+  <h2 class="dialog-title">{{ data.type ? data.type + ' categories' : 'Categories' }}</h2>
+</div>
 
-  <div class="cat-body">
-    @if (editableCategories.length === 0) {
-      <p class="cat-empty">No categories yet.</p>
-    } @else {
-      <div class="cat-scroll">
-        <table class="cat-table">
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Planned amount</th>
-              <th>Period</th>
-              @if (isEditModeEnabled) {
-                <th class="cat-col-action"><span class="sr-only">Actions</span></th>
-              }
-            </tr>
-          </thead>
-
-          <tbody>
-            @for (category of editableCategories; track category.id) {
-              <tr>
-                <td>
-                  @if (!isEditModeEnabled) {
-                    <span class="cat-name" [title]="category.name">{{ category.name }}</span>
-                  } @else {
-                    <input
-                      class="input"
-                      [(ngModel)]="category.name"
-                      (ngModelChange)="onFieldChange(category.id)"
-                      type="text"
-                      aria-label="Category name"
-                    />
-                  }
-                </td>
-
-                <td class="cat-num">
-                  @if (!isEditModeEnabled) {
-                    {{ category.periodAmount | currencySymbol:data.currency }}
-                  } @else {
-                    <input
-                      appNumeric
-                      class="input"
-                      [(ngModel)]="category.periodAmount"
-                      (ngModelChange)="onFieldChange(category.id)"
-                      aria-label="Planned amount"
-                    />
-                  }
-                </td>
-
-                <td>
-                  @if (!isEditModeEnabled) {
-                    {{ category.periodType | enumText:PerPeriodType }}
-                  } @else {
-                    <select
-                      class="input"
-                      [(ngModel)]="category.periodType"
-                      (ngModelChange)="onFieldChange(category.id)"
-                      aria-label="Period"
-                    >
-                      @for (item of periodTypeOptions; track item.value) {
-                        <option [value]="item.value">{{ item.key }}</option>
-                      }
-                    </select>
-                  }
-                </td>
-
-                @if (isEditModeEnabled) {
-                  <td class="cat-col-action">
-                    <button class="icon-btn icon-btn-danger" title="Delete" aria-label="Delete category" (click)="remove(category.id)">
-                      <i class="fas fa-trash-can"></i>
-                    </button>
-                  </td>
-                }
-              </tr>
-            }
-          </tbody>
-        </table>
-      </div>
-    }
-
-    @if (deletedCategories.length > 0) {
-      <div class="cat-restore">
-        <select [(ngModel)]="selectedDeletedId" class="input" aria-label="Deleted categories">
-          <option [ngValue]="null">Deleted categories</option>
-          @for (item of deletedCategories; track item.id) {
-            <option [ngValue]="item.id">{{ item.name }}</option>
+<div class="dialog-body">
+  @if (editableCategories.length === 0) {
+  <div class="empty-state compact">
+    <p class="empty-title">No categories yet</p>
+  </div>
+  } @else {
+  <div class="table-wrap cat-scroll">
+    <table class="table table-stack">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Planned amount</th>
+          <th>Period</th>
+          @if (isEditModeEnabled) {
+          <th><span class="sr-only">Actions</span></th>
           }
-        </select>
-        <button class="btn btn-secondary btn-sm" (click)="restore()" [disabled]="!selectedDeletedId">Restore</button>
-      </div>
-    }
+        </tr>
+      </thead>
+
+      <tbody>
+        @for (category of editableCategories; track category.id) {
+        <tr>
+          <td data-label="Name">
+            @if (!isEditModeEnabled) {
+            <span class="cat-name" [title]="category.name">{{ category.name }}</span>
+            } @else {
+            <input
+              class="input"
+              [(ngModel)]="category.name"
+              (ngModelChange)="onFieldChange(category.id)"
+              type="text"
+              aria-label="Category name"
+            />
+            }
+          </td>
+
+          <td data-label="Planned amount" class="cat-num">
+            @if (!isEditModeEnabled) { {{ category.periodAmount | currencySymbol: data.currency }} } @else {
+            <input
+              appNumeric
+              class="input"
+              [(ngModel)]="category.periodAmount"
+              (ngModelChange)="onFieldChange(category.id)"
+              aria-label="Planned amount"
+            />
+            }
+          </td>
+
+          <td data-label="Period">
+            @if (!isEditModeEnabled) { {{ category.periodType | enumText: PerPeriodType }} } @else {
+            <select
+              class="input"
+              [(ngModel)]="category.periodType"
+              (ngModelChange)="onFieldChange(category.id)"
+              aria-label="Period"
+            >
+              @for (item of periodTypeOptions; track item.value) {
+              <option [value]="item.value">{{ item.key }}</option>
+              }
+            </select>
+            }
+          </td>
+
+          @if (isEditModeEnabled) {
+          <td class="cell-actions">
+            <button
+              type="button"
+              class="icon-btn icon-btn-danger"
+              aria-label="Delete category"
+              (click)="remove(category.id)"
+            >
+              <i class="fas fa-trash-can"></i>
+            </button>
+          </td>
+          }
+        </tr>
+        }
+      </tbody>
+    </table>
   </div>
-
-  <div class="cat-footer">
-    @if (!isEditModeEnabled) {
-      <button class="btn btn-secondary btn-sm" (click)="add()">
-        <i class="fas fa-plus"></i> Add category
-      </button>
-
-      @if (editableCategories.length > 0) {
-        <button class="btn btn-primary btn-sm" (click)="isEditModeEnabled = true">Edit</button>
+  } @if (deletedCategories.length > 0) {
+  <div class="cat-restore">
+    <select [(ngModel)]="selectedDeletedId" class="input" aria-label="Deleted categories">
+      <option [ngValue]="null">Deleted categories</option>
+      @for (item of deletedCategories; track item.id) {
+      <option [ngValue]="item.id">{{ item.name }}</option>
       }
-    } @else {
-      <button class="btn btn-secondary btn-sm" (click)="cancel()">Cancel</button>
-      <button class="btn btn-primary btn-sm" [disabled]="!hasChanges" (click)="save()">Save changes</button>
-    }
+    </select>
+    <button type="button" class="btn btn-secondary btn-sm" [disabled]="!selectedDeletedId" (click)="restore()">
+      Restore
+    </button>
   </div>
+  }
+</div>
+
+<div class="dialog-footer">
+  @if (!isEditModeEnabled) {
+  <button type="button" class="btn btn-secondary btn-sm" (click)="add()">
+    <i class="fas fa-plus"></i> Add category
+  </button>
+
+  @if (editableCategories.length > 0) {
+  <button type="button" class="btn btn-primary btn-sm" (click)="isEditModeEnabled = true">Edit</button>
+  } } @else {
+  <button type="button" class="btn btn-secondary btn-sm" (click)="cancel()">Cancel</button>
+  <button type="button" class="btn btn-primary btn-sm" [disabled]="!hasChanges" (click)="save()">Save changes</button>
+  }
 </div>

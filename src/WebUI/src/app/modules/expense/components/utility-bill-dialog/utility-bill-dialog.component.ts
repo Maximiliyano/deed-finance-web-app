@@ -18,7 +18,6 @@ export interface UtilityBillDialogData {
 @Component({
   selector: 'app-utility-bill-dialog',
   templateUrl: './utility-bill-dialog.component.html',
-  styleUrl: './utility-bill-dialog.component.scss',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, NumericInputDirective],
   changeDetection: ChangeDetectionStrategy.OnPush

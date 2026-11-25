@@ -16,7 +16,7 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
       if (response.status === 401) {
         authService.invalidate();
       } else if (response.status >= 400 && response.status < 500 && errors.length) {
-        popupMessageService.error(errors.join('<br>'));
+        popupMessageService.error(errors.join('\n'));
       } else if (response.status === 404) {
         popupMessageService.error('Resource not found');
       } else if (response.status >= 500) {

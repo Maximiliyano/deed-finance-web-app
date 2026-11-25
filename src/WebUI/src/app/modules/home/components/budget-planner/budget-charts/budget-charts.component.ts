@@ -24,6 +24,12 @@ interface ChartItem {
 export class BudgetChartsComponent {
   protected readonly store = inject(DashboardStore);
 
+  protected readonly tabs: { key: ChartTab; label: string }[] = [
+    { key: 'general', label: 'General' },
+    { key: 'expenses', label: 'Expenses' },
+    { key: 'incomes', label: 'Incomes' }
+  ];
+
   protected readonly chartTab = signal<ChartTab>('general');
 
   protected readonly scaledFilteredNet = computed(() => this.store.filteredNetProfit() * this.store.planFactor());
@@ -44,7 +50,23 @@ export class BudgetChartsComponent {
   protected readonly incomeItems = computed(() => this.toChartItems(this.store.chartSummary()?.incomesByCategory));
   protected readonly expenseItems = computed(() => this.toChartItems(this.store.chartSummary()?.expensesByCategory));
 
-  protected readonly totalExpense = computed(() => this.store.chartSummary()?.totalExpense ?? 0);
+  protected readonly breakdown = computed(() =>
+    this.chartTab() === 'incomes'
+      ? {
+          title: 'Incomes by category',
+          items: this.incomeItems(),
+          total: this.store.filteredIncome(),
+          tone: 'text-success',
+          empty: 'No incomes for the selected capitals.'
+        }
+      : {
+          title: 'Expenses by category',
+          items: this.expenseItems(),
+          total: this.store.chartSummary()?.totalExpense ?? 0,
+          tone: 'text-danger',
+          empty: 'No expenses for the selected capitals.'
+        }
+  );
 
   private toChartItems(items: CategoryAmount[] = []): ChartItem[] {
     return items.map((item, index) => ({

@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+import { SharedModule } from '../../shared/shared.module';
 import { ChangeDetectionStrategy, Component, OnInit, signal, inject, DestroyRef } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { IncomeService } from './services/income.service';
@@ -15,7 +15,7 @@ import { CategoryType } from '../../core/types/category-type';
 
 @Component({
   selector: 'app-incomes.component',
-  imports: [CommonModule],
+  imports: [SharedModule],
   templateUrl: './incomes.component.html',
   styleUrl: './incomes.component.scss',
   standalone: true,
@@ -42,9 +42,12 @@ export class IncomesComponent implements OnInit {
   }
 
   onDelete(id: number) {
-    this.incomeService.delete(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: () => this.popup.success('Income removed')
-    });
+    this.incomeService
+      .delete(id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => this.popup.success('Income removed')
+      });
   }
 
   capitalName(id: number | null): string {
@@ -61,14 +64,16 @@ export class IncomesComponent implements OnInit {
     document.title = 'Deed - Incomes';
 
     this.incomeService.load().pipe(takeUntilDestroyed(this.destroyRef)).subscribe();
-    this.capitalService.load({ searchTerm: null, sortBy: null, sortDirection: null, filterBy: null })
+    this.capitalService
+      .load({ searchTerm: null, sortBy: null, sortDirection: null, filterBy: null })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe();
-    this.categoryService.load(CategoryType.Incomes)
+    this.categoryService
+      .load(CategoryType.Incomes)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(categories => this.categories.set(categories));
   }
-
+
   openCreateIncomeDialog(): void {
     const dialogRef = this.dialogService.open(CreateIncomeDialogComponent, {
       data: {
@@ -77,17 +82,14 @@ export class IncomesComponent implements OnInit {
       }
     });
 
-    dialogRef
-      .afterClosed$
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((request: CreateIncomeRequest) => {
-        if (!request) return;
-        this.incomeService
-          .create(request)
-          .pipe(takeUntilDestroyed(this.destroyRef))
-          .subscribe({
-            next: () => this.popup.success('Income created successfully.')
-          });
-      });
+    dialogRef.afterClosed$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((request: CreateIncomeRequest) => {
+      if (!request) return;
+      this.incomeService
+        .create(request)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: () => this.popup.success('Income created successfully.')
+        });
+    });
   }
 }

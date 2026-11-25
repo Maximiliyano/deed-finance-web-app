@@ -3,6 +3,7 @@ import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
 @Component({
     selector: 'app-error',
     templateUrl: './error.component.html',
+    styleUrl: './error.component.scss',
     standalone: true,
     changeDetection: ChangeDetectionStrategy.OnPush
 })

@@ -1,9 +1,7 @@
 <header class="header">
   <div class="header-inner">
-
-    
     <a class="logo" routerLink="/">
-      <img alt="Deed" src="../../../../favicon.ico" class="logo-icon">
+      <img alt="Deed" src="../../../../favicon.ico" class="logo-icon" />
       <span class="logo-text">Deed</span>
     </a>
 
@@ -11,8 +9,11 @@
       @for (item of navItems; track item.label) {
         @if (item.children) {
           <div class="nav-dropdown">
-            <button class="nav-item" [class.nav-active]="openDropdown === item.label"
-                    (click)="toggleDropdown(item.label, $event)">
+            <button
+              class="nav-item"
+              [class.nav-active]="openDropdown === item.label"
+              (click)="toggleDropdown(item.label, $event)"
+            >
               <i class="fas {{ item.icon }}"></i>
               {{ item.label }}
               <i class="fas fa-chevron-down nav-chevron" [class.nav-chevron-open]="openDropdown === item.label"></i>
@@ -39,21 +40,23 @@
 
     <div class="exchanges">
       @for (exchange of exchanges; track exchange.targetCurrency) {
-        <button class="exchange-chip" (click)="openExchangeDialog()"
-                [title]="'Buy ' + (exchange.buy | number:'1.2-2') + ' / Sell ' + (exchange.sale | number:'1.2-2')">
+        <button
+          class="exchange-chip"
+          (click)="openExchangeDialog()"
+          [title]="'Buy ' + (exchange.buy | number: '1.2-2') + ' / Sell ' + (exchange.sale | number: '1.2-2')"
+        >
           <span class="exc-vals">
-            <span>{{ exchange.buy | number:'1.2-2' }}</span>
+            <span>{{ exchange.buy | number: '1.2-2' }}</span>
             <span class="exc-div">/</span>
-            <span>{{ exchange.sale | number:'1.2-2' }}</span>
+            <span>{{ exchange.sale | number: '1.2-2' }}</span>
           </span>
           <span class="exc-pair">{{ exchange.targetCurrency }}/{{ exchange.nationalCurrency }}</span>
         </button>
       }
     </div>
 
-    
     <div class="header-right">
-      <button class="btn btn-ghost btn-icon exc-mob-btn" (click)="openExchangeDialog()" title="Exchange rates">
+      <button class="btn btn-ghost btn-icon exc-mob-btn" (click)="openExchangeDialog()" aria-label="Exchange rates">
         <i class="fas fa-money-bill-wave"></i>
       </button>
 
@@ -65,13 +68,13 @@
         class="btn btn-ghost btn-icon theme-btn"
         [class.theme-dark]="themeService.isDark"
         (click)="themeService.toggle()"
-        title="Switch theme"
+        aria-label="Switch theme"
       >
         <i class="fas fa-lightbulb"></i>
       </button>
 
       @if (user) {
-        <button class="profile-btn" (click)="profile()" title="Profile">
+        <button class="profile-btn" (click)="profile()" aria-label="Profile">
           <img class="avatar" [src]="user.pictureUrl" alt="Avatar" />
           <span class="profile-name">{{ user.fullname }}</span>
           <i class="fas fa-chevron-down chevron"></i>
@@ -91,7 +94,7 @@
 <aside class="sidebar" [class.sidebar-open]="isSidebarExpanded">
   <div class="sidebar-top">
     <div class="sidebar-logo">
-      <img alt="Deed" ngSrc="../../../../favicon.ico" width="32" height="32" class="logo-icon">
+      <img alt="Deed" ngSrc="../../../../favicon.ico" width="32" height="32" class="logo-icon" />
       <span class="logo-text">Deed</span>
     </div>
     <button class="btn btn-ghost btn-icon" (click)="isSidebarExpanded = false" aria-label="Close">
@@ -118,7 +121,10 @@
             <i class="fas {{ item.icon }} sidebar-item-icon"></i>
             {{ item.label }}
           </span>
-          <i class="fas fa-chevron-down sidebar-chevron" [class.sidebar-chevron-open]="expandedSidebarGroup === item.label"></i>
+          <i
+            class="fas fa-chevron-down sidebar-chevron"
+            [class.sidebar-chevron-open]="expandedSidebarGroup === item.label"
+          ></i>
         </button>
         @if (expandedSidebarGroup === item.label) {
           <div class="sidebar-submenu">
@@ -131,8 +137,12 @@
           </div>
         }
       } @else {
-        <a class="sidebar-item" [routerLink]="item.link" routerLinkActive="sidebar-item-active"
-           (click)="isSidebarExpanded = false">
+        <a
+          class="sidebar-item"
+          [routerLink]="item.link"
+          routerLinkActive="sidebar-item-active"
+          (click)="isSidebarExpanded = false"
+        >
           <i class="fas {{ item.icon }} sidebar-item-icon"></i>
           {{ item.label }}
         </a>
@@ -142,9 +152,7 @@
 
   @if (!user) {
     <div class="sidebar-footer">
-      <button class="btn btn-primary" style="width:100%" (click)="login()">
-        <i class="fas fa-right-to-bracket"></i> Log in
-      </button>
+      <button class="btn btn-primary" (click)="login()"><i class="fas fa-right-to-bracket"></i> Log in</button>
     </div>
   }
 </aside>

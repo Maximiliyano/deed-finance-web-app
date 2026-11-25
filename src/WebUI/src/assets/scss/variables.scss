@@ -1,32 +1,8 @@
-$primary-color:           #4f8cf7;
-$primary-background-color:#07090f;
-
-$secondary-color:         #22c55e;
-$font-stack:              'Inter', 'Roboto', sans-serif;
-
 $breakpoints: (
-  'xs':  320px,
-  's':   470px,
-  'sm':  576px,
-  'md':  768px,
-  'lg':  992px,
-  'xl':  1200px
+  'xs': 320px,
+  's': 470px,
+  'sm': 576px,
+  'md': 768px,
+  'lg': 992px,
+  'xl': 1200px
 );
-
-$header-h:                60px;
-$header-background:       #0d1526;
-$header-border-color:     #1c2e50;
-
-$footer:                  #e2e8f596;
-
-$text-color-wh:           #ffffff;
-$text-color:              #e2e8f5;
-$text-shadow:             none;
-
-$exchange-border-color:   #274068;
-$navigation-item-hover-color: #111e38;
-$button-active-color:     #4f8cf7;
-$button-save-color:       #22c55e;
-$button-save-hover:       #4ade80;
-$button-remove-color:     #ef4444;
-$button-remove-hover:     #f87171;

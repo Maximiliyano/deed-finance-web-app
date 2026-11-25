@@ -2,6 +2,7 @@ import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-
 import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { EMPTY, catchError, finalize } from 'rxjs';
+import { PanelStateComponent } from '../../../../shared/components/panel-state/panel-state.component';
 import { DialogService } from '../../../../shared/components/dialogs/services/dialog.service';
 import { SortOption, SortToolbarComponent } from '../../../../shared/components/sort-toolbar/sort-toolbar.component';
 import { PopupMessageService } from '../../../../shared/services/popup-message.service';
@@ -16,14 +17,21 @@ import { DebtService } from '../../services/debt.service';
 import { DebtDialogComponent, DebtDialogData } from '../debt-dialog/debt-dialog.component';
 
 type DebtSort = 'custom' | 'amount-desc' | 'amount-asc' | 'name';
-type DebtStatus = 'overdue' | 'soon' | 'ok';
+type DebtStatus = 'overdue' | 'soon' | 'ok' | 'paid';
+
+const STATUS_VIEW: Record<DebtStatus, { label: string; icon: string; badge: string }> = {
+  overdue: { label: 'Overdue', icon: 'fa-circle-exclamation', badge: 'badge-danger' },
+  soon: { label: 'Due soon', icon: 'fa-clock', badge: 'badge-warning' },
+  ok: { label: 'On track', icon: 'fa-circle-check', badge: 'badge-success' },
+  paid: { label: 'Paid', icon: 'fa-circle-check', badge: 'badge-success' }
+};
 
 @Component({
   selector: 'app-debts-panel',
   templateUrl: './debts-panel.component.html',
   styleUrl: './debts-panel.component.scss',
   standalone: true,
-  imports: [SharedModule, DragDropModule, SortToolbarComponent],
+  imports: [SharedModule, DragDropModule, SortToolbarComponent, PanelStateComponent],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class DebtsPanelComponent implements OnInit {
@@ -52,17 +60,22 @@ export class DebtsPanelComponent implements OnInit {
     const debts = [...this.storeDebts()];
 
     switch (this.sortBy()) {
-      case 'amount-desc': return debts.sort((a, b) => b.amount - a.amount);
-      case 'amount-asc': return debts.sort((a, b) => a.amount - b.amount);
-      case 'name': return debts.sort((a, b) => a.item.localeCompare(b.item));
-      default: return debts.sort((a, b) => a.orderIndex - b.orderIndex);
+      case 'amount-desc':
+        return debts.sort((a, b) => b.amount - a.amount);
+      case 'amount-asc':
+        return debts.sort((a, b) => a.amount - b.amount);
+      case 'name':
+        return debts.sort((a, b) => a.item.localeCompare(b.item));
+      default:
+        return debts.sort((a, b) => a.orderIndex - b.orderIndex);
     }
   });
 
-  readonly statuses = computed(() => new Map(this.debts().map(debt => [debt.id, this.statusOf(debt)])));
+  readonly statuses = computed(() => new Map(this.debts().map(debt => [debt.id, STATUS_VIEW[this.statusOf(debt)]])));
 
   ngOnInit(): void {
-    this.debtService.load()
+    this.debtService
+      .load()
       .pipe(
         catchError(() => EMPTY),
         finalize(() => this.loaded.set(true)),
@@ -80,7 +93,8 @@ export class DebtsPanelComponent implements OnInit {
 
     const moved = [...this.debts()];
     moveItemInArray(moved, event.previousIndex, event.currentIndex);
-    this.debtService.updateOrder(moved.map((debt, index) => ({ id: debt.id, orderIndex: index })))
+    this.debtService
+      .updateOrder(moved.map((debt, index) => ({ id: debt.id, orderIndex: index })))
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe();
   }
@@ -105,10 +119,13 @@ export class DebtsPanelComponent implements OnInit {
           isPaid: result.isPaid ?? debt.isPaid,
           payFromCapitalId: result.payFromCapitalId ?? null
         };
-        this.debtService.update(debt.id, request).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-          next: () => this.popup.success('Debt updated'),
-          error: () => this.popup.error('Failed to update debt')
-        });
+        this.debtService
+          .update(debt.id, request)
+          .pipe(takeUntilDestroyed(this.destroyRef))
+          .subscribe({
+            next: () => this.popup.success('Debt updated'),
+            error: () => this.popup.error('Failed to update debt')
+          });
       } else {
         const request: CreateDebtRequest = {
           item: result.item,
@@ -121,22 +138,29 @@ export class DebtsPanelComponent implements OnInit {
           note: result.note,
           capitalId: result.capitalId ?? null
         };
-        this.debtService.create(request).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-          next: () => this.popup.success('Debt added'),
-          error: () => this.popup.error('Failed to add debt')
-        });
+        this.debtService
+          .create(request)
+          .pipe(takeUntilDestroyed(this.destroyRef))
+          .subscribe({
+            next: () => this.popup.success('Debt added'),
+            error: () => this.popup.error('Failed to add debt')
+          });
       }
     });
   }
 
   delete(debt: Debt): void {
-    this.debtService.delete(debt.id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: () => this.popup.success('Debt deleted'),
-      error: () => this.popup.error('Failed to delete debt')
-    });
+    this.debtService
+      .delete(debt.id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => this.popup.success('Debt deleted'),
+        error: () => this.popup.error('Failed to delete debt')
+      });
   }
 
   private statusOf(debt: Debt): DebtStatus {
+    if (debt.isPaid) return 'paid';
     if (!debt.deadlineAt) return 'ok';
 
     const diffDays = Math.ceil((new Date(debt.deadlineAt).getTime() - Date.now()) / 86400000);
