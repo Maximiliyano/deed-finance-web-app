@@ -8,6 +8,7 @@ import { NumericInputDirective } from '../../../../shared/directives/numeric-inp
 import { DIALOG_DATA } from '../../../../shared/components/dialogs/models/dialog-consts';
 import { CapitalResponse } from '../../../capital/models/capital-response';
 import { Exchange } from '../../../../core/models/exchange-model';
+import { convertCurrency } from '../../../../shared/utils/currency-conversion.util';
 
 export interface TransferDialogData {
   capitals: CapitalResponse[];
@@ -66,23 +67,20 @@ export class TransferDialogComponent implements OnInit {
   }
 
   private autoConvert(): void {
-    const amount = this.form.get('amount')?.value;
+    const amount = Number(this.form.get('amount')?.value);
     if (!amount || amount <= 0 || !this.selectedSource || !this.selectedDest) return;
 
     if (!this.isCrossCurrency) {
       this.form.get('destinationAmount')!.setValue(amount, { emitEvent: false });
     } else {
-      const converted = this.convert(amount, this.selectedSource.currency, this.selectedDest.currency);
+      const converted = convertCurrency(
+        amount,
+        this.selectedSource.currency,
+        this.selectedDest.currency,
+        this.exchanges
+      );
       this.form.get('destinationAmount')!.setValue(Math.round(converted * 100) / 100, { emitEvent: false });
     }
-  }
-
-  private convert(amount: number, from: string, to: string): number {
-    const direct = this.exchanges.find(e => e.nationalCurrency === to && e.targetCurrency === from);
-    if (direct) return amount * direct.sale;
-    const reverse = this.exchanges.find(e => e.nationalCurrency === from && e.targetCurrency === to);
-    if (reverse && reverse.buy > 0) return amount / reverse.buy;
-    return amount;
   }
 
   submit(): void {

@@ -19,7 +19,27 @@
   padding: var(--space-4);
   background: var(--surface);
   border-radius: var(--radius-lg);
+  border-top: 3px solid var(--tile, var(--border));
   box-shadow: var(--shadow);
+}
+
+.tile-primary {
+  --tile: var(--primary);
+}
+.tile-success {
+  --tile: var(--success);
+}
+.tile-danger {
+  --tile: var(--danger);
+}
+.tile-warning {
+  --tile: var(--warning);
+}
+.tile-accent {
+  --tile: var(--accent);
+}
+.tile-info {
+  --tile: var(--info);
 }
 
 .stat-value {

@@ -31,7 +31,8 @@ internal static class UtilityBillExtensions
             bill.IsActive,
             payment is not null,
             payment?.Amount,
-            payment?.PaymentDate
+            payment?.PaymentDate,
+            bill.CreatedAt
         );
     }
 

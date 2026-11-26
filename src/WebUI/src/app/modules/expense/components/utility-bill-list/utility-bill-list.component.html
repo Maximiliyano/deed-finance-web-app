@@ -7,13 +7,22 @@
           <span class="ub-card-name">{{ b.name }}</span>
           @switch (variant()) {
             @case ('pending') {
-              <span class="badge badge-warning">Due {{ b.dueDayOfMonth }}</span>
+              @let due = dueOf(b);
+              <span
+                class="badge"
+                [class.badge-danger]="due.status === 'overdue'"
+                [class.badge-warning]="due.status === 'soon'"
+                [class.badge-info]="due.status === 'upcoming'"
+              >
+                <i class="fas" [class]="due.status === 'overdue' ? 'fa-circle-exclamation' : 'fa-calendar-day'"></i>
+                {{ due.dueDate | date: 'd MMM' }} · {{ due.relative }}
+              </span>
             }
             @case ('paid') {
-              <span class="badge badge-success">Paid</span>
+              <span class="badge badge-success"><i class="fas fa-circle-check"></i> Paid</span>
             }
             @default {
-              <span class="badge badge-neutral">Inactive</span>
+              <span class="badge badge-neutral"><i class="fas fa-pause"></i> Inactive</span>
             }
           }
         </div>

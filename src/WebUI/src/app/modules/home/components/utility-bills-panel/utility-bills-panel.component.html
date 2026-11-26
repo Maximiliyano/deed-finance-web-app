@@ -1,9 +1,11 @@
 <div id="utilityBills" class="card">
   <div class="card-header">
-    <h2>Utility bills</h2>
+    <h2>
+      <span class="icon-chip chip-warning"><i class="fas fa-bolt"></i></span> Utility bills
+    </h2>
     <div class="card-header-actions">
       @if (unpaidCount() > 0) {
-        <span class="badge badge-neutral">{{ unpaidCount() }} to pay this month</span>
+        <span class="badge badge-warning"><i class="fas fa-receipt"></i> {{ unpaidCount() }} to pay this month</span>
       }
       @if (!store.isAnonymous()) {
         <button type="button" class="btn btn-primary btn-sm" (click)="openDialog()">
@@ -12,6 +14,10 @@
       }
     </div>
   </div>
+  <p class="panel-hint">
+    <i class="fas fa-rotate"></i>
+    Bills repeat every month on their due day. A bill turns overdue the day after if it is not marked paid.
+  </p>
   <app-panel-state
     [loading]="isLoading()"
     [empty]="rows().length === 0"
@@ -25,7 +31,7 @@
           <tr>
             <th>Bill</th>
             <th>Amount</th>
-            <th>Due day</th>
+            <th>Due</th>
             <th>Status</th>
             @if (!store.isAnonymous()) {
               <th></th>
@@ -48,9 +54,24 @@
                   ~{{ row.bill.estimatedAmount | currencySymbol: row.bill.currency }}
                 }
               </td>
-              <td class="cell-num" data-label="Due day">{{ row.bill.dueDayOfMonth }}</td>
+              <td class="cell-due" data-label="Due">
+                <span class="due-date">
+                  {{ row.status === 'paid' ? 'Next ' : '' }}{{ row.due.dueDate | date: 'd MMM' }}
+                </span>
+                <span class="due-rel" [class]="'due-rel due-' + row.status">
+                  @if (row.status === 'paid') {
+                    Paid {{ row.bill.paidAt | date: 'd MMM' }}
+                  } @else if (row.status === 'inactive') {
+                    Every month on day {{ row.bill.dueDayOfMonth }}
+                  } @else {
+                    {{ row.due.relative }}
+                  }
+                </span>
+              </td>
               <td data-label="Status">
-                <span class="badge {{ row.view.badge }}">{{ row.view.label }}</span>
+                <span class="badge {{ row.view.badge }}"
+                  ><i class="fas {{ row.view.icon }}"></i> {{ row.view.label }}</span
+                >
               </td>
               @if (!store.isAnonymous()) {
                 <td class="cell-actions">

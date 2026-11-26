@@ -32,8 +32,12 @@
     </div>
 
     <div class="form-group">
-      <label for="dueDayOfMonth" class="form-label">Due day of month</label>
+      <label for="dueDayOfMonth" class="form-label">Pay by day of month (1-31)</label>
       <input id="dueDayOfMonth" appNumeric="integer" class="input" formControlName="dueDayOfMonth" />
+      <span class="form-hint"
+        >The bill repeats every month on this day and is marked overdue the day after if unpaid. In shorter months the
+        last day of the month is used.</span
+      >
     </div>
 
     <div class="form-group">

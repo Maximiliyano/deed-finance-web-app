@@ -43,7 +43,10 @@ export class UtilityBillDialogComponent implements OnInit {
       name: [src?.name ?? '', [Validators.required, Validators.maxLength(64)]],
       estimatedAmount: [src?.estimatedAmount ?? 0, [Validators.required, Validators.min(0)]],
       currency: [src?.currency ?? 'UAH', Validators.required],
-      dueDayOfMonth: [src?.dueDayOfMonth ?? 1, [Validators.required, Validators.min(1), Validators.max(31)]],
+      dueDayOfMonth: [
+        src?.dueDayOfMonth ?? Math.min(new Date().getDate(), 28),
+        [Validators.required, Validators.min(1), Validators.max(31)]
+      ],
       capitalId: [src?.capitalId ?? this.capitals[0]?.id ?? '', Validators.required],
       categoryId: [src?.categoryId ?? this.categories[0]?.id ?? '', Validators.required],
       isActive: [src?.isActive ?? true]

@@ -23,28 +23,27 @@ import {
   PayUtilityBillRequest,
   UtilityBillResponse
 } from '../../../expense/models/utility-bill';
+import { BillDue, BillStatus, billDue } from '../../../expense/models/utility-bill-due';
 import { ExpenseService } from '../../../expense/services/expense.service';
 import { UtilityBillService } from '../../../expense/services/utility-bill.service';
 import { DashboardStore } from '../../services/dashboard-store.service';
 
-type BillStatus = 'overdue' | 'soon' | 'upcoming' | 'paid' | 'inactive';
-
 interface BillRow {
   bill: UtilityBillResponse;
   status: BillStatus;
-  view: { label: string; badge: string };
+  due: BillDue;
+  view: { label: string; badge: string; icon: string };
 }
 
-const STATUS_VIEW: Record<BillStatus, { label: string; badge: string }> = {
-  overdue: { label: 'Overdue', badge: 'badge-danger' },
-  soon: { label: 'Due soon', badge: 'badge-warning' },
-  upcoming: { label: 'Upcoming', badge: 'badge-neutral' },
-  paid: { label: 'Paid', badge: 'badge-success' },
-  inactive: { label: 'Inactive', badge: 'badge-neutral' }
+const STATUS_VIEW: Record<BillStatus, { label: string; badge: string; icon: string }> = {
+  overdue: { label: 'Overdue', badge: 'badge-danger', icon: 'fa-circle-exclamation' },
+  soon: { label: 'Due soon', badge: 'badge-warning', icon: 'fa-hourglass-half' },
+  upcoming: { label: 'Upcoming', badge: 'badge-info', icon: 'fa-calendar-day' },
+  paid: { label: 'Paid', badge: 'badge-success', icon: 'fa-circle-check' },
+  inactive: { label: 'Inactive', badge: 'badge-neutral', icon: 'fa-pause' }
 };
 
 const STATUS_ORDER: Record<BillStatus, number> = { overdue: 0, soon: 1, upcoming: 2, paid: 3, inactive: 4 };
-const DUE_SOON_DAYS = 3;
 
 @Component({
   selector: 'app-utility-bills-panel',
@@ -73,10 +72,12 @@ export class UtilityBillsPanelComponent implements OnInit {
   readonly rows = computed<BillRow[]>(() =>
     this.bills()
       .map(bill => {
-        const status = this.statusOf(bill);
-        return { bill, status, view: STATUS_VIEW[status] };
+        const due = billDue(bill);
+        return { bill, status: due.status, due, view: STATUS_VIEW[due.status] };
       })
-      .sort((a, b) => STATUS_ORDER[a.status] - STATUS_ORDER[b.status] || a.bill.dueDayOfMonth - b.bill.dueDayOfMonth)
+      .sort(
+        (a, b) => STATUS_ORDER[a.status] - STATUS_ORDER[b.status] || a.due.dueDate.getTime() - b.due.dueDate.getTime()
+      )
   );
 
   readonly unpaidCount = computed(
@@ -174,15 +175,5 @@ export class UtilityBillsPanelComponent implements OnInit {
         takeUntilDestroyed(this.destroyRef)
       )
       .subscribe(bills => this.bills.set(bills));
-  }
-
-  private statusOf(bill: UtilityBillResponse): BillStatus {
-    if (bill.isPaidThisMonth) return 'paid';
-    if (!bill.isActive) return 'inactive';
-
-    const today = new Date().getDate();
-    if (bill.dueDayOfMonth < today) return 'overdue';
-    if (bill.dueDayOfMonth - today <= DUE_SOON_DAYS) return 'soon';
-    return 'upcoming';
   }
 }

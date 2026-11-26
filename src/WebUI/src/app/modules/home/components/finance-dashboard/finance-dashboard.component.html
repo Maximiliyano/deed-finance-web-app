@@ -1,6 +1,9 @@
 <div id="kpi" class="kpi-grid">
-  <div class="stat-tile">
-    <span class="stat-label">Total capital</span>
+  <div class="stat-tile tile-primary">
+    <div class="stat-head">
+      <span class="icon-chip chip-primary"><i class="fas fa-wallet"></i></span>
+      <span class="stat-label">Total capital</span>
+    </div>
     @if (summary().totalCapital) {
       <span class="stat-value">{{ summary().totalCapital | currencySymbol: store.userCurrency() }}</span>
       @if (store.showDualCurrency()) {
@@ -11,8 +14,11 @@
     }
   </div>
 
-  <div class="stat-tile">
-    <span class="stat-label">Incomes</span>
+  <div class="stat-tile tile-success">
+    <div class="stat-head">
+      <span class="icon-chip chip-success"><i class="fas fa-arrow-trend-up"></i></span>
+      <span class="stat-label">Incomes</span>
+    </div>
     @if (summary().totalIncome) {
       <span class="stat-value text-success">{{ summary().totalIncome | currencySymbol: store.userCurrency() }}</span>
       @if (store.showDualCurrency()) {
@@ -23,8 +29,11 @@
     }
   </div>
 
-  <div class="stat-tile">
-    <span class="stat-label">Expenses</span>
+  <div class="stat-tile tile-danger">
+    <div class="stat-head">
+      <span class="icon-chip chip-danger"><i class="fas fa-arrow-trend-down"></i></span>
+      <span class="stat-label">Expenses</span>
+    </div>
     @if (summary().totalExpense) {
       <span class="stat-value text-danger">{{ summary().totalExpense | currencySymbol: store.userCurrency() }}</span>
       @if (store.showDualCurrency()) {
@@ -36,9 +45,17 @@
   </div>
 
   @let result = profit();
-  <div class="stat-tile">
+  <div
+    class="stat-tile"
+    [class]="'stat-tile ' + (result.amount < 0 ? 'tile-warning' : result.amount > 0 ? 'tile-accent' : 'tile-info')"
+  >
     @if (result.amount) {
-      <span class="stat-label">{{ store.planFilterLabel() }} {{ result.amount > 0 ? 'profit' : 'deficit' }}</span>
+      <div class="stat-head">
+        <span class="icon-chip" [class]="'icon-chip ' + (result.amount > 0 ? 'chip-accent' : 'chip-warning')">
+          <i class="fas" [class]="result.amount > 0 ? 'fa-piggy-bank' : 'fa-scale-unbalanced'"></i>
+        </span>
+        <span class="stat-label">{{ store.planFilterLabel() }} {{ result.amount > 0 ? 'profit' : 'deficit' }}</span>
+      </div>
       <span class="stat-value" [class]="result.amount > 0 ? 'text-success' : 'text-danger'">
         {{ result.amount | currencySymbol: store.userCurrency() }}
       </span>
@@ -46,7 +63,10 @@
         <span class="stat-alt">{{ result.inDefaultCurrency | currencySymbol: defaultCurrency }}</span>
       }
     } @else {
-      <span class="stat-label">{{ store.planFilterLabel() }} break-even</span>
+      <div class="stat-head">
+        <span class="icon-chip chip-info"><i class="fas fa-scale-balanced"></i></span>
+        <span class="stat-label">{{ store.planFilterLabel() }} break-even</span>
+      </div>
       <span class="stat-empty">No data yet</span>
     }
   </div>

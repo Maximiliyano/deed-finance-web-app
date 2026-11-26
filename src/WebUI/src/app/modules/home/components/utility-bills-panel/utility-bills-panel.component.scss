@@ -19,6 +19,47 @@
   color: var(--text-muted);
 }
 
+.panel-hint {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border);
+
+  i {
+    color: var(--info);
+  }
+}
+
+.cell-due {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.due-date {
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.due-rel {
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+
+  &.due-overdue {
+    color: var(--danger-text);
+  }
+  &.due-soon {
+    color: var(--warning-text);
+  }
+  &.due-paid {
+    color: var(--success-text);
+  }
+}
+
 .cell-num {
   font-variant-numeric: tabular-nums;
 }
@@ -32,6 +73,13 @@
 }
 
 @include respond-below('sm') {
+  .cell-due {
+    flex-direction: row;
+    align-items: baseline;
+    justify-content: flex-end;
+    gap: var(--space-2);
+  }
+
   .cell-item {
     flex-direction: row;
     align-items: baseline;

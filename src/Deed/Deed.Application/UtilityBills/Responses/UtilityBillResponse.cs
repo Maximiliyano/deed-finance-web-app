@@ -13,5 +13,6 @@ public sealed record UtilityBillResponse(
     bool IsActive,
     bool IsPaidThisMonth,
     decimal? PaidAmount,
-    DateTimeOffset? PaidAt
+    DateTimeOffset? PaidAt,
+    DateTimeOffset CreatedAt
 );

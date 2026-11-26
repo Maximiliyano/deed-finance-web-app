@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 import { UtilityBillResponse } from '../../models/utility-bill';
+import { BillDue, billDue } from '../../models/utility-bill-due';
 
 export type UtilityBillVariant = 'pending' | 'paid' | 'inactive';
 
@@ -18,4 +19,8 @@ export class UtilityBillListComponent {
   pay = output<UtilityBillResponse>();
   edit = output<UtilityBillResponse>();
   remove = output<UtilityBillResponse>();
+
+  dueOf(bill: UtilityBillResponse): BillDue {
+    return billDue(bill);
+  }
 }
