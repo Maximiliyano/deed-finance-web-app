@@ -1,3 +1,4 @@
+using System.Net;
 using Deed.Application.Abstractions.Behaviours;
 using Deed.Application.Abstractions.Settings;
 using Deed.Application.Auth;
@@ -13,6 +14,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Http.Resilience;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -42,7 +44,10 @@ public static class DependencyInjection
                 client.Timeout = TimeSpan.FromSeconds(10));
 
             services.AddHttpClient<IPrivatAutoclientService, PrivatAutoclientService>()
-                .AddStandardResilienceHandler();
+                .AddStandardResilienceHandler(options =>
+                    options.Retry.ShouldHandle = args => ValueTask.FromResult(
+                        args.Outcome.Result?.StatusCode != HttpStatusCode.TooManyRequests
+                        && HttpClientResiliencePredicates.IsTransient(args.Outcome)));
 
             services.AddHttpClient<IMonobankService, MonobankService>(client =>
                 client.Timeout = TimeSpan.FromSeconds(15));

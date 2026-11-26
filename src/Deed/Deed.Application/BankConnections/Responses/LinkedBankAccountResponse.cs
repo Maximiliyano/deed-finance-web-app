@@ -1,6 +1,6 @@
 namespace Deed.Application.BankConnections.Responses;
 
-public sealed record BankAccountResponse(
+public sealed record LinkedBankAccountResponse(
     int Id,
     string Provider,
     string Iban,

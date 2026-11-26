@@ -65,7 +65,7 @@ internal sealed class SmtpEmailService(IOptions<SmtpSettings> settings) : IEmail
             await client.SendAsync(message, token).ConfigureAwait(false);
             await client.DisconnectAsync(true, token).ConfigureAwait(false);
             
-            Log.Information("Email sent to {To}: {Subject}", to, subject);
+            Log.Information("Email sent: {Subject}", subject);
         }, ct).ConfigureAwait(false);
     }
 }

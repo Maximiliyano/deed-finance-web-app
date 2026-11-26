@@ -26,7 +26,6 @@ export interface BankHistoryImportRequest {
 }
 
 export interface BankHistoryImportResponse {
-  imported: number;
   inProgress: boolean;
 }
 
@@ -150,6 +149,8 @@ export interface BankSummaryCurrency {
   currency: string;
   income: number;
   expense: number;
+  exchangeIn: number;
+  exchangeOut: number;
   count: number;
   periods: BankSummaryPeriodRow[];
   types: BankSummaryType[];

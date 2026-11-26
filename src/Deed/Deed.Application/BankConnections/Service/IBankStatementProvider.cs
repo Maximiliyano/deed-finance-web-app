@@ -13,6 +13,8 @@ public interface IBankStatementProvider
 
     TimeSpan ChunkDelay { get; }
 
+    TimeSpan MinSyncInterval { get; }
+
     Task<Result<IReadOnlyList<BankTransaction>>> GetTransactionsAsync(
         string token,
         string account,

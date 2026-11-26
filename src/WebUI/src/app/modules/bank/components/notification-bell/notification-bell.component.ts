@@ -6,24 +6,18 @@ import { SharedModule } from '../../../../shared/shared.module';
 import { BANK_TYPE_LABELS, BankNotification, BankTransactionType } from '../../models/bank.model';
 import { BankConnectionService } from '../../services/bank-connection.service';
 import { BankNotificationService } from '../../services/bank-notification.service';
+import { BANK_TYPE_ICONS, formatMoney } from '../../utils/bank-format';
 
-type BellFilter = 'all' | Extract<BankTransactionType, 'TopUp' | 'Withdrawal' | 'Transfer'>;
+type BellFilter = 'all' | Exclude<BankTransactionType, 'None'>;
 
 const FILTERS: { value: BellFilter; label: string }[] = [
   { value: 'all', label: 'All' },
   { value: 'TopUp', label: 'Top-ups' },
   { value: 'Withdrawal', label: 'Withdrawals' },
-  { value: 'Transfer', label: 'Transfers' }
+  { value: 'Transfer', label: 'Transfers' },
+  { value: 'Payment', label: 'Payments' },
+  { value: 'Exchange', label: 'Exchanges' }
 ];
-
-const TYPE_ICONS: Record<BankTransactionType, string> = {
-  None: 'fa-circle-info',
-  TopUp: 'fa-arrow-down',
-  Withdrawal: 'fa-money-bill-wave',
-  Transfer: 'fa-right-left',
-  Payment: 'fa-credit-card',
-  Exchange: 'fa-arrows-rotate'
-};
 
 @Component({
   selector: 'app-notification-bell',
@@ -83,14 +77,18 @@ export class NotificationBellComponent implements OnInit {
   }
 
   protected icon(item: BankNotification): string {
-    return item.kind === 'ConnectionIssue' ? 'fa-triangle-exclamation' : TYPE_ICONS[item.type];
+    return item.kind === 'ConnectionIssue' ? 'fa-triangle-exclamation' : BANK_TYPE_ICONS[item.type];
   }
 
   protected title(item: BankNotification): string {
-    if (item.kind === 'ConnectionIssue') return `${item.accountLabel ?? 'Privat24'} needs attention`;
+    if (item.kind === 'ConnectionIssue') return `${item.accountLabel ?? 'Your bank'} needs attention`;
     if (item.counterparty) return item.counterparty;
 
     return BANK_TYPE_LABELS[item.type] || (item.direction === 'Incoming' ? 'Incoming' : 'Outgoing');
+  }
+
+  protected amount(item: BankNotification): string {
+    return `${item.direction === 'Incoming' ? '+' : '-'}${formatMoney(item.amount, item.currency ?? '')}`;
   }
 
   protected subtitle(item: BankNotification): string {

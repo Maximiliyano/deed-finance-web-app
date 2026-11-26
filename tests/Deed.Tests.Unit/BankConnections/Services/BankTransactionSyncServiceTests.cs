@@ -57,8 +57,12 @@ public sealed class BankTransactionSyncServiceTests
             .Returns([_connection]);
 
         _notificationsMock
-            .GetAllAsync(Arg.Any<BankNotificationsByExternalIdsSpecification>(), Arg.Any<CancellationToken>())
-            .Returns([]);
+            .GetExternalIdsAsync(Arg.Any<BankNotificationsByExternalIdsSpecification>(), Arg.Any<CancellationToken>())
+            .Returns(new List<string>());
+
+        _connectionsMock
+            .GetBackfillStateAsync(Arg.Any<int>(), Arg.Any<CancellationToken>())
+            .Returns(_ => new BankBackfillState(_connection.BackfillCursor, false));
 
         _service = new BankTransactionSyncService(
             _connectionsMock, _notificationsMock, _settingsMock, [_bankMock], _importerMock,
@@ -171,8 +175,8 @@ public sealed class BankTransactionSyncServiceTests
         // Arrange
         ReturnTransactions(Transaction("tx-1", Now.AddMinutes(-2)));
         _notificationsMock
-            .GetAllAsync(Arg.Any<BankNotificationsByExternalIdsSpecification>(), Arg.Any<CancellationToken>())
-            .Returns([new BankNotification { ExternalId = "tx-1" }]);
+            .GetExternalIdsAsync(Arg.Any<BankNotificationsByExternalIdsSpecification>(), Arg.Any<CancellationToken>())
+            .Returns(new List<string> { "tx-1" });
 
         // Act
         await _service.SyncAsync(CancellationToken.None);
@@ -290,8 +294,8 @@ public sealed class BankTransactionSyncServiceTests
     {
         // Arrange
         _notificationsMock
-            .GetAllAsync(Arg.Any<BankNotificationsByExternalIdsSpecification>(), Arg.Any<CancellationToken>())
-            .Returns([new BankNotification { ExternalId = "old" }]);
+            .GetExternalIdsAsync(Arg.Any<BankNotificationsByExternalIdsSpecification>(), Arg.Any<CancellationToken>())
+            .Returns(new List<string> { "OLD" });
 
         // Act
         var staged = await _service.StageHistoryAsync(
@@ -319,7 +323,6 @@ public sealed class BankTransactionSyncServiceTests
         var response = await _service.ImportHistoryAsync("owner", from, Now, CancellationToken.None);
 
         // Assert
-        response.Imported.Should().Be(0);
         response.InProgress.Should().BeTrue();
         _connection.BackfillFrom.Should().Be(from);
         _connection.BackfillCursor.Should().Be(Now);
@@ -670,4 +673,130 @@ public sealed class BankTransactionSyncServiceTests
         => _bankMock
             .GetTransactionsAsync("token", _connection.AccountIban, Arg.Any<DateTimeOffset>(), Arg.Any<DateTimeOffset>(), Arg.Any<CancellationToken>())
             .Returns(Result.Success<IReadOnlyList<BankTransaction>>(transactions));
+
+    [Fact]
+    public async Task SyncAsync_RecentlySyncedConnectionOfSlowProvider_IsSkippedByTheJob()
+    {
+        // Arrange
+        _bankMock.MinSyncInterval.Returns(TimeSpan.FromMinutes(30));
+        ReturnTransactions(Transaction("tx-1", Now.AddMinutes(-2)));
+
+        // Act
+        var created = await _service.SyncAsync(CancellationToken.None);
+
+        // Assert
+        created.Should().Be(0);
+        await _bankMock.DidNotReceive().GetTransactionsAsync(
+            Arg.Any<string>(), Arg.Any<string>(), Arg.Any<DateTimeOffset>(), Arg.Any<DateTimeOffset>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task SyncAsync_ConnectionSyncedLongAgo_IsCheckedAgain()
+    {
+        // Arrange
+        _bankMock.MinSyncInterval.Returns(TimeSpan.FromMinutes(30));
+        _connection.LastSyncAt = Now.AddMinutes(-31);
+        ReturnTransactions(Transaction("tx-1", Now.AddMinutes(-2)));
+
+        // Act
+        var created = await _service.SyncAsync(CancellationToken.None);
+
+        // Assert
+        created.Should().Be(1);
+    }
+
+    [Fact]
+    public async Task SyncUserAsync_RecentlySyncedConnection_IsStillCheckedOnDemand()
+    {
+        // Arrange
+        _bankMock.MinSyncInterval.Returns(TimeSpan.FromMinutes(30));
+        ReturnTransactions(Transaction("tx-1", Now.AddMinutes(-2)));
+
+        // Act
+        var created = await _service.SyncUserAsync("owner", CancellationToken.None);
+
+        // Assert
+        created.Should().Be(1);
+    }
+
+    [Fact]
+    public async Task SyncAsync_ExchangeTransaction_IsNotOfferedForImport()
+    {
+        // Arrange
+        _connection.CapitalId = 5;
+        ReturnTransactions(
+            new BankTransaction("ex-1", BankTransactionDirection.Outgoing, 100m, "UAH", "Privat", "Обмін валют UAH/USD", Now.AddMinutes(-2)),
+            Transaction("tx-2", Now.AddMinutes(-1)));
+
+        // Act
+        await _service.SyncAsync(CancellationToken.None);
+
+        // Assert
+        _notificationsMock.Received(1).CreateRange(Arg.Is<IEnumerable<BankNotification>>(items =>
+            items.Single(n => n.ExternalId == "ex-1").Type == BankTransactionType.Exchange &&
+            items.Single(n => n.ExternalId == "ex-1").ImportStatus == BankImportStatus.None &&
+            items.Single(n => n.ExternalId == "tx-2").ImportStatus == BankImportStatus.Pending));
+    }
+
+    [Fact]
+    public async Task SyncAsync_KnownIdWithDifferentCase_IsTreatedAsDuplicate()
+    {
+        // Arrange
+        ReturnTransactions(Transaction("Tx-1", Now.AddMinutes(-2)));
+        _notificationsMock
+            .GetExternalIdsAsync(Arg.Any<BankNotificationsByExternalIdsSpecification>(), Arg.Any<CancellationToken>())
+            .Returns(new List<string> { "tx-1" });
+
+        // Act
+        var created = await _service.SyncAsync(CancellationToken.None);
+
+        // Assert
+        created.Should().Be(0);
+        _notificationsMock.DidNotReceive().CreateRange(Arg.Any<IEnumerable<BankNotification>>());
+    }
+
+    [Fact]
+    public async Task BackfillAsync_ImportCancelledWhileChunkWasFetched_DropsTheChunkAndKeepsTheCancel()
+    {
+        // Arrange
+        _connection.BackfillFrom = Now.AddDays(-90);
+        _connection.BackfillCursor = Now;
+        _connectionsMock
+            .GetAllAsync(Arg.Any<BackfillBankConnectionsSpecification>(), Arg.Any<CancellationToken>())
+            .Returns([_connection]);
+        _connectionsMock
+            .GetBackfillStateAsync(_connection.Id, Arg.Any<CancellationToken>())
+            .Returns(new BankBackfillState(null, false));
+        ReturnTransactions(Transaction("tx", Now.AddDays(-5)));
+
+        // Act
+        var imported = await _service.BackfillAsync(CancellationToken.None);
+
+        // Assert
+        imported.Should().Be(0);
+        _notificationsMock.DidNotReceive().CreateRange(Arg.Any<IEnumerable<BankNotification>>());
+        await _unitOfWorkMock.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task BackfillAsync_ConnectionExcludedWhileChunkWasFetched_DropsTheChunk()
+    {
+        // Arrange
+        _connection.BackfillFrom = Now.AddDays(-90);
+        _connection.BackfillCursor = Now;
+        _connectionsMock
+            .GetAllAsync(Arg.Any<BackfillBankConnectionsSpecification>(), Arg.Any<CancellationToken>())
+            .Returns([_connection]);
+        _connectionsMock
+            .GetBackfillStateAsync(_connection.Id, Arg.Any<CancellationToken>())
+            .Returns(new BankBackfillState(Now, true));
+        ReturnTransactions(Transaction("tx", Now.AddDays(-5)));
+
+        // Act
+        var imported = await _service.BackfillAsync(CancellationToken.None);
+
+        // Assert
+        imported.Should().Be(0);
+        _notificationsMock.DidNotReceive().CreateRange(Arg.Any<IEnumerable<BankNotification>>());
+    }
 }

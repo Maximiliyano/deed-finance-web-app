@@ -3,4 +3,4 @@ using Deed.Application.BankConnections.Responses;
 
 namespace Deed.Application.BankConnections.Queries.GetBankAccounts;
 
-public sealed record GetBankAccountsQuery : IQuery<IReadOnlyList<BankAccountResponse>>;
+public sealed record GetBankAccountsQuery : IQuery<IReadOnlyList<LinkedBankAccountResponse>>;

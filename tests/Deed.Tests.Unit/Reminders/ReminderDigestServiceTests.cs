@@ -21,6 +21,7 @@ public sealed class ReminderDigestServiceTests
     private readonly IIncomeRepository _incomes = Substitute.For<IIncomeRepository>();
     private readonly IDebtRepository _debts = Substitute.For<IDebtRepository>();
     private readonly IBankNotificationRepository _bank = Substitute.For<IBankNotificationRepository>();
+    private readonly IBankConnectionRepository _bankConnections = Substitute.For<IBankConnectionRepository>();
     private readonly IExchangeRateProvider _rates = Substitute.For<IExchangeRateProvider>();
     private readonly IEmailService _email = Substitute.For<IEmailService>();
     private readonly ReminderDigestService _sut;
@@ -48,7 +49,10 @@ public sealed class ReminderDigestServiceTests
             new BankNotification(2) { ExternalId = "2", Type = BankTransactionType.Withdrawal, Direction = BankTransactionDirection.Outgoing, Amount = 50m, Currency = "UAH", OccurredAt = Now.AddHours(-3) }
         ]);
 
-        _sut = new ReminderDigestService(_capitals, _expenses, _incomes, _debts, _bank, _rates, _email);
+        _bankConnections.GetAllAsync(Arg.Any<ISpecification<BankConnection>>(), Arg.Any<CancellationToken>()).Returns(new List<BankConnection>());
+        _bank.CountAsync(Arg.Any<ISpecification<BankNotification>>(), Arg.Any<CancellationToken>()).Returns(2);
+
+        _sut = new ReminderDigestService(_capitals, _expenses, _incomes, _debts, _bank, _bankConnections, _rates, _email);
     }
 
     [Fact]
@@ -169,4 +173,32 @@ public sealed class ReminderDigestServiceTests
             EmailNotificationsEnabled = true,
             BankAlertsEmailEnabled = bankAlerts
         };
+
+    [Fact]
+    public async Task SendAsync_ExcludedConnection_IsLeftOutOfTheBankSection()
+    {
+        // Arrange
+        _bankConnections
+            .GetAllAsync(Arg.Any<ISpecification<BankConnection>>(), Arg.Any<CancellationToken>())
+            .Returns(new List<BankConnection>
+            {
+                new(1) { EncryptedToken = "x", AccountIban = "UA1" },
+                new(2) { EncryptedToken = "x", AccountIban = "UA2", IsExcluded = true }
+            });
+        var captured = new List<ISpecification<BankNotification>>();
+        _bank
+            .GetAllAsync(Arg.Do<ISpecification<BankNotification>>(captured.Add), Arg.Any<CancellationToken>())
+            .Returns(new List<BankNotification>
+            {
+                new(1) { ExternalId = "1", Type = BankTransactionType.TopUp, Direction = BankTransactionDirection.Incoming, Amount = 1m, Currency = "UAH", OccurredAt = Now.AddHours(-2) }
+            });
+
+        // Act
+        await _sut.SendAsync(CreateSettings(bankAlerts: true), new ReminderDigestRequest(true, true, Since), Now);
+
+        // Assert
+        var matches = captured.Single().Criteria!.Compile();
+        matches(new BankNotification { ExternalId = "a", BankConnectionId = 1, Kind = BankNotificationKind.Transaction, OccurredAt = Now.AddHours(-1) }).Should().BeTrue();
+        matches(new BankNotification { ExternalId = "b", BankConnectionId = 2, Kind = BankNotificationKind.Transaction, OccurredAt = Now.AddHours(-1) }).Should().BeFalse();
+    }
 }

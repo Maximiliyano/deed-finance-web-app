@@ -78,12 +78,6 @@
   background: var(--surface-2);
 }
 
-.bank-summary {
-  display: flex;
-  flex-direction: column;
-  gap: 0.125rem;
-}
-
 .bank-title {
   display: flex;
   flex-wrap: wrap;
@@ -159,7 +153,10 @@
 }
 
 .bank-summary {
+  display: flex;
   flex: 1 1 12rem;
+  flex-direction: column;
+  gap: 0.125rem;
   min-width: 0;
 }
 

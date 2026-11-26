@@ -5,8 +5,6 @@ namespace Deed.Application.BankConnections;
 
 internal static class BankConnectionExtensions
 {
-    private const string AllAccounts = "All accounts";
-
     internal static BankConnectionResponse ToResponse(this BankConnection connection)
         => new(
             connection.Id,
@@ -39,7 +37,6 @@ internal static class BankConnectionExtensions
     internal static string MaskAccount(string iban)
         => iban.Length switch
         {
-            0 => AllAccounts,
             <= 8 => iban,
             _ => $"{iban[..4]}{new string('*', iban.Length - 8)}{iban[^4..]}"
         };

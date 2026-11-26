@@ -1,8 +1,8 @@
 <div class="page">
   <div class="page-header">
-    <h1 class="page-title">Bank transactions</h1>
+    <h1 class="page-title">Bank</h1>
     <div class="page-actions">
-      @if (connections().length > 0) {
+      @if (provider()) {
         <button type="button" class="btn btn-secondary btn-sm" (click)="importHistory()">
           <i class="fas fa-clock-rotate-left"></i> Import history
         </button>
@@ -13,164 +13,216 @@
     </div>
   </div>
 
-  @if (providers().length > 1 || accountOptions().length > 1) {
-    <div class="tx-scope">
-      @if (providers().length > 1) {
-        <div class="segmented" role="tablist" aria-label="Bank">
+  @if (!provider()) {
+    <div class="card">
+      <div class="empty-state">
+        <i class="fas fa-building-columns empty-icon"></i>
+        <p class="empty-title">No bank connected yet</p>
+        <p class="empty-hint">Open your profile and connect Privat24 or Monobank to see your bank activity here.</p>
+      </div>
+    </div>
+  } @else {
+    <div class="segmented tx-banks" role="tablist" aria-label="Bank">
+      @for (option of providers(); track option.value) {
+        <button
+          type="button"
+          class="segmented-btn"
+          role="tab"
+          [id]="'bank-tab-' + option.value"
+          aria-controls="bank-panel"
+          [class.active]="provider() === option.value"
+          [attr.aria-selected]="provider() === option.value"
+          (click)="setProvider(option.value)"
+        >
+          {{ option.label }}
+          <span class="tx-count">{{ accountCount(option.value) }}</span>
+        </button>
+      }
+    </div>
+
+    <div id="bank-panel" class="tx-panel" role="tabpanel" [attr.aria-labelledby]="'bank-tab-' + provider()">
+      @if (accountOptions().length > 1) {
+        <div class="tx-chips" role="group" aria-label="Account">
           <button
             type="button"
-            class="segmented-btn"
-            role="tab"
-            [class.active]="provider() === null"
-            [attr.aria-selected]="provider() === null"
-            (click)="setProvider(null)"
+            class="tx-chip"
+            [class.active]="accountId() === null"
+            [attr.aria-pressed]="accountId() === null"
+            (click)="setAccount(null)"
           >
-            All banks
+            All accounts
           </button>
-          @for (option of providers(); track option.value) {
+          @for (connection of accountOptions(); track connection.id) {
             <button
               type="button"
-              class="segmented-btn"
-              role="tab"
-              [class.active]="provider() === option.value"
-              [attr.aria-selected]="provider() === option.value"
-              (click)="setProvider(option.value)"
+              class="tx-chip"
+              [class.active]="accountId() === connection.id"
+              [attr.aria-pressed]="accountId() === connection.id"
+              (click)="setAccount(connection.id)"
             >
-              {{ option.label }}
+              {{ connection.label }}
+              <span class="tx-chip-id">{{ last4(connection) }}</span>
             </button>
           }
         </div>
       }
-      @if (accountOptions().length > 1) {
-        <label class="tx-account">
-          <span class="tx-account-label">Account</span>
-          <select class="input" (change)="setAccount($any($event.target).value)">
-            <option value="" [selected]="accountId() === null">All accounts</option>
-            @for (connection of accountOptions(); track connection.id) {
-              <option [value]="connection.id" [selected]="connection.id === accountId()">
-                {{ connection.label }} · {{ connection.maskedAccount }}
-              </option>
+
+      @if (currencies().length > 1) {
+        <div class="segmented tx-currencies" role="group" aria-label="Currency">
+          @for (code of currencies(); track code) {
+            <button
+              type="button"
+              class="segmented-btn"
+              [class.active]="currency() === code"
+              [attr.aria-pressed]="currency() === code"
+              (click)="setCurrency(code)"
+            >
+              {{ code }}
+            </button>
+          }
+        </div>
+      }
+
+      @if (backfilling().length > 0) {
+        <div class="tx-banner" role="status" animate.enter="tx-enter" animate.leave="tx-leave">
+          <div class="tx-banner-head">
+            <i class="fas fa-spinner fa-spin" aria-hidden="true"></i>
+            <span class="tx-banner-text">Importing older transactions</span>
+            <span class="tx-banner-pct">{{ backfillProgress() }}%</span>
+            <button type="button" class="btn btn-ghost btn-sm" [disabled]="busy()" (click)="cancelImport()">
+              Cancel
+            </button>
+          </div>
+          <div
+            class="progress"
+            role="progressbar"
+            aria-label="History import progress"
+            aria-valuemin="0"
+            aria-valuemax="100"
+            [attr.aria-valuenow]="backfillProgress()"
+          >
+            <div class="progress-bar" [style.width.%]="backfillProgress()"></div>
+          </div>
+          @if (backfillCursor(); as cursor) {
+            <span class="tx-banner-meta">
+              Now at {{ cursor | date: 'dd MMM yyyy' }}, going back to {{ backfillFrom() | date: 'dd MMM yyyy' }}.
+              @if (eta(); as left) {
+                {{ left }}.
+              }
+            </span>
+          }
+        </div>
+      } @else if (finished()) {
+        <div
+          class="tx-banner"
+          [class.tx-banner-done]="!stopped()"
+          [class.tx-banner-stopped]="stopped()"
+          role="status"
+          animate.enter="tx-enter"
+          animate.leave="tx-leave"
+        >
+          <div class="tx-banner-head">
+            <i
+              class="fas"
+              [class.fa-circle-check]="!stopped()"
+              [class.fa-triangle-exclamation]="stopped()"
+              aria-hidden="true"
+            ></i>
+            <span class="tx-banner-text">{{
+              stopped() ? 'Import stopped. Reconnect your bank in the profile.' : 'History imported'
+            }}</span>
+          </div>
+        </div>
+      }
+
+      <app-bank-summary
+        [connectionId]="accountId()"
+        [provider]="provider()"
+        [currency]="currency()"
+        [version]="version()"
+        (currenciesChange)="onCurrencies($event)"
+      />
+
+      <app-collapsible heading="Transactions" icon="fa-list" storageKey="deed-bank-transactions">
+        <span actions class="tx-total">{{ total() }}</span>
+
+        <div class="tx-filters-bar">
+          <div class="segmented" role="group" aria-label="Show">
+            <button
+              type="button"
+              class="segmented-btn"
+              [class.active]="!reviewOnly()"
+              [attr.aria-pressed]="!reviewOnly()"
+              (click)="setReviewOnly(false)"
+            >
+              All
+            </button>
+            <button
+              type="button"
+              class="segmented-btn"
+              [class.active]="reviewOnly()"
+              [attr.aria-pressed]="reviewOnly()"
+              (click)="setReviewOnly(true)"
+            >
+              To review
+            </button>
+          </div>
+          <select class="input tx-type" aria-label="Transaction type" (change)="setType($any($event.target).value)">
+            @for (option of typeOptions; track option.value) {
+              <option [value]="option.value" [selected]="typeFilter() === option.value">{{ option.label }}</option>
             }
           </select>
-        </label>
-      }
-    </div>
-  }
+        </div>
 
-  @if (backfilling().length > 0) {
-    <div class="tx-banner" role="status" animate.enter="tx-enter" animate.leave="tx-leave">
-      <div class="tx-banner-head">
-        <i class="fas fa-spinner fa-spin"></i>
-        <span class="tx-banner-text">Importing older transactions in the background</span>
-        <span class="tx-banner-pct">{{ backfillProgress() }}%</span>
-        <button type="button" class="btn btn-ghost btn-sm" [disabled]="busy()" (click)="cancelImport()">Cancel</button>
-      </div>
-      <div
-        class="progress"
-        role="progressbar"
-        aria-valuemin="0"
-        aria-valuemax="100"
-        [attr.aria-valuenow]="backfillProgress()"
-      >
-        <div class="progress-bar" [style.width.%]="backfillProgress()"></div>
-      </div>
-      @if (backfillCursor(); as cursor) {
-        <span class="tx-banner-meta">
-          Now at {{ cursor | date: 'dd MMM yyyy' }}, going back to {{ backfillFrom() | date: 'dd MMM yyyy' }}.
-          @if (eta(); as left) {
-            {{ left }}.
-          }
-        </span>
-      }
-    </div>
-  } @else if (finished()) {
-    <div class="tx-banner tx-banner-done" role="status" animate.enter="tx-enter" animate.leave="tx-leave">
-      <div class="tx-banner-head">
-        <i class="fas fa-circle-check"></i>
-        <span class="tx-banner-text">History imported</span>
-      </div>
-    </div>
-  }
-
-  <app-bank-summary [connectionId]="accountId()" [provider]="provider()" [version]="version()" />
-
-  <div class="card">
-    <div class="tx-filters-bar">
-      <div class="segmented tx-filters" role="tablist" aria-label="Filter by type">
-        @for (option of filters; track option.value) {
-          <button
-            type="button"
-            class="segmented-btn"
-            role="tab"
-            [class.active]="filter() === option.value"
-            [attr.aria-selected]="filter() === option.value"
-            (click)="setFilter(option.value)"
-          >
-            {{ option.label }}
-          </button>
-        }
-      </div>
-    </div>
-
-    <app-panel-state
-      [loading]="loading() && !data()"
-      [empty]="!loading() && items().length === 0"
-      icon="fa-building-columns"
-      title="No transactions yet"
-      [hint]="
-        connections().length > 0
-          ? 'Nothing is recorded for this filter yet. Use Import history to bring in earlier activity from the bank.'
-          : 'Connect a bank in your profile to see your bank activity here.'
-      "
-    >
-      <div class="table-wrap">
-        <table class="table table-stack">
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th>Type</th>
-              <th>Account</th>
-              <th>Details</th>
-              <th class="cell-amount">Amount</th>
-              <th class="cell-status">Capital</th>
-            </tr>
-          </thead>
-          <tbody>
+        <app-panel-state
+          [loading]="loading() && !data()"
+          [empty]="!loading() && items().length === 0"
+          icon="fa-building-columns"
+          title="No transactions here"
+          [hint]="
+            reviewOnly()
+              ? 'Nothing is waiting for your review.'
+              : 'Nothing matches these filters yet. Use Import history to bring in earlier activity.'
+          "
+        >
+          <ul class="tx-list" [style.--tx-rows]="reservedRows()" [attr.aria-busy]="loading()">
             @for (item of items(); track item.id) {
-              <tr class="tx-row">
-                <td data-label="Date">{{ item.occurredAt | date: 'dd MMM yyyy, HH:mm' }}</td>
-                <td data-label="Type">
-                  <span
-                    class="tx-type"
-                    [class.in]="item.direction === 'Incoming'"
-                    [class.out]="item.direction === 'Outgoing'"
-                  >
-                    <i class="fas {{ icon(item) }}"></i> {{ typeLabel(item) }}
-                  </span>
-                </td>
-                <td data-label="Account">{{ item.accountLabel ?? '—' }}</td>
-                <td class="cell-details" data-label="Details">
-                  <div class="tx-details">
-                    <span class="tx-name">{{ item.counterparty || '—' }}</span>
-                    @if (item.purpose) {
-                      <span class="tx-purpose">{{ item.purpose }}</span>
-                    }
-                  </div>
-                </td>
-                <td
-                  class="cell-amount"
-                  data-label="Amount"
+              <li class="tx-item">
+                <span
+                  class="tx-icon"
                   [class.in]="item.direction === 'Incoming'"
                   [class.out]="item.direction === 'Outgoing'"
+                  [attr.title]="typeLabel(item)"
                 >
-                  {{ item.direction === 'Incoming' ? '+' : '-' }}{{ item.amount | currencySymbol: item.currency ?? '' }}
-                </td>
-                <td class="cell-status" data-label="Capital">
+                  <i class="fas {{ icon(item) }}" aria-hidden="true"></i>
+                </span>
+                <div class="tx-main">
+                  <span class="tx-name">{{ name(item) }}</span>
+                  @if (item.purpose) {
+                    <span class="tx-purpose">{{ item.purpose }}</span>
+                  }
+                  <span class="tx-meta"
+                    >{{ item.occurredAt | date: 'dd MMM yyyy' }}
+                    @if (hasTime(item)) {
+                      · {{ item.occurredAt | date: 'HH:mm' }}
+                    }
+                    @if (showAccount() && item.accountLabel) {
+                      · {{ item.accountLabel }}
+                    }
+                  </span>
+                </div>
+                <div class="tx-side">
+                  <span
+                    class="tx-amount"
+                    [class.in]="item.direction === 'Incoming'"
+                    [class.out]="item.direction === 'Outgoing'"
+                    >{{ money(item) }}</span
+                  >
                   @switch (item.importStatus) {
                     @case ('Pending') {
                       <span class="tx-actions">
                         <button type="button" class="btn btn-primary btn-sm" [disabled]="busy()" (click)="add(item)">
-                          <i class="fas fa-plus"></i> Add
+                          Add
                         </button>
                         <button type="button" class="btn btn-ghost btn-sm" [disabled]="busy()" (click)="skip(item)">
                           Skip
@@ -183,51 +235,47 @@
                     @case ('Dismissed') {
                       <span class="tx-muted">Skipped</span>
                     }
-                    @default {
-                      <span class="tx-muted">—</span>
-                    }
                   }
-                </td>
-              </tr>
+                </div>
+              </li>
             }
-          </tbody>
-        </table>
-      </div>
-    </app-panel-state>
+          </ul>
+        </app-panel-state>
 
-    @if (total() > 0) {
-      <div class="tx-pager">
-        <span class="tx-range">{{ rangeStart() }}–{{ rangeEnd() }} of {{ total() }}</span>
-        <label class="tx-size">
-          Per page
-          <select class="input" [value]="pageSize()" (change)="setPageSize($any($event.target).value)">
-            @for (size of pageSizes; track size) {
-              <option [value]="size">{{ size }}</option>
-            }
-          </select>
-        </label>
-        <div class="tx-nav">
-          <button
-            type="button"
-            class="icon-btn"
-            aria-label="Previous page"
-            [disabled]="page() <= 1 || loading()"
-            (click)="goTo(page() - 1)"
-          >
-            <i class="fas fa-chevron-left"></i>
-          </button>
-          <span class="tx-page">Page {{ page() }} of {{ totalPages() }}</span>
-          <button
-            type="button"
-            class="icon-btn"
-            aria-label="Next page"
-            [disabled]="page() >= totalPages() || loading()"
-            (click)="goTo(page() + 1)"
-          >
-            <i class="fas fa-chevron-right"></i>
-          </button>
-        </div>
-      </div>
-    }
-  </div>
+        @if (total() > 0) {
+          <div class="tx-pager">
+            <label class="tx-size">
+              <span>Show</span>
+              <select class="input" (change)="setPageSize($any($event.target).value)">
+                @for (size of pageSizes; track size) {
+                  <option [value]="size" [selected]="pageSize() === size">{{ size }}</option>
+                }
+              </select>
+            </label>
+            <span class="tx-range">{{ rangeStart() }}–{{ rangeEnd() }} of {{ total() }}</span>
+            <div class="tx-nav">
+              <button
+                type="button"
+                class="icon-btn"
+                aria-label="Previous page"
+                [disabled]="page() <= 1 || loading()"
+                (click)="goTo(page() - 1)"
+              >
+                <i class="fas fa-chevron-left"></i>
+              </button>
+              <button
+                type="button"
+                class="icon-btn"
+                aria-label="Next page"
+                [disabled]="page() >= totalPages() || loading()"
+                (click)="goTo(page() + 1)"
+              >
+                <i class="fas fa-chevron-right"></i>
+              </button>
+            </div>
+          </div>
+        }
+      </app-collapsible>
+    </div>
+  }
 </div>

@@ -146,4 +146,19 @@ public sealed class ConnectBankAccountCommandHandlerTests
 
     private void ReturnSource(BankConnection? connection)
         => _connectionsMock.GetAsync(Arg.Any<BankConnectionByIdSpecification>(), Arg.Any<CancellationToken>()).Returns(connection);
+
+    [Fact]
+    public async Task Handle_AvailableAccount_StartsTheHistoryJobRightAway()
+    {
+        // Arrange
+        ReturnAccount(new BankAccount(5) { Iban = Iban, Provider = BankProvider.PrivatAutoclient, SourceConnectionId = 1 });
+        ReturnExisting(null);
+        ReturnSource(new BankConnection(1) { EncryptedToken = "enc", AccountIban = "UA1", Label = "Business", Status = BankConnectionStatus.Active });
+
+        // Act
+        await _handler.Handle(new ConnectBankAccountCommand(5, null), CancellationToken.None);
+
+        // Assert
+        await _triggerMock.Received(1).TriggerAsync(Arg.Any<CancellationToken>());
+    }
 }

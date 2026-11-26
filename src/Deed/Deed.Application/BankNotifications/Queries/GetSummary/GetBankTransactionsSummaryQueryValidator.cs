@@ -1,3 +1,4 @@
+using Deed.Domain.Enums;
 using FluentValidation;
 
 namespace Deed.Application.BankNotifications.Queries.GetSummary;

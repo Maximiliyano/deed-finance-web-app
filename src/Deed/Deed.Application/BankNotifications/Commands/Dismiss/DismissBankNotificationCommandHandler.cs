@@ -16,9 +16,9 @@ internal sealed class DismissBankNotificationCommandHandler(
 {
     public async Task<Result> Handle(DismissBankNotificationCommand command, CancellationToken cancellationToken)
     {
-        var notification = (await repository
-            .GetAllAsync(new BankNotificationsByUserSpecification(user.Name!, ids: [command.Id], tracking: true), cancellationToken)
-            .ConfigureAwait(false)).FirstOrDefault();
+        var notification = await repository
+            .GetAsync(new BankNotificationsByUserSpecification(user.Name!, ids: [command.Id], tracking: true), cancellationToken)
+            .ConfigureAwait(false);
 
         if (notification is null)
         {

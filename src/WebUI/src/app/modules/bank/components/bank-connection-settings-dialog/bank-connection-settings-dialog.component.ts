@@ -73,7 +73,7 @@ export class BankConnectionSettingsDialogComponent implements OnInit {
   protected get autoIncomplete(): boolean {
     const { autoImport, expenseCategoryId, incomeCategoryId } = this.form.getRawValue();
 
-    return !!autoImport && (expenseCategoryId === null || incomeCategoryId === null);
+    return this.linked && !!autoImport && (expenseCategoryId === null || incomeCategoryId === null);
   }
 
   protected submit(): void {

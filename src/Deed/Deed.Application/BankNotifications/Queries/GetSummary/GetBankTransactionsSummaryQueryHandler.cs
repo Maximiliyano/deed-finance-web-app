@@ -35,7 +35,7 @@ internal sealed class GetBankTransactionsSummaryQueryHandler(
         var specification = new BankTransactionsSummarySpecification(
             user.Name!, query.ConnectionId, from, to, connectionIds, includeUnassigned);
 
-        var totals = await repository.GetTotalsAsync(specification, cancellationToken).ConfigureAwait(false);
+        var totals = await repository.GetTotalsAsync(specification, period, cancellationToken).ConfigureAwait(false);
         var counterparties = await repository.GetCounterpartyTotalsAsync(specification, cancellationToken).ConfigureAwait(false);
 
         var labels = connections.ToDictionary(c => c.Id, c => c.Label);
@@ -43,7 +43,7 @@ internal sealed class GetBankTransactionsSummaryQueryHandler(
         var currencies = totals
             .GroupBy(t => t.Currency ?? string.Empty)
             .Select(group => ToCurrency(group.Key, group.ToList(), counterparties, labels, period))
-            .OrderByDescending(c => c.Income + c.Expense)
+            .OrderByDescending(c => c.Income + c.Expense + c.ExchangeIn + c.ExchangeOut)
             .ToList();
 
         return Result.Success(new BankTransactionsSummaryResponse(period.ToString(), from, to, currencies));
@@ -85,6 +85,8 @@ internal sealed class GetBankTransactionsSummaryQueryHandler(
             currency,
             Income(totals),
             Expense(totals),
+            Exchanged(totals, BankTransactionDirection.Incoming),
+            Exchanged(totals, BankTransactionDirection.Outgoing),
             totals.Sum(t => t.Count),
             periods,
             types,
@@ -103,10 +105,13 @@ internal sealed class GetBankTransactionsSummaryQueryHandler(
             .ToList();
 
     private static decimal Income(IEnumerable<BankTransactionTotal> totals)
-        => totals.Where(t => t.Direction == BankTransactionDirection.Incoming).Sum(t => t.Amount);
+        => totals.Where(t => t.Direction == BankTransactionDirection.Incoming && t.Type != BankTransactionType.Exchange).Sum(t => t.Amount);
 
     private static decimal Expense(IEnumerable<BankTransactionTotal> totals)
-        => totals.Where(t => t.Direction == BankTransactionDirection.Outgoing).Sum(t => t.Amount);
+        => totals.Where(t => t.Direction == BankTransactionDirection.Outgoing && t.Type != BankTransactionType.Exchange).Sum(t => t.Amount);
+
+    private static decimal Exchanged(IEnumerable<BankTransactionTotal> totals, BankTransactionDirection direction)
+        => totals.Where(t => t.Direction == direction && t.Type == BankTransactionType.Exchange).Sum(t => t.Amount);
 
     private static DateOnly BucketStart(BankSummaryPeriod period, BankTransactionTotal total)
         => period switch

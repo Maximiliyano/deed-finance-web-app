@@ -29,6 +29,8 @@ internal sealed class GetBankTransactionsQueryHandler(
             ? parsedStatus
             : null;
 
+        var currency = string.IsNullOrWhiteSpace(query.Currency) ? null : query.Currency.Trim().ToUpperInvariant();
+
         var connections = await connectionRepository
             .GetAllAsync(new BankConnectionByUserSpecification(user.Name!), cancellationToken)
             .ConfigureAwait(false);
@@ -36,11 +38,11 @@ internal sealed class GetBankTransactionsQueryHandler(
         var (connectionIds, includeUnassigned) = BankConnectionScope.Resolve(connections, query.Provider, query.ConnectionId);
 
         var total = await repository
-            .CountAsync(new BankTransactionsByUserSpecification(user.Name!, type, importStatus: status, connectionId: query.ConnectionId, connectionIds: connectionIds, includeUnassigned: includeUnassigned), cancellationToken)
+            .CountAsync(new BankTransactionsByUserSpecification(user.Name!, type, importStatus: status, connectionId: query.ConnectionId, connectionIds: connectionIds, includeUnassigned: includeUnassigned, currency: currency), cancellationToken)
             .ConfigureAwait(false);
 
         var items = await repository
-            .GetAllAsync(new BankTransactionsByUserSpecification(user.Name!, type, (page - 1) * pageSize, pageSize, status, query.ConnectionId, connectionIds, includeUnassigned), cancellationToken)
+            .GetAllAsync(new BankTransactionsByUserSpecification(user.Name!, type, (page - 1) * pageSize, pageSize, status, query.ConnectionId, connectionIds, includeUnassigned, currency), cancellationToken)
             .ConfigureAwait(false);
 
         return Result.Success(new BankTransactionsPageResponse(total, page, pageSize, items.ToResponses()));

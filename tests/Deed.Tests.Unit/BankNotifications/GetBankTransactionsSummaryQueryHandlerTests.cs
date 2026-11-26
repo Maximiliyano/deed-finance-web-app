@@ -57,8 +57,12 @@ public sealed class GetBankTransactionsSummaryQueryHandlerTests
 
         var uah = result.Value.Currencies[0];
         uah.Income.Should().Be(1000m);
-        uah.Expense.Should().Be(350m);
+        uah.Expense.Should().Be(250m);
+        uah.ExchangeOut.Should().Be(100m);
+        uah.ExchangeIn.Should().Be(0m);
         uah.Count.Should().Be(6);
+        result.Value.Currencies[1].Income.Should().Be(0m);
+        result.Value.Currencies[1].ExchangeIn.Should().Be(2m);
         uah.Periods.Select(p => p.Start).Should().Equal(new DateOnly(2026, 11, 1), new DateOnly(2026, 10, 1));
         uah.Periods[0].Income.Should().Be(1000m);
         uah.Periods[0].Expense.Should().Be(250m);
@@ -138,7 +142,7 @@ public sealed class GetBankTransactionsSummaryQueryHandlerTests
         await _handler.Handle(new GetBankTransactionsSummaryQuery(ConnectionId: 1), CancellationToken.None);
 
         // Assert
-        await _repositoryMock.Received(1).GetTotalsAsync(Arg.Any<BankTransactionsSummarySpecification>(), Arg.Any<CancellationToken>());
+        await _repositoryMock.Received(1).GetTotalsAsync(Arg.Any<BankTransactionsSummarySpecification>(), Arg.Any<BankSummaryPeriod>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -154,7 +158,7 @@ public sealed class GetBankTransactionsSummaryQueryHandlerTests
             ]);
         ISpecification<BankNotification>? captured = null;
         _repositoryMock
-            .GetTotalsAsync(Arg.Do<ISpecification<BankNotification>>(s => captured = s), Arg.Any<CancellationToken>())
+            .GetTotalsAsync(Arg.Do<ISpecification<BankNotification>>(s => captured = s), Arg.Any<BankSummaryPeriod>(), Arg.Any<CancellationToken>())
             .Returns([]);
 
         // Act
@@ -193,7 +197,7 @@ public sealed class GetBankTransactionsSummaryQueryHandlerTests
 
     private void ReturnTotals(params BankTransactionTotal[] totals)
         => _repositoryMock
-            .GetTotalsAsync(Arg.Any<BankTransactionsSummarySpecification>(), Arg.Any<CancellationToken>())
+            .GetTotalsAsync(Arg.Any<BankTransactionsSummarySpecification>(), Arg.Any<BankSummaryPeriod>(), Arg.Any<CancellationToken>())
             .Returns(totals);
 
     private static BankTransactionTotal Total(

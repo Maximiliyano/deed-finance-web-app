@@ -1,7 +1,6 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, output, signal } from '@angular/core';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { catchError, finalize, of, switchMap, tap } from 'rxjs';
-import { CURRENCY_SYMBOL } from '../../../../core/types/currency-type';
 import { PanelStateComponent } from '../../../../shared/components/panel-state/panel-state.component';
 import { SharedModule } from '../../../../shared/shared.module';
 import {
@@ -13,6 +12,8 @@ import {
   BankTransactionType
 } from '../../models/bank.model';
 import { BankTransactionService } from '../../services/bank-transaction.service';
+import { formatMoney } from '../../utils/bank-format';
+import { CollapsibleComponent } from '../collapsible/collapsible.component';
 
 const PERIODS: { value: BankSummaryPeriod; label: string }[] = [
   { value: 'day', label: 'Days' },
@@ -26,14 +27,12 @@ const DATE_FORMATS: Record<string, string> = {
   year: 'yyyy'
 };
 
-const NUMBER_FORMAT = new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-
 @Component({
   selector: 'app-bank-summary',
   templateUrl: './bank-summary.component.html',
   styleUrl: './bank-summary.component.scss',
   standalone: true,
-  imports: [SharedModule, PanelStateComponent],
+  imports: [SharedModule, PanelStateComponent, CollapsibleComponent],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class BankSummaryComponent {
@@ -42,10 +41,13 @@ export class BankSummaryComponent {
   readonly connectionId = input<number | null>(null);
   readonly provider = input<BankProvider | null>(null);
   readonly version = input(0);
+  readonly currency = input<string | null>(null);
+  readonly currenciesChange = output<string[]>();
 
   protected readonly periods = PERIODS;
   protected readonly period = signal<BankSummaryPeriod>('month');
   protected readonly loading = signal(false);
+  protected readonly showDetails = signal(false);
 
   protected readonly data = toSignal(
     toObservable(
@@ -62,12 +64,18 @@ export class BankSummaryComponent {
           catchError(() => of(null)),
           finalize(() => this.loading.set(false))
         )
-      )
+      ),
+      tap(data => this.currenciesChange.emit(data?.currencies.map(item => item.currency) ?? []))
     ),
     { initialValue: null }
   );
 
-  protected readonly currencies = computed(() => this.data()?.currencies ?? []);
+  protected readonly current = computed(() => {
+    const list = this.data()?.currencies ?? [];
+
+    return list.find(item => item.currency === this.currency()) ?? list[0] ?? null;
+  });
+  protected readonly latest = computed(() => this.current()?.periods[0] ?? null);
   protected readonly dateFormat = computed(() => DATE_FORMATS[this.data()?.period.toLowerCase() ?? 'month']);
   protected readonly unit = computed(() => PERIODS.find(item => item.value === this.period())?.label.toLowerCase());
 
@@ -75,15 +83,12 @@ export class BankSummaryComponent {
     this.period.set(period);
   }
 
-  protected money(amount: number, currency: string): string {
-    const text = NUMBER_FORMAT.format(amount);
-    const symbol = CURRENCY_SYMBOL[currency] ?? currency;
-
-    return symbol ? `${symbol} ${text}` : text;
+  protected toggleDetails(): void {
+    this.showDetails.update(value => !value);
   }
 
-  protected net(currency: BankSummaryCurrency): number {
-    return currency.income - currency.expense;
+  protected money(amount: number, currency: string): string {
+    return formatMoney(amount, currency);
   }
 
   protected typesOf(currency: BankSummaryCurrency, direction: BankSummaryType['direction']): BankSummaryType[] {

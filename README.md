@@ -20,6 +20,8 @@ Built with Clean Architecture (ASP.NET Core 10 + CQRS/MediatR) and an Angular 20
 | **Utility bills** | Recurring monthly bills (due day of month, estimated amount). "Pay" creates an expense linked to the bill and decreases the capital balance. |
 | **Exchange rates** | Daily rates (USD, EUR, PLN, CZK vs. UAH) fetched from the PrivatBank public API, stored in the DB and cached in Redis. A currency-conversion dialog is available in the header. |
 | **Bank details** | Reads client info (accounts, jars) from the Monobank personal API using a token from configuration. |
+| **Bank connections** | Signed-in users connect Privat24 Business (Autoclient token) and Monobank (personal token). Every account becomes its own connection that can be linked to a capital, counted or hidden, and disconnected per bank. New accounts of a connected Privat24 token are listed as available and refreshed daily. |
+| **Bank transactions** | The bank page has one tab per bank, account and currency filters, a summary (in, out, net, by day/month/year, where money came from and went, exchanges shown separately) and a paged list. History is imported in the background, up to 10 years, and can be cancelled. |
 | **User settings & reminders** | Main currency plus optional e-mail reminders (balance summary, expense logging, unpaid debts) on user-defined cron schedules. |
 | **Anonymous demo mode** | Most endpoints work without signing in. Anonymous visitors share the `System` user and are limited to **3 created items per entity**; signing in removes the limit. |
 | **Theme** | Dark/light theme, remembered in `localStorage` (`deed-theme`) and defaulting to the OS preference. |
@@ -151,7 +153,9 @@ Backend settings come from `appsettings*.json`, user secrets and environment var
 | `WebUrlSettings:{UIUrl,AllowedHeaders,AllowedMethods}` | Frontend origin used for CORS (credentials allowed) and post-login/logout redirects. |
 | `BankSettings:{ExchangeRates,PersonalClientInfo,ApiKey}` | PrivatBank rates URL (`{0}` = `dd.MM.yyyy`), Monobank client-info URL and token. |
 | `SmtpSettings:{Host,Port,Username,Password,FromAddress}` | SMTP server for reminders (SSL is always enabled). |
-| `BackgroundJobsSettings:{CronExchangeSchedule,CronReminderCheckSchedule}` | Quartz cron expressions for the rates job (default `0 0 9 * * ?`) and the reminder checks (default `0 0/15 * * * ?`). |
+| `BackgroundJobsSettings:{CronExchangeSchedule,CronReminderCheckSchedule,CronBankSyncSchedule,CronBankBackfillSchedule,CronBankAccountRefreshSchedule}` | Quartz cron expressions for the rates job (default `0 0 9 * * ?`), the reminder checks (`0 0/15 * * * ?`), the bank sync (`0 0/5 * * * ?`), the history backfill (`0 * * * * ?`) and the daily account refresh (`0 0 5 * * ?`). |
+| `PrivatAutoclientSettings:{ChunksPerRun,ChunkDelayMs,SyncIntervalMinutes,MaxPages}` | Optional. How many 30-day history chunks Privat24 imports per run (default 6, 1s apart), the minimum minutes between automatic syncs of one Privat24 connection (default 30) and the page cap per statement request (default 50). |
+| `DataProtectionSettings:{CertificateBase64,CertificatePassword,ReprotectExistingKeys}` | Optional. A PKCS#12 certificate (base64) that encrypts the data protection key ring stored in the database, so a copy of the database no longer exposes the bank tokens. Without it the keys stay in plain text and a warning is logged. Set `ReprotectExistingKeys` to `true` once, after taking a database backup, to create a new key, re-encrypt every bank token and delete the plain-text keys; signed-in users must then sign in again. |
 | `MemoryCacheSettings:{ExchangesTimespanInHours,CategoriesTimespanInHours}` | Redis TTLs for exchange rates (12h) and categories (1h). |
 | `Serilog` | Logging. Development also writes JSON logs to `logs/log-.txt`. |
 
@@ -163,7 +167,7 @@ Never commit real secrets - the values in `appsettings.Development.json` are pla
 - `GET /api/auth/login?returnUrl=/path` starts the login, `GET /api/auth/logout` clears the cookie and redirects through Auth0's `/v2/logout`, `GET /api/users/me` returns the profile, roles and user settings.
 - API calls from the SPA never get redirected to Auth0: a challenge on `/api/*` returns `401` unless it is the explicit login endpoint.
 - Signed-in users are required for `/api/users/me`, `GET /api/user-settings`, `/api/bank-connections/*`, `/api/bank-notifications/*`, creating budget estimations, category writes (create, update, delete, restore) and `POST /api/tags`. `GET /api/bank/details` and `DELETE /api/tags/{id}` additionally require the `admin` role. All other endpoints are anonymous-accessible and operate on the `System` user until the visitor signs in (see anonymous limits above).
-- Data protection keys are persisted in the database (`DataProtectionKeys` table) so cookies survive restarts and multiple instances.
+- Data protection keys are persisted in the database (`DataProtectionKeys` table) so cookies survive restarts and multiple instances. Configure `DataProtectionSettings:CertificateBase64` to encrypt them at rest.
 
 ## API overview
 
@@ -182,8 +186,11 @@ All routes are prefixed with `/api`. Request/response bodies are JSON; errors ar
 | Debts | `GET /debts`, `POST /debts`, `PUT /debts/{id}`, `PUT /debts/orders`, `DELETE /debts/{id}` |
 | Utility bills | `GET /utility-bills`, `POST /utility-bills`, `PUT /utility-bills/{id}`, `POST /utility-bills/{id}/pay`, `DELETE /utility-bills/{id}` |
 | Exchanges / Bank | `GET /exchanges`, `GET /bank/details` |
-| Bank connection (Privat24 Autoclient, signed-in) | `GET /bank-connections`, `POST /bank-connections/privat` (`{ token, iban }`, validated against the bank, token stored encrypted), `DELETE /bank-connections/privat` |
-| Bank notifications (signed-in) | `GET /bank-notifications?unreadOnly=&limit=`, `POST /bank-notifications/read` (`{ ids }`, empty = all) |
+| Bank connections (signed-in) | `GET /bank-connections`, `POST /bank-connections/privat` (`{ token, iban, label }`, validated against the bank, token stored encrypted), `POST /bank-connections/privat/accounts` (`{ token }`, lists the token's accounts), `POST /bank-connections/monobank` (`{ token, accountId, iban, label }`), `POST /bank-connections/monobank/accounts`, `PUT /bank-connections/{id}` (label, capital, auto-add, categories), `PUT /bank-connections/{id}/excluded` (`{ excluded }`, hides an account from the bank page and stops syncing it), `DELETE /bank-connections/provider/{provider}` (removes a whole bank with its accounts and stored transactions), `POST /bank-connections/sync` |
+| Bank history (signed-in) | `POST /bank-connections/history` (`{ from, to? }`, up to 10 years, runs in the background), `DELETE /bank-connections/history` (cancels the running import) |
+| Bank accounts (signed-in) | `GET /bank-accounts` (accounts of the connected tokens, with the connection they belong to), `POST /bank-accounts/refresh`, `POST /bank-accounts/{id}/connect` (connects an available account with the stored token) |
+| Bank transactions (signed-in) | `GET /bank-transactions?page=&pageSize=&type=&status=&connectionId=&provider=&currency=`, `GET /bank-transactions/summary?period=day\|month\|year&connectionId=&provider=&from=&to=` |
+| Bank notifications (signed-in) | `GET /bank-notifications?unreadOnly=&limit=`, `POST /bank-notifications/read` (`{ ids }`, empty = all), `POST /bank-notifications/{id}/import` (`{ categoryId }`), `POST /bank-notifications/{id}/dismiss` |
 | Dashboard | `GET /dashboard/summary?currency=&capitalIds=&periodStart=&periodEnd=` (totals, category breakdowns and budget, converted server-side) |
 | User | `GET /auth/login`, `GET /auth/logout`, `GET /users/me`, `GET /user-settings`, `PUT /user-settings` |
 
@@ -197,7 +204,9 @@ Operational endpoints (no `/api` prefix): `GET /health/live` (liveness, no depen
 | `BalanceReminderJob` | every 15 min | For users whose own cron (`BalanceReminderCron`, UTC) fired in the last 15 minutes, e-mails the total balance of "include in total" capitals converted to the user's main currency. |
 | `ExpenseReminderJob` | every 15 min | E-mails a reminder to log expenses (`ExpenseReminderCron`). |
 | `DebtReminderJob` | every 15 min | E-mails unpaid debts, flagging overdue and due-within-7-days items (`DebtReminderCron`). |
-| `BankTransactionSyncJob` | `CronBankSyncSchedule` (default every 5 min) | Polls the Privat24 Autoclient statements API for every active bank connection and stores each new transaction as a `BankNotification` (in-app bell, optional e-mail when `BankAlertsEmailEnabled`). A rejected token marks the connection `TokenInvalid` and raises one reconnect notification. |
+| `BankTransactionSyncJob` | `CronBankSyncSchedule` (default every 5 min) | Polls the Privat24 Autoclient and Monobank statements for every active, counted bank connection and stores each new transaction as a `BankNotification` (in-app bell, optional e-mail when `BankAlertsEmailEnabled`). Privat24 connections are skipped when synced in the last 30 minutes because the bank only returns closed days. A rejected token marks the connection `TokenInvalid` and raises one reconnect notification. |
+| `BankBackfillJob` | `CronBankBackfillSchedule` (default every minute) and right after an import starts | Walks the history of connections with a running import backwards: one chunk per run for Monobank, several for Privat24. A failed chunk is retried; ten failures in a row stop the import. |
+| `BankAccountRefreshJob` | `CronBankAccountRefreshSchedule` (default daily 05:00 UTC) and once at startup | Reads the accounts and balances of every connected Privat24 token and stores them. Accounts that are not connected yet appear as available in the profile. |
 
 Reminders require `EmailNotificationsEnabled`, an e-mail address and a working `SmtpSettings` section. All jobs use `[DisallowConcurrentExecution]`.
 

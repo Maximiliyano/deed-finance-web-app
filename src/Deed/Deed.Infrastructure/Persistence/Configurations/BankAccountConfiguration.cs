@@ -39,6 +39,8 @@ internal sealed class BankAccountConfiguration : IEntityTypeConfiguration<BankAc
         builder.Property(a => a.UpdatedBy)
             .HasMaxLength(256);
 
+        builder.HasIndex(a => a.SourceConnectionId);
+
         builder.HasIndex(a => new { a.CreatedBy, a.Provider, a.Iban })
             .IsUnique();
     }

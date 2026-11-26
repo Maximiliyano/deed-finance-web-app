@@ -14,14 +14,16 @@ internal sealed class BankTransactionsByUserSpecification : BaseSpecification<Ba
         BankImportStatus? importStatus = null,
         int? connectionId = null,
         IReadOnlyCollection<int>? connectionIds = null,
-        bool includeUnassigned = true)
+        bool includeUnassigned = true,
+        string? currency = null)
         : base(n =>
             n.CreatedBy == createdBy &&
             n.Kind == BankNotificationKind.Transaction &&
             (type == null || n.Type == type) &&
             (importStatus == null || n.ImportStatus == importStatus) &&
             (connectionId == null || n.BankConnectionId == connectionId) &&
-            (connectionIds == null || n.BankConnectionId == null && includeUnassigned || n.BankConnectionId != null && connectionIds.Contains(n.BankConnectionId.Value)))
+            (connectionIds == null || n.BankConnectionId == null && includeUnassigned || n.BankConnectionId != null && connectionIds.Contains(n.BankConnectionId.Value)) &&
+            (currency == null || n.Currency == currency))
     {
         if (take is null)
         {

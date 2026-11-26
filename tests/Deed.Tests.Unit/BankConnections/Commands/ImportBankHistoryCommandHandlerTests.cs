@@ -31,14 +31,14 @@ public sealed class ImportBankHistoryCommandHandlerTests
     {
         // Arrange
         var from = Now.AddYears(-1);
-        _sync.ImportHistoryAsync("owner", from, Now, Arg.Any<CancellationToken>()).Returns(new BankHistoryImportResponse(5, true));
+        _sync.ImportHistoryAsync("owner", from, Now, Arg.Any<CancellationToken>()).Returns(new BankHistoryImportResponse(true));
 
         // Act
         var result = await _sut.Handle(new ImportBankHistoryCommand(from), CancellationToken.None);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        result.Value.Should().Be(new BankHistoryImportResponse(5, true));
+        result.Value.Should().Be(new BankHistoryImportResponse(true));
     }
 
     [Fact]
@@ -47,7 +47,7 @@ public sealed class ImportBankHistoryCommandHandlerTests
         // Arrange
         var from = Now.AddDays(-10);
         _sync.ImportHistoryAsync(Arg.Any<string>(), Arg.Any<DateTimeOffset>(), Arg.Any<DateTimeOffset>(), Arg.Any<CancellationToken>())
-            .Returns(new BankHistoryImportResponse(0, false));
+            .Returns(new BankHistoryImportResponse(false));
 
         // Act
         await _sut.Handle(new ImportBankHistoryCommand(from, Now.AddDays(5)), CancellationToken.None);
@@ -59,8 +59,11 @@ public sealed class ImportBankHistoryCommandHandlerTests
     [Fact]
     public async Task Handle_StartNotBeforeEnd_Fails()
     {
+        // Arrange
+        var command = new ImportBankHistoryCommand(Now.AddDays(1));
+
         // Act
-        var result = await _sut.Handle(new ImportBankHistoryCommand(Now.AddDays(1)), CancellationToken.None);
+        var result = await _sut.Handle(command, CancellationToken.None);
 
         // Assert
         result.Errors.Should().Contain(DomainErrors.Bank.InvalidPeriod);
@@ -73,7 +76,7 @@ public sealed class ImportBankHistoryCommandHandlerTests
     {
         // Arrange
         _sync.ImportHistoryAsync(Arg.Any<string>(), Arg.Any<DateTimeOffset>(), Arg.Any<DateTimeOffset>(), Arg.Any<CancellationToken>())
-            .Returns(new BankHistoryImportResponse(0, true));
+            .Returns(new BankHistoryImportResponse(true));
 
         // Act
         await _sut.Handle(new ImportBankHistoryCommand(Now.AddYears(-1), null), CancellationToken.None);
@@ -87,7 +90,7 @@ public sealed class ImportBankHistoryCommandHandlerTests
     {
         // Arrange
         _sync.ImportHistoryAsync(Arg.Any<string>(), Arg.Any<DateTimeOffset>(), Arg.Any<DateTimeOffset>(), Arg.Any<CancellationToken>())
-            .Returns(new BankHistoryImportResponse(0, false));
+            .Returns(new BankHistoryImportResponse(false));
 
         // Act
         await _sut.Handle(new ImportBankHistoryCommand(Now.AddYears(-1), null), CancellationToken.None);

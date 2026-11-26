@@ -8,6 +8,8 @@ public interface IBankConnectionRepository
 
     Task<BankConnection?> GetAsync(ISpecification<BankConnection> specification, CancellationToken cancellationToken = default);
 
+    Task<BankBackfillState?> GetBackfillStateAsync(int id, CancellationToken cancellationToken = default);
+
     void Create(BankConnection connection);
 
     void Delete(BankConnection connection);

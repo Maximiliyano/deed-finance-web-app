@@ -16,32 +16,52 @@ public sealed class GetBankTransactionsSummaryQueryValidatorTests
     [InlineData("YEAR")]
     public void Validate_KnownPeriod_PassesValidation(string? period)
     {
-        var result = _validator.TestValidate(new GetBankTransactionsSummaryQuery(period));
+        // Arrange
+        var query = new GetBankTransactionsSummaryQuery(period);
 
+        // Act
+        var result = _validator.TestValidate(query);
+
+        // Assert
         result.ShouldNotHaveAnyValidationErrors();
     }
 
     [Fact]
     public void Validate_UnknownPeriod_FailsValidation()
     {
-        var result = _validator.TestValidate(new GetBankTransactionsSummaryQuery("week"));
+        // Arrange
+        var query = new GetBankTransactionsSummaryQuery("week");
 
+        // Act
+        var result = _validator.TestValidate(query);
+
+        // Assert
         result.ShouldHaveValidationErrorFor(q => q.Period);
     }
 
     [Fact]
     public void Validate_StartAfterEnd_FailsValidation()
     {
-        var result = _validator.TestValidate(new GetBankTransactionsSummaryQuery(From: Now, To: Now.AddDays(-1)));
+        // Arrange
+        var query = new GetBankTransactionsSummaryQuery(From: Now, To: Now.AddDays(-1));
 
+        // Act
+        var result = _validator.TestValidate(query);
+
+        // Assert
         result.ShouldHaveAnyValidationError();
     }
 
     [Fact]
     public void Validate_RangeLongerThanTenYears_FailsValidation()
     {
-        var result = _validator.TestValidate(new GetBankTransactionsSummaryQuery(From: Now.AddYears(-11), To: Now));
+        // Arrange
+        var query = new GetBankTransactionsSummaryQuery(From: Now.AddYears(-11), To: Now);
 
+        // Act
+        var result = _validator.TestValidate(query);
+
+        // Assert
         result.ShouldHaveAnyValidationError();
     }
 }

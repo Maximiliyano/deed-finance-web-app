@@ -18,17 +18,16 @@ public sealed class BankAccountRefreshService(
     : IBankAccountRefreshService
 {
     public Task<int> RefreshAsync(CancellationToken cancellationToken)
-        => RefreshAsync(new ActiveBankConnectionsSpecification(includeExcluded: true), cancellationToken);
+        => RefreshAsync(new ActiveBankConnectionsSpecification(includeExcluded: true, provider: BankProvider.PrivatAutoclient), cancellationToken);
 
     public Task<int> RefreshUserAsync(string createdBy, CancellationToken cancellationToken)
-        => RefreshAsync(new ActiveBankConnectionsSpecification(createdBy, includeExcluded: true), cancellationToken);
+        => RefreshAsync(new ActiveBankConnectionsSpecification(createdBy, includeExcluded: true, provider: BankProvider.PrivatAutoclient), cancellationToken);
 
     private async Task<int> RefreshAsync(ActiveBankConnectionsSpecification specification, CancellationToken cancellationToken)
     {
         var connections = (await connectionRepository
             .GetAllAsync(specification, cancellationToken)
             .ConfigureAwait(false))
-            .Where(c => c.Provider == BankProvider.PrivatAutoclient)
             .ToList();
 
         var refreshed = 0;

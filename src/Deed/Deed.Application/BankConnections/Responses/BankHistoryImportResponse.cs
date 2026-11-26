@@ -1,3 +1,3 @@
 namespace Deed.Application.BankConnections.Responses;
 
-public sealed record BankHistoryImportResponse(int Imported, bool InProgress);
+public sealed record BankHistoryImportResponse(bool InProgress);

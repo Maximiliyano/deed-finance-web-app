@@ -10,6 +10,8 @@ public sealed record BankSummaryCurrencyResponse(
     string Currency,
     decimal Income,
     decimal Expense,
+    decimal ExchangeIn,
+    decimal ExchangeOut,
     int Count,
     IReadOnlyList<BankSummaryPeriodResponse> Periods,
     IReadOnlyList<BankSummaryTypeResponse> Types,

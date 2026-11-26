@@ -121,19 +121,27 @@ public sealed class BankAccountRefreshServiceTests
     }
 
     [Fact]
-    public async Task RefreshAsync_MonobankConnection_IsSkipped()
+    public async Task RefreshAsync_AsksOnlyForActivePrivatConnectionsIncludingExcludedOnes()
     {
         // Arrange
-        var connection = Connection(1, "enc:secret", IbanOne);
-        connection.Provider = BankProvider.Monobank;
-        ReturnConnections(connection);
+        ISpecification<BankConnection>? captured = null;
+        _connectionsMock
+            .GetAllAsync(Arg.Do<ISpecification<BankConnection>>(s => captured = s), Arg.Any<CancellationToken>())
+            .Returns(new List<BankConnection>());
+        var privat = Connection(1, "enc:secret", IbanOne);
+        var excluded = Connection(2, "enc:secret", IbanTwo);
+        excluded.IsExcluded = true;
+        var monobank = Connection(3, "enc:secret", "UA3");
+        monobank.Provider = BankProvider.Monobank;
 
         // Act
-        var refreshed = await _service.RefreshAsync(CancellationToken.None);
+        await _service.RefreshAsync(CancellationToken.None);
 
         // Assert
-        refreshed.Should().Be(0);
-        await _bankMock.DidNotReceive().GetAccountsAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
+        var matches = captured!.Criteria!.Compile();
+        matches(privat).Should().BeTrue();
+        matches(excluded).Should().BeTrue();
+        matches(monobank).Should().BeFalse();
     }
 
     [Fact]

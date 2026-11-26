@@ -37,6 +37,8 @@ public sealed class PrivatAutoclientService(
 
     public TimeSpan ChunkDelay => TimeSpan.FromMilliseconds(options.Value.ChunkDelayMs);
 
+    public TimeSpan MinSyncInterval => TimeSpan.FromMinutes(options.Value.SyncIntervalMinutes);
+
     public async Task<Result<IReadOnlyList<BankTransaction>>> GetTransactionsAsync(
         string token,
         string account,
@@ -186,10 +188,14 @@ public sealed class PrivatAutoclientService(
             return Result.Success(body);
         }
 
-        Log.Warning(
-            "Autoclient request failed with status {Status}: {Body}",
-            (int)response.StatusCode,
-            Preview(body));
+        if (response.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden)
+        {
+            Log.Warning("Autoclient rejected the token with status {Status}", (int)response.StatusCode);
+        }
+        else
+        {
+            Log.Warning("Autoclient request failed with status {Status}: {Body}", (int)response.StatusCode, Preview(body));
+        }
 
         return response.StatusCode switch
         {

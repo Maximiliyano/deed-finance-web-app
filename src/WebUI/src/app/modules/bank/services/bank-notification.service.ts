@@ -17,7 +17,7 @@ const EMPTY_STATE: BankNotifications = { unreadCount: 0, items: [] };
 const money = new Intl.NumberFormat(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 export function describeBankNotification(notification: BankNotification): string {
-  const account = notification.accountLabel ?? 'Privat24';
+  const account = notification.accountLabel ?? 'Your bank';
 
   if (notification.kind === 'ConnectionIssue') {
     return `${account} connection needs attention. Reconnect it in your profile.`;
@@ -108,7 +108,11 @@ export class BankNotificationService {
 
     hub.on(HUB_EVENT, (items: BankNotification[]) => this.receive(items));
     hub.onreconnected(() => this.reload());
-    hub.onclose(() => this.startFallback(destroyRef));
+    hub.onclose(() => {
+      if (this.hub === hub) {
+        this.startFallback(destroyRef);
+      }
+    });
 
     this.hub = hub;
 

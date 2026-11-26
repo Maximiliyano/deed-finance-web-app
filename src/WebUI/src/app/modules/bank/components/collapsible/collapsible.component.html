@@ -1,0 +1,25 @@
+<section class="card">
+  <div class="cs-head" [class.open]="open()">
+    <button
+      type="button"
+      class="cs-toggle"
+      [attr.aria-expanded]="open()"
+      [attr.aria-controls]="uid + '-body'"
+      (click)="toggle()"
+    >
+      @if (icon(); as name) {
+        <i class="fas cs-icon" [ngClass]="name" aria-hidden="true"></i>
+      }
+      <span class="cs-title">{{ heading() }}</span>
+      <i class="fas fa-chevron-down cs-chevron" [class.open]="open()" aria-hidden="true"></i>
+    </button>
+    <div class="cs-actions">
+      <ng-content select="[actions]" />
+    </div>
+  </div>
+  <div class="cs-body" [class.open]="open()" [id]="uid + '-body'" [attr.inert]="open() ? null : ''">
+    <div class="cs-inner">
+      <ng-content />
+    </div>
+  </div>
+</section>

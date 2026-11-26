@@ -75,10 +75,10 @@ public sealed class ConnectPrivatCommandHandlerTests
             .Returns((BankConnection?)null);
 
         // Act
-        await _handler.Handle(new ConnectPrivatCommand("secret", null, "Biz"), CancellationToken.None);
+        await _handler.Handle(new ConnectPrivatCommand("secret", Iban, "Biz"), CancellationToken.None);
 
         // Assert
-        await _bankMock.Received(1).GetTransactionsAsync("secret", string.Empty, Now.AddDays(-30), Now, Arg.Any<CancellationToken>());
+        await _bankMock.Received(1).GetTransactionsAsync("secret", Iban, Now.AddDays(-30), Now, Arg.Any<CancellationToken>());
         await _syncMock.Received(1).StageHistoryAsync("testuser", "Biz", Arg.Any<int?>(), history, Arg.Any<CancellationToken>());
     }
 
@@ -96,25 +96,6 @@ public sealed class ConnectPrivatCommandHandlerTests
         // Assert
         _repositoryMock.Received(1).Create(Arg.Is<BankConnection>(c =>
             c.BackfillFrom == Now.AddDays(-3650) && c.BackfillCursor == Now.AddDays(-30)));
-    }
-
-    [Fact]
-    public async Task Handle_NoIban_StoresConnectionForAllAccounts()
-    {
-        // Arrange
-        ReturnBankSuccess();
-        _repositoryMock.GetAsync(Arg.Any<BankConnectionByAccountSpecification>(), Arg.Any<CancellationToken>())
-            .Returns((BankConnection?)null);
-
-        // Act
-        var result = await _handler.Handle(new ConnectPrivatCommand("secret", null), CancellationToken.None);
-
-        // Assert
-        result.IsSuccess.Should().BeTrue();
-
-        await _bankMock.Received(1).GetTransactionsAsync(
-            "secret", string.Empty, Arg.Any<DateTimeOffset>(), Arg.Any<DateTimeOffset>(), Arg.Any<CancellationToken>());
-        _repositoryMock.Received(1).Create(Arg.Is<BankConnection>(c => c.AccountIban == string.Empty));
     }
 
     [Fact]
@@ -177,7 +158,7 @@ public sealed class ConnectPrivatCommandHandlerTests
             .Returns((BankConnection?)null);
 
         // Act
-        await _handler.Handle(new ConnectPrivatCommand("secret", null, label), CancellationToken.None);
+        await _handler.Handle(new ConnectPrivatCommand("secret", Iban, label), CancellationToken.None);
 
         // Assert
         _repositoryMock.Received(1).Create(Arg.Is<BankConnection>(c => c.Label == expected));

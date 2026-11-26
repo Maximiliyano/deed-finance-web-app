@@ -15,7 +15,7 @@ import { PanelStateComponent } from '../../../../shared/components/panel-state/p
 import { SharedModule } from '../../../../shared/shared.module';
 import { PopupMessageService } from '../../../../shared/services/popup-message.service';
 import {
-  BANK_TYPE_LABELS,
+  BankConnection,
   BankHistoryImportResponse,
   BankImportStatus,
   BankNotification,
@@ -25,15 +25,16 @@ import {
 } from '../../models/bank.model';
 import { BankConnectionService } from '../../services/bank-connection.service';
 import { BankTransactionService } from '../../services/bank-transaction.service';
+import { BANK_TYPE_ICONS, bankTypeLabel, formatMoney, hasClockTime } from '../../utils/bank-format';
 import { BankSummaryComponent } from '../bank-summary/bank-summary.component';
+import { CollapsibleComponent } from '../collapsible/collapsible.component';
 import { ImportHistoryDialogComponent } from '../import-history-dialog/import-history-dialog.component';
 import { ImportTransactionDialogComponent } from '../import-transaction-dialog/import-transaction-dialog.component';
 
-type TypeFilter = 'all' | 'review' | Exclude<BankTransactionType, 'None'>;
+type TypeFilter = 'all' | Exclude<BankTransactionType, 'None'>;
 
-const FILTERS: { value: TypeFilter; label: string }[] = [
-  { value: 'all', label: 'All' },
-  { value: 'review', label: 'To review' },
+const TYPE_OPTIONS: { value: TypeFilter; label: string }[] = [
+  { value: 'all', label: 'All types' },
   { value: 'TopUp', label: 'Top-ups' },
   { value: 'Withdrawal', label: 'Withdrawals' },
   { value: 'Transfer', label: 'Transfers' },
@@ -46,21 +47,12 @@ const PROVIDER_OPTIONS: { value: BankProvider; label: string }[] = [
   { value: 'Monobank', label: 'Monobank' }
 ];
 
-const TYPE_ICONS: Record<BankTransactionType, string> = {
-  None: 'fa-circle-info',
-  TopUp: 'fa-arrow-down',
-  Withdrawal: 'fa-money-bill-wave',
-  Transfer: 'fa-right-left',
-  Payment: 'fa-credit-card',
-  Exchange: 'fa-arrows-rotate'
-};
-
 @Component({
   selector: 'app-bank-transactions',
   templateUrl: './bank-transactions.component.html',
   styleUrl: './bank-transactions.component.scss',
   standalone: true,
-  imports: [SharedModule, PanelStateComponent, BankSummaryComponent],
+  imports: [SharedModule, PanelStateComponent, BankSummaryComponent, CollapsibleComponent],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class BankTransactionsComponent implements OnInit {
@@ -71,26 +63,51 @@ export class BankTransactionsComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
   private readonly reload$ = new Subject<void>();
 
-  protected readonly filters = FILTERS;
+  protected readonly typeOptions = TYPE_OPTIONS;
   protected readonly pageSizes = [10, 20, 50, 100];
+
   private readonly allConnections = toSignal(this.connectionService.connections$, { initialValue: [] });
   protected readonly connections = computed(() => this.allConnections().filter(connection => !connection.isExcluded));
-
-  protected readonly filter = signal<TypeFilter>('all');
-  protected readonly accountId = signal<number | null>(null);
-  protected readonly provider = signal<BankProvider | null>(null);
 
   protected readonly providers = computed(() =>
     PROVIDER_OPTIONS.filter(option => this.connections().some(connection => connection.provider === option.value))
   );
+  private readonly selectedProvider = signal<BankProvider | null>(null);
+  protected readonly provider = computed(() => {
+    const options = this.providers();
+    const selected = this.selectedProvider();
+
+    return options.find(option => option.value === selected)?.value ?? options[0]?.value ?? null;
+  });
   protected readonly accountOptions = computed(() =>
-    this.connections().filter(connection => !this.provider() || connection.provider === this.provider())
+    this.connections().filter(connection => connection.provider === this.provider())
   );
+  protected readonly accountId = signal<number | null>(null);
+
+  protected readonly currencies = signal<string[]>([]);
+  private readonly selectedCurrency = signal<string | null>(null);
+  protected readonly currency = computed(() => {
+    const list = this.currencies();
+    const selected = this.selectedCurrency();
+
+    return selected !== null && list.includes(selected) ? selected : (list[0] ?? null);
+  });
+
+  protected readonly typeFilter = signal<TypeFilter>('all');
+  protected readonly reviewOnly = signal(false);
   protected readonly page = signal(1);
   protected readonly pageSize = signal(20);
   protected readonly data = signal<BankTransactionsPage | null>(null);
   protected readonly loading = signal(false);
   protected readonly busy = signal(false);
+
+  protected readonly items = computed(() => this.data()?.items ?? []);
+  protected readonly total = computed(() => this.data()?.total ?? 0);
+  protected readonly totalPages = computed(() => Math.max(1, Math.ceil(this.total() / this.pageSize())));
+  protected readonly rangeStart = computed(() => (this.total() === 0 ? 0 : (this.page() - 1) * this.pageSize() + 1));
+  protected readonly rangeEnd = computed(() => Math.min(this.page() * this.pageSize(), this.total()));
+  protected readonly reservedRows = computed(() => Math.max(Math.min(this.pageSize(), this.total()), 1));
+  protected readonly showAccount = computed(() => this.accountId() === null && this.accountOptions().length > 1);
 
   protected readonly backfilling = computed(() =>
     this.connections().filter(c => c.status === 'Active' && c.backfillCursor !== null && c.backfillFrom !== null)
@@ -121,14 +138,9 @@ export class BankTransactionsComponent implements OnInit {
     return ratios.length === 0 ? 0 : Math.round(Math.min(...ratios) * 100);
   });
 
-  protected readonly items = computed(() => this.data()?.items ?? []);
-  protected readonly total = computed(() => this.data()?.total ?? 0);
-  protected readonly totalPages = computed(() => Math.max(1, Math.ceil(this.total() / this.pageSize())));
-  protected readonly rangeStart = computed(() => (this.total() === 0 ? 0 : (this.page() - 1) * this.pageSize() + 1));
-  protected readonly rangeEnd = computed(() => Math.min(this.page() * this.pageSize(), this.total()));
-
   protected readonly version = signal(0);
   protected readonly finished = signal(false);
+  protected readonly stopped = computed(() => this.allConnections().some(c => c.status === 'TokenInvalid'));
   protected readonly eta = signal<string | null>(null);
 
   private wasImporting = false;
@@ -156,9 +168,12 @@ export class BankTransactionsComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    document.title = 'Deed - Bank transactions';
+    document.title = 'Deed - Bank';
 
-    this.connectionService.load().pipe(takeUntilDestroyed(this.destroyRef)).subscribe();
+    this.connectionService
+      .load()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.reload());
 
     this.reload$
       .pipe(
@@ -171,7 +186,8 @@ export class BankTransactionsComponent implements OnInit {
               this.typeParam(),
               this.statusParam(),
               this.accountId(),
-              this.provider()
+              this.provider(),
+              this.currency()
             )
             .pipe(
               catchError(() => EMPTY),
@@ -201,38 +217,79 @@ export class BankTransactionsComponent implements OnInit {
           this.goTo(this.page());
         }
       });
+  }
+
+  protected reload(): void {
+    if (this.provider() === null) {
+      this.data.set(null);
+      this.loading.set(false);
+      return;
+    }
 
     this.reload$.next();
   }
 
-  protected setFilter(filter: TypeFilter): void {
-    this.filter.set(filter);
-    this.goTo(1);
+  protected setProvider(provider: BankProvider): void {
+    this.selectedProvider.set(provider);
+    this.accountId.set(null);
+    this.selectedCurrency.set(null);
+    this.currencies.set([]);
+    this.page.set(1);
+    this.reload();
   }
 
-  protected setProvider(provider: BankProvider | null): void {
-    this.provider.set(provider);
+  protected setAccount(id: number | null): void {
+    this.accountId.set(id);
+    this.page.set(1);
+    this.reload();
+  }
 
-    if (!this.accountOptions().some(connection => connection.id === this.accountId())) {
-      this.accountId.set(null);
+  protected setCurrency(currency: string): void {
+    this.selectedCurrency.set(currency);
+    this.page.set(1);
+    this.reload();
+  }
+
+  protected onCurrencies(list: string[]): void {
+    const before = this.currency();
+
+    this.currencies.set(list);
+
+    if (this.currency() !== before) {
+      this.page.set(1);
+      this.reload();
     }
-
-    this.goTo(1);
   }
 
-  protected setAccount(value: string): void {
-    this.accountId.set(value === '' ? null : Number(value));
-    this.goTo(1);
+  protected setType(value: string): void {
+    this.typeFilter.set(value as TypeFilter);
+    this.page.set(1);
+    this.reload();
+  }
+
+  protected setReviewOnly(value: boolean): void {
+    this.reviewOnly.set(value);
+    this.page.set(1);
+    this.reload();
   }
 
   protected setPageSize(value: string): void {
     this.pageSize.set(Number(value));
-    this.goTo(1);
+    this.page.set(1);
+    this.reload();
   }
 
   protected goTo(page: number): void {
     this.page.set(Math.min(Math.max(page, 1), this.totalPages()));
-    this.reload$.next();
+    this.reload();
+  }
+
+  protected accountCount(provider: BankProvider): number {
+    return this.connections().filter(connection => connection.provider === provider).length;
+  }
+
+  protected last4(connection: BankConnection): string {
+    return connection.maskedAccount.slice(-4);
   }
 
   protected refresh(): void {
@@ -341,20 +398,32 @@ export class BankTransactionsComponent implements OnInit {
   }
 
   protected icon(item: BankNotification): string {
-    return TYPE_ICONS[item.type];
+    return BANK_TYPE_ICONS[item.type];
   }
 
   protected typeLabel(item: BankNotification): string {
-    return BANK_TYPE_LABELS[item.type] || (item.direction === 'Incoming' ? 'Incoming' : 'Outgoing');
+    return bankTypeLabel(item);
+  }
+
+  protected name(item: BankNotification): string {
+    return item.counterparty || bankTypeLabel(item);
+  }
+
+  protected hasTime(item: BankNotification): boolean {
+    return hasClockTime(item.occurredAt);
+  }
+
+  protected money(item: BankNotification): string {
+    return `${item.direction === 'Incoming' ? '+' : '-'}${formatMoney(item.amount, item.currency ?? '')}`;
   }
 
   private typeParam(): BankTransactionType | null {
-    const filter = this.filter();
+    const filter = this.typeFilter();
 
-    return filter === 'all' || filter === 'review' ? null : filter;
+    return filter === 'all' ? null : filter;
   }
 
   private statusParam(): BankImportStatus | null {
-    return this.filter() === 'review' ? 'Pending' : null;
+    return this.reviewOnly() ? 'Pending' : null;
   }
 }

@@ -17,4 +17,6 @@ public sealed class PrivatAutoclientSettings
     public int ChunksPerRun { get; init; } = 6;
 
     public int ChunkDelayMs { get; init; } = 1000;
+
+    public int SyncIntervalMinutes { get; init; } = 30;
 }

@@ -27,6 +27,8 @@ public sealed class MonobankService(
 
     public TimeSpan ChunkDelay => TimeSpan.Zero;
 
+    public TimeSpan MinSyncInterval => TimeSpan.Zero;
+
     public async Task<Result<IReadOnlyList<MonobankAccount>>> GetAccountsAsync(string token, CancellationToken cancellationToken)
     {
         var body = await GetAsync(token, "personal/client-info", cancellationToken).ConfigureAwait(false);

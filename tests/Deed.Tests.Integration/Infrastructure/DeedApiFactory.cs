@@ -1,4 +1,5 @@
 using Deed.Application.Abstractions.Data;
+using Deed.Application.BankConnections.Service;
 using Deed.Domain.Repositories;
 using Deed.Infrastructure.Persistence;
 using Deed.Infrastructure.Persistence.Interceptors;
@@ -53,6 +54,8 @@ public sealed class DeedApiFactory : WebApplicationFactory<Api.Program>, IAsyncL
             {
                 services.Remove(d);
             }
+
+            services.AddSingleton<IBankBackfillTrigger, NoopBankBackfillTrigger>();
 
             services.AddDbContext<DeedDbContext>((svc, options) =>
             {

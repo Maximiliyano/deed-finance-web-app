@@ -1,3 +1,4 @@
+using Deed.Domain.Providers;
 using FluentValidation;
 
 namespace Deed.Application.BankConnections.Commands.ImportBankHistory;
@@ -6,10 +7,10 @@ internal sealed class ImportBankHistoryCommandValidator : AbstractValidator<Impo
 {
     internal const int MaxHistoryDays = 3660;
 
-    public ImportBankHistoryCommandValidator()
+    public ImportBankHistoryCommandValidator(IDateTimeProvider dateTimeProvider)
     {
         RuleFor(c => c.From)
-            .GreaterThanOrEqualTo(_ => DateTimeOffset.UtcNow.AddDays(-MaxHistoryDays))
+            .GreaterThanOrEqualTo(_ => dateTimeProvider.UtcNow.AddDays(-MaxHistoryDays))
             .WithMessage($"The period can go back at most {MaxHistoryDays / 365} years.");
 
         RuleFor(c => c.To)

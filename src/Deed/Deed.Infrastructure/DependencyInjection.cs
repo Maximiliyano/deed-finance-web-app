@@ -1,6 +1,7 @@
 using Deed.Application.Abstractions.Caching;
 using Deed.Application.Abstractions.Data;
 using Deed.Application.Abstractions.Services;
+using Deed.Application.Abstractions.Settings;
 using Deed.Application.BankConnections.Service;
 using Deed.Domain.Repositories;
 using Deed.Infrastructure.BackgroundJobs.BankAccountRefresh;
@@ -20,6 +21,7 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Quartz;
+using System.Security.Cryptography.X509Certificates;
 
 namespace Deed.Infrastructure;
 
@@ -31,9 +33,7 @@ public static class DependencyInjection
 
         services.AddRedisCaching(configuration);
 
-        services.AddDataProtection()
-            .SetApplicationName("Deed")
-            .PersistKeysToDbContext<DeedDbContext>();
+        services.AddKeyRingProtection(configuration);
 
         services.AddRepositories();
 
@@ -42,6 +42,29 @@ public static class DependencyInjection
         services.AddScoped<IEmailService, SmtpEmailService>();
 
         services.AddSingleton<ITokenProtector, DataProtectionTokenProtector>();
+
+        return services;
+    }
+
+    private static IServiceCollection AddKeyRingProtection(this IServiceCollection services, IConfiguration configuration)
+    {
+        var section = configuration.GetSection(nameof(DataProtectionSettings));
+        var settings = section.Get<DataProtectionSettings>() ?? new DataProtectionSettings();
+
+        var builder = services.AddDataProtection()
+            .SetApplicationName("Deed")
+            .PersistKeysToDbContext<DeedDbContext>();
+
+        if (settings.HasCertificate)
+        {
+            var certificate = X509CertificateLoader.LoadPkcs12(Convert.FromBase64String(settings.CertificateBase64!), settings.CertificatePassword);
+
+            builder.ProtectKeysWithCertificate(certificate).UnprotectKeysWithAnyCertificate(certificate);
+        }
+
+        services.Configure<DataProtectionSettings>(section);
+
+        services.AddHostedService<KeyRingProtectionService>();
 
         return services;
     }

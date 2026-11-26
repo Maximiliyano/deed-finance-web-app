@@ -16,11 +16,11 @@ public sealed class BankTransactionSpecificationTests
         // Arrange
         var matches = new BankTransactionsByUserSpecification("owner", connectionIds: [1, 2], includeUnassigned: false).Criteria!.Compile();
 
-        // Act & Assert
-        matches(Notification(1)).Should().BeTrue();
-        matches(Notification(2)).Should().BeTrue();
-        matches(Notification(3)).Should().BeFalse();
-        matches(Notification(null)).Should().BeFalse();
+        // Act
+        var kept = new[] { Notification(1), Notification(2), Notification(3), Notification(null) }.Select(matches).ToArray();
+
+        // Assert
+        kept.Should().Equal(true, true, false, false);
     }
 
     [Fact]
@@ -29,10 +29,11 @@ public sealed class BankTransactionSpecificationTests
         // Arrange
         var matches = new BankTransactionsByUserSpecification("owner", connectionIds: [1], includeUnassigned: true).Criteria!.Compile();
 
-        // Act & Assert
-        matches(Notification(null)).Should().BeTrue();
-        matches(Notification(1)).Should().BeTrue();
-        matches(Notification(2)).Should().BeFalse();
+        // Act
+        var kept = new[] { Notification(null), Notification(1), Notification(2) }.Select(matches).ToArray();
+
+        // Assert
+        kept.Should().Equal(true, true, false);
     }
 
     [Fact]
@@ -41,9 +42,11 @@ public sealed class BankTransactionSpecificationTests
         // Arrange
         var matches = new BankTransactionsByUserSpecification("owner").Criteria!.Compile();
 
-        // Act & Assert
-        matches(Notification(3)).Should().BeTrue();
-        matches(Notification(null)).Should().BeTrue();
+        // Act
+        var kept = new[] { Notification(3), Notification(null) }.Select(matches).ToArray();
+
+        // Assert
+        kept.Should().Equal(true, true);
     }
 
     [Fact]
@@ -52,8 +55,11 @@ public sealed class BankTransactionSpecificationTests
         // Arrange
         var matches = new BankTransactionsByUserSpecification("owner", connectionIds: [], includeUnassigned: false).Criteria!.Compile();
 
-        // Act & Assert
-        matches(Notification(1)).Should().BeFalse();
+        // Act
+        var kept = matches(Notification(1));
+
+        // Assert
+        kept.Should().BeFalse();
     }
 
     [Fact]
@@ -62,9 +68,24 @@ public sealed class BankTransactionSpecificationTests
         // Arrange
         var matches = new BankTransactionsByUserSpecification("owner", connectionId: 2, connectionIds: [1, 2], includeUnassigned: false).Criteria!.Compile();
 
-        // Act & Assert
-        matches(Notification(2)).Should().BeTrue();
-        matches(Notification(1)).Should().BeFalse();
+        // Act
+        var kept = new[] { Notification(2), Notification(1) }.Select(matches).ToArray();
+
+        // Assert
+        kept.Should().Equal(true, false);
+    }
+
+    [Fact]
+    public void ListSpecification_Currency_KeepsOnlyThatCurrency()
+    {
+        // Arrange
+        var matches = new BankTransactionsByUserSpecification("owner", currency: "USD").Criteria!.Compile();
+
+        // Act
+        var kept = new[] { Notification(1, "USD"), Notification(1, "UAH"), Notification(1, null) }.Select(matches).ToArray();
+
+        // Assert
+        kept.Should().Equal(true, false, false);
     }
 
     [Fact]
@@ -73,10 +94,11 @@ public sealed class BankTransactionSpecificationTests
         // Arrange
         var matches = new BankTransactionsSummarySpecification("owner", null, Now.AddDays(-30), Now, [5], false).Criteria!.Compile();
 
-        // Act & Assert
-        matches(Notification(5)).Should().BeTrue();
-        matches(Notification(6)).Should().BeFalse();
-        matches(Notification(null)).Should().BeFalse();
+        // Act
+        var kept = new[] { Notification(5), Notification(6), Notification(null) }.Select(matches).ToArray();
+
+        // Assert
+        kept.Should().Equal(true, false, false);
     }
 
     [Fact]
@@ -103,10 +125,11 @@ public sealed class BankTransactionSpecificationTests
         account.IncludeUnassigned.Should().BeFalse();
     }
 
-    private static BankNotification Notification(int? connectionId)
+    private static BankNotification Notification(int? connectionId, string? currency = "UAH")
         => new()
         {
             ExternalId = "x",
+            Currency = currency,
             Kind = BankNotificationKind.Transaction,
             Direction = BankTransactionDirection.Outgoing,
             OccurredAt = Now.AddDays(-1),

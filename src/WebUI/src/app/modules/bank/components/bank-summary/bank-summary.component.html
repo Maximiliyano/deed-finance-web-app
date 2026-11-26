@@ -1,170 +1,205 @@
-<section class="card">
-  <div class="card-header">
-    <h2><i class="fas fa-chart-pie"></i> Summary</h2>
-    <div class="segmented" role="tablist" aria-label="Group by">
-      @for (option of periods; track option.value) {
-        <button
-          type="button"
-          class="segmented-btn"
-          role="tab"
-          [class.active]="period() === option.value"
-          [attr.aria-selected]="period() === option.value"
-          (click)="setPeriod(option.value)"
-        >
-          {{ option.label }}
-        </button>
-      }
-    </div>
+<app-collapsible heading="Summary" icon="fa-chart-pie" storageKey="deed-bank-summary">
+  <div actions class="segmented sum-period" role="group" aria-label="Group by">
+    @for (option of periods; track option.value) {
+      <button
+        type="button"
+        class="segmented-btn"
+        [class.active]="period() === option.value"
+        [attr.aria-pressed]="period() === option.value"
+        (click)="setPeriod(option.value)"
+      >
+        {{ option.label }}
+      </button>
+    }
   </div>
 
   <app-panel-state
     [loading]="loading() && !data()"
-    [empty]="!loading() && currencies().length === 0"
+    [empty]="!loading() && !current()"
     icon="fa-chart-pie"
     title="Nothing to summarize yet"
-    hint="Transactions of the selected account for this period will be totalled here."
+    hint="Totals appear here once this account has transactions."
   >
-    <div class="sum-body">
-      @for (currency of currencies(); track currency.currency) {
-        <div class="sum-currency">
-          <h3 class="sum-title">{{ currency.currency || 'Other currency' }}</h3>
-
+    @if (current(); as currency) {
+      <div class="sum-body">
+        @if (latest(); as row) {
+          <p class="sum-label">{{ row.start | date: dateFormat() }}</p>
           <div class="sum-tiles">
             <div class="stat-tile">
-              <span class="stat-label">Money in</span>
-              <span class="stat-value text-success">{{ money(currency.income, currency.currency) }}</span>
+              <span class="stat-label">In</span>
+              <span class="stat-value text-success">{{ money(row.income, currency.currency) }}</span>
             </div>
             <div class="stat-tile">
-              <span class="stat-label">Money out</span>
-              <span class="stat-value text-danger">{{ money(currency.expense, currency.currency) }}</span>
+              <span class="stat-label">Out</span>
+              <span class="stat-value text-danger">{{ money(row.expense, currency.currency) }}</span>
             </div>
             <div class="stat-tile">
               <span class="stat-label">Net</span>
               <span
                 class="stat-value"
-                [class.text-success]="net(currency) >= 0"
-                [class.text-danger]="net(currency) < 0"
-                >{{ money(net(currency), currency.currency) }}</span
+                [class.text-success]="row.income - row.expense >= 0"
+                [class.text-danger]="row.income - row.expense < 0"
+                >{{ money(row.income - row.expense, currency.currency) }}</span
               >
             </div>
-            <div class="stat-tile">
-              <span class="stat-label">Transactions</span>
-              <span class="stat-value">{{ currency.count }}</span>
-            </div>
           </div>
+        }
 
-          <div class="sum-grid">
-            <div class="sum-block sum-wide">
-              <h4 class="sum-heading">By {{ unit() }}</h4>
-              <div class="table-wrap">
-                <table class="table table-stack">
-                  <thead>
-                    <tr>
-                      <th>Period</th>
-                      <th class="sum-num">In</th>
-                      <th class="sum-num">Out</th>
-                      <th class="sum-num">Net</th>
-                      <th class="sum-num">Count</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    @for (row of currency.periods; track row.start) {
+        <button
+          type="button"
+          class="sum-more"
+          [attr.aria-expanded]="showDetails()"
+          aria-controls="bank-summary-details"
+          (click)="toggleDetails()"
+        >
+          {{ showDetails() ? 'Hide details' : 'Show details' }}
+          <i class="fas fa-chevron-down" [class.open]="showDetails()" aria-hidden="true"></i>
+        </button>
+
+        <div
+          id="bank-summary-details"
+          class="sum-details"
+          [class.open]="showDetails()"
+          [attr.inert]="showDetails() ? null : ''"
+        >
+          <div class="sum-details-inner">
+            <div class="sum-grid">
+              <div class="sum-block sum-wide">
+                <h3 class="sum-heading">By {{ unit() }}</h3>
+                <div class="table-wrap">
+                  <table class="table table-stack">
+                    <thead>
                       <tr>
-                        <td data-label="Period">{{ row.start | date: dateFormat() }}</td>
-                        <td class="sum-num text-success" data-label="In">{{ money(row.income, currency.currency) }}</td>
-                        <td class="sum-num text-danger" data-label="Out">
-                          {{ money(row.expense, currency.currency) }}
-                        </td>
-                        <td class="sum-num" data-label="Net">
-                          {{ money(row.income - row.expense, currency.currency) }}
-                        </td>
-                        <td class="sum-num" data-label="Count">{{ row.count }}</td>
+                        <th>Period</th>
+                        <th class="sum-num">In</th>
+                        <th class="sum-num">Out</th>
+                        <th class="sum-num">Net</th>
+                        <th class="sum-num">Count</th>
                       </tr>
-                    }
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      @for (row of currency.periods; track row.start) {
+                        <tr>
+                          <td data-label="Period">{{ row.start | date: dateFormat() }}</td>
+                          <td class="sum-num text-success" data-label="In">
+                            {{ money(row.income, currency.currency) }}
+                          </td>
+                          <td class="sum-num text-danger" data-label="Out">
+                            {{ money(row.expense, currency.currency) }}
+                          </td>
+                          <td class="sum-num" data-label="Net">
+                            {{ money(row.income - row.expense, currency.currency) }}
+                          </td>
+                          <td class="sum-num" data-label="Count">{{ row.count }}</td>
+                        </tr>
+                      }
+                    </tbody>
+                  </table>
+                </div>
               </div>
-            </div>
 
-            <div class="sum-block">
-              <h4 class="sum-heading">Where money came from</h4>
-              <ul class="sum-list">
-                @for (item of typesOf(currency, 'Incoming'); track item.type) {
-                  <li class="sum-row">
-                    <span class="sum-row-name"
-                      >{{ typeLabel(item.type) }} <span class="sum-row-meta">{{ item.count }}</span></span
-                    >
-                    <span class="sum-row-amount">{{ money(item.amount, currency.currency) }}</span>
-                    <div class="progress tone-success sum-row-bar">
-                      <div class="progress-bar" [style.width.%]="share(item.amount, currency.income)"></div>
-                    </div>
-                  </li>
-                } @empty {
-                  <li class="sum-empty">No incoming money</li>
-                }
-              </ul>
-              @if (currency.topIncome.length > 0) {
-                <h5 class="sum-subheading">Top sources</h5>
-                <ul class="sum-list">
-                  @for (item of currency.topIncome; track $index) {
-                    <li class="sum-row sum-row-flat">
-                      <span class="sum-row-name">{{ item.name ?? 'Unknown' }}</span>
-                      <span class="sum-row-amount">{{ money(item.amount, currency.currency) }}</span>
-                    </li>
-                  }
-                </ul>
-              }
-            </div>
-
-            <div class="sum-block">
-              <h4 class="sum-heading">Where money went</h4>
-              <ul class="sum-list">
-                @for (item of typesOf(currency, 'Outgoing'); track item.type) {
-                  <li class="sum-row">
-                    <span class="sum-row-name"
-                      >{{ typeLabel(item.type) }} <span class="sum-row-meta">{{ item.count }}</span></span
-                    >
-                    <span class="sum-row-amount">{{ money(item.amount, currency.currency) }}</span>
-                    <div class="progress tone-danger sum-row-bar">
-                      <div class="progress-bar" [style.width.%]="share(item.amount, currency.expense)"></div>
-                    </div>
-                  </li>
-                } @empty {
-                  <li class="sum-empty">No outgoing money</li>
-                }
-              </ul>
-              @if (currency.topExpense.length > 0) {
-                <h5 class="sum-subheading">Top recipients</h5>
-                <ul class="sum-list">
-                  @for (item of currency.topExpense; track $index) {
-                    <li class="sum-row sum-row-flat">
-                      <span class="sum-row-name">{{ item.name ?? 'Unknown' }}</span>
-                      <span class="sum-row-amount">{{ money(item.amount, currency.currency) }}</span>
-                    </li>
-                  }
-                </ul>
-              }
-            </div>
-
-            @if (currency.accounts.length > 1) {
               <div class="sum-block">
-                <h4 class="sum-heading">By account</h4>
+                <h3 class="sum-heading">Where money came from</h3>
                 <ul class="sum-list">
-                  @for (account of currency.accounts; track account.connectionId ?? -1) {
-                    <li class="sum-row sum-row-flat">
-                      <span class="sum-row-name">{{ account.label }}</span>
-                      <span class="sum-row-amount">
-                        <span class="text-success">+{{ money(account.income, currency.currency) }}</span>
-                        <span class="text-danger">-{{ money(account.expense, currency.currency) }}</span>
-                      </span>
+                  @for (item of typesOf(currency, 'Incoming'); track item.type) {
+                    <li class="sum-row">
+                      <span class="sum-row-name"
+                        >{{ typeLabel(item.type) }} <span class="sum-row-meta">{{ item.count }}</span></span
+                      >
+                      <span class="sum-row-amount">{{ money(item.amount, currency.currency) }}</span>
+                      <div class="progress tone-success sum-row-bar">
+                        <div
+                          class="progress-bar"
+                          [style.width.%]="share(item.amount, currency.income + currency.exchangeIn)"
+                        ></div>
+                      </div>
                     </li>
+                  } @empty {
+                    <li class="sum-empty">No incoming money</li>
                   }
                 </ul>
+                @if (currency.topIncome.length > 0) {
+                  <h4 class="sum-subheading">Top sources</h4>
+                  <ul class="sum-list">
+                    @for (item of currency.topIncome; track $index) {
+                      <li class="sum-row sum-row-flat">
+                        <span class="sum-row-name">{{ item.name ?? 'Unknown' }}</span>
+                        <span class="sum-row-amount">{{ money(item.amount, currency.currency) }}</span>
+                      </li>
+                    }
+                  </ul>
+                }
               </div>
-            }
+
+              <div class="sum-block">
+                <h3 class="sum-heading">Where money went</h3>
+                <ul class="sum-list">
+                  @for (item of typesOf(currency, 'Outgoing'); track item.type) {
+                    <li class="sum-row">
+                      <span class="sum-row-name"
+                        >{{ typeLabel(item.type) }} <span class="sum-row-meta">{{ item.count }}</span></span
+                      >
+                      <span class="sum-row-amount">{{ money(item.amount, currency.currency) }}</span>
+                      <div class="progress tone-danger sum-row-bar">
+                        <div
+                          class="progress-bar"
+                          [style.width.%]="share(item.amount, currency.expense + currency.exchangeOut)"
+                        ></div>
+                      </div>
+                    </li>
+                  } @empty {
+                    <li class="sum-empty">No outgoing money</li>
+                  }
+                </ul>
+                @if (currency.topExpense.length > 0) {
+                  <h4 class="sum-subheading">Top recipients</h4>
+                  <ul class="sum-list">
+                    @for (item of currency.topExpense; track $index) {
+                      <li class="sum-row sum-row-flat">
+                        <span class="sum-row-name">{{ item.name ?? 'Unknown' }}</span>
+                        <span class="sum-row-amount">{{ money(item.amount, currency.currency) }}</span>
+                      </li>
+                    }
+                  </ul>
+                }
+              </div>
+
+              @if (currency.accounts.length > 1) {
+                <div class="sum-block">
+                  <h3 class="sum-heading">By account</h3>
+                  <ul class="sum-list">
+                    @for (account of currency.accounts; track account.connectionId ?? -1) {
+                      <li class="sum-row sum-row-flat">
+                        <span class="sum-row-name">{{ account.label }}</span>
+                        <span class="sum-row-amount">
+                          <span class="text-success">+{{ money(account.income, currency.currency) }}</span>
+                          <span class="text-danger">-{{ money(account.expense, currency.currency) }}</span>
+                        </span>
+                      </li>
+                    }
+                  </ul>
+                </div>
+              }
+
+              @if (currency.exchangeIn > 0 || currency.exchangeOut > 0) {
+                <div class="sum-block">
+                  <h3 class="sum-heading">Currency exchange</h3>
+                  <ul class="sum-list">
+                    <li class="sum-row sum-row-flat">
+                      <span class="sum-row-name">Received</span>
+                      <span class="sum-row-amount">{{ money(currency.exchangeIn, currency.currency) }}</span>
+                    </li>
+                    <li class="sum-row sum-row-flat">
+                      <span class="sum-row-name">Sent</span>
+                      <span class="sum-row-amount">{{ money(currency.exchangeOut, currency.currency) }}</span>
+                    </li>
+                  </ul>
+                </div>
+              }
+            </div>
           </div>
         </div>
-      }
-    </div>
+      </div>
+    }
   </app-panel-state>
-</section>
+</app-collapsible>

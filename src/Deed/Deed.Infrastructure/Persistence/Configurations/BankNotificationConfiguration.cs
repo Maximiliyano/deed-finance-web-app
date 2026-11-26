@@ -64,5 +64,11 @@ internal sealed class BankNotificationConfiguration : IEntityTypeConfiguration<B
             .IsUnique();
 
         builder.HasIndex(n => new { n.CreatedBy, n.IsRead, n.OccurredAt });
+
+        builder.HasIndex(n => new { n.CreatedBy, n.Kind, n.OccurredAt, n.Id })
+            .IsDescending(false, false, true, true)
+            .IncludeProperties(n => new { n.BankConnectionId, n.ImportStatus, n.Type, n.Direction, n.Currency, n.Amount });
+
+        builder.HasIndex(n => new { n.CreatedBy, n.BankConnectionId, n.OccurredAt });
     }
 }

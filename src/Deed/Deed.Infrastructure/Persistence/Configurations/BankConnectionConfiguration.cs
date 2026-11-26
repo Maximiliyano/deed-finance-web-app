@@ -20,6 +20,10 @@ internal sealed class BankConnectionConfiguration : IEntityTypeConfiguration<Ban
 
         builder.HasIndex(c => new { c.CreatedBy, c.IsDeleted });
 
+        builder.HasIndex(c => new { c.CreatedBy, c.Provider, c.AccountIban })
+            .IsUnique()
+            .HasFilter("[IsDeleted] = 0");
+
         builder.HasIndex(c => c.Status)
             .HasFilter("[IsDeleted] = 0");
 

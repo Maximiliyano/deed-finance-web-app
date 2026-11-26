@@ -11,9 +11,9 @@ internal sealed class GetBankAccountsQueryHandler(
     IUser user,
     IBankAccountRepository accountRepository,
     IBankConnectionRepository connectionRepository)
-    : IQueryHandler<GetBankAccountsQuery, IReadOnlyList<BankAccountResponse>>
+    : IQueryHandler<GetBankAccountsQuery, IReadOnlyList<LinkedBankAccountResponse>>
 {
-    public async Task<Result<IReadOnlyList<BankAccountResponse>>> Handle(GetBankAccountsQuery query, CancellationToken cancellationToken)
+    public async Task<Result<IReadOnlyList<LinkedBankAccountResponse>>> Handle(GetBankAccountsQuery query, CancellationToken cancellationToken)
     {
         var accounts = await accountRepository
             .GetAllAsync(new BankAccountsByUserSpecification(user.Name!), cancellationToken)
@@ -23,9 +23,9 @@ internal sealed class GetBankAccountsQueryHandler(
             .GetAllAsync(new BankConnectionByUserSpecification(user.Name!), cancellationToken)
             .ConfigureAwait(false)).ToList();
 
-        IReadOnlyList<BankAccountResponse> response =
+        IReadOnlyList<LinkedBankAccountResponse> response =
         [
-            .. accounts.Select(a => new BankAccountResponse(
+            .. accounts.Select(a => new LinkedBankAccountResponse(
                 a.Id,
                 a.Provider.ToString(),
                 a.Iban,

@@ -20,10 +20,11 @@ import { PopupMessageService } from '../../../../shared/services/popup-message.s
 import { User } from '../../models/user';
 import { UserSettingsService } from '../../../home/services/user-settings.service';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { CURRENCIES, CURRENCY_DEFAULT, CURRENCY_SYMBOL } from '../../../../core/types/currency-type';
+import { CURRENCIES, CURRENCY_DEFAULT } from '../../../../core/types/currency-type';
 import { UserSettings } from '../../../home/models/user-settings.model';
 import { BankAccount, BankConnection, BankProvider } from '../../../bank/models/bank.model';
 import { BankAccountService } from '../../../bank/services/bank-account.service';
+import { formatMoney } from '../../../bank/utils/bank-format';
 import { BankConnectionService } from '../../../bank/services/bank-connection.service';
 import { BankConnectionSettingsDialogComponent } from '../../../bank/components/bank-connection-settings-dialog/bank-connection-settings-dialog.component';
 import { ConnectMonobankDialogComponent } from '../../../bank/components/connect-monobank-dialog/connect-monobank-dialog.component';
@@ -175,10 +176,7 @@ export class ProfileComponent implements OnInit {
   }
 
   money(amount: number, currency: string): string {
-    const text = new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(amount);
-    const symbol = CURRENCY_SYMBOL[currency] ?? currency;
-
-    return symbol ? `${symbol} ${text}` : text;
+    return formatMoney(amount, currency);
   }
 
   accountName(account: BankAccount): string {

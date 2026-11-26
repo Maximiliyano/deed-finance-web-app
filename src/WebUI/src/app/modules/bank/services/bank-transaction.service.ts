@@ -21,7 +21,8 @@ export class BankTransactionService {
     type: BankTransactionType | null,
     status: BankImportStatus | null = null,
     connectionId: number | null = null,
-    provider: BankProvider | null = null
+    provider: BankProvider | null = null,
+    currency: string | null = null
   ): Observable<BankTransactionsPage> {
     let params = new HttpParams().set('page', page).set('pageSize', pageSize);
 
@@ -39,6 +40,10 @@ export class BankTransactionService {
 
     if (provider) {
       params = params.set('provider', provider);
+    }
+
+    if (currency) {
+      params = params.set('currency', currency);
     }
 
     return this.http.get<BankTransactionsPage>('/api/bank-transactions', { params });

@@ -1,8 +1,8 @@
-<div class="bell" (document:click)="close()" (keydown.escape)="close()">
+<div class="bell" (document:click)="close()" (document:keydown.escape)="close()">
   <button
     type="button"
     class="btn btn-ghost btn-icon bell-btn"
-    aria-label="Bank notifications"
+    [attr.aria-label]="unread() > 0 ? 'Bank notifications, ' + unread() + ' unread' : 'Bank notifications'"
     aria-haspopup="true"
     [attr.aria-expanded]="open()"
     (click)="toggle($event)"
@@ -22,14 +22,13 @@
         }
       </div>
 
-      <div class="segmented bell-filters" role="tablist" aria-label="Filter by type">
+      <div class="segmented bell-filters" role="group" aria-label="Filter by type">
         @for (option of filters; track option.value) {
           <button
             type="button"
             class="segmented-btn"
-            role="tab"
             [class.active]="filter() === option.value"
-            [attr.aria-selected]="filter() === option.value"
+            [attr.aria-pressed]="filter() === option.value"
             (click)="setFilter(option.value)"
           >
             {{ option.label }}
@@ -44,7 +43,7 @@
             {{
               connected()
                 ? 'New transactions on your connected accounts will show up here.'
-                : 'Connect Privat24 in your profile to get alerts about new transactions.'
+                : 'Connect a bank in your profile to get alerts about new transactions.'
             }}
           </p>
         </div>
@@ -66,8 +65,7 @@
                     <span class="bell-name">{{ title(item) }}</span>
                     @if (item.kind === 'Transaction') {
                       <span class="bell-amount" [class.text-success]="item.direction === 'Incoming'">
-                        {{ item.direction === 'Incoming' ? '+' : '-'
-                        }}{{ item.amount | currencySymbol: item.currency ?? '' }}
+                        {{ amount(item) }}
                       </span>
                     }
                   </span>

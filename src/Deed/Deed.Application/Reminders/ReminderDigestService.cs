@@ -1,4 +1,6 @@
 using Deed.Application.Abstractions.Services;
+using Deed.Application.BankConnections.Specifications;
+using Deed.Application.BankNotifications;
 using Deed.Application.BankNotifications.Specifications;
 using Deed.Application.Capitals.Specifications;
 using Deed.Application.Debts.Specifications;
@@ -15,6 +17,7 @@ public sealed class ReminderDigestService(
     IIncomeRepository incomeRepository,
     IDebtRepository debtRepository,
     IBankNotificationRepository bankNotificationRepository,
+    IBankConnectionRepository bankConnectionRepository,
     IExchangeRateProvider exchangeRateProvider,
     IEmailService emailService)
     : IReminderDigestService
@@ -107,8 +110,14 @@ public sealed class ReminderDigestService(
 
     private async Task<DigestBank?> BuildBankAsync(string createdBy, DateTimeOffset since, CancellationToken cancellationToken)
     {
+        var connections = await bankConnectionRepository
+            .GetAllAsync(new BankConnectionByUserSpecification(createdBy), cancellationToken)
+            .ConfigureAwait(false);
+
+        var (connectionIds, _) = BankConnectionScope.Resolve(connections, null, null);
+
         var notifications = (await bankNotificationRepository
-            .GetAllAsync(new BankNotificationsByUserSpecification(createdBy, take: MaxBankRows, since: since, kind: BankNotificationKind.Transaction), cancellationToken)
+            .GetAllAsync(new BankNotificationsByUserSpecification(createdBy, take: MaxBankRows, since: since, kind: BankNotificationKind.Transaction, connectionIds: connectionIds), cancellationToken)
             .ConfigureAwait(false))
             .ToList();
 
@@ -116,6 +125,10 @@ public sealed class ReminderDigestService(
         {
             return null;
         }
+
+        var total = await bankNotificationRepository
+            .CountAsync(new BankNotificationsByUserSpecification(createdBy, since: since, kind: BankNotificationKind.Transaction, connectionIds: connectionIds), cancellationToken)
+            .ConfigureAwait(false);
 
         var totals = notifications
             .GroupBy(n => (n.Type, n.Direction, Currency: n.Currency ?? string.Empty))
@@ -129,7 +142,7 @@ public sealed class ReminderDigestService(
             .Select(n => new DigestBankItem(n.OccurredAt, n.Type, n.Direction, n.Amount, n.Currency ?? string.Empty, n.Counterparty, n.AccountLabel))
             .ToList();
 
-        return new DigestBank(notifications.Count, totals, latest);
+        return new DigestBank(Math.Max(total, notifications.Count), totals, latest);
     }
 
     private async Task<DigestDebts?> BuildDebtsAsync(string createdBy, CancellationToken cancellationToken)

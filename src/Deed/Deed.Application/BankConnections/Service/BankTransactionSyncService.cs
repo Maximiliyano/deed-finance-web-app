@@ -34,15 +34,16 @@ public sealed class BankTransactionSyncService(
     private static readonly TimeSpan BaselineTolerance = TimeSpan.FromMinutes(10);
     private static readonly TimeSpan SilenceLimit = TimeSpan.FromDays(730);
     private const int MaxBackfillFailures = 10;
+    private const int MaxExternalIdLength = 128;
     private static readonly DateTimeOffset EarliestPossible = new(2000, 1, 1, 0, 0, 0, TimeSpan.Zero);
 
     public Task<int> SyncAsync(CancellationToken cancellationToken)
-        => SyncAsync(new ActiveBankConnectionsSpecification(), cancellationToken);
+        => SyncAsync(new ActiveBankConnectionsSpecification(), force: false, cancellationToken);
 
     public Task<int> SyncUserAsync(string createdBy, CancellationToken cancellationToken)
-        => SyncAsync(new ActiveBankConnectionsSpecification(createdBy), cancellationToken);
+        => SyncAsync(new ActiveBankConnectionsSpecification(createdBy), force: true, cancellationToken);
 
-    private async Task<int> SyncAsync(ActiveBankConnectionsSpecification specification, CancellationToken cancellationToken)
+    private async Task<int> SyncAsync(ActiveBankConnectionsSpecification specification, bool force, CancellationToken cancellationToken)
     {
         var connections = (await connectionRepository
             .GetAllAsync(specification, cancellationToken)
@@ -52,6 +53,11 @@ public sealed class BankTransactionSyncService(
 
         foreach (var connection in connections)
         {
+            if (!force && IsFresh(connection))
+            {
+                continue;
+            }
+
             try
             {
                 created += await SyncConnectionAsync(connection, cancellationToken).ConfigureAwait(false);
@@ -64,6 +70,11 @@ public sealed class BankTransactionSyncService(
 
         return created;
     }
+
+    private bool IsFresh(BankConnection connection)
+        => ProviderFor(connection) is { } provider
+            && provider.MinSyncInterval > TimeSpan.Zero
+            && dateTimeProvider.UtcNow - connection.LastSyncAt < provider.MinSyncInterval;
 
     private async Task<int> SyncConnectionAsync(BankConnection connection, CancellationToken cancellationToken)
     {
@@ -98,7 +109,7 @@ public sealed class BankTransactionSyncService(
 
         var candidates = result.Value
             .Where(t => t.OccurredAt >= baseline)
-            .GroupBy(t => t.ExternalId)
+            .GroupBy(t => t.ExternalId, StringComparer.OrdinalIgnoreCase)
             .Select(g => g.First())
             .ToList();
 
@@ -159,7 +170,7 @@ public sealed class BankTransactionSyncService(
 
         await unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
-        return new BankHistoryImportResponse(0, connections.Count > 0);
+        return new BankHistoryImportResponse(connections.Count > 0);
     }
 
     public async Task<int> BackfillAsync(CancellationToken cancellationToken)
@@ -233,6 +244,15 @@ public sealed class BankTransactionSyncService(
         var result = await provider
             .GetTransactionsAsync(secret, AccountOf(connection), start, cursor, cancellationToken)
             .ConfigureAwait(false);
+
+        var state = await connectionRepository.GetBackfillStateAsync(connection.Id, cancellationToken).ConfigureAwait(false);
+
+        if (state is null || state.IsExcluded || state.Cursor != cursor)
+        {
+            Log.Information("Bank backfill for {User} ({Label}) was changed while it ran, the fetched chunk is dropped", connection.CreatedBy, connection.Label);
+
+            return 0;
+        }
 
         if (!result.IsSuccess)
         {
@@ -322,7 +342,7 @@ public sealed class BankTransactionSyncService(
     public async Task<int> StageHistoryAsync(string createdBy, string label, int? connectionId, IReadOnlyCollection<BankTransaction> transactions, CancellationToken cancellationToken)
     {
         var candidates = transactions
-            .GroupBy(t => t.ExternalId)
+            .GroupBy(t => t.ExternalId, StringComparer.OrdinalIgnoreCase)
             .Select(g => g.First())
             .ToList();
 
@@ -396,13 +416,16 @@ public sealed class BankTransactionSyncService(
             return candidates;
         }
 
-        var ids = candidates.Select(t => t.ExternalId).ToList();
+        var ids = candidates.Select(t => StoredId(t)).ToList();
         var known = (await notificationRepository
-            .GetAllAsync(new BankNotificationsByExternalIdsSpecification(createdBy, ids), cancellationToken)
-            .ConfigureAwait(false)).Select(n => n.ExternalId).ToHashSet(StringComparer.Ordinal);
+            .GetExternalIdsAsync(new BankNotificationsByExternalIdsSpecification(createdBy, ids), cancellationToken)
+            .ConfigureAwait(false)).ToHashSet(StringComparer.OrdinalIgnoreCase);
 
-        return candidates.Where(t => !known.Contains(t.ExternalId)).ToList();
+        return candidates.Where(t => !known.Contains(StoredId(t))).ToList();
     }
+
+    private static string StoredId(BankTransaction transaction)
+        => Truncate(transaction.ExternalId, MaxExternalIdLength)!;
 
     private async Task MarkTokenInvalidAsync(BankConnection connection, CancellationToken cancellationToken)
     {
@@ -437,13 +460,16 @@ public sealed class BankTransactionSyncService(
         BankTransaction transaction,
         bool isRead,
         BankImportStatus importStatus)
-        => new()
+    {
+        var type = BankTransactionClassifier.Classify(transaction.Direction, transaction.Counterparty, transaction.Purpose);
+
+        return new()
         {
             Kind = BankNotificationKind.Transaction,
             Direction = transaction.Direction,
-            Type = BankTransactionClassifier.Classify(transaction.Direction, transaction.Counterparty, transaction.Purpose),
+            Type = type,
             AccountLabel = Truncate(label, 64),
-            ExternalId = Truncate(transaction.ExternalId, 128)!,
+            ExternalId = StoredId(transaction),
             Amount = transaction.Amount,
             Currency = Truncate(transaction.Currency, 8),
             Counterparty = Truncate(transaction.Counterparty, 256),
@@ -451,9 +477,10 @@ public sealed class BankTransactionSyncService(
             OccurredAt = transaction.OccurredAt,
             IsRead = isRead,
             BankConnectionId = connectionId,
-            ImportStatus = importStatus,
+            ImportStatus = type == BankTransactionType.Exchange ? BankImportStatus.None : importStatus,
             CreatedBy = createdBy
         };
+    }
 
     private async Task SendEmailAsync(BankConnection connection, List<BankTransaction> transactions, CancellationToken cancellationToken)
     {

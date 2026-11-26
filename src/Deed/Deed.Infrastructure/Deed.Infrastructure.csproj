@@ -12,6 +12,7 @@
 
     <ItemGroup>
         <InternalsVisibleTo Include="Deed.Tests.Integration"/>
+        <InternalsVisibleTo Include="Deed.Tests.Unit"/>
     </ItemGroup>
 
     <ItemGroup>

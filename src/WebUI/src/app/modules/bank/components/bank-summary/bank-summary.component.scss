@@ -2,36 +2,103 @@
 
 :host {
   display: block;
-  margin-bottom: var(--space-4);
+}
+
+.sum-period {
+  gap: var(--space-1);
 }
 
 .sum-body {
   display: flex;
   flex-direction: column;
-  gap: var(--space-6);
   padding: var(--space-4);
-
-  @include respond-to('sm') {
-    padding: var(--space-5);
-  }
 }
 
-.sum-currency {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
-}
-
-.sum-title {
-  margin: 0;
-  font-size: var(--fs-lg);
-  font-weight: 700;
+.sum-label {
+  margin: 0 0 var(--space-2);
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
 }
 
 .sum-tiles {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(10rem, 100%), 1fr));
-  gap: var(--space-3);
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+
+  @include respond-to('sm') {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-3);
+  }
+
+  .stat-tile {
+    flex-direction: row;
+    align-items: baseline;
+    justify-content: space-between;
+    padding: var(--space-2) var(--space-3);
+
+    @include respond-to('sm') {
+      flex-direction: column;
+      align-items: stretch;
+      justify-content: flex-start;
+    }
+  }
+
+  .stat-value {
+    font-size: var(--fs-lg);
+
+    @include respond-to('sm') {
+      font-size: var(--fs-xl);
+    }
+  }
+}
+
+.sum-more {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: var(--space-2);
+  min-height: 2rem;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: var(--fs-sm);
+  cursor: pointer;
+  transition: color var(--t);
+
+  &:hover {
+    color: var(--text);
+  }
+
+  i {
+    font-size: 0.7rem;
+    transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+
+    &.open {
+      transform: rotate(180deg);
+    }
+  }
+
+  @include touch {
+    min-height: var(--touch);
+  }
+}
+
+.sum-details {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+
+  &.open {
+    grid-template-rows: 1fr;
+  }
+}
+
+.sum-details-inner {
+  min-height: 0;
+  overflow: hidden;
 }
 
 .sum-grid {
@@ -39,6 +106,7 @@
   grid-template-columns: repeat(auto-fit, minmax(min(20rem, 100%), 1fr));
   gap: var(--space-5);
   align-items: start;
+  padding-top: var(--space-2);
 }
 
 .sum-wide {
@@ -56,8 +124,6 @@
   margin: 0;
   font-size: var(--fs-sm);
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
   color: var(--text-muted);
 }
 
