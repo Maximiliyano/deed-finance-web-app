@@ -25,7 +25,7 @@ import {
 } from '../budget-estimation-dialog/budget-estimation-dialog.component';
 import { BudgetChartsComponent } from './budget-charts/budget-charts.component';
 import { BUDGET_BAR_COLORS } from './budget-planner.constants';
-import { BudgetPeriodBarComponent } from './budget-period-bar/budget-period-bar.component';
+import { PeriodBarComponent } from '../period-bar/period-bar.component';
 
 type EstimationSort = 'custom' | 'amount-asc' | 'amount-desc' | 'name';
 
@@ -52,7 +52,7 @@ function sortEstimations(items: readonly BudgetEstimation[], by: EstimationSort)
   imports: [
     SharedModule,
     DragDropModule,
-    BudgetPeriodBarComponent,
+    PeriodBarComponent,
     BudgetChartsComponent,
     SortToolbarComponent,
     PanelStateComponent

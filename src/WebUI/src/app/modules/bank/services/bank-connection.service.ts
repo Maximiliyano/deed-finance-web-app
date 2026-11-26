@@ -1,0 +1,30 @@
+import { HttpClient, HttpContext } from '@angular/common/http';
+import { Injectable, inject } from '@angular/core';
+import { BehaviorSubject, Observable, switchMap, tap } from 'rxjs';
+import { SKIP_ERROR_TOAST } from '../../../core/interceptors/error.interceptor';
+import { BankConnection, ConnectPrivatRequest, EMPTY_BANK_CONNECTION } from '../models/bank.model';
+
+@Injectable({ providedIn: 'root' })
+export class BankConnectionService {
+  private readonly http = inject(HttpClient);
+  private readonly baseUrl = '/api/bank-connections';
+
+  private readonly state$ = new BehaviorSubject<BankConnection | null>(null);
+  readonly connection$ = this.state$.asObservable();
+
+  load(): Observable<BankConnection> {
+    return this.http.get<BankConnection>(this.baseUrl).pipe(tap(connection => this.state$.next(connection)));
+  }
+
+  connectPrivat(request: ConnectPrivatRequest): Observable<BankConnection> {
+    const context = new HttpContext().set(SKIP_ERROR_TOAST, true);
+
+    return this.http.post<void>(`${this.baseUrl}/privat`, request, { context }).pipe(switchMap(() => this.load()));
+  }
+
+  disconnectPrivat(): Observable<void> {
+    return this.http
+      .delete<void>(`${this.baseUrl}/privat`)
+      .pipe(tap(() => this.state$.next(EMPTY_BANK_CONNECTION)));
+  }
+}

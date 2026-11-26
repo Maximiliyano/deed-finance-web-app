@@ -16,7 +16,7 @@
 .modal {
   position: relative;
   width: 100%;
-  max-width: 480px;
+  max-width: var(--modal-max-width, 480px);
   max-height: calc(100dvh - 2rem);
   overflow-y: auto;
   overscroll-behavior: contain;

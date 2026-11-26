@@ -49,6 +49,52 @@
 
     <div class="card">
       <div class="card-header">
+        <h2>Bank connection</h2>
+        @if (bankConnection(); as connection) {
+          @if (connection.connected) {
+            <span
+              class="badge"
+              [class.badge-success]="connection.status === 'Active'"
+              [class.badge-warning]="connection.status === 'TokenInvalid'"
+            >
+              {{ connection.status === 'Active' ? 'Connected' : 'Token expired' }}
+            </span>
+          }
+        }
+      </div>
+      <div class="settings-form">
+        @if (bankConnection(); as connection) {
+          @if (connection.connected) {
+            <div class="bank-summary">
+              <span class="toggle-label">Privat24 <span class="bank-iban">{{ connection.maskedIban }}</span></span>
+              @if (connection.status === 'TokenInvalid') {
+                <span class="toggle-hint">The bank rejected the token. Reconnect with a new one to resume alerts.</span>
+              } @else if (connection.lastSyncAt) {
+                <span class="toggle-hint">Last checked {{ connection.lastSyncAt | date: 'dd MMM, HH:mm' }}</span>
+              }
+            </div>
+            <div class="settings-footer bank-actions">
+              <button type="button" class="btn btn-secondary btn-sm" (click)="connectPrivat()">
+                {{ connection.status === 'TokenInvalid' ? 'Reconnect' : 'Replace token' }}
+              </button>
+              <button type="button" class="btn btn-danger btn-sm" (click)="disconnectPrivat()">Disconnect</button>
+            </div>
+          } @else {
+            <p class="toggle-hint">
+              Connect your Privat24 business account to get a notification when a new transaction appears.
+            </p>
+            <div class="settings-footer">
+              <button type="button" class="btn btn-primary btn-sm" (click)="connectPrivat()">
+                <i class="fas fa-link"></i> Connect Privat24
+              </button>
+            </div>
+          }
+        }
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
         <h2>Notifications</h2>
       </div>
       <form class="settings-form" [formGroup]="notificationForm" (ngSubmit)="saveNotifications()">
@@ -83,6 +129,15 @@
           </span>
           <input type="checkbox" class="checkbox" formControlName="emailNotificationsEnabled" />
         </label>
+        @if (bankConnection()?.connected) {
+          <label class="toggle-row">
+            <span class="toggle-info">
+              <span class="toggle-label">Bank transaction alerts</span>
+              <span class="toggle-hint">Email me about new Privat24 transactions</span>
+            </span>
+            <input type="checkbox" class="checkbox" formControlName="bankAlertsEmailEnabled" />
+          </label>
+        }
         @if (notificationForm.value.emailNotificationsEnabled && user.email) {
           <p class="toggle-hint">
             Notifications will be sent to <strong>{{ user.email }}</strong>

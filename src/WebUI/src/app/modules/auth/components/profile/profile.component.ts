@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, DestroyRef, inject } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { AuthService } from '../../services/auth-service';
 
 import { SharedModule } from '../../../../shared/shared.module';
@@ -12,6 +12,8 @@ import { UserSettingsService } from '../../../home/services/user-settings.servic
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { CURRENCIES, CURRENCY_DEFAULT } from '../../../../core/types/currency-type';
 import { UserSettings } from '../../../home/models/user-settings.model';
+import { BankConnectionService } from '../../../bank/services/bank-connection.service';
+import { ConnectPrivatDialogComponent } from '../../../bank/components/connect-privat-dialog/connect-privat-dialog.component';
 
 const DEFAULT_REMINDER_CRON = '0 0 9 * * ?';
 
@@ -34,11 +36,13 @@ export class ProfileComponent implements OnInit {
   private readonly dialogService = inject(DialogService);
   private readonly popupMessageService = inject(PopupMessageService);
   private readonly userSettingsService = inject(UserSettingsService);
+  private readonly bankConnectionService = inject(BankConnectionService);
   private readonly fb = inject(FormBuilder);
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly dialogRef = inject<DialogRef<void> | null>(DialogRef, { optional: true });
   private readonly destroyRef = inject(DestroyRef);
 
+  readonly bankConnection = toSignal(this.bankConnectionService.connection$, { initialValue: null });
   user: User | null;
   settingsForm!: FormGroup;
   savingSettings = false;
@@ -65,7 +69,8 @@ export class ProfileComponent implements OnInit {
           [`${key}ReminderCron`, [DEFAULT_REMINDER_CRON]]
         ])
       ),
-      emailNotificationsEnabled: [false]
+      emailNotificationsEnabled: [false],
+      bankAlertsEmailEnabled: [false]
     });
 
     this.authService.user$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(user => {
@@ -73,6 +78,8 @@ export class ProfileComponent implements OnInit {
       document.title = `Deed - ${this.user?.fullname ?? ''} profile`;
       this.cdr.markForCheck();
     });
+
+    this.bankConnectionService.load().pipe(takeUntilDestroyed(this.destroyRef)).subscribe();
 
     this.userSettingsService
       .load()
@@ -88,12 +95,40 @@ export class ProfileComponent implements OnInit {
                   [`${key}ReminderCron`, settings[`${key}ReminderCron`] ?? DEFAULT_REMINDER_CRON]
                 ])
               ),
-              emailNotificationsEnabled: settings.emailNotificationsEnabled ?? false
+              emailNotificationsEnabled: settings.emailNotificationsEnabled ?? false,
+              bankAlertsEmailEnabled: settings.bankAlertsEmailEnabled ?? false
             });
             this.cdr.markForCheck();
           }
         }
       });
+  }
+
+  connectPrivat(): void {
+    const dialogRef = this.dialogService.open(ConnectPrivatDialogComponent);
+
+    dialogRef.afterClosed$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.cdr.markForCheck());
+  }
+
+  disconnectPrivat(): void {
+    const dialogRef = this.dialogService.open(ConfirmDialogComponent, {
+      data: {
+        title: 'Disconnect Privat24',
+        message: 'You will stop receiving alerts about new bank transactions. The stored token will be deleted.',
+        submitText: 'Disconnect',
+        cancelText: 'Cancel',
+        icon: 'warning'
+      }
+    });
+
+    dialogRef.afterClosed$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((submit: boolean) => {
+      if (!submit) return;
+
+      this.bankConnectionService
+        .disconnectPrivat()
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe(() => this.popupMessageService.success('Privat24 disconnected'));
+    });
   }
 
   saveCurrency(): void {

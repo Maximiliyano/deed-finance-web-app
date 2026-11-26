@@ -3,6 +3,7 @@ using Deed.Application.Abstractions.Data;
 using Deed.Application.Abstractions.Services;
 using Deed.Domain.Repositories;
 using Deed.Infrastructure.BackgroundJobs.BalanceReminder;
+using Deed.Infrastructure.BackgroundJobs.BankTransactionSync;
 using Deed.Infrastructure.BackgroundJobs.DebtReminder;
 using Deed.Infrastructure.BackgroundJobs.ExpenseReminder;
 using Deed.Infrastructure.BackgroundJobs.UpsertLatestExchange;
@@ -38,6 +39,8 @@ public static class DependencyInjection
         services.AddBackgroundJobs();
 
         services.AddScoped<IEmailService, SmtpEmailService>();
+
+        services.AddSingleton<ITokenProtector, DataProtectionTokenProtector>();
 
         return services;
     }
@@ -78,6 +81,8 @@ public static class DependencyInjection
 
         services.ConfigureOptions<DebtReminderJobSetup>();
 
+        services.ConfigureOptions<BankTransactionSyncJobSetup>();
+
         return services;
     }
 
@@ -108,6 +113,10 @@ public static class DependencyInjection
         services.AddScoped<ITransferRepository, TransferRepository>();
 
         services.AddScoped<IUtilityBillRepository, UtilityBillRepository>();
+
+        services.AddScoped<IBankConnectionRepository, BankConnectionRepository>();
+
+        services.AddScoped<IBankNotificationRepository, BankNotificationRepository>();
 
         return services;
     }

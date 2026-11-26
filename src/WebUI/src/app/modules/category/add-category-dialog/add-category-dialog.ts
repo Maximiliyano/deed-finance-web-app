@@ -37,7 +37,7 @@ export class AddCategoryDialog implements OnInit {
   private initForm(): void {
     this.form = new FormGroup({
       Name: new FormControl('', [Validators.required, Validators.minLength(1), Validators.maxLength(32)]),
-      Type: new FormControl({ value: CategoryType.Expenses, disabled: this.categoryTypeOptions.length < 2 }, [
+      Type: new FormControl({ value: this.categoryTypeOptions[0]?.value ?? CategoryType.Expenses, disabled: this.categoryTypeOptions.length < 2 }, [
         Validators.required
       ]),
       PeriodAmount: new FormControl(0, [Validators.min(0)]),

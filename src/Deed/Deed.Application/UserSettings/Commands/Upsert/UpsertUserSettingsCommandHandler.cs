@@ -39,6 +39,7 @@ internal sealed class UpsertUserSettingsCommandHandler(
             existing.DebtReminderEnabled = command.DebtReminderEnabled;
             existing.DebtReminderCron = command.DebtReminderCron;
             existing.EmailNotificationsEnabled = command.EmailNotificationsEnabled;
+            existing.BankAlertsEmailEnabled = command.BankAlertsEmailEnabled;
             existing.Email = user.Email;
             
             repository.Update(existing);
@@ -60,5 +61,6 @@ internal sealed class UpsertUserSettingsCommandHandler(
         existing.DebtReminderEnabled == command.DebtReminderEnabled &&
         existing.DebtReminderCron == command.DebtReminderCron &&
         existing.EmailNotificationsEnabled == command.EmailNotificationsEnabled &&
+        existing.BankAlertsEmailEnabled == command.BankAlertsEmailEnabled &&
         existing.Email == user.Email;
 }

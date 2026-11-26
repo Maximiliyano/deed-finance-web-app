@@ -1,5 +1,5 @@
 <div class="modal-backdrop" [style.zIndex]="1000 + index" (click)="close()">
-  <div class="modal" #modal (click)="$event.stopPropagation()">
+  <div class="modal" #modal [style.--modal-max-width]="width" (click)="$event.stopPropagation()">
     <span class="modal-grabber" aria-hidden="true"></span>
     <button class="modal-close" aria-label="Close" (click)="close()">
       <i class="fas fa-xmark"></i>

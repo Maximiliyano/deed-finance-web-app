@@ -16,7 +16,7 @@ internal sealed class GetExpensesByCategoryHandler(
     public async Task<Result<IEnumerable<CategoryExpenseResponse>>> Handle(GetExpensesByCategoryQuery query, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNullOrEmpty(user.Name);
-        var expenses = await repository.GetAllAsync(new ExpenseByQueriesSpecification(user.Name, query.CapitalId), cancellationToken).ConfigureAwait(false);
+        var expenses = await repository.GetAllAsync(new ExpenseByQueriesSpecification(user.Name, query.CapitalId, ToOffset(query.PeriodStart), ToOffset(query.PeriodEnd)), cancellationToken).ConfigureAwait(false);
 
         if (!expenses.Any())
         {
@@ -52,4 +52,7 @@ internal sealed class GetExpensesByCategoryHandler(
 
         return Result.Success(grouped);
     }
+
+    private static DateTimeOffset? ToOffset(DateTime? value) =>
+        value.HasValue ? new DateTimeOffset(value.Value) : null;
 }

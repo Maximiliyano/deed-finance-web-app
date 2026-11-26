@@ -8,9 +8,9 @@ internal sealed class GetAll : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("api/incomes", async (ISender sender, CancellationToken ct) =>
+        app.MapGet("api/incomes", async (DateTime? periodStart, DateTime? periodEnd, ISender sender, CancellationToken ct) =>
             (await sender
-                .Send(new GetIncomesQuery(), ct))
+                .Send(new GetIncomesQuery(periodStart, periodEnd), ct))
                 .Process())
             .AllowAnonymous()
             .WithTags(nameof(Incomes));

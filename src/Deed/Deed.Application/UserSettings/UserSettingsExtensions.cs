@@ -16,7 +16,8 @@ internal static class UserSettingsExtensions
             settings.ExpenseReminderCron,
             settings.DebtReminderEnabled,
             settings.DebtReminderCron,
-            settings.EmailNotificationsEnabled);
+            settings.EmailNotificationsEnabled,
+            settings.BankAlertsEmailEnabled);
 
     internal static DomainUserSettings ToEntity(this UpsertUserSettingsCommand command)
         => new()
@@ -29,5 +30,6 @@ internal static class UserSettingsExtensions
             DebtReminderEnabled = command.DebtReminderEnabled,
             DebtReminderCron = command.DebtReminderCron,
             EmailNotificationsEnabled = command.EmailNotificationsEnabled,
+            BankAlertsEmailEnabled = command.BankAlertsEmailEnabled,
         };
 }

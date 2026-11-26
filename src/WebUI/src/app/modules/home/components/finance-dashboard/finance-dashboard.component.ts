@@ -3,13 +3,14 @@ import { CURRENCY_DEFAULT } from '../../../../core/types/currency-type';
 import { SharedModule } from '../../../../shared/shared.module';
 import { DashboardSummary } from '../../models/dashboard-summary.model';
 import { DashboardStore } from '../../services/dashboard-store.service';
+import { PeriodBarComponent } from '../period-bar/period-bar.component';
 
 @Component({
   selector: 'app-finance-dashboard',
   templateUrl: './finance-dashboard.component.html',
   styleUrl: './finance-dashboard.component.scss',
   standalone: true,
-  imports: [SharedModule],
+  imports: [SharedModule, PeriodBarComponent],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class FinanceDashboardComponent {
@@ -26,6 +27,8 @@ export class FinanceDashboardComponent {
         return start.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
       case 'year':
         return String(start.getFullYear());
+      case 'custom':
+        return this.store.plan.customLabel();
       default:
         return start.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
     }

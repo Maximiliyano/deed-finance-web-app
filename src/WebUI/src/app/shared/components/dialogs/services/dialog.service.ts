@@ -32,6 +32,7 @@ export class DialogService {
     });
 
     containerRef.instance.index = this.openDialogs.length;
+    containerRef.instance.width = config?.width ?? null;
     containerRef.instance.childComponentType = component;
     containerRef.instance.childInjector = childInjector;
 

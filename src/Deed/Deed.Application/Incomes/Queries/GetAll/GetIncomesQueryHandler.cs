@@ -16,7 +16,10 @@ internal sealed class GetIncomesQueryHandler(
     {
         ArgumentException.ThrowIfNullOrEmpty(user.Name);
 
-        var incomes = (await incomeRepository.GetAllAsync(new IncomesByQuerySpecification(user.Name), cancellationToken).ConfigureAwait(false)).ToResponses();
+        var incomes = (await incomeRepository.GetAllAsync(new IncomesByQuerySpecification(user.Name, ToOffset(query.PeriodStart), ToOffset(query.PeriodEnd)), cancellationToken).ConfigureAwait(false)).ToResponses();
         return Result.Success(incomes);
     }
+
+    private static DateTimeOffset? ToOffset(DateTime? value) =>
+        value.HasValue ? new DateTimeOffset(value.Value) : null;
 }

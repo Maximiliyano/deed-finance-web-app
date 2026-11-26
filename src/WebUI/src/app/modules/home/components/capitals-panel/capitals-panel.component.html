@@ -4,10 +4,10 @@
       <span class="icon-chip chip-primary"><i class="fas fa-wallet"></i></span> Capitals
     </h2>
     <div class="card-header-actions">
+      <button type="button" class="btn btn-primary btn-sm" (click)="openAddCapital()">
+        <i class="fas fa-plus"></i> Add
+      </button>
       @if (!isAnonymous()) {
-        <button type="button" class="btn btn-primary btn-sm" (click)="openAddCapital()">
-          <i class="fas fa-plus"></i> Add
-        </button>
         <button type="button" class="btn btn-secondary btn-sm" (click)="openTransferDialog()">
           <i class="fas fa-exchange-alt"></i> Transfer
         </button>

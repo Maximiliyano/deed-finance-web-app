@@ -17,4 +17,6 @@ public interface ISpecification<TEntity>
     bool? Tracking { get; }
 
     bool UseSplitQuery { get; }
+
+    int? Take { get; }
 }

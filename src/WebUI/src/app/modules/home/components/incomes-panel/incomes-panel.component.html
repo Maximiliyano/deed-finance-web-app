@@ -13,6 +13,7 @@
       </button>
     </div>
   </div>
+  <app-period-bar [state]="period" />
   @if (store.hasCapitalFilter()) {
     <div class="filter-note">
       <i class="fas fa-filter"></i> Showing {{ store.selectedCapitalIds().size }} selected
@@ -27,8 +28,8 @@
     [loading]="loading()"
     [empty]="groups().length === 0"
     icon="fa-arrow-trend-up"
-    title="No incomes yet"
-    hint="Start tracking your incomes to see a breakdown here."
+    title="No incomes in this period"
+    hint="Add an income or pick another period to see a breakdown here."
   >
     <app-category-breakdown
       [groups]="groups()"

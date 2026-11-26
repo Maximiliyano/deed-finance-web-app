@@ -55,7 +55,11 @@ internal sealed class UpdateAuditableEntitiesInterceptor(IDateTimeProvider dateT
         {
             if (entry.State == EntityState.Added)
             {
-                SetCurrentPropertyValue(entry, nameof(IAuditableEntity.CreatedBy), username);
+                if (string.IsNullOrEmpty(entry.Entity.CreatedBy))
+                {
+                    SetCurrentPropertyValue(entry, nameof(IAuditableEntity.CreatedBy), username);
+                }
+
                 SetCurrentPropertyValue(entry, nameof(IAuditableEntity.CreatedAt), dateTimeProvider.UtcNow);
             }
             else

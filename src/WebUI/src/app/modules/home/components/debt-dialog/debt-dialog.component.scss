@@ -1,6 +1,80 @@
+@use '../../../../../assets/scss/mixins.scss' as *;
+
 .form-hint {
   font-size: var(--fs-xs);
   color: var(--text-light);
+}
+
+.parties {
+  display: grid;
+  gap: var(--space-3);
+  align-items: end;
+
+  @include respond-to('sm') {
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  }
+}
+
+.parties-swap {
+  justify-self: center;
+  margin-bottom: 0.25rem;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+
+  i {
+    transform: rotate(90deg);
+
+    @include respond-to('sm') {
+      transform: none;
+    }
+  }
+}
+
+.label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  min-height: 1.5rem;
+
+  .form-label {
+    margin-bottom: 0;
+  }
+}
+
+.chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.quick-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 0.125rem var(--space-2);
+  border: 1px solid var(--border-2);
+  border-radius: var(--radius-full);
+  background: var(--surface-2);
+  color: var(--text-muted);
+  font-size: var(--fs-xs);
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    background var(--t),
+    color var(--t),
+    border-color var(--t);
+
+  &:hover {
+    color: var(--text);
+    border-color: var(--primary);
+  }
+
+  &.active {
+    border-color: var(--primary);
+    background: var(--primary-light);
+    color: var(--primary-text);
+  }
 }
 
 .pay-confirm {

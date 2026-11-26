@@ -9,14 +9,14 @@
   </div>
   } @else {
   <div class="table-wrap cat-scroll">
-    <table class="table table-stack">
+    <table class="table table-stack cat-table">
       <thead>
         <tr>
           <th>Name</th>
-          <th>Planned amount</th>
-          <th>Period</th>
+          <th class="col-amount">Planned amount</th>
+          <th class="col-period">Period</th>
           @if (isEditModeEnabled) {
-          <th><span class="sr-only">Actions</span></th>
+          <th class="col-actions"><span class="sr-only">Actions</span></th>
           }
         </tr>
       </thead>
@@ -82,7 +82,7 @@
       </tbody>
     </table>
   </div>
-  } @if (deletedCategories.length > 0) {
+  } @if (!data.readonly && deletedCategories.length > 0) {
   <div class="cat-restore">
     <select [(ngModel)]="selectedDeletedId" class="input" aria-label="Deleted categories">
       <option [ngValue]="null">Deleted categories</option>
@@ -94,9 +94,12 @@
       Restore
     </button>
   </div>
+  } @if (data.readonly) {
+  <p class="cat-hint"><i class="fas fa-lock"></i> Sign in to add, edit or remove categories.</p>
   }
 </div>
 
+@if (!data.readonly) {
 <div class="dialog-footer">
   @if (!isEditModeEnabled) {
   <button type="button" class="btn btn-secondary btn-sm" (click)="add()">
@@ -110,3 +113,4 @@
   <button type="button" class="btn btn-primary btn-sm" [disabled]="!hasChanges" (click)="save()">Save changes</button>
   }
 </div>
+}

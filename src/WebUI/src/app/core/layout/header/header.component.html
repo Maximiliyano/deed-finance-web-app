@@ -74,6 +74,8 @@
       </button>
 
       @if (user) {
+        <app-notification-bell />
+
         <button class="profile-btn" (click)="profile()" aria-label="Profile">
           <img class="avatar" [src]="user.pictureUrl" alt="Avatar" />
           <span class="profile-name">{{ user.fullname }}</span>

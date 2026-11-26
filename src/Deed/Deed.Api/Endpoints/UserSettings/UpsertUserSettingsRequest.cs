@@ -8,4 +8,5 @@ internal sealed record UpsertUserSettingsRequest(
     string? ExpenseReminderCron,
     bool DebtReminderEnabled,
     string? DebtReminderCron,
-    bool EmailNotificationsEnabled);
+    bool EmailNotificationsEnabled,
+    bool BankAlertsEmailEnabled = false);

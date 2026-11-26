@@ -7,4 +7,5 @@ export interface UserSettings {
   debtReminderEnabled?: boolean;
   debtReminderCron?: string;
   emailNotificationsEnabled?: boolean;
+  bankAlertsEmailEnabled?: boolean;
 }

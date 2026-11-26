@@ -46,6 +46,15 @@ public static class DomainErrors
             => Error.BadRequest(nameof(InvalidOperation), "The operation is invalid.");
     }
 
+    public static class Bank
+    {
+        public static Error TokenInvalid
+            => Error.BadRequest("Bank.TokenInvalid", "The bank token is invalid or has expired.");
+
+        public static Error NotConnected
+            => Error.NotFound("Bank.NotConnected", "No bank account is connected.");
+    }
+
     public static class Category
     {
         public static Error PeriodAmountGreaterEqualZero

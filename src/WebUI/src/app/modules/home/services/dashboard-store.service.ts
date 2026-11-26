@@ -6,12 +6,12 @@ import { CapitalService } from '../../capital/services/capital.service';
 import { CURRENCY_DEFAULT } from '../../../core/types/currency-type';
 import { ExchangeService } from '../../../shared/services/exchange.service';
 import { DashboardSummary, DashboardSummaryParams } from '../models/dashboard-summary.model';
-import { QueryTimeRange } from '../models/query-time-range';
+import { PeriodFilter, PeriodState } from '../models/period-state';
 import { BudgetEstimationService } from './budget-estimation.service';
 import { DashboardService } from './dashboard.service';
 import { UserSettingsService } from './user-settings.service';
 
-export type PlanFilter = 'day' | 'month' | 'year';
+export type PlanFilter = PeriodFilter;
 
 @Injectable({ providedIn: 'root' })
 export class DashboardStore {
@@ -23,8 +23,10 @@ export class DashboardStore {
   private readonly exchangeService = inject(ExchangeService);
   private readonly destroyRef = inject(DestroyRef);
 
-  readonly planFilter = signal<PlanFilter>('month');
-  readonly selectedDate = signal(new Date());
+  readonly plan = new PeriodState();
+  readonly planFilter = this.plan.filter;
+  readonly selectedDate = this.plan.date;
+  readonly period = this.plan.range;
   readonly selectedCapitalIds = signal<ReadonlySet<number>>(new Set<number>());
   readonly summary = signal<DashboardSummary | null>(null);
   readonly chartSummary = signal<DashboardSummary | null>(null);
@@ -54,27 +56,17 @@ export class DashboardStore {
     return this.userCurrency();
   });
 
-  readonly period = computed<QueryTimeRange>(() => {
-    const date = this.selectedDate();
-    const year = date.getFullYear();
-    const month = date.getMonth();
-
+  readonly planFilterLabel = computed(() => {
     switch (this.planFilter()) {
       case 'day':
-        return {
-          periodStart: new Date(year, month, date.getDate()),
-          periodEnd: new Date(year, month, date.getDate() + 1)
-        };
-      case 'month':
-        return { periodStart: new Date(year, month, 1), periodEnd: new Date(year, month + 1, 1) };
+        return 'Daily';
       case 'year':
-        return { periodStart: new Date(year, 0, 1), periodEnd: new Date(year + 1, 0, 1) };
+        return 'Yearly';
+      case 'custom':
+        return 'Custom';
+      default:
+        return 'Monthly';
     }
-  });
-
-  readonly planFilterLabel = computed(() => {
-    const filter = this.planFilter();
-    return filter === 'day' ? 'Daily' : filter === 'year' ? 'Yearly' : 'Monthly';
   });
 
   readonly loss = computed(() => this.summary()?.totalBudget ?? 0);
@@ -109,29 +101,15 @@ export class DashboardStore {
   }
 
   setPlanFilter(filter: PlanFilter): void {
-    this.planFilter.set(filter);
+    this.plan.setFilter(filter);
   }
 
   setDate(date: Date): void {
-    this.selectedDate.set(date);
+    this.plan.setDate(date);
   }
 
   shiftPeriod(direction: 1 | -1): void {
-    const next = new Date(this.selectedDate());
-
-    switch (this.planFilter()) {
-      case 'day':
-        next.setDate(next.getDate() + direction);
-        break;
-      case 'month':
-        next.setMonth(next.getMonth() + direction);
-        break;
-      case 'year':
-        next.setFullYear(next.getFullYear() + direction);
-        break;
-    }
-
-    this.selectedDate.set(next);
+    this.plan.shift(direction);
   }
 
   toggleCapital(id: number): void {

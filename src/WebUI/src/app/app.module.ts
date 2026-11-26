@@ -12,6 +12,7 @@ import {retryInterceptor} from './core/interceptors/retry.interceptor';
 import {sectionLoadingInterceptor} from './core/interceptors/section-loading.interceptor';
 import {SharedModule} from "./shared/shared.module";
 import {NgOptimizedImage} from "@angular/common";
+import {NotificationBellComponent} from "./modules/bank/components/notification-bell/notification-bell.component";
 
 @NgModule({
   declarations: [
@@ -23,7 +24,8 @@ import {NgOptimizedImage} from "@angular/common";
     AppRoutingModule,
     BrowserModule,
     SharedModule,
-    NgOptimizedImage
+    NgOptimizedImage,
+    NotificationBellComponent
   ],
   bootstrap: [AppComponent],
   providers: [

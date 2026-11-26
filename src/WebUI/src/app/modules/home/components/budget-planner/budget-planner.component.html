@@ -23,7 +23,7 @@
     </div>
   </div>
 
-  <app-budget-period-bar />
+  <app-period-bar [state]="store.plan" />
 
   @if (showCharts()) {
     <app-budget-charts />

@@ -1,0 +1,66 @@
+<form [formGroup]="form" (ngSubmit)="submit()">
+  <div class="dialog-header">
+    <h2 class="dialog-title">Connect Privat24</h2>
+  </div>
+
+  <div class="dialog-body">
+    <ol class="steps">
+      <li>Open Privat24 for Business and go to the Autoclient (API) section.</li>
+      <li>Create a token with read access to account statements.</li>
+      <li>Paste the token and your account number (IBAN) below.</li>
+    </ol>
+
+    <div class="form-group">
+      <div class="label-row">
+        <label for="token" class="form-label">Autoclient token</label>
+        <button type="button" class="quick-chip" (click)="paste()"><i class="fas fa-paste"></i> Paste</button>
+      </div>
+      <div class="token-field">
+        <input
+          id="token"
+          class="input"
+          formControlName="token"
+          autocomplete="off"
+          spellcheck="false"
+          placeholder="Paste your token here"
+          [type]="tokenVisible() ? 'text' : 'password'"
+        />
+        <button
+          type="button"
+          class="icon-btn"
+          [attr.aria-label]="tokenVisible() ? 'Hide token' : 'Show token'"
+          (click)="toggleTokenVisibility()"
+        >
+          <i class="fas" [class.fa-eye]="!tokenVisible()" [class.fa-eye-slash]="tokenVisible()"></i>
+        </button>
+      </div>
+      <span class="form-hint">Stored encrypted and never shown again. You can disconnect at any time.</span>
+    </div>
+
+    <div class="form-group">
+      <label for="iban" class="form-label">Account number (IBAN)</label>
+      <input
+        id="iban"
+        class="input"
+        formControlName="iban"
+        autocomplete="off"
+        spellcheck="false"
+        placeholder="UA00 0000 0000 0000 0000 0000 0000 0"
+      />
+      @if (form.controls.iban.touched && form.controls.iban.invalid) {
+        <p class="field-error">Enter a valid Ukrainian IBAN: UA followed by 27 characters.</p>
+      }
+    </div>
+
+    @if (error(); as message) {
+      <p class="field-error" role="alert">{{ message }}</p>
+    }
+  </div>
+
+  <div class="dialog-footer">
+    <button type="button" class="btn btn-secondary btn-sm" (click)="cancel()">Cancel</button>
+    <button type="submit" class="btn btn-primary btn-sm" [disabled]="form.invalid || submitting()">
+      {{ submitting() ? 'Checking...' : 'Connect' }}
+    </button>
+  </div>
+</form>

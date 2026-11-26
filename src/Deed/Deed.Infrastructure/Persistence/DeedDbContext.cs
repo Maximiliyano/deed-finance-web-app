@@ -43,6 +43,10 @@ public sealed class DeedDbContext(DbContextOptions<DeedDbContext> options)
 
     public DbSet<UtilityBill> UtilityBills { get; set; }
 
+    public DbSet<BankConnection> BankConnections { get; set; }
+
+    public DbSet<BankNotification> BankNotifications { get; set; }
+
     public new DbSet<TEntity> Set<TEntity>()
         where TEntity : Entity
             => base.Set<TEntity>();

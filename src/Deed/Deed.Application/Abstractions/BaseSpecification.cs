@@ -24,6 +24,8 @@ internal abstract class BaseSpecification<TEntity>(
 
     public bool UseSplitQuery { get; protected set; }
 
+    public int? Take { get; protected set; }
+
     protected void AddInclude(Expression<Func<TEntity, object>> expression)
     {
         Includes.Add(i => i.Include(expression));

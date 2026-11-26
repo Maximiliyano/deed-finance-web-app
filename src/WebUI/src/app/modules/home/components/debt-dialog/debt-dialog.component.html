@@ -5,13 +5,13 @@
 
   <div class="dialog-body">
     <div class="form-group">
-      <label for="item" class="form-label">Item</label>
+      <label for="item" class="form-label">What is it for?</label>
       <input
         id="item"
         type="text"
         class="input"
         formControlName="item"
-        placeholder="e.g. Laptop, Rent"
+        placeholder="e.g. Laptop, Rent, Dinner"
         autocomplete="off"
       />
     </div>
@@ -19,7 +19,7 @@
     <div class="form-row">
       <div class="form-group">
         <label for="amount" class="form-label">Amount</label>
-        <input id="amount" appNumeric class="input" formControlName="amount" />
+        <input id="amount" appNumeric class="input" formControlName="amount" placeholder="0.00" />
       </div>
       <div class="form-group">
         <label for="currency" class="form-label">Currency</label>
@@ -31,41 +31,99 @@
       </div>
     </div>
 
-    <div class="form-row">
+    <div class="parties">
       <div class="form-group">
-        <label for="source" class="form-label">Source (lender)</label>
+        <div class="label-row">
+          <label for="source" class="form-label">From (lender)</label>
+          <button
+            type="button"
+            class="quick-chip"
+            [class.active]="isMe('source')"
+            [attr.aria-pressed]="isMe('source')"
+            (click)="setMe('source')"
+          >
+            <i class="fas fa-user"></i> Me
+          </button>
+        </div>
         <input
           id="source"
           type="text"
           class="input"
           formControlName="source"
-          placeholder="Who provided the money"
+          list="debt-people"
+          placeholder="Who gave the money"
           autocomplete="off"
         />
       </div>
+
+      <button
+        type="button"
+        class="icon-btn parties-swap"
+        title="Swap lender and borrower"
+        aria-label="Swap lender and borrower"
+        (click)="swapParties()"
+      >
+        <i class="fas fa-right-left"></i>
+      </button>
+
       <div class="form-group">
-        <label for="recipient" class="form-label">Recipient (borrower)</label>
+        <div class="label-row">
+          <label for="recipient" class="form-label">To (borrower)</label>
+          <button
+            type="button"
+            class="quick-chip"
+            [class.active]="isMe('recipient')"
+            [attr.aria-pressed]="isMe('recipient')"
+            (click)="setMe('recipient')"
+          >
+            <i class="fas fa-user"></i> Me
+          </button>
+        </div>
         <input
           id="recipient"
           type="text"
           class="input"
           formControlName="recipient"
+          list="debt-people"
           placeholder="Who received the money"
           autocomplete="off"
         />
       </div>
+
+      <datalist id="debt-people">
+        @for (person of people; track person) {
+          <option [value]="person"></option>
+        }
+      </datalist>
     </div>
+
+    @if (samePerson()) {
+      <p class="field-error">Lender and borrower must be different people.</p>
+    }
 
     <div class="form-row">
       <div class="form-group">
-        <label for="borrowedAt" class="form-label">Borrowed at</label>
+        <label for="borrowedAt" class="form-label">Borrowed on</label>
         <input id="borrowedAt" type="date" class="input" formControlName="borrowedAt" />
       </div>
       <div class="form-group">
-        <label for="deadlineAt" class="form-label">Deadline (optional)</label>
-        <input id="deadlineAt" type="date" class="input" formControlName="deadlineAt" />
+        <div class="label-row">
+          <label for="deadlineAt" class="form-label">Pay back by (optional)</label>
+        </div>
+        <input id="deadlineAt" type="date" class="input" formControlName="deadlineAt" [min]="form.value.borrowedAt" />
+        <div class="chip-row">
+          @for (shortcut of deadlineShortcuts; track shortcut.days) {
+            <button type="button" class="quick-chip" (click)="setDeadlineIn(shortcut.days)">
+              {{ shortcut.label }}
+            </button>
+          }
+        </div>
       </div>
     </div>
+
+    @if (deadlineBeforeBorrowed) {
+      <p class="field-error">The pay back date can't be before the borrowed date.</p>
+    }
 
     @if (!wasPaid) {
       <div class="form-group">
@@ -73,7 +131,7 @@
           >{{ isEdit ? 'Linked capital' : 'Deposit into capital' }} (optional)</label
         >
         <select id="capitalId" class="input" formControlName="capitalId" [attr.disabled]="isEdit ? true : null">
-          <option [ngValue]="null">None</option>
+          <option [ngValue]="null">Don't add to any capital</option>
           @for (cap of capitals; track cap.id) {
             <option [ngValue]="cap.id">{{ cap.name }} ({{ cap.balance | number: '1.2-2' }} {{ cap.currency }})</option>
           }
@@ -86,7 +144,12 @@
 
     <div class="form-group">
       <label for="note" class="form-label">Note (optional)</label>
-      <textarea id="note" class="input textarea" formControlName="note" placeholder="Any notes"></textarea>
+      <textarea
+        id="note"
+        class="input textarea"
+        formControlName="note"
+        placeholder="Anything worth remembering, e.g. repayment terms"
+      ></textarea>
     </div>
 
     @if (isEdit && !wasPaid) {
@@ -116,7 +179,11 @@
 
   <div class="dialog-footer">
     <button type="button" class="btn btn-secondary btn-sm" (click)="cancel()">Cancel</button>
-    <button type="submit" class="btn btn-primary btn-sm" [disabled]="form.invalid || (isEdit && form.pristine)">
+    <button
+      type="submit"
+      class="btn btn-primary btn-sm"
+      [disabled]="form.invalid || samePerson() || deadlineBeforeBorrowed || (isEdit && form.pristine)"
+    >
       {{ isEdit ? 'Save' : 'Add debt' }}
     </button>
   </div>

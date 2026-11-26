@@ -1,7 +1,9 @@
 using Deed.Application.Auth;
 using Deed.Application.Capitals.Commands.Create;
+using Deed.Application.Capitals.Specifications;
 using Deed.Domain.Entities;
 using Deed.Domain.Enums;
+using Deed.Domain.Errors;
 using Deed.Domain.Repositories;
 using Deed.Domain.Results;
 using FluentAssertions;
@@ -53,5 +55,50 @@ public sealed class CreateCapitalCommandHandlerTests
         ));
 
         await _unitOfWorkMock.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Handle_AnonymousUserBelowLimit_ReturnsSuccess()
+    {
+        // Arrange
+        _userMock.IsAuthenticated.Returns(false);
+        _userMock.Name.Returns(AuthConstants.DefaultUserName);
+        _repositoryMock
+            .CountAsync(Arg.Any<UserCreatedCapitalsSpecification>(), Arg.Any<CancellationToken>())
+            .Returns(AuthConstants.EntityLimit - 1);
+
+        var command = new CreateCapitalCommand("Wallet", 100, nameof(CurrencyType.USD), true, false);
+
+        // Act
+        var result = await _handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+
+        _repositoryMock.Received(1).Create(Arg.Any<Capital>());
+        await _unitOfWorkMock.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Handle_AnonymousUserAtLimit_ReturnsLimitReached()
+    {
+        // Arrange
+        _userMock.IsAuthenticated.Returns(false);
+        _userMock.Name.Returns(AuthConstants.DefaultUserName);
+        _repositoryMock
+            .CountAsync(Arg.Any<UserCreatedCapitalsSpecification>(), Arg.Any<CancellationToken>())
+            .Returns(AuthConstants.EntityLimit);
+
+        var command = new CreateCapitalCommand("Wallet", 100, nameof(CurrencyType.USD), true, false);
+
+        // Act
+        var result = await _handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        result.IsSuccess.Should().BeFalse();
+        result.Errors.Should().OnlyContain(e => e == DomainErrors.Anonymous.LimitReached);
+
+        _repositoryMock.DidNotReceive().Create(Arg.Any<Capital>());
+        await _unitOfWorkMock.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 }

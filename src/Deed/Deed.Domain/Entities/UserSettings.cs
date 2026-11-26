@@ -24,6 +24,8 @@ public sealed class UserSettings : Entity, IAuditableEntity
 
     public bool EmailNotificationsEnabled { get; set; }
 
+    public bool BankAlertsEmailEnabled { get; set; }
+
     public string? Email { get; set; }
 
     public DateTimeOffset CreatedAt { get; init; }

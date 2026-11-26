@@ -13,6 +13,7 @@
       </button>
     </div>
   </div>
+  <app-period-bar [state]="period" />
   @if (store.hasCapitalFilter()) {
     <div class="filter-note">
       <i class="fas fa-filter"></i> Showing {{ store.selectedCapitalIds().size }} selected
@@ -27,8 +28,8 @@
     [loading]="loading()"
     [empty]="groups().length === 0"
     icon="fa-money-bill-wave"
-    title="No expenses yet"
-    hint="Start tracking your expenses to see a breakdown here."
+    title="No expenses in this period"
+    hint="Add an expense or pick another period to see a breakdown here."
   >
     <app-category-breakdown
       [groups]="groups()"

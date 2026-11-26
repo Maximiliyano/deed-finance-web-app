@@ -1,9 +1,11 @@
-import {HttpErrorResponse, HttpInterceptorFn} from '@angular/common/http';
+import {HttpContextToken, HttpErrorResponse, HttpInterceptorFn} from '@angular/common/http';
 import {inject} from '@angular/core';
 import {catchError, throwError} from 'rxjs';
 import {Result} from '../models/result-model';
 import {PopupMessageService} from '../../shared/services/popup-message.service';
 import {AuthService} from '../../modules/auth/services/auth-service';
+
+export const SKIP_ERROR_TOAST = new HttpContextToken<boolean>(() => false);
 
 export const errorInterceptor: HttpInterceptorFn = (req, next) => {
   const popupMessageService = inject(PopupMessageService);
@@ -15,6 +17,8 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
 
       if (response.status === 401) {
         authService.invalidate();
+      } else if (req.context.get(SKIP_ERROR_TOAST)) {
+        return throwError(() => response);
       } else if (response.status >= 400 && response.status < 500 && errors.length) {
         popupMessageService.error(errors.join('\n'));
       } else if (response.status === 404) {

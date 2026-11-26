@@ -55,6 +55,11 @@ internal static class SpecificationEvaluator
             queryable = queryable.OrderByDescending(specification.OrderByDescending);
         }
 
+        if (specification.Take.HasValue)
+        {
+            queryable = queryable.Take(specification.Take.Value);
+        }
+
         return queryable;
     }
 }

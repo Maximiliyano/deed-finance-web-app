@@ -100,7 +100,13 @@ export class DebtsPanelComponent implements OnInit {
   }
 
   openDialog(debt?: Debt): void {
-    const data: DebtDialogData = { debt, capitals: this.store.capitals() };
+    const people = this.debts().flatMap(item => [item.source, item.recipient]);
+    const data: DebtDialogData = {
+      debt,
+      capitals: this.store.capitals(),
+      me: this.store.user()?.fullname,
+      people: [...new Set(people)]
+    };
     const ref = this.dialogService.open(DebtDialogComponent, { data });
 
     ref.afterClosed$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((result: DebtForm | null) => {

@@ -1,6 +1,7 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { BehaviorSubject, Observable, catchError, tap, throwError } from 'rxjs';
+import { QueryTimeRange, withTimeRange } from '../../home/models/query-time-range';
 import { CreateExpenseRequest } from '../models/create-expense-request';
 import { ExpenseCategoryResponse } from '../models/expense-category-response';
 import { ExpenseResponse } from '../models/expense-response';
@@ -19,8 +20,12 @@ export class ExpenseService {
 
   get current(): ExpenseCategoryResponse[] { return this.state$.value; }
 
+  private range: QueryTimeRange | null = null;
+
+  setRange(range: QueryTimeRange | null): void { this.range = range; }
+
   load(capitalId?: number): Observable<ExpenseCategoryResponse[]> {
-    let params = new HttpParams();
+    let params = withTimeRange(new HttpParams(), this.range);
     if (capitalId != null) params = params.set("capitalId", capitalId);
     return this.http.get<ExpenseCategoryResponse[]>(this.baseUrl, { params })
       .pipe(tap(items => this.state$.next(items)));

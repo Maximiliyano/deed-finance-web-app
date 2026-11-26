@@ -96,8 +96,10 @@ export class QuickAddService {
         type: kind === 'expense' ? 'Expense' : 'Income',
         currency: this.store.userCurrency(),
         originalCategories: all.filter(category => !category.isDeleted),
-        deletedCategories: all.filter(category => category.isDeleted)
-      }
+        deletedCategories: all.filter(category => category.isDeleted),
+        readonly: this.store.isAnonymous()
+      },
+      width: '40rem'
     });
 
     const responses: CategoryResponse[] | null = await firstValueFrom(ref.afterClosed$, { defaultValue: null });

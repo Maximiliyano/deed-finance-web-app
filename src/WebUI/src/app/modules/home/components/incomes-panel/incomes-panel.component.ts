@@ -8,9 +8,9 @@ import {
   inject,
   signal
 } from '@angular/core';
-import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { moveItemInArray } from '@angular/cdk/drag-drop';
-import { catchError, forkJoin, of } from 'rxjs';
+import { catchError, of, switchMap } from 'rxjs';
 import { CategoryType } from '../../../../core/types/category-type';
 import { DialogService } from '../../../../shared/components/dialogs/services/dialog.service';
 import { PanelStateComponent } from '../../../../shared/components/panel-state/panel-state.component';
@@ -27,7 +27,9 @@ import { CategoryResponse } from '../../../category/models/category-model';
 import { CategoryService } from '../../../category/services/category.service';
 import { IncomeResponse } from '../../../incomes/models/income-response';
 import { IncomeService } from '../../../incomes/services/income.service';
+import { PeriodState } from '../../models/period-state';
 import { DashboardStore } from '../../services/dashboard-store.service';
+import { PeriodBarComponent } from '../period-bar/period-bar.component';
 import { CategoryBreakdownComponent } from '../category-breakdown/category-breakdown.component';
 import { BreakdownGroup, BreakdownItem, ReorderEvent } from '../category-breakdown/category-breakdown.model';
 import { QuickAddService } from '../../services/quick-add.service';
@@ -37,7 +39,7 @@ import { QuickTransactionDialogComponent } from '../quick-transaction-dialog/qui
   selector: 'app-incomes-panel',
   templateUrl: './incomes-panel.component.html',
   standalone: true,
-  imports: [SharedModule, CategoryBreakdownComponent, SortToolbarComponent, PanelStateComponent],
+  imports: [SharedModule, CategoryBreakdownComponent, SortToolbarComponent, PanelStateComponent, PeriodBarComponent],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class IncomesPanelComponent implements OnInit {
@@ -55,6 +57,7 @@ export class IncomesPanelComponent implements OnInit {
   protected readonly userCurrency = this.store.userCurrency;
   protected readonly isAnonymous = this.store.isAnonymous;
 
+  protected readonly period = new PeriodState();
   protected readonly sortBy = signal<AmountSort>('default');
   private readonly categories = signal<CategoryResponse[]>([]);
   private readonly incomes = signal<IncomeResponse[]>([]);
@@ -78,6 +81,16 @@ export class IncomesPanelComponent implements OnInit {
       this.store.selectedCapitalIds();
       this.rebuild();
     });
+
+    toObservable(this.period.range)
+      .pipe(
+        switchMap(range => {
+          this.incomeService.setRange(range);
+          return this.incomeService.load().pipe(catchError(() => of([])));
+        }),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe(() => this.loaded.set(true));
   }
 
   ngOnInit(): void {
@@ -91,12 +104,13 @@ export class IncomesPanelComponent implements OnInit {
       this.rebuild();
     });
 
-    forkJoin([
-      this.categoryService.load().pipe(catchError(() => of([]))),
-      this.incomeService.load().pipe(catchError(() => of([])))
-    ])
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(() => this.loaded.set(true));
+    this.categoryService
+      .load()
+      .pipe(
+        catchError(() => of([])),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe();
   }
 
   protected sort(by: string): void {

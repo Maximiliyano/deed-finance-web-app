@@ -1,7 +1,19 @@
+:host {
+  display: block;
+}
+
 .cat-scroll {
   max-height: 22rem;
   overflow: auto;
   overscroll-behavior: contain;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+
+  thead th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+  }
 
   .input {
     flex: 1;
@@ -9,9 +21,28 @@
   }
 }
 
+.cat-table {
+  th,
+  td {
+    padding-inline: var(--space-3);
+  }
+
+  .col-amount {
+    width: 9rem;
+  }
+
+  .col-period {
+    width: 9rem;
+  }
+
+  .col-actions {
+    width: 2.75rem;
+  }
+}
+
 .cat-name {
   display: block;
-  max-width: 12rem;
+  max-width: 14rem;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -31,6 +62,15 @@
     flex: 1;
     min-width: 0;
   }
+}
+
+.cat-hint {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
 }
 
 .sr-only {

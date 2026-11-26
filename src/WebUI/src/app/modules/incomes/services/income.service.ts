@@ -1,6 +1,7 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { BehaviorSubject, Observable, catchError, tap, throwError } from 'rxjs';
+import { QueryTimeRange, withTimeRange } from '../../home/models/query-time-range';
 import { IncomeResponse } from '../models/income-response';
 import { CreateIncomeRequest } from '../models/create-income-request';
 
@@ -16,8 +17,13 @@ export class IncomeService {
 
   readonly incomes$ = this.state$.asObservable();
 
+  private range: QueryTimeRange | null = null;
+
+  setRange(range: QueryTimeRange | null): void { this.range = range; }
+
   load(): Observable<IncomeResponse[]> {
-    return this.http.get<IncomeResponse[]>(this.baseUrl).pipe(
+    const params = withTimeRange(new HttpParams(), this.range);
+    return this.http.get<IncomeResponse[]>(this.baseUrl, { params }).pipe(
       tap(data => {
         this.state$.next(data);
       })

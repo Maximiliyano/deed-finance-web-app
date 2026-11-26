@@ -13,6 +13,11 @@
   }
 }
 
+.ledger-bar {
+  grid-column: 1 / -1;
+  border-top: 1px solid var(--border);
+}
+
 .ledger-lead,
 .ledger-period {
   display: flex;

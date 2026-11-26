@@ -19,7 +19,7 @@ internal sealed class CreateCapitalCommandHandler(
         if (!user.IsAuthenticated)
         {
             var count = await repository.CountAsync(
-                new CapitalsByQueryParamsSpecification(user.Name!), cancellationToken).ConfigureAwait(false);
+                new UserCreatedCapitalsSpecification(user.Name!), cancellationToken).ConfigureAwait(false);
             
             if (count >= AuthConstants.EntityLimit)
             {

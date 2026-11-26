@@ -1,6 +1,7 @@
 using Deed.Application.Abstractions.Behaviours;
 using Deed.Application.Abstractions.Settings;
 using Deed.Application.Auth;
+using Deed.Application.BankConnections.Service;
 using Deed.Application.Exchanges;
 using Deed.Application.Exchanges.Service;
 using FluentValidation;
@@ -33,6 +34,11 @@ public static class DependencyInjection
 
             services.AddHttpClient<IExchangeHttpService, ExchangeHttpService>()
                 .AddStandardResilienceHandler();
+
+            services.AddHttpClient<IPrivatAutoclientService, PrivatAutoclientService>()
+                .AddStandardResilienceHandler();
+
+            services.AddScoped<IBankTransactionSyncService, BankTransactionSyncService>();
 
             return services;
         }
@@ -135,6 +141,8 @@ public static class DependencyInjection
             services.Configure<AuthSettings>(configuration.GetRequiredSection(nameof(AuthSettings)));
 
             services.Configure<SmtpSettings>(configuration.GetRequiredSection(nameof(SmtpSettings)));
+
+            services.Configure<PrivatAutoclientSettings>(configuration.GetSection(nameof(PrivatAutoclientSettings)));
 
             return services;
         }

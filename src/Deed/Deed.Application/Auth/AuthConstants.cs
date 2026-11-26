@@ -13,4 +13,6 @@ public static class AuthConstants
     public const string DefaultUserName = "System";
 
     public const int EntityLimit = 3;
+
+    public const int SeededCapitalMaxId = 4;
 }

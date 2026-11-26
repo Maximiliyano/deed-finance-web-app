@@ -38,6 +38,9 @@ internal sealed class UserSettingsConfiguration : IEntityTypeConfiguration<UserS
         builder.Property(s => s.EmailNotificationsEnabled)
             .HasDefaultValue(false);
 
+        builder.Property(s => s.BankAlertsEmailEnabled)
+            .HasDefaultValue(false);
+
         builder.Property(s => s.Email)
             .HasMaxLength(256);
 

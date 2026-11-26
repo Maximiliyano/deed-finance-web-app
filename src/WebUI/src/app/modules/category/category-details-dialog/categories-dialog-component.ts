@@ -23,7 +23,7 @@ import { CategoryService } from '../services/category.service';
 })
 export class CategoriesDialogComponent {
   private readonly cdr = inject(ChangeDetectorRef);
-  readonly data = inject<{ originalCategories: CategoryResponse[], deletedCategories: CategoryResponse[], currency: string, type?: string }>(DIALOG_DATA);
+  readonly data = inject<{ originalCategories: CategoryResponse[], deletedCategories: CategoryResponse[], currency: string, type?: string, readonly?: boolean }>(DIALOG_DATA);
   private readonly dialogRef = inject<DialogRef<CategoryResponse[]>>(DialogRef);
   private readonly dialogService = inject(DialogService);
   private readonly popupMessageService = inject(PopupMessageService);
@@ -48,10 +48,11 @@ export class CategoriesDialogComponent {
   }
 
   add(): void {
-    if (this.isEditModeEnabled) return;
+    if (this.isEditModeEnabled || this.data.readonly) return;
 
+    const otherType = this.data.type === 'Income' ? CategoryType.Expenses : CategoryType.Incomes;
     const ref = this.dialogService.open(AddCategoryDialog, {
-      data: [CategoryType[CategoryType.Incomes]]
+      data: [CategoryType[otherType]]
     });
     
     ref.afterClosed$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({

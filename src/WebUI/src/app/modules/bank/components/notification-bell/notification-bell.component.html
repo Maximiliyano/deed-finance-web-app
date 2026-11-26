@@ -1,0 +1,72 @@
+<div class="bell" (document:click)="close()" (keydown.escape)="close()">
+  <button
+    type="button"
+    class="btn btn-ghost btn-icon bell-btn"
+    aria-label="Bank notifications"
+    aria-haspopup="true"
+    [attr.aria-expanded]="open()"
+    (click)="toggle($event)"
+  >
+    <i class="fas fa-bell"></i>
+    @if (unread() > 0) {
+      <span class="bell-badge">{{ unread() > 9 ? '9+' : unread() }}</span>
+    }
+  </button>
+
+  @if (open()) {
+    <div class="bell-panel" role="dialog" aria-label="Bank activity" (click)="$event.stopPropagation()">
+      <div class="bell-head">
+        <span class="bell-title">Bank activity</span>
+        @if (unread() > 0) {
+          <button type="button" class="btn btn-ghost btn-sm" (click)="markAllRead()">Mark all read</button>
+        }
+      </div>
+
+      @if (items().length === 0) {
+        <div class="empty-state compact">
+          <p class="empty-title">No bank activity yet</p>
+          <p class="empty-hint">Connect Privat24 in your profile to get alerts about new transactions.</p>
+        </div>
+      } @else {
+        <ul class="bell-list">
+          @for (item of items(); track item.id) {
+            <li>
+              <button type="button" class="bell-item" [class.unread]="!item.isRead" (click)="read(item)">
+                <span
+                  class="bell-icon"
+                  [class.in]="item.direction === 'Incoming'"
+                  [class.out]="item.direction === 'Outgoing'"
+                  [class.warn]="item.kind === 'ConnectionIssue'"
+                >
+                  @if (item.kind === 'ConnectionIssue') {
+                    <i class="fas fa-triangle-exclamation"></i>
+                  } @else if (item.direction === 'Incoming') {
+                    <i class="fas fa-arrow-down"></i>
+                  } @else {
+                    <i class="fas fa-arrow-up"></i>
+                  }
+                </span>
+                <span class="bell-body">
+                  <span class="bell-line">
+                    <span class="bell-name">{{ title(item) }}</span>
+                    @if (item.kind === 'Transaction') {
+                      <span class="bell-amount" [class.text-success]="item.direction === 'Incoming'">
+                        {{ item.direction === 'Incoming' ? '+' : '-' }}{{ item.amount | currencySymbol: item.currency ?? '' }}
+                      </span>
+                    }
+                  </span>
+                  @if (item.kind === 'ConnectionIssue') {
+                    <span class="bell-meta">The token was rejected. Reconnect it in your profile.</span>
+                  } @else if (item.purpose) {
+                    <span class="bell-meta">{{ item.purpose }}</span>
+                  }
+                  <span class="bell-time">{{ item.occurredAt | date: 'dd MMM, HH:mm' }}</span>
+                </span>
+              </button>
+            </li>
+          }
+        </ul>
+      }
+    </div>
+  }
+</div>

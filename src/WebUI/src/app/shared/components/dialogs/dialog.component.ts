@@ -23,6 +23,7 @@ export class DialogComponent implements AfterViewInit, OnDestroy {
   modal!: ElementRef<HTMLElement>;
 
   @Input() index = 0;
+  @Input() width: string | null = null;
   @Input() childComponentType!: Type<any>;
   @Input() childInjector!: Injector;
 
