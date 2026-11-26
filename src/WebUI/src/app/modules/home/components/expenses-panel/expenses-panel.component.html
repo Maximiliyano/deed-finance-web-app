@@ -4,15 +4,22 @@
       <span class="icon-chip chip-danger"><i class="fas fa-arrow-trend-down"></i></span> Expenses
     </h2>
     <div class="card-header-actions">
-      <span class="badge badge-warning">{{ total() | currencySymbol: userCurrency() }}</span>
-      <button type="button" class="btn btn-danger btn-sm" (click)="openQuickExpense()">
+      <span class="badge badge-danger">{{ total() | currencySymbol: userCurrency() }}</span>
+      <button type="button" class="btn btn-danger btn-sm" (click)="addExpense()">
         <i class="fas fa-plus"></i> Add
       </button>
-      <a class="btn btn-secondary btn-sm" routerLink="/expenses" aria-label="Open expenses">
-        <i class="fas fa-arrow-up-right-from-square"></i>
-      </a>
+      <button type="button" class="btn btn-secondary btn-sm" (click)="manageCategories()">
+        <i class="fas fa-tags"></i> Categories
+      </button>
     </div>
   </div>
+  @if (store.hasCapitalFilter()) {
+    <div class="filter-note">
+      <i class="fas fa-filter"></i> Showing {{ store.selectedCapitalIds().size }} selected
+      {{ store.selectedCapitalIds().size === 1 ? 'capital' : 'capitals' }}
+      <button type="button" class="btn btn-ghost btn-sm" (click)="store.clearCapitals()">Show all</button>
+    </div>
+  }
   @if (groups().length > 1) {
     <app-sort-toolbar [options]="sortOptions" [value]="sortBy()" (changed)="sort($event)" />
   }
@@ -31,7 +38,7 @@
       [reorderable]="reorderable()"
       [readonly]="isAnonymous()"
       (reordered)="reorder($event)"
-      (edit)="openQuickExpense($event)"
+      (edit)="editExpense($event)"
       (removed)="deleteExpense($event)"
     />
   </app-panel-state>

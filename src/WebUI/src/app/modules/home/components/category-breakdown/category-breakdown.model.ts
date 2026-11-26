@@ -5,6 +5,7 @@ export interface BreakdownItem {
   amount: number;
   purpose: string | null;
   paymentDate: Date;
+  tagNames?: string[] | null;
 }
 
 export interface BreakdownGroup {

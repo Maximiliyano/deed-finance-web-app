@@ -1,7 +1,6 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { moveItemInArray } from '@angular/cdk/drag-drop';
-import { RouterLink } from '@angular/router';
 import { catchError, forkJoin, of } from 'rxjs';
 import { CategoryType } from '../../../../core/types/category-type';
 import { DialogService } from '../../../../shared/components/dialogs/services/dialog.service';
@@ -22,13 +21,14 @@ import { ExpenseService } from '../../../expense/services/expense.service';
 import { DashboardStore } from '../../services/dashboard-store.service';
 import { CategoryBreakdownComponent } from '../category-breakdown/category-breakdown.component';
 import { BreakdownGroup, BreakdownItem, ReorderEvent } from '../category-breakdown/category-breakdown.model';
+import { QuickAddService } from '../../services/quick-add.service';
 import { QuickTransactionDialogComponent } from '../quick-transaction-dialog/quick-transaction-dialog.component';
 
 @Component({
   selector: 'app-expenses-panel',
   templateUrl: './expenses-panel.component.html',
   standalone: true,
-  imports: [SharedModule, RouterLink, CategoryBreakdownComponent, SortToolbarComponent, PanelStateComponent],
+  imports: [SharedModule, CategoryBreakdownComponent, SortToolbarComponent, PanelStateComponent],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ExpensesPanelComponent implements OnInit {
@@ -38,7 +38,8 @@ export class ExpensesPanelComponent implements OnInit {
   private readonly dialogService = inject(DialogService);
   private readonly popup = inject(PopupMessageService);
   private readonly sectionLoading = inject(SectionLoadingService);
-  private readonly store = inject(DashboardStore);
+  protected readonly store = inject(DashboardStore);
+  private readonly quickAdd = inject(QuickAddService);
   private readonly destroyRef = inject(DestroyRef);
 
   protected readonly sortOptions = AMOUNT_SORT_OPTIONS;
@@ -52,10 +53,32 @@ export class ExpensesPanelComponent implements OnInit {
   private readonly requestPending = toSignal(this.sectionLoading.isLoading$('expenses'), { initialValue: false });
 
   protected readonly loading = computed(() => !this.loaded() || this.requestPending());
-  protected readonly total = computed(() => this.expenses().reduce((sum, category) => sum + category.categorySum, 0));
+  private readonly visibleExpenses = computed<ExpenseCategoryResponse[]>(() => {
+    const ids = this.store.selectedCapitalIds();
+    if (ids.size === 0) return this.expenses();
+
+    const filtered = this.expenses()
+      .map(category => {
+        const items = category.expenses.filter(expense => ids.has(expense.capitalId));
+
+        return { ...category, expenses: items, categorySum: items.reduce((sum, expense) => sum + expense.amount, 0) };
+      })
+      .filter(category => category.expenses.length > 0);
+
+    const total = filtered.reduce((sum, category) => sum + category.categorySum, 0);
+
+    return filtered.map(category => ({
+      ...category,
+      percentage: total > 0 ? (category.categorySum / total) * 100 : 0
+    }));
+  });
+
+  protected readonly total = computed(() =>
+    this.visibleExpenses().reduce((sum, category) => sum + category.categorySum, 0)
+  );
   protected readonly reorderable = computed(() => this.sortBy() === 'custom' && !this.isAnonymous());
   protected readonly groups = computed<BreakdownGroup[]>(() =>
-    this.expenses().map(category => ({
+    this.visibleExpenses().map(category => ({
       key: category.categoryId,
       name: category.name,
       count: category.expenses.length,
@@ -95,14 +118,31 @@ export class ExpensesPanelComponent implements OnInit {
     this.expenses.set(moved);
   }
 
-  protected openQuickExpense(item?: BreakdownItem): void {
-    const editItem = item && {
+  protected addExpense(): void {
+    void this.quickAdd.addTransaction('expense');
+  }
+
+  protected async manageCategories(): Promise<void> {
+    if (await this.quickAdd.manageCategories('expense')) {
+      this.expenseService
+        .load()
+        .pipe(
+          catchError(() => of([])),
+          takeUntilDestroyed(this.destroyRef)
+        )
+        .subscribe();
+    }
+  }
+
+  protected editExpense(item: BreakdownItem): void {
+    const editItem = {
       id: item.id,
       capitalId: item.capitalId,
       categoryId: item.categoryId,
       amount: item.amount,
       paymentDate: item.paymentDate,
-      purpose: item.purpose
+      purpose: item.purpose,
+      tagNames: item.tagNames ?? null
     };
 
     const ref = this.dialogService.open(QuickTransactionDialogComponent, {
@@ -112,35 +152,23 @@ export class ExpensesPanelComponent implements OnInit {
     ref.afterClosed$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(result => {
       if (!result) return;
 
-      if (result._edit) {
-        this.expenseService
-          .update({
-            id: result.id,
-            categoryId: result.categoryId,
-            amount: result.amount,
-            purpose: result.purpose,
-            date: result.date
-          })
-          .pipe(takeUntilDestroyed(this.destroyRef))
-          .subscribe({
-            next: () => {
-              this.popup.success('Expense updated');
-              this.capitalService.refresh();
-            },
-            error: () => this.popup.error('Failed to update expense')
-          });
-      } else {
-        this.expenseService
-          .create(result)
-          .pipe(takeUntilDestroyed(this.destroyRef))
-          .subscribe({
-            next: () => {
-              this.popup.success('Expense added');
-              this.capitalService.refresh();
-            },
-            error: () => this.popup.error('Failed to add expense')
-          });
-      }
+      this.expenseService
+        .update({
+          id: result.id,
+          categoryId: result.categoryId,
+          amount: result.amount,
+          purpose: result.purpose,
+          date: result.date,
+          tagNames: result.tagNames
+        })
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: () => {
+            this.popup.success('Expense updated');
+            this.capitalService.refresh();
+          },
+          error: () => this.popup.error('Failed to update expense')
+        });
     });
   }
 

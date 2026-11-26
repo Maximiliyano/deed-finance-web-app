@@ -21,11 +21,11 @@ export interface NavItem {
 }
 
 @Component({
-    selector: 'app-header',
-    templateUrl: './header.component.html',
-    styleUrl: './header.component.scss',
-    standalone: false,
-    changeDetection: ChangeDetectionStrategy.OnPush
+  selector: 'app-header',
+  templateUrl: './header.component.html',
+  styleUrl: './header.component.scss',
+  standalone: false,
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class HeaderComponent implements OnInit {
   private readonly router = inject(Router);
@@ -61,44 +61,42 @@ export class HeaderComponent implements OnInit {
 
   navItems: NavItem[] = [
     {
-      label: 'Dashboard', icon: 'fa-gauge-high', children: [
+      label: 'Dashboard',
+      icon: 'fa-gauge-high',
+      children: [
         { label: 'Budget Planner', icon: 'fa-compass-drafting', link: '/', fragment: 'budgetEstimations' },
+        { label: 'Capitals', icon: 'fa-wallet', link: '/', fragment: 'capitals' },
+        { label: 'Expenses', icon: 'fa-money-bill-wave', link: '/', fragment: 'expenses' },
+        { label: 'Incomes', icon: 'fa-arrow-trend-up', link: '/', fragment: 'incomes' },
         { label: 'Utility Bills', icon: 'fa-bolt', link: '/', fragment: 'utilityBills' },
         { label: 'Goals', icon: 'fa-star', link: '/', fragment: 'goals' },
-        { label: 'Debts', icon: 'fa-hand-holding-dollar', link: '/', fragment: 'debts' },
+        { label: 'Debts', icon: 'fa-hand-holding-dollar', link: '/', fragment: 'debts' }
       ]
-    },
-    {
-      label: 'Finance', icon: 'fa-coins', children: [
-        { label: 'Capitals', icon: 'fa-wallet', link: '/capitals' },
-        { label: 'Expenses', icon: 'fa-money-bill-wave', link: '/expenses' },
-        { label: 'Incomes', icon: 'fa-dollar-sign', link: '/incomes' }
-      ]
-    },
+    }
   ];
   user: User | null;
 
   ngOnInit(): void {
-    this.destroyRef.onDestroy(() => { this.isSidebarExpanded = false; });
+    this.destroyRef.onDestroy(() => {
+      this.isSidebarExpanded = false;
+    });
 
-    this.authService.user$
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(user => {
-        this.user = user;
-        this.cdr.markForCheck();
-      });
+    this.authService.user$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(user => {
+      this.user = user;
+      this.cdr.markForCheck();
+    });
 
     this.exchangeService
       .getLatest()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: (exchanges) => {
+        next: exchanges => {
           this.exchanges = exchanges;
           this.cdr.markForCheck();
         }
       });
   }
-
+
   navigateTo(item: NavItem): void {
     this.openDropdown = null;
     this.isSidebarExpanded = false;

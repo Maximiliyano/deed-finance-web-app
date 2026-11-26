@@ -12,19 +12,59 @@
           <i class="fas fa-exchange-alt"></i> Transfer
         </button>
       }
-      <a class="btn btn-secondary btn-sm" routerLink="/capitals">Open</a>
     </div>
   </div>
-  @if (capitals().length > 1) {
+  @if (store.capitals().length > 0) {
+    <div class="toolbar">
+      <input
+        class="toolbar-search"
+        type="search"
+        placeholder="Search capitals"
+        maxlength="24"
+        aria-label="Search capitals"
+        [value]="searchTerm()"
+        (input)="setSearch($event)"
+      />
+      <div class="toolbar-ctrl">
+        <i class="fas fa-filter toolbar-ctrl-icon"></i>
+        <select class="toolbar-select" aria-label="Filter capitals" [value]="filterBy()" (change)="setFilter($event)">
+          <option value="all">All capitals</option>
+          <option value="savings">Savings only</option>
+          <option value="excluded">Excluded from total</option>
+        </select>
+      </div>
+      @if (!isAnonymous()) {
+        <div class="toolbar-ctrl">
+          <i class="fas fa-coins toolbar-ctrl-icon"></i>
+          <select
+            class="toolbar-select"
+            aria-label="Currency of totals"
+            [value]="userCurrency()"
+            (change)="changeCurrency($event)"
+          >
+            @for (option of currencyOptions; track option) {
+              <option [value]="option">{{ option }}</option>
+            }
+          </select>
+        </div>
+      }
+    </div>
     <app-sort-toolbar [options]="sortOptions" [value]="sortBy()" (changed)="sortCapitals($event)" />
   }
   <app-panel-state
     [loading]="loading()"
     [empty]="capitals().length === 0"
-    icon="fa-wallet"
-    title="No capitals yet"
-    hint="Add the accounts and wallets you want to track."
+    [icon]="hasFilters() ? 'fa-magnifying-glass' : 'fa-wallet'"
+    [title]="hasFilters() ? 'No capitals match' : 'No capitals yet'"
+    [hint]="
+      hasFilters() ? 'Try a different name or clear the filter.' : 'Add the accounts and wallets you want to track.'
+    "
   >
+    @if (hasFilters() && capitals().length === 0) {
+      <div class="cap-clear">
+        <button type="button" class="btn btn-secondary btn-sm" (click)="clearFilters()">Clear filters</button>
+      </div>
+    }
     <div
       class="summary-grid"
       cdkDropList
@@ -36,58 +76,120 @@
           class="summary-card"
           cdkDrag
           [cdkDragDisabled]="dragDisabled()"
-          [class.clickable-row]="!isAnonymous()"
-          (click)="isAnonymous() || openCapitalDetail(cap)"
+          [class.summary-card--excluded]="!cap.includeInTotal && !cap.onlyForSavings"
         >
           <div class="summary-card-header">
             @if (!dragDisabled()) {
-              <i class="fas fa-grip-vertical drag-handle" cdkDragHandle (click)="$event.stopPropagation()"></i>
+              <i class="fas fa-grip-vertical drag-handle" cdkDragHandle aria-label="Drag to reorder"></i>
             }
-            <span class="summary-card-name">{{ cap.name }}</span>
-            <div class="summary-card-actions">
-              @if (!isAnonymous()) {
-                <button
-                  type="button"
-                  class="icon-btn"
-                  title="Transfer from this capital"
-                  aria-label="Transfer from this capital"
-                  (click)="$event.stopPropagation(); openTransferDialog(cap.id)"
-                >
-                  <i class="fas fa-paper-plane"></i>
-                </button>
-              }
+            @if (isAnonymous()) {
+              <span class="summary-card-name">{{ cap.name }}</span>
+            } @else {
+              <button
+                type="button"
+                class="summary-card-name summary-card-name--link"
+                [title]="'Edit ' + cap.name"
+                (click)="openCapitalDetail(cap)"
+              >
+                {{ cap.name }}
+              </button>
+            }
+            @if (cap.onlyForSavings) {
+              <span class="badge badge-primary">Savings</span>
+            } @else if (!cap.includeInTotal) {
+              <span class="badge badge-neutral">Excluded</span>
+            }
+          </div>
+
+          <p class="summary-card-value">{{ cap.balance | currencySymbol: cap.currency }}</p>
+
+          @if (borrowedByCapital().get(cap.id); as borrowed) {
+            <span class="badge badge-warning cap-borrowed">{{ borrowed | currencySymbol: cap.currency }} borrowed</span>
+          }
+
+          @if (!cap.onlyForSavings) {
+            <dl class="cap-stats">
+              <div class="cap-stat">
+                <dt>Income</dt>
+                <dd class="text-success">{{ cap.totalIncome | currencySymbol: cap.currency }}</dd>
+              </div>
+              <div class="cap-stat">
+                <dt>Spent</dt>
+                <dd class="text-danger">{{ cap.totalExpense | currencySymbol: cap.currency }}</dd>
+              </div>
+              <div class="cap-stat">
+                <dt>Sent</dt>
+                <dd>{{ cap.totalTransferOut | currencySymbol: cap.currency }}</dd>
+              </div>
+              <div class="cap-stat">
+                <dt>Received</dt>
+                <dd>{{ cap.totalTransferIn | currencySymbol: cap.currency }}</dd>
+              </div>
+            </dl>
+          }
+
+          <div class="cap-actions">
+            @if (!isAnonymous()) {
               <button
                 type="button"
                 class="icon-btn"
-                title="Show transfers"
-                aria-label="Show transfers"
-                (click)="$event.stopPropagation(); showTransfers(cap)"
+                title="Transfer from this capital"
+                aria-label="Transfer from this capital"
+                (click)="openTransferDialog(cap.id)"
               >
-                <i class="fas fa-exchange-alt"></i>
+                <i class="fas fa-paper-plane"></i>
               </button>
-              <span
-                class="badge"
-                [class.badge-primary]="cap.onlyForSavings"
-                [class.badge-success]="!cap.onlyForSavings"
+            }
+            <button
+              type="button"
+              class="icon-btn"
+              [class.is-on]="expandedCapitalId() === cap.id"
+              title="Show transfers"
+              aria-label="Show transfers"
+              [attr.aria-expanded]="expandedCapitalId() === cap.id"
+              (click)="showTransfers(cap)"
+            >
+              <i class="fas fa-clock-rotate-left"></i>
+            </button>
+            @if (!isAnonymous()) {
+              <button
+                type="button"
+                class="icon-btn"
+                [class.is-on]="cap.includeInTotal"
+                [title]="
+                  cap.includeInTotal ? 'Counted in total, click to exclude' : 'Not counted in total, click to include'
+                "
+                [attr.aria-label]="cap.includeInTotal ? 'Exclude from total' : 'Include in total'"
+                [attr.aria-pressed]="cap.includeInTotal"
+                (click)="toggleIncludeInTotal(cap)"
               >
-                {{ cap.onlyForSavings ? 'Savings' : 'Active' }}
-              </span>
-            </div>
-          </div>
-          <p class="summary-card-value">{{ cap.balance | currencySymbol: cap.currency }}</p>
-          <div class="summary-card-stats">
-            <span class="text-success"
-              ><i class="fas fa-arrow-down"></i> {{ cap.totalIncome | currencySymbol: cap.currency }}</span
-            >
-            <span class="text-danger"
-              ><i class="fas fa-arrow-up"></i> {{ cap.totalExpense | currencySymbol: cap.currency }}</span
-            >
-            @if (borrowedByCapital().get(cap.id); as borrowed) {
-              <span class="text-warning">{{ borrowed | currencySymbol: cap.currency }} borrowed</span>
+                <i class="fas" [class]="cap.includeInTotal ? 'fa-eye' : 'fa-eye-slash'"></i>
+              </button>
+              <button
+                type="button"
+                class="icon-btn"
+                [class.is-on]="cap.onlyForSavings"
+                [title]="cap.onlyForSavings ? 'Savings only, click to make regular' : 'Make savings only'"
+                [attr.aria-label]="cap.onlyForSavings ? 'Make regular capital' : 'Make savings only'"
+                [attr.aria-pressed]="cap.onlyForSavings"
+                (click)="toggleSavingsOnly(cap)"
+              >
+                <i class="fas fa-piggy-bank"></i>
+              </button>
+              <button
+                type="button"
+                class="icon-btn icon-btn-danger cap-delete"
+                title="Delete capital"
+                aria-label="Delete capital"
+                (click)="deleteCapital(cap)"
+              >
+                <i class="fas fa-trash-can"></i>
+              </button>
             }
           </div>
+
           @if (expandedCapitalId() === cap.id) {
-            <div class="cap-transfers" (click)="$event.stopPropagation()">
+            <div class="cap-transfers">
               @for (t of expandedTransfers(); track t.id) {
                 <div class="txn-row">
                   @if (t.sourceCapitalId === cap.id) {

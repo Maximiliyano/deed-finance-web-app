@@ -1,4 +1,6 @@
 <div class="page dashboard">
+  <app-mobile-dock />
+
   <header class="page-header">
     <h1 class="page-title">Dashboard</h1>
   </header>
@@ -29,17 +31,19 @@
     <div class="section-spinner" id="capitals"><span class="circle-spinner"></span></div>
   }
 
-  @defer (on viewport) {
-    <app-expenses-panel />
-  } @placeholder {
-    <div class="section-spinner" id="expenses"><span class="circle-spinner"></span></div>
-  }
+  <div class="panel-row">
+    @defer (on viewport) {
+      <app-expenses-panel />
+    } @placeholder {
+      <div class="section-spinner" id="expenses"><span class="circle-spinner"></span></div>
+    }
 
-  @defer (on viewport) {
-    <app-incomes-panel />
-  } @placeholder {
-    <div class="section-spinner" id="incomes"><span class="circle-spinner"></span></div>
-  }
+    @defer (on viewport) {
+      <app-incomes-panel />
+    } @placeholder {
+      <div class="section-spinner" id="incomes"><span class="circle-spinner"></span></div>
+    }
+  </div>
 
   @defer (on viewport) {
     <app-utility-bills-panel />
@@ -47,15 +51,17 @@
     <div class="section-spinner" id="utilityBills"><span class="circle-spinner"></span></div>
   }
 
-  @defer (on viewport) {
-    <app-goals-panel />
-  } @placeholder {
-    <div class="section-spinner" id="goals"><span class="circle-spinner"></span></div>
-  }
+  <div class="panel-row">
+    @defer (on viewport) {
+      <app-goals-panel />
+    } @placeholder {
+      <div class="section-spinner" id="goals"><span class="circle-spinner"></span></div>
+    }
 
-  @defer (on viewport) {
-    <app-debts-panel />
-  } @placeholder {
-    <div class="section-spinner" id="debts"><span class="circle-spinner"></span></div>
-  }
+    @defer (on viewport) {
+      <app-debts-panel />
+    } @placeholder {
+      <div class="section-spinner" id="debts"><span class="circle-spinner"></span></div>
+    }
+  </div>
 </div>

@@ -79,6 +79,21 @@
         />
       </div>
     </div>
+
+    @if (isExpense) {
+      <div class="form-group">
+        <label for="tags" class="form-label">Tags (optional, comma separated)</label>
+        <input
+          id="tags"
+          type="text"
+          class="input"
+          formControlName="tags"
+          placeholder="groceries, weekly"
+          autocomplete="off"
+          enterkeyhint="done"
+        />
+      </div>
+    }
   </div>
 
   <div class="dialog-footer">

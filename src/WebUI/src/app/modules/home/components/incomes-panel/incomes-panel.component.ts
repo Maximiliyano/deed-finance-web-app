@@ -1,7 +1,15 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  OnInit,
+  computed,
+  effect,
+  inject,
+  signal
+} from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { moveItemInArray } from '@angular/cdk/drag-drop';
-import { RouterLink } from '@angular/router';
 import { catchError, forkJoin, of } from 'rxjs';
 import { CategoryType } from '../../../../core/types/category-type';
 import { DialogService } from '../../../../shared/components/dialogs/services/dialog.service';
@@ -22,13 +30,14 @@ import { IncomeService } from '../../../incomes/services/income.service';
 import { DashboardStore } from '../../services/dashboard-store.service';
 import { CategoryBreakdownComponent } from '../category-breakdown/category-breakdown.component';
 import { BreakdownGroup, BreakdownItem, ReorderEvent } from '../category-breakdown/category-breakdown.model';
+import { QuickAddService } from '../../services/quick-add.service';
 import { QuickTransactionDialogComponent } from '../quick-transaction-dialog/quick-transaction-dialog.component';
 
 @Component({
   selector: 'app-incomes-panel',
   templateUrl: './incomes-panel.component.html',
   standalone: true,
-  imports: [SharedModule, RouterLink, CategoryBreakdownComponent, SortToolbarComponent, PanelStateComponent],
+  imports: [SharedModule, CategoryBreakdownComponent, SortToolbarComponent, PanelStateComponent],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class IncomesPanelComponent implements OnInit {
@@ -38,7 +47,8 @@ export class IncomesPanelComponent implements OnInit {
   private readonly dialogService = inject(DialogService);
   private readonly popup = inject(PopupMessageService);
   private readonly sectionLoading = inject(SectionLoadingService);
-  private readonly store = inject(DashboardStore);
+  protected readonly store = inject(DashboardStore);
+  private readonly quickAdd = inject(QuickAddService);
   private readonly destroyRef = inject(DestroyRef);
 
   protected readonly sortOptions = AMOUNT_SORT_OPTIONS;
@@ -54,8 +64,21 @@ export class IncomesPanelComponent implements OnInit {
 
   protected readonly groups = this.orderedGroups.asReadonly();
   protected readonly loading = computed(() => !this.loaded() || this.requestPending());
-  protected readonly total = computed(() => this.incomes().reduce((sum, income) => sum + income.amount, 0));
+  private readonly visibleIncomes = computed(() => {
+    const ids = this.store.selectedCapitalIds();
+
+    return ids.size === 0 ? this.incomes() : this.incomes().filter(income => ids.has(income.capitalId));
+  });
+
+  protected readonly total = computed(() => this.visibleIncomes().reduce((sum, income) => sum + income.amount, 0));
   protected readonly reorderable = computed(() => this.sortBy() === 'custom' && !this.isAnonymous());
+
+  constructor() {
+    effect(() => {
+      this.store.selectedCapitalIds();
+      this.rebuild();
+    });
+  }
 
   ngOnInit(): void {
     this.incomeService.incomes$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(data => {
@@ -89,8 +112,24 @@ export class IncomesPanelComponent implements OnInit {
     this.orderedGroups.set(moved);
   }
 
-  protected openQuickIncome(item?: BreakdownItem): void {
-    const editItem = item && {
+  protected addIncome(): void {
+    void this.quickAdd.addTransaction('income');
+  }
+
+  protected async manageCategories(): Promise<void> {
+    if (await this.quickAdd.manageCategories('income')) {
+      this.incomeService
+        .load()
+        .pipe(
+          catchError(() => of([])),
+          takeUntilDestroyed(this.destroyRef)
+        )
+        .subscribe();
+    }
+  }
+
+  protected editIncome(item: BreakdownItem): void {
+    const editItem = {
       id: item.id,
       capitalId: item.capitalId,
       categoryId: item.categoryId,
@@ -106,35 +145,22 @@ export class IncomesPanelComponent implements OnInit {
     ref.afterClosed$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(result => {
       if (!result) return;
 
-      if (result._edit) {
-        this.incomeService
-          .update({
-            id: result.id,
-            categoryId: result.categoryId,
-            amount: result.amount,
-            purpose: result.purpose,
-            paymentDate: result.date
-          })
-          .pipe(takeUntilDestroyed(this.destroyRef))
-          .subscribe({
-            next: () => {
-              this.popup.success('Income updated');
-              this.capitalService.refresh();
-            },
-            error: () => this.popup.error('Failed to update income')
-          });
-      } else {
-        this.incomeService
-          .create(result)
-          .pipe(takeUntilDestroyed(this.destroyRef))
-          .subscribe({
-            next: () => {
-              this.popup.success('Income added');
-              this.capitalService.refresh();
-            },
-            error: () => this.popup.error('Failed to add income')
-          });
-      }
+      this.incomeService
+        .update({
+          id: result.id,
+          categoryId: result.categoryId,
+          amount: result.amount,
+          purpose: result.purpose,
+          paymentDate: result.date
+        })
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: () => {
+            this.popup.success('Income updated');
+            this.capitalService.refresh();
+          },
+          error: () => this.popup.error('Failed to update income')
+        });
     });
   }
 
@@ -159,7 +185,7 @@ export class IncomesPanelComponent implements OnInit {
     const total = this.total();
     const byCategory = new Map<number, BreakdownGroup>();
 
-    for (const income of this.incomes()) {
+    for (const income of this.visibleIncomes()) {
       const group = byCategory.get(income.categoryId) ?? {
         key: income.categoryId,
         name: this.categories().find(category => category.id === income.categoryId)?.name ?? 'Unknown',

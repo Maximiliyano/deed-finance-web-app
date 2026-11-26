@@ -32,10 +32,6 @@ export class BudgetChartsComponent {
 
   protected readonly chartTab = signal<ChartTab>('general');
 
-  protected readonly scaledFilteredNet = computed(() => this.store.filteredNetProfit() * this.store.planFactor());
-  protected readonly scaledFilteredIncomes = computed(() => this.store.filteredIncome() * this.store.planFactor());
-  protected readonly scaledFilteredLoss = computed(() => this.store.filteredLoss() * this.store.planFactor());
-
   protected readonly donutLossPct = computed(() => {
     const income = this.store.filteredIncome();
     const loss = this.store.filteredLoss();

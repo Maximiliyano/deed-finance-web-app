@@ -1,0 +1,31 @@
+<nav class="dock" aria-label="Quick navigation">
+  @for (tab of leftTabs; track tab.id) {
+    <button
+      type="button"
+      class="dock-tab"
+      [class.is-active]="active() === tab.id"
+      [attr.aria-current]="active() === tab.id ? 'true' : null"
+      (click)="go(tab.id)"
+    >
+      <i class="fas" [class]="tab.icon"></i>
+      <span>{{ tab.label }}</span>
+    </button>
+  }
+
+  <button type="button" class="dock-fab" aria-label="Add expense, income or transfer" (click)="openSheet()">
+    <i class="fas fa-plus"></i>
+  </button>
+
+  @for (tab of rightTabs; track tab.id) {
+    <button
+      type="button"
+      class="dock-tab"
+      [class.is-active]="active() === tab.id"
+      [attr.aria-current]="active() === tab.id ? 'true' : null"
+      (click)="go(tab.id)"
+    >
+      <i class="fas" [class]="tab.icon"></i>
+      <span>{{ tab.label }}</span>
+    </button>
+  }
+</nav>

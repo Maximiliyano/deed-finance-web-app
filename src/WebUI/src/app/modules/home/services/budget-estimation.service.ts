@@ -17,14 +17,14 @@ export class BudgetEstimationService {
   readonly estimations$ = this.state$.asObservable();
 
   load(query: QueryTimeRange): Observable<BudgetEstimation[]> {
-    return this.http.post<BudgetEstimation[]>(`${this.baseUrl}/all`, query)
-      .pipe(tap(items => this.state$.next(items)));
+    return this.http.post<BudgetEstimation[]>(`${this.baseUrl}/all`, query).pipe(tap(items => this.state$.next(items)));
   }
 
   findByCapital(capitalId: number): Observable<BudgetEstimation[]> {
     const allTime: QueryTimeRange = { periodStart: new Date(2000, 0, 1), periodEnd: new Date(2100, 0, 1) };
 
-    return this.http.post<BudgetEstimation[]>(`${this.baseUrl}/all`, allTime)
+    return this.http
+      .post<BudgetEstimation[]>(`${this.baseUrl}/all`, allTime)
       .pipe(map(items => items.filter(item => item.capitalId === capitalId)));
   }
 
@@ -47,7 +47,7 @@ export class BudgetEstimationService {
 
     return this.http.post<number>(this.baseUrl, request).pipe(
       tap(realId => {
-        this.state$.next(this.state$.value.map(e => e.id === tempId ? { ...e, id: realId } : e));
+        this.state$.next(this.state$.value.map(e => (e.id === tempId ? { ...e, id: realId } : e)));
       }),
       catchError(err => {
         this.state$.next(previous);
@@ -59,9 +59,20 @@ export class BudgetEstimationService {
   update(id: number, request: UpdateBudgetEstimationRequest): Observable<void> {
     return this.http.put<void>(`${this.baseUrl}/${id}`, request).pipe(
       tap(() => {
-        this.state$.next(this.state$.value.map(e => e.id === id
-          ? { ...e, description: request.description, budgetAmount: request.budgetAmount, budgetCurrency: request.budgetCurrency.toString(), capitalId: request.capitalId, isCompleted: request.isCompleted } as BudgetEstimation
-          : e));
+        this.state$.next(
+          this.state$.value.map(e =>
+            e.id === id
+              ? ({
+                  ...e,
+                  description: request.description,
+                  budgetAmount: request.budgetAmount,
+                  budgetCurrency: request.budgetCurrency.toString(),
+                  capitalId: request.capitalId,
+                  isCompleted: request.isCompleted
+                } as BudgetEstimation)
+              : e
+          )
+        );
       }),
       catchError(err => {
         return throwError(() => err);
@@ -84,9 +95,7 @@ export class BudgetEstimationService {
     const previous = this.state$.value;
     const orderMap = new Map(estimations.map(o => [o.id, o.orderIndex]));
     this.state$.next(
-      [...previous].sort((a, b) =>
-        (orderMap.get(a.id) ?? a.orderIndex) - (orderMap.get(b.id) ?? b.orderIndex)
-      )
+      [...previous].sort((a, b) => (orderMap.get(a.id) ?? a.orderIndex) - (orderMap.get(b.id) ?? b.orderIndex))
     );
     return this.http.put<void>(`${this.baseUrl}/orders`, { estimations }).pipe(
       catchError(err => {

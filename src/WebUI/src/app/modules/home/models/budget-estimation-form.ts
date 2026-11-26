@@ -1,4 +1,4 @@
-import { CapitalResponse } from "../../capital/models/capital-response";
+import { CapitalResponse } from '../../capital/models/capital-response';
 
 export interface BudgetEstimationForm {
   description: string;

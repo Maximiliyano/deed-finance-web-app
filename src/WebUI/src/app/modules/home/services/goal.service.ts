@@ -32,11 +32,12 @@ export class GoalService {
   readonly goals$ = this.state$.asObservable();
 
   load(): Observable<Goal[]> {
-    return this.http.get<Goal[]>(this.baseUrl)
-      .pipe(tap(items => this.state$.next(items)));
+    return this.http.get<Goal[]>(this.baseUrl).pipe(tap(items => this.state$.next(items)));
   }
 
-  refresh(): void { this.load().subscribe(); }
+  refresh(): void {
+    this.load().subscribe();
+  }
 
   create(request: CreateGoalRequest): Observable<number> {
     const tempId = -Date.now();
@@ -56,7 +57,7 @@ export class GoalService {
 
     return this.http.post<number>(this.baseUrl, request).pipe(
       tap(realId => {
-        this.state$.next(this.state$.value.map(g => g.id === tempId ? { ...g, id: realId } : g));
+        this.state$.next(this.state$.value.map(g => (g.id === tempId ? { ...g, id: realId } : g)));
         this.refresh();
       }),
       catchError(err => {
@@ -68,9 +69,7 @@ export class GoalService {
 
   update(id: number, request: UpdateGoalRequest): Observable<void> {
     const previous = this.state$.value;
-    this.state$.next(previous.map(g => g.id === id
-      ? { ...g, ...request, currency: String(request.currency) }
-      : g));
+    this.state$.next(previous.map(g => (g.id === id ? { ...g, ...request, currency: String(request.currency) } : g)));
     return this.http.put<void>(`${this.baseUrl}/${id}`, request).pipe(
       catchError(err => {
         this.state$.next(previous);
@@ -94,9 +93,7 @@ export class GoalService {
     const previous = this.state$.value;
     const orderMap = new Map(goals.map(o => [o.id, o.orderIndex]));
     this.state$.next(
-      [...previous].sort((a, b) =>
-        (orderMap.get(a.id) ?? a.orderIndex) - (orderMap.get(b.id) ?? b.orderIndex)
-      )
+      [...previous].sort((a, b) => (orderMap.get(a.id) ?? a.orderIndex) - (orderMap.get(b.id) ?? b.orderIndex))
     );
     return this.http.put<void>(`${this.baseUrl}/orders`, { goals }).pipe(
       catchError(err => {

@@ -36,9 +36,9 @@ public sealed class GetDashboardSummaryQueryHandlerTests
                 new Capital(2) { Name = "Cash", Balance = 400m, Currency = CurrencyType.UAH, IncludeInTotal = true },
                 new Capital(3) { Name = "Savings", Balance = 999m, Currency = CurrencyType.UAH, IncludeInTotal = false }
             ]);
-        _incomeRepository.GetTotalsByCategoryAsync(Arg.Any<string>(), Arg.Any<IReadOnlyCollection<int>?>(), Arg.Any<CancellationToken>())
+        _incomeRepository.GetTotalsByCategoryAsync(Arg.Any<string>(), Arg.Any<IReadOnlyCollection<int>?>(), Arg.Any<DateTimeOffset?>(), Arg.Any<DateTimeOffset?>(), Arg.Any<CancellationToken>())
             .Returns([new CategoryAmount(1, "Salary", CurrencyType.UAH, 800m), new CategoryAmount(1, "Salary", CurrencyType.USD, 10m)]);
-        _expenseRepository.GetTotalsByCategoryAsync(Arg.Any<string>(), Arg.Any<IReadOnlyCollection<int>?>(), Arg.Any<CancellationToken>())
+        _expenseRepository.GetTotalsByCategoryAsync(Arg.Any<string>(), Arg.Any<IReadOnlyCollection<int>?>(), Arg.Any<DateTimeOffset?>(), Arg.Any<DateTimeOffset?>(), Arg.Any<CancellationToken>())
             .Returns([new CategoryAmount(2, "Food", CurrencyType.UAH, 300m), new CategoryAmount(3, "Rent", CurrencyType.UAH, 100m)]);
 
         _budgetEstimationRepository.GetAllAsync(Arg.Any<BudgetEstimationsByUserSpecification>(), Arg.Any<CancellationToken>())
@@ -161,8 +161,38 @@ public sealed class GetDashboardSummaryQueryHandlerTests
         await _handler.Handle(new GetDashboardSummaryQuery("UAH", capitalIds), CancellationToken.None);
 
         // Assert
-        await _incomeRepository.Received(1).GetTotalsByCategoryAsync("testuser", capitalIds, Arg.Any<CancellationToken>());
-        await _expenseRepository.Received(1).GetTotalsByCategoryAsync("testuser", capitalIds, Arg.Any<CancellationToken>());
+        await _incomeRepository.Received(1).GetTotalsByCategoryAsync("testuser", capitalIds, null, null, Arg.Any<CancellationToken>());
+        await _expenseRepository.Received(1).GetTotalsByCategoryAsync("testuser", capitalIds, null, null, Arg.Any<CancellationToken>());
         await _userSettingsRepository.DidNotReceive().GetAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Handle_TreatsEmptyCapitalFilterAsNoFilter()
+    {
+        // Arrange
+        int[] capitalIds = [];
+
+        // Act
+        var result = await _handler.Handle(new GetDashboardSummaryQuery("UAH", capitalIds, DateTime.UtcNow.AddDays(-1), DateTime.UtcNow.AddDays(1)), CancellationToken.None);
+
+        // Assert
+        await _incomeRepository.Received(1).GetTotalsByCategoryAsync("testuser", null, Arg.Any<DateTimeOffset?>(), Arg.Any<DateTimeOffset?>(), Arg.Any<CancellationToken>());
+        await _expenseRepository.Received(1).GetTotalsByCategoryAsync("testuser", null, Arg.Any<DateTimeOffset?>(), Arg.Any<DateTimeOffset?>(), Arg.Any<CancellationToken>());
+        result.Value.TotalBudget.Should().Be(600m);
+    }
+
+    [Fact]
+    public async Task Handle_PassesPeriodToRepositories()
+    {
+        // Arrange
+        var start = new DateTime(2026, 11, 1, 0, 0, 0, DateTimeKind.Utc);
+        var end = new DateTime(2026, 12, 1, 0, 0, 0, DateTimeKind.Utc);
+
+        // Act
+        await _handler.Handle(new GetDashboardSummaryQuery("UAH", PeriodStart: start, PeriodEnd: end), CancellationToken.None);
+
+        // Assert
+        await _incomeRepository.Received(1).GetTotalsByCategoryAsync("testuser", null, new DateTimeOffset(start), new DateTimeOffset(end), Arg.Any<CancellationToken>());
+        await _expenseRepository.Received(1).GetTotalsByCategoryAsync("testuser", null, new DateTimeOffset(start), new DateTimeOffset(end), Arg.Any<CancellationToken>());
     }
 }

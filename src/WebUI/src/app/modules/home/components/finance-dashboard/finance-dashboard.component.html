@@ -1,73 +1,49 @@
-<div id="kpi" class="kpi-grid">
-  <div class="stat-tile tile-primary">
-    <div class="stat-head">
-      <span class="icon-chip chip-primary"><i class="fas fa-wallet"></i></span>
-      <span class="stat-label">Total capital</span>
-    </div>
+<section id="kpi" class="ledger" aria-label="Financial summary">
+  <div class="ledger-lead">
+    <span class="ledger-label">Total capital</span>
     @if (summary().totalCapital) {
-      <span class="stat-value">{{ summary().totalCapital | currencySymbol: store.userCurrency() }}</span>
+      <span class="ledger-lead-value">{{ summary().totalCapital | currencySymbol: store.userCurrency() }}</span>
       @if (store.showDualCurrency()) {
-        <span class="stat-alt">{{ summary().totalCapitalInDefaultCurrency | currencySymbol: defaultCurrency }}</span>
+        <span class="ledger-alt">{{ summary().totalCapitalInDefaultCurrency | currencySymbol: defaultCurrency }}</span>
       }
     } @else {
-      <span class="stat-empty">No capitals yet</span>
-    }
-  </div>
-
-  <div class="stat-tile tile-success">
-    <div class="stat-head">
-      <span class="icon-chip chip-success"><i class="fas fa-arrow-trend-up"></i></span>
-      <span class="stat-label">Incomes</span>
-    </div>
-    @if (summary().totalIncome) {
-      <span class="stat-value text-success">{{ summary().totalIncome | currencySymbol: store.userCurrency() }}</span>
-      @if (store.showDualCurrency()) {
-        <span class="stat-alt">{{ summary().totalIncomeInDefaultCurrency | currencySymbol: defaultCurrency }}</span>
-      }
-    } @else {
-      <span class="stat-empty">No incomes yet</span>
-    }
-  </div>
-
-  <div class="stat-tile tile-danger">
-    <div class="stat-head">
-      <span class="icon-chip chip-danger"><i class="fas fa-arrow-trend-down"></i></span>
-      <span class="stat-label">Expenses</span>
-    </div>
-    @if (summary().totalExpense) {
-      <span class="stat-value text-danger">{{ summary().totalExpense | currencySymbol: store.userCurrency() }}</span>
-      @if (store.showDualCurrency()) {
-        <span class="stat-alt">{{ summary().totalExpenseInDefaultCurrency | currencySymbol: defaultCurrency }}</span>
-      }
-    } @else {
-      <span class="stat-empty">No expenses yet</span>
+      <span class="ledger-empty">No capitals yet</span>
     }
   </div>
 
   @let result = profit();
-  <div
-    class="stat-tile"
-    [class]="'stat-tile ' + (result.amount < 0 ? 'tile-warning' : result.amount > 0 ? 'tile-accent' : 'tile-info')"
-  >
-    @if (result.amount) {
-      <div class="stat-head">
-        <span class="icon-chip" [class]="'icon-chip ' + (result.amount > 0 ? 'chip-accent' : 'chip-warning')">
-          <i class="fas" [class]="result.amount > 0 ? 'fa-piggy-bank' : 'fa-scale-unbalanced'"></i>
+  <div class="ledger-period">
+    <span class="ledger-label">{{ periodLabel() }}</span>
+    <div class="ledger-equation">
+      <div class="ledger-term">
+        <span class="ledger-term-label">Income</span>
+        <span class="ledger-num text-success">{{ summary().totalIncome | currencySymbol: store.userCurrency() }}</span>
+        @if (store.showDualCurrency()) {
+          <span class="ledger-alt">{{ summary().totalIncomeInDefaultCurrency | currencySymbol: defaultCurrency }}</span>
+        }
+      </div>
+      <span class="ledger-op" aria-hidden="true">&minus;</span>
+      <div class="ledger-term">
+        <span class="ledger-term-label">Expenses</span>
+        <span class="ledger-num text-danger">{{ summary().totalExpense | currencySymbol: store.userCurrency() }}</span>
+        @if (store.showDualCurrency()) {
+          <span class="ledger-alt">{{
+            summary().totalExpenseInDefaultCurrency | currencySymbol: defaultCurrency
+          }}</span>
+        }
+      </div>
+      <span class="ledger-op" aria-hidden="true">=</span>
+      <div class="ledger-term ledger-term--net">
+        <span class="ledger-term-label">{{
+          result.amount > 0 ? 'Surplus' : result.amount < 0 ? 'Deficit' : 'Break-even'
+        }}</span>
+        <span class="ledger-num" [class.text-success]="result.amount > 0" [class.text-danger]="result.amount < 0">
+          {{ result.amount | currencySymbol: store.userCurrency() }}
         </span>
-        <span class="stat-label">{{ store.planFilterLabel() }} {{ result.amount > 0 ? 'profit' : 'deficit' }}</span>
+        @if (store.showDualCurrency()) {
+          <span class="ledger-alt">{{ result.inDefaultCurrency | currencySymbol: defaultCurrency }}</span>
+        }
       </div>
-      <span class="stat-value" [class]="result.amount > 0 ? 'text-success' : 'text-danger'">
-        {{ result.amount | currencySymbol: store.userCurrency() }}
-      </span>
-      @if (store.showDualCurrency()) {
-        <span class="stat-alt">{{ result.inDefaultCurrency | currencySymbol: defaultCurrency }}</span>
-      }
-    } @else {
-      <div class="stat-head">
-        <span class="icon-chip chip-info"><i class="fas fa-scale-balanced"></i></span>
-        <span class="stat-label">{{ store.planFilterLabel() }} break-even</span>
-      </div>
-      <span class="stat-empty">No data yet</span>
-    }
+    </div>
   </div>
-</div>
+</section>

@@ -18,13 +18,25 @@ export class FinanceDashboardComponent {
 
   summary = input.required<DashboardSummary>();
 
+  protected readonly periodLabel = computed(() => {
+    const start = this.store.period().periodStart;
+
+    switch (this.store.planFilter()) {
+      case 'day':
+        return start.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+      case 'year':
+        return String(start.getFullYear());
+      default:
+        return start.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
+    }
+  });
+
   protected readonly profit = computed(() => {
     const summary = this.summary();
-    const factor = this.store.planFactor();
 
     return {
-      amount: (summary.totalIncome - summary.totalExpense) * factor,
-      inDefaultCurrency: (summary.totalIncomeInDefaultCurrency - summary.totalExpenseInDefaultCurrency) * factor
+      amount: summary.totalIncome - summary.totalExpense,
+      inDefaultCurrency: summary.totalIncomeInDefaultCurrency - summary.totalExpenseInDefaultCurrency
     };
   });
 }

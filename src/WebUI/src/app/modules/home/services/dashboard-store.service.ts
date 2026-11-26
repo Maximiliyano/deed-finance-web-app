@@ -61,19 +61,14 @@ export class DashboardStore {
 
     switch (this.planFilter()) {
       case 'day':
-        return { periodStart: new Date(year, month, date.getDate()), periodEnd: new Date(year, month, date.getDate() + 1) };
+        return {
+          periodStart: new Date(year, month, date.getDate()),
+          periodEnd: new Date(year, month, date.getDate() + 1)
+        };
       case 'month':
         return { periodStart: new Date(year, month, 1), periodEnd: new Date(year, month + 1, 1) };
       case 'year':
         return { periodStart: new Date(year, 0, 1), periodEnd: new Date(year + 1, 0, 1) };
-    }
-  });
-
-  readonly planFactor = computed(() => {
-    switch (this.planFilter()) {
-      case 'day': return 1 / 30;
-      case 'year': return 12;
-      default: return 1;
     }
   });
 
@@ -163,7 +158,11 @@ export class DashboardStore {
 
     const unfiltered$ = this.dashboardService.load({ ...base, currency: this.userCurrency() });
     const filtered$ = this.hasCapitalFilter()
-      ? this.dashboardService.load({ ...base, currency: this.chartCurrency(), capitalIds: [...this.selectedCapitalIds()] })
+      ? this.dashboardService.load({
+          ...base,
+          currency: this.chartCurrency(),
+          capitalIds: [...this.selectedCapitalIds()]
+        })
       : of(null);
 
     return forkJoin([unfiltered$, filtered$]).pipe(catchError(() => EMPTY));

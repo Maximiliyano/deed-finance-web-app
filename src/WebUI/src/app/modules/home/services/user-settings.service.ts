@@ -13,23 +13,22 @@ export class UserSettingsService {
   private readonly state$ = new BehaviorSubject<UserSettings | null>(null);
   readonly settings$ = this.state$.asObservable();
 
-  get current(): UserSettings | null { return this.state$.value; }
+  get current(): UserSettings | null {
+    return this.state$.value;
+  }
 
   load(): Observable<UserSettings | null> {
-    return this.http.get<UserSettings | null>(this.baseUrl)
-      .pipe(tap(settings => this.state$.next(settings)));
+    return this.http.get<UserSettings | null>(this.baseUrl).pipe(tap(settings => this.state$.next(settings)));
   }
 
   patch(changes: Partial<UserSettings>): Observable<void> {
     const base$ = this.current ? of(this.current) : this.load();
-    return base$.pipe(
-      switchMap(base => this.upsert({ ...(base ?? { currency: CURRENCY_DEFAULT }), ...changes }))
-    );
+    return base$.pipe(switchMap(base => this.upsert({ ...(base ?? { currency: CURRENCY_DEFAULT }), ...changes })));
   }
 
   private upsert(settings: UserSettings): Observable<void> {
     const previous = this.state$.value;
-    this.state$.next({ ...(previous ?? {} as UserSettings), ...settings });
+    this.state$.next({ ...(previous ?? ({} as UserSettings)), ...settings });
     return this.http.put<void>(this.baseUrl, settings).pipe(
       catchError(err => {
         this.state$.next(previous);

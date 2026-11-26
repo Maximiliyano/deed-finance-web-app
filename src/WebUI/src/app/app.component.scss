@@ -3,12 +3,13 @@
   flex-direction: column;
   min-height: 100vh;
   min-height: 100dvh;
+  position: relative;
+  z-index: 1;
 
   > .app-main {
     flex: 1 0 auto;
     width: 100%;
     min-width: 0;
-    background: var(--bg);
     padding: calc(var(--header-h) + env(safe-area-inset-top)) env(safe-area-inset-right) 2rem env(safe-area-inset-left);
     overflow-x: clip;
   }
@@ -34,9 +35,18 @@
   opacity: 0;
   pointer-events: none;
   transform: translateY(0.5rem);
-  transition: opacity 0.25s, transform 0.25s, background 0.15s;
+  transition:
+    opacity 0.25s,
+    transform 0.25s,
+    background 0.15s;
 
-  &:hover { background: var(--primary-hover); }
+  &:hover {
+    background: var(--primary-hover);
+  }
+
+  @media (max-width: 767.98px) {
+    display: none;
+  }
 
   &.scroll-top-visible {
     opacity: 1;

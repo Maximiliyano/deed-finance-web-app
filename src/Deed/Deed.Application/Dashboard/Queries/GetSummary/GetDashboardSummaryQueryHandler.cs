@@ -34,15 +34,19 @@ internal sealed class GetDashboardSummaryQueryHandler(
             .GetAllAsync(new CapitalsByQueryParamsSpecification(user.Name), cancellationToken)
             .ConfigureAwait(false);
 
+        var capitalIds = query.CapitalIds is { Count: > 0 } ? query.CapitalIds : null;
+        var periodStart = ToUtc(query.PeriodStart);
+        var periodEnd = ToUtc(query.PeriodEnd);
+
         var incomes = await incomeRepository
-            .GetTotalsByCategoryAsync(user.Name, query.CapitalIds, cancellationToken)
+            .GetTotalsByCategoryAsync(user.Name, capitalIds, periodStart, periodEnd, cancellationToken)
             .ConfigureAwait(false);
 
         var expenses = await expenseRepository
-            .GetTotalsByCategoryAsync(user.Name, query.CapitalIds, cancellationToken)
+            .GetTotalsByCategoryAsync(user.Name, capitalIds, periodStart, periodEnd, cancellationToken)
             .ConfigureAwait(false);
 
-        var budgets = await GetBudgetsAsync(query, cancellationToken).ConfigureAwait(false);
+        var budgets = await GetBudgetsAsync(query, capitalIds, cancellationToken).ConfigureAwait(false);
 
         var includedCapitals = capitals.Where(c => c.IncludeInTotal).ToList();
         var incomesByCategory = Aggregate(incomes, converter, currency);
@@ -62,7 +66,7 @@ internal sealed class GetDashboardSummaryQueryHandler(
             expensesByCategory);
     }
 
-    private async Task<IReadOnlyList<BudgetEstimation>> GetBudgetsAsync(GetDashboardSummaryQuery query, CancellationToken cancellationToken)
+    private async Task<IReadOnlyList<BudgetEstimation>> GetBudgetsAsync(GetDashboardSummaryQuery query, IReadOnlyList<int>? capitalIds, CancellationToken cancellationToken)
     {
         if (query.PeriodStart is null || query.PeriodEnd is null)
         {
@@ -73,8 +77,11 @@ internal sealed class GetDashboardSummaryQueryHandler(
             .GetAllAsync(new BudgetEstimationsByUserSpecification(query.PeriodStart.Value, query.PeriodEnd.Value, user.Name!), cancellationToken)
             .ConfigureAwait(false);
 
-        return [.. estimations.Where(e => query.CapitalIds is null || e.CapitalId.HasValue && query.CapitalIds.Contains(e.CapitalId.Value))];
+        return [.. estimations.Where(e => capitalIds is null || e.CapitalId.HasValue && capitalIds.Contains(e.CapitalId.Value))];
     }
+
+    private static DateTimeOffset? ToUtc(DateTime? value) =>
+        value.HasValue ? new DateTimeOffset(value.Value) : null;
 
     private async Task<CurrencyType> ResolveCurrencyAsync(string? requested, CancellationToken cancellationToken)
     {

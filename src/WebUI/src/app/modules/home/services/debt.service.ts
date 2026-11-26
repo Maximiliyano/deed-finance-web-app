@@ -15,11 +15,12 @@ export class DebtService {
   readonly debts$ = this.state$.asObservable();
 
   load(): Observable<Debt[]> {
-    return this.http.get<Debt[]>(this.baseUrl)
-      .pipe(tap(items => this.state$.next(items)));
+    return this.http.get<Debt[]>(this.baseUrl).pipe(tap(items => this.state$.next(items)));
   }
 
-  refresh(): void { this.load().subscribe(); }
+  refresh(): void {
+    this.load().subscribe();
+  }
 
   create(request: CreateDebtRequest): Observable<number> {
     const tempId = -Date.now();
@@ -43,7 +44,7 @@ export class DebtService {
 
     return this.http.post<number>(this.baseUrl, request).pipe(
       tap(realId => {
-        this.state$.next(this.state$.value.map(d => d.id === tempId ? { ...d, id: realId } : d));
+        this.state$.next(this.state$.value.map(d => (d.id === tempId ? { ...d, id: realId } : d)));
         this.refresh();
       }),
       catchError(err => {
@@ -55,9 +56,18 @@ export class DebtService {
 
   update(id: number, request: UpdateDebtRequest): Observable<void> {
     const previous = this.state$.value;
-    this.state$.next(previous.map(d => d.id === id
-      ? { ...d, ...request, currency: request.currency.toString(), capitalId: request.payFromCapitalId ?? d.capitalId }
-      : d));
+    this.state$.next(
+      previous.map(d =>
+        d.id === id
+          ? {
+              ...d,
+              ...request,
+              currency: request.currency.toString(),
+              capitalId: request.payFromCapitalId ?? d.capitalId
+            }
+          : d
+      )
+    );
     return this.http.put<void>(`${this.baseUrl}/${id}`, request).pipe(
       tap(() => this.refresh()),
       catchError(err => {
@@ -82,9 +92,7 @@ export class DebtService {
     const previous = this.state$.value;
     const orderMap = new Map(debts.map(o => [o.id, o.orderIndex]));
     this.state$.next(
-      [...previous].sort((a, b) =>
-        (orderMap.get(a.id) ?? a.orderIndex) - (orderMap.get(b.id) ?? b.orderIndex)
-      )
+      [...previous].sort((a, b) => (orderMap.get(a.id) ?? a.orderIndex) - (orderMap.get(b.id) ?? b.orderIndex))
     );
     return this.http.put<void>(`${this.baseUrl}/orders`, { debts }).pipe(
       catchError(err => {

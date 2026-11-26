@@ -1,4 +1,12 @@
-import { ChangeDetectorRef, ChangeDetectionStrategy, Component, OnInit, inject } from '@angular/core';
+import {
+  AfterViewInit,
+  ChangeDetectorRef,
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  OnInit,
+  inject
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { DialogRef } from '../../../../shared/components/dialogs/models/dialog-ref';
@@ -21,7 +29,9 @@ export interface QuickTransactionDialogData {
     amount: number;
     paymentDate: string;
     purpose: string | null;
+    tagNames?: string[] | null;
   };
+  defaults?: { capitalId?: number; expenseCategoryId?: number; incomeCategoryId?: number };
 }
 
 @Component({
@@ -32,12 +42,13 @@ export interface QuickTransactionDialogData {
   imports: [CommonModule, ReactiveFormsModule, FormsModule, NumericInputDirective],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class QuickTransactionDialogComponent implements OnInit {
+export class QuickTransactionDialogComponent implements OnInit, AfterViewInit {
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly fb = inject(FormBuilder);
   private readonly dialogRef = inject<DialogRef<any>>(DialogRef);
   private readonly categoryService = inject(CategoryService);
   private readonly data = inject<QuickTransactionDialogData>(DIALOG_DATA);
+  private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
 
   form!: FormGroup;
   type: 'expense' | 'income' = this.data.type;
@@ -53,16 +64,47 @@ export class QuickTransactionDialogComponent implements OnInit {
     this.isEdit = !!e;
     this.editId = e?.id ?? null;
 
+    const defaults = this.data.defaults;
+    const defaultCapital =
+      defaults?.capitalId && this.capitals.some(c => c.id === defaults.capitalId)
+        ? defaults.capitalId
+        : this.capitals.length === 1
+          ? this.capitals[0].id
+          : null;
+    const rememberedCategory = this.isExpense ? defaults?.expenseCategoryId : defaults?.incomeCategoryId;
+    const defaultCategory =
+      rememberedCategory && this.categories.some(c => c.id === rememberedCategory) ? rememberedCategory : null;
+
     this.form = this.fb.group({
-      capitalId: [e?.capitalId ?? null, Validators.required],
-      categoryId: [e?.categoryId ?? null, Validators.required],
+      capitalId: [e?.capitalId ?? defaultCapital, Validators.required],
+      categoryId: [e?.categoryId ?? defaultCategory, Validators.required],
       amount: [e?.amount ?? null, [Validators.required, Validators.min(0.01)]],
       paymentDate: [
         e?.paymentDate ? new Date(e.paymentDate).toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10),
         Validators.required
       ],
-      purpose: [e?.purpose ?? '']
+      purpose: [e?.purpose ?? ''],
+      tags: [(e?.tagNames ?? []).join(', ')]
     });
+  }
+
+  ngAfterViewInit(): void {
+    if (this.isEdit) return;
+
+    setTimeout(() => this.host.nativeElement.querySelector<HTMLInputElement>('#amount')?.focus());
+  }
+
+  private parseTags(): string[] {
+    const raw = String(this.form.value.tags ?? '');
+
+    return [
+      ...new Set(
+        raw
+          .split(',')
+          .map(tag => tag.trim())
+          .filter(Boolean)
+      )
+    ];
   }
 
   get isExpense(): boolean {
@@ -114,7 +156,8 @@ export class QuickTransactionDialogComponent implements OnInit {
         amount: Number(v.amount),
         paymentDate: v.paymentDate,
         purpose: v.purpose || null,
-        date: v.paymentDate
+        date: v.paymentDate,
+        tagNames: this.tagsChanged() ? this.parseTags() : undefined
       });
     } else {
       this.dialogRef.close({
@@ -123,9 +166,15 @@ export class QuickTransactionDialogComponent implements OnInit {
         amount: Number(v.amount),
         paymentDate: v.paymentDate,
         purpose: v.purpose || null,
-        tagNames: null
+        tagNames: this.isExpense && this.parseTags().length ? this.parseTags() : null
       });
     }
+  }
+
+  private tagsChanged(): boolean {
+    const before = (this.data.editItem?.tagNames ?? []).join('|');
+
+    return this.isExpense && this.parseTags().join('|') !== before;
   }
 
   cancel(): void {

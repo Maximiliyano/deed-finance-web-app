@@ -10,6 +10,7 @@ import { ExpensesPanelComponent } from './components/expenses-panel/expenses-pan
 import { FinanceDashboardComponent } from './components/finance-dashboard/finance-dashboard.component';
 import { GoalsPanelComponent } from './components/goals-panel/goals-panel.component';
 import { IncomesPanelComponent } from './components/incomes-panel/incomes-panel.component';
+import { MobileDockComponent } from './components/mobile-dock/mobile-dock.component';
 import { UtilityBillsPanelComponent } from './components/utility-bills-panel/utility-bills-panel.component';
 import { DashboardStore } from './services/dashboard-store.service';
 
@@ -21,6 +22,7 @@ import { DashboardStore } from './services/dashboard-store.service';
   imports: [
     RouterLink,
     SharedModule,
+    MobileDockComponent,
     FinanceDashboardComponent,
     BudgetPlannerComponent,
     CapitalsPanelComponent,
@@ -39,9 +41,9 @@ export class HomeComponent implements OnInit {
 
   protected readonly navItems: NavItem[] = [
     { label: 'Budget Planner', icon: 'fa-compass-drafting', link: '/', fragment: 'budgetEstimations' },
-    { label: 'Capitals', icon: 'fa-wallet', link: '/capitals' },
-    { label: 'Expenses', icon: 'fa-money-bill-wave', link: '/expenses' },
-    { label: 'Incomes', icon: 'fa-dollar-sign', link: '/incomes' },
+    { label: 'Capitals', icon: 'fa-wallet', link: '/', fragment: 'capitals' },
+    { label: 'Expenses', icon: 'fa-money-bill-wave', link: '/', fragment: 'expenses' },
+    { label: 'Incomes', icon: 'fa-arrow-trend-up', link: '/', fragment: 'incomes' },
     { label: 'Utility Bills', icon: 'fa-bolt', link: '/', fragment: 'utilityBills' },
     { label: 'Goals', icon: 'fa-star', link: '/', fragment: 'goals' },
     { label: 'Debts', icon: 'fa-hand-holding-dollar', link: '/', fragment: 'debts' }
@@ -52,7 +54,10 @@ export class HomeComponent implements OnInit {
 
     this.route.fragment.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(fragment => {
       if (fragment) {
-        setTimeout(() => document.getElementById(fragment)?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 300);
+        setTimeout(
+          () => document.getElementById(fragment)?.scrollIntoView({ behavior: 'smooth', block: 'start' }),
+          300
+        );
       }
     });
   }

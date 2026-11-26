@@ -5,14 +5,21 @@
     </h2>
     <div class="card-header-actions">
       <span class="badge badge-success">{{ total() | currencySymbol: userCurrency() }}</span>
-      <button type="button" class="btn btn-success btn-sm" (click)="openQuickIncome()">
+      <button type="button" class="btn btn-success btn-sm" (click)="addIncome()">
         <i class="fas fa-plus"></i> Add
       </button>
-      <a class="btn btn-secondary btn-sm" routerLink="/incomes" aria-label="Open incomes">
-        <i class="fas fa-arrow-up-right-from-square"></i>
-      </a>
+      <button type="button" class="btn btn-secondary btn-sm" (click)="manageCategories()">
+        <i class="fas fa-tags"></i> Categories
+      </button>
     </div>
   </div>
+  @if (store.hasCapitalFilter()) {
+    <div class="filter-note">
+      <i class="fas fa-filter"></i> Showing {{ store.selectedCapitalIds().size }} selected
+      {{ store.selectedCapitalIds().size === 1 ? 'capital' : 'capitals' }}
+      <button type="button" class="btn btn-ghost btn-sm" (click)="store.clearCapitals()">Show all</button>
+    </div>
+  }
   @if (groups().length > 1) {
     <app-sort-toolbar [options]="sortOptions" [value]="sortBy()" (changed)="sort($event)" />
   }
@@ -32,7 +39,7 @@
       [reorderable]="reorderable()"
       [readonly]="isAnonymous()"
       (reordered)="reorder($event)"
-      (edit)="openQuickIncome($event)"
+      (edit)="editIncome($event)"
       (removed)="deleteIncome($event)"
     />
   </app-panel-state>

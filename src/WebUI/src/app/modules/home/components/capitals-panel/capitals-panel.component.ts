@@ -1,8 +1,9 @@
 import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
 import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
-import { RouterLink } from '@angular/router';
-import { EMPTY, catchError } from 'rxjs';
+import { EMPTY, Observable, catchError } from 'rxjs';
+import { CURRENCIES } from '../../../../core/types/currency-type';
+import { ConfirmDialogComponent } from '../../../../shared/components/dialogs/confirm-dialog/confirm-dialog.component';
 import { DialogService } from '../../../../shared/components/dialogs/services/dialog.service';
 import { PopupMessageService } from '../../../../shared/services/popup-message.service';
 import { PanelStateComponent } from '../../../../shared/components/panel-state/panel-state.component';
@@ -19,23 +20,27 @@ import { CapitalService } from '../../../capital/services/capital.service';
 import { CapitalCurrencyService } from '../../../capital/services/capital-currency.service';
 import { DashboardStore } from '../../services/dashboard-store.service';
 import { DebtService } from '../../services/debt.service';
-import { TransferDialogComponent, TransferDialogData } from '../transfer-dialog/transfer-dialog.component';
+import { UserSettingsService } from '../../services/user-settings.service';
+import { QuickAddService } from '../../services/quick-add.service';
 
-export type CapitalSort = 'custom' | 'balance-desc' | 'balance-asc' | 'name';
+export type CapitalSort = 'custom' | 'balance-desc' | 'balance-asc' | 'name' | 'incomes' | 'expenses';
+export type CapitalFilter = 'all' | 'savings' | 'excluded';
 
 @Component({
   selector: 'app-capitals-panel',
   templateUrl: './capitals-panel.component.html',
   styleUrl: './capitals-panel.component.scss',
   standalone: true,
-  imports: [SharedModule, RouterLink, DragDropModule, SortToolbarComponent, PanelStateComponent],
+  imports: [SharedModule, DragDropModule, SortToolbarComponent, PanelStateComponent],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class CapitalsPanelComponent implements OnInit {
-  private readonly store = inject(DashboardStore);
+  protected readonly store = inject(DashboardStore);
   private readonly capitalService = inject(CapitalService);
   private readonly transferService = inject(TransferService);
+  private readonly quickAdd = inject(QuickAddService);
   private readonly debtService = inject(DebtService);
+  private readonly userSettingsService = inject(UserSettingsService);
   private readonly dialogService = inject(DialogService);
   private readonly popup = inject(PopupMessageService);
   private readonly capitalCurrency = inject(CapitalCurrencyService);
@@ -43,14 +48,20 @@ export class CapitalsPanelComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
 
   readonly isAnonymous = this.store.isAnonymous;
+  readonly userCurrency = this.store.userCurrency;
+  readonly currencyOptions = CURRENCIES;
   readonly sortOptions: SortOption[] = [
     { key: 'custom', title: 'Custom order', icon: 'fa-grip-vertical' },
     { key: 'balance-desc', title: 'Highest balance', icon: 'fa-arrow-down-wide-short' },
     { key: 'balance-asc', title: 'Lowest balance', icon: 'fa-arrow-up-short-wide' },
-    { key: 'name', title: 'A to Z', icon: 'fa-arrow-down-a-z' }
+    { key: 'name', title: 'A to Z', icon: 'fa-arrow-down-a-z' },
+    { key: 'incomes', title: 'Most income', icon: 'fa-arrow-trend-up' },
+    { key: 'expenses', title: 'Most spent', icon: 'fa-arrow-trend-down' }
   ];
 
   readonly sortBy = signal<CapitalSort>('custom');
+  readonly filterBy = signal<CapitalFilter>('all');
+  readonly searchTerm = signal('');
   readonly expandedCapitalId = signal<number | null>(null);
   readonly loading = toSignal(this.sectionLoading.isLoading$('capitals'), { initialValue: false });
 
@@ -58,8 +69,25 @@ export class CapitalsPanelComponent implements OnInit {
   private readonly transfers = toSignal(this.transferService.transfers$, { initialValue: [] });
   private transfersRequested = false;
 
+  readonly hasFilters = computed(() => this.searchTerm().trim() !== '' || this.filterBy() !== 'all');
+
   readonly capitals = computed(() => {
-    const items = [...this.store.capitals()];
+    const term = this.searchTerm().trim().toLowerCase();
+    const filter = this.filterBy();
+
+    const items = this.store
+      .capitals()
+      .filter(c => !term || c.name.toLowerCase().includes(term))
+      .filter(c => {
+        switch (filter) {
+          case 'savings':
+            return c.onlyForSavings;
+          case 'excluded':
+            return !c.includeInTotal;
+          default:
+            return true;
+        }
+      });
 
     switch (this.sortBy()) {
       case 'balance-desc':
@@ -68,12 +96,16 @@ export class CapitalsPanelComponent implements OnInit {
         return items.sort((a, b) => a.balance - b.balance);
       case 'name':
         return items.sort((a, b) => a.name.localeCompare(b.name));
+      case 'incomes':
+        return items.sort((a, b) => b.totalIncome - a.totalIncome);
+      case 'expenses':
+        return items.sort((a, b) => b.totalExpense - a.totalExpense);
       default:
         return items;
     }
   });
 
-  readonly dragDisabled = computed(() => this.sortBy() !== 'custom' || this.isAnonymous());
+  readonly dragDisabled = computed(() => this.sortBy() !== 'custom' || this.hasFilters() || this.isAnonymous());
 
   readonly borrowedByCapital = computed(() => {
     const borrowed = new Map<number, number>();
@@ -113,6 +145,32 @@ export class CapitalsPanelComponent implements OnInit {
 
   sortCapitals(by: string): void {
     this.sortBy.set(by as CapitalSort);
+  }
+
+  setSearch(event: Event): void {
+    this.searchTerm.set((event.target as HTMLInputElement).value);
+  }
+
+  setFilter(event: Event): void {
+    this.filterBy.set((event.target as HTMLSelectElement).value as CapitalFilter);
+  }
+
+  clearFilters(): void {
+    this.searchTerm.set('');
+    this.filterBy.set('all');
+  }
+
+  changeCurrency(event: Event): void {
+    const currency = (event.target as HTMLSelectElement).value;
+    if (!currency || currency === this.userCurrency()) return;
+
+    this.userSettingsService
+      .patch({ currency })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => this.popup.success(`Totals are now shown in ${currency}`),
+        error: () => this.popup.error('Failed to change currency')
+      });
   }
 
   dropCapital(event: CdkDragDrop<CapitalResponse[]>): void {
@@ -178,25 +236,46 @@ export class CapitalsPanelComponent implements OnInit {
     });
   }
 
-  openTransferDialog(sourceCapitalId?: number): void {
-    const data: TransferDialogData = {
-      capitals: this.store.capitals(),
-      exchanges: this.store.exchanges(),
-      sourceCapitalId: sourceCapitalId ?? null
-    };
-    const ref = this.dialogService.open(TransferDialogComponent, { data });
+  toggleIncludeInTotal(cap: CapitalResponse): void {
+    const include = !cap.includeInTotal;
+    this.patch(
+      this.capitalService.patchIncludeTotal(cap.id, include),
+      `${cap.name} ${include ? 'included in' : 'excluded from'} the total`
+    );
+  }
 
-    ref.afterClosed$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(result => {
-      if (!result) return;
+  toggleSavingsOnly(cap: CapitalResponse): void {
+    const savings = !cap.onlyForSavings;
+    this.patch(
+      this.capitalService.patchSavingsOnly(cap.id, savings),
+      `${cap.name} is now ${savings ? 'savings only' : 'a regular capital'}`
+    );
+  }
 
-      this.transferService
-        .create(result)
+  deleteCapital(cap: CapitalResponse): void {
+    const ref = this.dialogService.open(ConfirmDialogComponent, {
+      data: {
+        title: 'Delete capital',
+        message: `Delete "${cap.name}"? A capital that still has expenses, incomes, transfers, bills or debts cannot be deleted.`,
+        icon: 'danger'
+      }
+    });
+
+    ref.afterClosed$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((confirmed: boolean) => {
+      if (!confirmed) return;
+
+      this.capitalService
+        .delete(cap.id)
         .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe({
-          next: () => this.popup.success('Transfer completed'),
-          error: () => this.popup.error('Failed to create transfer')
+          next: () => this.popup.success(`${cap.name} deleted`),
+          error: () => this.popup.error('This capital could not be deleted. It may still have records linked to it.')
         });
     });
+  }
+
+  openTransferDialog(sourceCapitalId?: number): void {
+    void this.quickAdd.transfer(sourceCapitalId);
   }
 
   deleteTransfer(id: number): void {
@@ -207,5 +286,12 @@ export class CapitalsPanelComponent implements OnInit {
         next: () => this.popup.success('Transfer reversed and deleted'),
         error: () => this.popup.error('Failed to delete transfer')
       });
+  }
+
+  private patch(request: Observable<unknown>, message: string): void {
+    request.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: () => this.popup.success(message),
+      error: () => this.popup.error('Failed to update capital')
+    });
   }
 }

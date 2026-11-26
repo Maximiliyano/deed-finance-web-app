@@ -68,7 +68,7 @@
         <div class="bp-donut-center">
           <span class="bp-donut-center-label">{{ store.filteredNetProfit() >= 0 ? 'Net profit' : 'Net deficit' }}</span>
           <span class="bp-donut-center-value" [class]="store.filteredNetProfit() >= 0 ? 'text-success' : 'text-danger'">
-            {{ scaledFilteredNet() | currencySymbol: store.chartCurrency() }}
+            {{ store.filteredNetProfit() | currencySymbol: store.chartCurrency() }}
           </span>
           <span class="bp-donut-center-sub">{{ store.planFilterLabel() }}</span>
         </div>
@@ -77,18 +77,18 @@
         <li>
           <span class="bp-spend-dot dot-income"></span>
           <span>Incomes</span>
-          <strong class="text-success">{{ scaledFilteredIncomes() | currencySymbol: store.chartCurrency() }}</strong>
+          <strong class="text-success">{{ store.filteredIncome() | currencySymbol: store.chartCurrency() }}</strong>
         </li>
         <li>
           <span class="bp-spend-dot dot-loss"></span>
           <span>Losses</span>
-          <strong class="text-danger">{{ scaledFilteredLoss() | currencySymbol: store.chartCurrency() }}</strong>
+          <strong class="text-danger">{{ store.filteredLoss() | currencySymbol: store.chartCurrency() }}</strong>
         </li>
         <li>
           <span class="bp-spend-dot" [class]="store.filteredNetProfit() >= 0 ? 'dot-net' : 'dot-loss'"></span>
           <span>{{ store.filteredNetProfit() >= 0 ? 'Net profit' : 'Net deficit' }}</span>
           <strong [class]="store.filteredNetProfit() >= 0 ? 'text-success' : 'text-danger'">
-            {{ scaledFilteredNet() | currencySymbol: store.chartCurrency() }}
+            {{ store.filteredNetProfit() | currencySymbol: store.chartCurrency() }}
           </strong>
         </li>
       </ul>
