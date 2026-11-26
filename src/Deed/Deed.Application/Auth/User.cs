@@ -22,11 +22,9 @@ public sealed class User(IHttpContextAccessor accessor)
         get
         {
             var p = GetValue(AuthClaimTypes.Picture);
-            if (p is not null)
-            {
-                return new Uri(p);
-            }
-            return null;
+            return p is not null
+                ? new Uri(p)
+                : null;
         }
     }
 

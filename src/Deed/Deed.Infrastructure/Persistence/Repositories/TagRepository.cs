@@ -1,8 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Deed.Application.Abstractions.Data;
+﻿using Deed.Application.Abstractions.Data;
 using Deed.Domain.Entities;
 using Deed.Domain.Repositories;
 

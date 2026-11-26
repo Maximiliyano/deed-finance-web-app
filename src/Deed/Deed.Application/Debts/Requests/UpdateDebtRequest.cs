@@ -1,10 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Deed.Domain.Enums;
-
-namespace Deed.Application.Debts.Requests;
+﻿namespace Deed.Application.Debts.Requests;
 
 public sealed record UpdateDebtRequest(
     string Item,

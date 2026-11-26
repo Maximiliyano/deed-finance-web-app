@@ -74,7 +74,7 @@ public sealed class DeleteIncomeCommandHandlerTests
         var command = new DeleteIncomeCommand(1);
 
         _incomeRepository.GetAsync(Arg.Any<IncomeByIdSpecification>())
-            .Returns((Income)null);
+            .Returns(null as Income);
 
         // Act
         var result = await _handler.Handle(command, CancellationToken.None);

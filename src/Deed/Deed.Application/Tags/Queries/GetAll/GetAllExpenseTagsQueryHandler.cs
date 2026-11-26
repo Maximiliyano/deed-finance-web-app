@@ -1,8 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Deed.Application.Abstractions.Messaging;
+﻿using Deed.Application.Abstractions.Messaging;
 using Deed.Application.Auth;
 using Deed.Application.Tags.Response;
 using Deed.Application.Tags.Specifications;

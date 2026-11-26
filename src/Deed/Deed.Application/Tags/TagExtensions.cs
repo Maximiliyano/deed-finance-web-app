@@ -1,8 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Deed.Application.Tags.Response;
+﻿using Deed.Application.Tags.Response;
 using Deed.Domain.Entities;
 
 namespace Deed.Application.Tags;

@@ -1,8 +1,5 @@
 using Deed.Application.Abstractions.Messaging;
 using Deed.Application.Auth;
-using Deed.Application.Capitals.Specifications;
-using Deed.Application.Categories;
-using Deed.Application.Categories.Specifications;
 using Deed.Application.Incomes.Responses;
 using Deed.Application.Incomes.Specifications;
 using Deed.Domain.Repositories;

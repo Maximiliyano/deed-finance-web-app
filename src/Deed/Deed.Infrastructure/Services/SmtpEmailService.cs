@@ -1,8 +1,11 @@
-using System.Net;
-using System.Net.Mail;
+using System.Net.Sockets;
 using Deed.Application.Abstractions.Services;
 using Deed.Application.Abstractions.Settings;
+using MailKit;
+using MailKit.Net.Smtp;
+using MailKit.Security;
 using Microsoft.Extensions.Options;
+using MimeKit;
 using Polly;
 using Polly.Retry;
 using Serilog;
@@ -17,10 +20,15 @@ internal sealed class SmtpEmailService(IOptions<SmtpSettings> settings) : IEmail
             MaxRetryAttempts = 3,
             Delay = TimeSpan.FromSeconds(2),
             BackoffType = DelayBackoffType.Exponential,
-            ShouldHandle = new PredicateBuilder().Handle<SmtpException>(),
+            ShouldHandle = new PredicateBuilder()
+                .Handle<IOException>()
+                .Handle<SocketException>()
+                .Handle<TimeoutException>()
+                .Handle<SmtpProtocolException>()
+                .Handle<SmtpCommandException>(e => (int)e.StatusCode is >= 400 and <= 500),
             OnRetry = args =>
             {
-                Log.Warning("SMTP retry attempt {Attempt} after {Delay}s", args.AttemptNumber + 1,
+                Log.Warning(args.Outcome.Exception, "SMTP retry attempt {Attempt} after {Delay}s", args.AttemptNumber + 1,
                     args.RetryDelay.TotalSeconds);
                 return ValueTask.CompletedTask;
             }
@@ -29,22 +37,34 @@ internal sealed class SmtpEmailService(IOptions<SmtpSettings> settings) : IEmail
 
     public async Task SendAsync(string to, string subject, string htmlBody, CancellationToken ct = default)
     {
+        SmtpSettings smtp = settings.Value;
+
+        if (string.IsNullOrEmpty(smtp.Host) || string.IsNullOrEmpty(smtp.FromAddress))
+        {
+            throw new InvalidOperationException("SmtpSettings Host and FromAddress must be configured.");
+        }
+
+        using MimeMessage message = new();
+        
+        message.From.Add(MailboxAddress.Parse(smtp.FromAddress));
+        message.To.Add(MailboxAddress.Parse(to));
+        message.Subject = subject;
+        message.Body = new BodyBuilder { HtmlBody = htmlBody }.ToMessageBody();
+        
         await RetryPipeline.ExecuteAsync(async token =>
         {
-            SmtpSettings smtp = settings.Value;
+            using SmtpClient client = new() { Timeout = 30_000 };
 
-            using SmtpClient client = new(smtp.Host, smtp.Port)
+            await client.ConnectAsync(smtp.Host, smtp.Port, SecureSocketOptions.Auto, token).ConfigureAwait(false);
+
+            if (!string.IsNullOrEmpty(smtp.Username))
             {
-                Credentials = new NetworkCredential(smtp.Username, smtp.Password),
-                EnableSsl = true
-            };
-
-            using MailMessage message = new(smtp.FromAddress, to, subject, htmlBody)
-            {
-                IsBodyHtml = true
-            };
-
-            await client.SendMailAsync(message, token).ConfigureAwait(false);
+                await client.AuthenticateAsync(smtp.Username, smtp.Password, token).ConfigureAwait(false);
+            }
+            
+            await client.SendAsync(message, token).ConfigureAwait(false);
+            await client.DisconnectAsync(true, token).ConfigureAwait(false);
+            
             Log.Information("Email sent to {To}: {Subject}", to, subject);
         }, ct).ConfigureAwait(false);
     }

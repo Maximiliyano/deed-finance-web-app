@@ -19,7 +19,7 @@ public sealed class GetByIdIncomeQueryHandlerTests
 
     public GetByIdIncomeQueryHandlerTests()
     {
-        _userMock.Name.Returns("testuser");
+        _userMock.Name.Returns("testUser");
         _handler = new GetIncomeByIdQueryHandler(_incomeRepositoryMock, _userMock);
     }
 
@@ -57,7 +57,7 @@ public sealed class GetByIdIncomeQueryHandlerTests
         var query = new GetIncomeByIdQuery(1);
 
         _incomeRepositoryMock.GetAsync(Arg.Any<IncomeByIdSpecification>())
-            .Returns((Income)null);
+            .Returns(null as Income);
 
         // Act
         var result = await _handler.Handle(query, CancellationToken.None);

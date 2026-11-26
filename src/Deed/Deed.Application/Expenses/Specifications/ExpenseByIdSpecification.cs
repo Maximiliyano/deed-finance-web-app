@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using Deed.Application.Abstractions;
 using Deed.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -6,7 +7,13 @@ namespace Deed.Application.Expenses.Specifications;
 
 internal sealed class ExpenseByIdSpecification : BaseSpecification<Expense>
 {
-    public ExpenseByIdSpecification(int id, string? createdBy = null, bool includeCapital = false, bool includeCategory = false, bool includeTags = false, bool enableTracking = false)
+    public ExpenseByIdSpecification(
+        int id,
+        string? createdBy = null,
+        bool includeCapital = false,
+        bool includeCategory = false,
+        bool includeTags = false,
+        bool enableTracking = false)
         : base(BuildCriteria(id, createdBy, includeTags))
     {
         if (includeCapital)
@@ -28,7 +35,7 @@ internal sealed class ExpenseByIdSpecification : BaseSpecification<Expense>
         }
     }
 
-    private static System.Linq.Expressions.Expression<Func<Expense, bool>> BuildCriteria(int id, string? createdBy, bool filtersIgnored)
+    private static Expression<Func<Expense, bool>> BuildCriteria(int id, string? createdBy, bool filtersIgnored)
         => filtersIgnored
             ? x => x.Id == id && !x.IsDeleted && (createdBy == null || x.CreatedBy == createdBy)
             : x => x.Id == id && (createdBy == null || x.CreatedBy == createdBy);

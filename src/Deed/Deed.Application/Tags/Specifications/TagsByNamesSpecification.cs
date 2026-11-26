@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
 using Deed.Application.Abstractions;
 using Deed.Domain.Entities;

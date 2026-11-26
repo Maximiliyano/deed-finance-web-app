@@ -21,7 +21,7 @@ public sealed class UpdateIncomeCommandHandlerTests
 
     public UpdateIncomeCommandHandlerTests()
     {
-        _userMock.Name.Returns("testuser");
+        _userMock.Name.Returns("testUser");
         _tagRepository.GetAllAsync(Arg.Any<ISpecification<Tag>>(), Arg.Any<CancellationToken>())
             .Returns(Enumerable.Empty<Tag>());
         _handler = new UpdateIncomeCommandHandler(_incomeRepository, _tagRepository, _unitOfWork, _userMock);
@@ -173,7 +173,7 @@ public sealed class UpdateIncomeCommandHandlerTests
         var command = new UpdateIncomeCommand(1);
 
         _incomeRepository.GetAsync(Arg.Any<IncomeByIdSpecification>())
-            .Returns((Income)null);
+            .Returns(null as Income);
 
         // Act
         var result = await _handler.Handle(command, CancellationToken.None);

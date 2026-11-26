@@ -1,5 +1,11 @@
-import { PopupMessageService } from './../../../services/popup-message.service';
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, inject, DestroyRef } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  OnInit,
+  inject,
+  DestroyRef, signal,
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Exchange } from '../../../../core/models/exchange-model';
 import { DatePipe, DecimalPipe } from '@angular/common';
@@ -17,12 +23,11 @@ import { CURRENCIES } from '../../../../core/types/currency-type';
     selector: 'app-exchange-dialog',
     templateUrl: './exchange-dialog.component.html',
     styleUrl: './exchange-dialog.component.scss',
-    imports: [DecimalPipe, FormsModule, IconComponent, ClipboardModule, DatePipe, NumericInputDirective],
+    imports: [DecimalPipe, FormsModule, ClipboardModule, DatePipe, NumericInputDirective],
     standalone: true,
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ExchangeDialogComponent implements OnInit {
-  private readonly popupMessageService = inject(PopupMessageService);
   private readonly sectionLoading = inject(SectionLoadingService);
   private readonly cdr = inject(ChangeDetectorRef);
   readonly exchanges = inject<Exchange[]>(DIALOG_DATA);
@@ -31,6 +36,7 @@ export class ExchangeDialogComponent implements OnInit {
   amount: number | null = 1;
   fromCurrency: string;
   toCurrency: string;
+  isMessageCopied = signal(false);
 
   readonly currencies: string[] = CURRENCIES.map(x => x);
 
@@ -56,9 +62,11 @@ export class ExchangeDialogComponent implements OnInit {
   }
 
   onCopied(copied: boolean) {
-    if (copied) {
-      this.popupMessageService.info('Message is copied to the clipboard.');
-    }
+    if (!copied) return;
+    this.isMessageCopied.set(true);
+    setTimeout(() => {
+      this.isMessageCopied.set(false);
+    }, 2000);
   }
 
   loading(key: SectionKey): boolean {

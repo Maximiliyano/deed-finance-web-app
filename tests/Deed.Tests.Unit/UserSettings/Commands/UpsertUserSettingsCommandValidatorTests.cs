@@ -1,6 +1,5 @@
 using Deed.Application.UserSettings.Commands.Upsert;
 using Deed.Domain.Enums;
-using FluentAssertions;
 using FluentValidation.TestHelper;
 
 namespace Deed.Tests.Unit.UserSettings.Commands;

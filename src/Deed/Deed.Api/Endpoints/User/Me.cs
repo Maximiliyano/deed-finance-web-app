@@ -1,4 +1,5 @@
-﻿using Deed.Application.Auth;
+﻿using Deed.Application.Abstractions.Caching;
+using Deed.Application.Auth;
 using Deed.Application.UserSettings.Queries.Get;
 using Deed.Application.UserSettings.Responses;
 using Deed.Domain.Errors;
@@ -10,7 +11,7 @@ internal sealed class Me : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("api/users/me", async (IUser user, ISender sender) =>
+        app.MapGet("api/users/me", async (IUser user, ISender sender, ICacheService cacheService) =>
         {
             if (user.Name is null)
             {
@@ -18,7 +19,7 @@ internal sealed class Me : IEndpoint
             }
 
             var userSettingRetrievalResult = await sender.Send(new GetUserSettingsQuery(user.Name));
-            UserSettingsResponse? userSetting = userSettingRetrievalResult.Value;
+            UserSettingsResponse? userSettings = userSettingRetrievalResult.Value;
             
             return Results.Ok(new UserResponse(
                 user.ExternalId,
@@ -27,7 +28,7 @@ internal sealed class Me : IEndpoint
                 user.Name,
                 user.Roles,
                 user.PictureUrl,
-                userSetting));
+                userSettings));
         })
         .RequireAuthorization()
         .WithTags(nameof(User));

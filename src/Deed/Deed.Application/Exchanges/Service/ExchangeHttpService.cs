@@ -64,7 +64,7 @@ public sealed class ExchangeHttpService(
                     NationalCurrencyCode = x.BaseCurrency,
                     TargetCurrencyCode = x.Currency,
                     Buy = x.PurchaseRate ?? x.PurchaseRateNB,
-                    Sale = (decimal)(x.SaleRate.HasValue ? x.SaleRate : x.SaleRateNB),
+                    Sale = x.SaleRate ?? x.SaleRateNB,
                     CreatedAt = dateTimeProvider.UtcNow
                 });
 

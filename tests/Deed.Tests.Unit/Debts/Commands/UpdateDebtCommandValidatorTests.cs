@@ -1,6 +1,5 @@
 using Deed.Application.Debts.Commands.Update;
 using Deed.Domain.Enums;
-using FluentAssertions;
 using FluentValidation.TestHelper;
 
 namespace Deed.Tests.Unit.Debts.Commands;

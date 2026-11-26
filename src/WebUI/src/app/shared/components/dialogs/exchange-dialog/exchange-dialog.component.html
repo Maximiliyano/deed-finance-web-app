@@ -27,7 +27,7 @@
     (cdkCopyToClipboardCopied)="onCopied($event)"
   >
     <span aria-live="polite">≈ {{ result | number: '1.2-2' }} {{ toCurrency }}</span>
-    <app-icon name="fas fa-copy"></app-icon>
+    <i class="fas" [class.fa-copy]="!isMessageCopied()" [class.fa-check]="isMessageCopied()"></i>
   </button>
 </div>
 

@@ -1,9 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Deed.Tests.Common.Mocks;
+﻿namespace Deed.Tests.Common.Mocks;
 
 public sealed class MockHttpMessageHandler : DelegatingHandler
 {

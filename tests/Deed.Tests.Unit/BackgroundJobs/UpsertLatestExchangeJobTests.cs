@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Deed.Application.Abstractions.Caching;
+﻿using Deed.Application.Abstractions.Caching;
 using Deed.Application.Exchanges.Service;
 using Deed.Application.Exchanges.Specifications;
 using Deed.Domain.Entities;

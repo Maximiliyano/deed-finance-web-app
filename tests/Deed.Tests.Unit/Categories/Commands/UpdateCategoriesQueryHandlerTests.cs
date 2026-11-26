@@ -1,8 +1,5 @@
 using Deed.Application.Abstractions.Caching;
-using Deed.Application.Capitals.Commands.Update;
 using Deed.Application.Categories.Commands.UpdateRange;
-using Deed.Application.Categories.Requests;
-using Deed.Application.Categories.Response;
 using Deed.Application.Categories.Specifications;
 using Deed.Domain.Entities;
 using Deed.Domain.Enums;

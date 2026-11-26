@@ -5,7 +5,6 @@ using Deed.Domain.Entities;
 using Deed.Domain.Enums;
 using Deed.Domain.Errors;
 using Deed.Domain.Repositories;
-using Deed.Domain.Results;
 using FluentAssertions;
 using NSubstitute;
 

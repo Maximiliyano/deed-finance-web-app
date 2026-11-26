@@ -57,7 +57,7 @@ public sealed class GetExpenseByIdQueryHandlerTests
         var query = new GetExpenseByIdQuery(1);
 
         _expenseRepositoryMock.GetAsync(Arg.Any<ExpenseByIdSpecification>())
-            .Returns((Expense)null);
+            .Returns(null as Expense);
 
         // Act
         var result = await _handler.Handle(query, CancellationToken.None);

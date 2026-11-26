@@ -1,8 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Deed.Application.Abstractions.Caching;
+﻿using Deed.Application.Abstractions.Caching;
 using Deed.Application.Abstractions.Messaging;
 using Deed.Application.Categories.Specifications;
 using Deed.Domain.Errors;

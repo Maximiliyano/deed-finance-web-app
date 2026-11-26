@@ -1,5 +1,3 @@
-using System.Linq;
-using System.Collections.Generic;
 using Deed.Application.Auth;
 using Deed.Application.Capitals.Specifications;
 using Deed.Application.Expenses.Commands.Update;
@@ -10,7 +8,6 @@ using Deed.Domain.Errors;
 using Deed.Domain.Repositories;
 using FluentAssertions;
 using NSubstitute;
-using Xunit;
 
 namespace Deed.Tests.Unit.Expenses.Commands;
 

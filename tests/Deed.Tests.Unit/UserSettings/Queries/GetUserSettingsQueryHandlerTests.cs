@@ -1,4 +1,3 @@
-using Deed.Application.Auth;
 using Deed.Application.UserSettings.Queries.Get;
 using Deed.Domain.Enums;
 using Deed.Domain.Repositories;

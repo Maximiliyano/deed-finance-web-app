@@ -102,7 +102,7 @@ public sealed class CreateExpenseCommandHandlerTests
         var command = new CreateExpenseCommand(1, 1, 10m, DateTimeOffset.UtcNow, null, []);
 
         _capitalRepositoryMock.GetAsync(Arg.Any<CapitalByIdSpecification>())
-            .Returns((Capital)null);
+            .Returns(null as Capital);
 
         // Act
         var result = await _handler.Handle(command, CancellationToken.None);

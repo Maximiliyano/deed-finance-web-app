@@ -20,7 +20,7 @@ public sealed class DeleteUtilityBillCommandHandlerTests
 
     public DeleteUtilityBillCommandHandlerTests()
     {
-        _userMock.Name.Returns("testuser");
+        _userMock.Name.Returns("testUser");
         _handler = new DeleteUtilityBillCommandHandler(_repositoryMock, _unitOfWorkMock, _userMock);
     }
 
