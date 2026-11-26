@@ -6,8 +6,8 @@
   <div class="dialog-body">
     <ol class="steps">
       <li>Open the Privat24 for Business app and go to Settings, then Integrations.</li>
-      <li>Create an API integration and copy the token it gives you.</li>
-      <li>Paste the token below. The token covers every account of that business profile.</li>
+      <li>Create an Autoclient integration and copy the token it gives you.</li>
+      <li>Paste the token and load your accounts. Pick one account or all of them.</li>
     </ol>
 
     <div class="form-group">
@@ -36,6 +36,7 @@
           spellcheck="false"
           placeholder="Paste your token here"
           [type]="tokenVisible() ? 'text' : 'password'"
+          (input)="tokenChanged()"
         />
         <button
           type="button"
@@ -49,22 +50,57 @@
       <span class="form-hint">Stored encrypted and never shown again. You can disconnect at any time.</span>
     </div>
 
-    <div class="form-group">
-      <label for="iban" class="form-label">Account number (IBAN), optional</label>
-      <input
-        id="iban"
-        class="input"
-        formControlName="iban"
-        autocomplete="off"
-        spellcheck="false"
-        placeholder="Leave empty to watch all accounts"
-      />
-      @if (form.controls.iban.touched && form.controls.iban.invalid) {
-        <p class="field-error">Enter a valid Ukrainian IBAN: UA followed by 27 characters.</p>
-      } @else {
-        <span class="form-hint">Fill it in only to watch a single account.</span>
+    @if (accounts(); as list) {
+      @if (list.length > 0) {
+        <div class="form-group">
+          <div class="label-row">
+            <span class="form-label">Accounts</span>
+            <button type="button" class="quick-chip" (click)="toggleAll()">
+              {{ allSelected() ? 'Clear' : 'Select all' }}
+            </button>
+          </div>
+          <div class="account-list">
+            @for (account of list; track account.iban) {
+              <label class="account-row">
+                <input
+                  type="checkbox"
+                  class="checkbox"
+                  [checked]="isSelected(account.iban)"
+                  (change)="toggle(account.iban)"
+                />
+                <span class="account-main">
+                  <span class="account-name">{{ accountName(account) }}</span>
+                  <span class="account-iban">{{ account.iban }}</span>
+                </span>
+                <span class="account-balance">{{ accountBalance(account) }}</span>
+              </label>
+            }
+          </div>
+          <span class="form-hint"
+            >Each selected account is connected separately and can be linked to its own capital.</span
+          >
+        </div>
       }
-    </div>
+    }
+
+    @if (manual() && !hasAccounts) {
+      <div class="form-group">
+        <label for="iban" class="form-label">Account number (IBAN)</label>
+        <input
+          id="iban"
+          class="input"
+          formControlName="iban"
+          autocomplete="off"
+          spellcheck="false"
+          placeholder="UA..."
+        />
+        @if (form.controls.iban.touched && form.controls.iban.invalid) {
+          <p class="field-error">Enter a valid Ukrainian IBAN: UA followed by 27 characters.</p>
+        }
+      </div>
+    } @else if (!hasAccounts) {
+      <button type="button" class="quick-chip" (click)="enterManually()">Enter account number manually</button>
+    }
 
     @if (error(); as message) {
       <p class="field-error" role="alert">{{ message }}</p>
@@ -73,8 +109,28 @@
 
   <div class="dialog-footer">
     <button type="button" class="btn btn-secondary btn-sm" (click)="cancel()">Cancel</button>
-    <button type="submit" class="btn btn-primary btn-sm" [disabled]="form.invalid || submitting()">
-      {{ submitting() ? 'Checking...' : 'Connect' }}
-    </button>
+    @if (hasAccounts) {
+      <button type="submit" class="btn btn-primary btn-sm" [disabled]="selected().length === 0 || submitting()">
+        {{
+          submitting()
+            ? 'Connecting...'
+            : selected().length > 1
+              ? 'Connect ' + selected().length + ' accounts'
+              : 'Connect'
+        }}
+      </button>
+    } @else if (manual()) {
+      <button
+        type="submit"
+        class="btn btn-primary btn-sm"
+        [disabled]="form.controls.token.invalid || manualInvalid || submitting()"
+      >
+        {{ submitting() ? 'Checking...' : 'Connect' }}
+      </button>
+    } @else {
+      <button type="submit" class="btn btn-primary btn-sm" [disabled]="form.controls.token.invalid || loading()">
+        {{ loading() ? 'Loading...' : 'Load accounts' }}
+      </button>
+    }
   </div>
 </form>

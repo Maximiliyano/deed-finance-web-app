@@ -1,14 +1,17 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AbstractControl, FormBuilder, ValidationErrors, Validators } from '@angular/forms';
+import { concatMap, from, toArray } from 'rxjs';
 import { DIALOG_DATA } from '../../../../shared/components/dialogs/models/dialog-consts';
 import { DialogRef } from '../../../../shared/components/dialogs/models/dialog-ref';
 import { PopupMessageService } from '../../../../shared/services/popup-message.service';
 import { SharedModule } from '../../../../shared/shared.module';
+import { PrivatAccount } from '../../models/bank.model';
 import { BankConnectionService } from '../../services/bank-connection.service';
 
 const DEFAULT_LABEL = 'Business';
+const MAX_LABEL = 64;
 
 const normalizeIban = (value: string): string => value.replace(/\s/g, '').toUpperCase();
 
@@ -35,20 +38,41 @@ export class ConnectPrivatDialogComponent {
   private readonly destroyRef = inject(DestroyRef);
 
   protected readonly form = this.fb.nonNullable.group({
-    label: [this.data?.label ?? DEFAULT_LABEL, [Validators.maxLength(64)]],
+    label: [this.data?.label ?? DEFAULT_LABEL, [Validators.maxLength(MAX_LABEL)]],
     token: ['', [Validators.required, Validators.maxLength(512)]],
     iban: ['', [ibanValidator]]
   });
 
+  protected readonly accounts = signal<PrivatAccount[] | null>(null);
+  protected readonly selected = signal<string[]>([]);
+  protected readonly manual = signal(false);
+  protected readonly loading = signal(false);
   protected readonly submitting = signal(false);
   protected readonly error = signal<string | null>(null);
   protected readonly tokenVisible = signal(false);
+
+  protected readonly allSelected = computed(() => {
+    const list = this.accounts() ?? [];
+
+    return list.length > 0 && this.selected().length === list.length;
+  });
+
+  protected get hasAccounts(): boolean {
+    return (this.accounts()?.length ?? 0) > 0;
+  }
+
+  protected get manualInvalid(): boolean {
+    const { iban } = this.form.getRawValue();
+
+    return !iban || this.form.controls.iban.invalid;
+  }
 
   protected async paste(): Promise<void> {
     try {
       const text = await navigator.clipboard.readText();
       this.form.controls.token.setValue(text.trim());
       this.form.controls.token.markAsDirty();
+      this.tokenChanged();
     } catch {
       this.popup.info('Clipboard is not available. Paste the token into the field manually.');
     }
@@ -58,31 +82,131 @@ export class ConnectPrivatDialogComponent {
     this.tokenVisible.update(value => !value);
   }
 
-  protected submit(): void {
-    if (this.form.invalid || this.submitting()) return;
+  protected tokenChanged(): void {
+    this.accounts.set(null);
+    this.selected.set([]);
+    this.error.set(null);
+  }
 
-    const { label, token, iban } = this.form.getRawValue();
-    this.submitting.set(true);
+  protected enterManually(): void {
+    this.manual.set(true);
+    this.error.set(null);
+  }
+
+  protected isSelected(iban: string): boolean {
+    return this.selected().includes(iban);
+  }
+
+  protected toggle(iban: string): void {
+    this.selected.update(list => (list.includes(iban) ? list.filter(item => item !== iban) : [...list, iban]));
+  }
+
+  protected toggleAll(): void {
+    this.selected.set(this.allSelected() ? [] : (this.accounts() ?? []).map(account => account.iban));
+  }
+
+  protected accountName(account: PrivatAccount): string {
+    return account.name || `${account.currency} account`.trim();
+  }
+
+  protected accountBalance(account: PrivatAccount): string {
+    return account.balance === null ? '' : `${account.balance.toFixed(2)} ${account.currency}`.trim();
+  }
+
+  protected loadAccounts(): void {
+    const token = this.form.controls.token;
+
+    if (token.invalid || this.loading()) return;
+
+    this.loading.set(true);
     this.error.set(null);
 
     this.bankConnection
-      .connectPrivat({ label: label.trim(), token: token.trim(), iban: normalizeIban(iban) })
+      .privatAccounts(token.value.trim())
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: () => {
-          this.popup.success('Privat24 connected');
-          this.dialogRef.close(true);
+        next: accounts => {
+          this.loading.set(false);
+          this.accounts.set(accounts);
+          this.selected.set(accounts.map(account => account.iban));
+
+          if (accounts.length === 0) {
+            this.manual.set(true);
+            this.error.set('No accounts were found for this token. Enter the account number manually.');
+          }
         },
         error: (response: HttpErrorResponse) => {
-          this.submitting.set(false);
+          this.loading.set(false);
+          this.manual.set(true);
           this.error.set(
-            response.error?.errors?.[0]?.message ?? 'Could not connect. Check the token and the account number.'
+            this.message(response, 'Could not load accounts. Check the token or enter the account number.')
           );
         }
       });
   }
 
+  protected submit(): void {
+    if (this.submitting()) return;
+
+    if (this.manual() && !this.hasAccounts) {
+      if (!this.form.controls.token.invalid && !this.manualInvalid) {
+        this.connect([normalizeIban(this.form.getRawValue().iban)]);
+      }
+
+      return;
+    }
+
+    if (this.accounts() === null) {
+      this.loadAccounts();
+      return;
+    }
+
+    if (this.selected().length > 0) {
+      this.connect(this.selected());
+    }
+  }
+
   protected cancel(): void {
     this.dialogRef.close(false);
+  }
+
+  private connect(ibans: string[]): void {
+    const { label, token } = this.form.getRawValue();
+    const base = label.trim() || DEFAULT_LABEL;
+
+    this.submitting.set(true);
+    this.error.set(null);
+
+    from(ibans)
+      .pipe(
+        concatMap(iban =>
+          this.bankConnection.connectPrivat({
+            label: ibans.length > 1 ? `${base} ${iban.slice(-4)}`.slice(0, MAX_LABEL) : base,
+            token: token.trim(),
+            iban
+          })
+        ),
+        toArray(),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe({
+        next: () => {
+          this.popup.success(ibans.length > 1 ? `${ibans.length} accounts connected` : 'Privat24 connected');
+          this.dialogRef.close(true);
+        },
+        error: (response: HttpErrorResponse) => {
+          this.submitting.set(false);
+          this.error.set(
+            this.message(
+              response,
+              'Could not connect. Check the token and the account number. Accounts connected so far are kept.'
+            )
+          );
+        }
+      });
+  }
+
+  private message(response: HttpErrorResponse, fallback: string): string {
+    return response.error?.errors?.[0]?.message ?? fallback;
   }
 }

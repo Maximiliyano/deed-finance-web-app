@@ -53,28 +53,14 @@ public sealed class PrivatAutoclientService(
                     await Task.Delay(settings.PageDelayMs, cancellationToken).ConfigureAwait(false);
                 }
 
-                using var request = new HttpRequestMessage(HttpMethod.Get, BuildUrl(settings, account, from, to, followId));
-                request.Headers.Add("token", token);
-                request.Headers.UserAgent.ParseAdd(UserAgent);
+                var body = await SendAsync(BuildUrl(settings, account, from, to, followId), token, cancellationToken).ConfigureAwait(false);
 
-                using var response = await client.SendAsync(request, cancellationToken).ConfigureAwait(false);
-
-                if (!response.IsSuccessStatusCode)
+                if (!body.IsSuccess)
                 {
-                    var error = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
-
-                    Log.Warning(
-                        "Autoclient request failed with status {Status}: {Body}",
-                        (int)response.StatusCode,
-                        error.Length <= 300 ? error : error[..300]);
-
-                    return response.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden
-                        ? Result.Failure<IReadOnlyList<BankTransaction>>(DomainErrors.Bank.TokenInvalid)
-                        : Result.Failure<IReadOnlyList<BankTransaction>>(DomainErrors.HttpClient.Execution);
+                    return Result.Failure<IReadOnlyList<BankTransaction>>(body.Errors);
                 }
 
-                var bytes = await response.Content.ReadAsByteArrayAsync(cancellationToken).ConfigureAwait(false);
-                using var document = JsonDocument.Parse(Decode(bytes));
+                using var document = JsonDocument.Parse(body.Value);
 
                 var root = document.RootElement;
 
@@ -105,6 +91,120 @@ public sealed class PrivatAutoclientService(
             Log.Warning(e, "Exception occurred while fetching Autoclient transactions");
             return Result.Failure<IReadOnlyList<BankTransaction>>(DomainErrors.HttpClient.Execution);
         }
+    }
+
+    public async Task<Result<IReadOnlyList<PrivatAccount>>> GetAccountsAsync(string token, CancellationToken cancellationToken)
+    {
+        var settings = options.Value;
+        var accounts = new Dictionary<string, PrivatAccount>(StringComparer.OrdinalIgnoreCase);
+        string? followId = null;
+
+        try
+        {
+            for (var page = 0; page < settings.MaxPages; page++)
+            {
+                if (page > 0 && settings.PageDelayMs > 0)
+                {
+                    await Task.Delay(settings.PageDelayMs, cancellationToken).ConfigureAwait(false);
+                }
+
+                var url = $"{settings.BaseUrl.TrimEnd('/')}/{settings.BalancesPath.TrimStart('/')}?limit={settings.PageLimit}"
+                    + (followId is null ? string.Empty : $"&followId={Uri.EscapeDataString(followId)}");
+
+                var body = await SendAsync(url, token, cancellationToken).ConfigureAwait(false);
+
+                if (!body.IsSuccess)
+                {
+                    return Result.Failure<IReadOnlyList<PrivatAccount>>(body.Errors);
+                }
+
+                using var document = JsonDocument.Parse(body.Value);
+
+                var root = document.RootElement;
+
+                if (root.ValueKind != JsonValueKind.Object)
+                {
+                    return Result.Failure<IReadOnlyList<PrivatAccount>>(DomainErrors.HttpClient.Serialization);
+                }
+
+                var items = root.TryGetProperty("balances", out var balances) && balances.ValueKind == JsonValueKind.Array
+                    ? balances
+                    : root.EnumerateObject().Select(p => p.Value).FirstOrDefault(v => v.ValueKind == JsonValueKind.Array);
+
+                if (items.ValueKind == JsonValueKind.Array)
+                {
+                    foreach (var account in items.EnumerateArray().Select(MapAccount).OfType<PrivatAccount>())
+                    {
+                        accounts.TryAdd(account.Iban, account);
+                    }
+                }
+
+                followId = root.TryGetProperty("exist_next_page", out var more) && more.ValueKind == JsonValueKind.True
+                    ? ReadString(root, "next_page_id")
+                    : null;
+
+                if (followId is null)
+                {
+                    break;
+                }
+            }
+
+            if (accounts.Count == 0)
+            {
+                Log.Warning("Autoclient balance response contained no recognizable accounts");
+            }
+
+            return Result.Success<IReadOnlyList<PrivatAccount>>([.. accounts.Values]);
+        }
+        catch (Exception e) when (e is HttpRequestException or JsonException or TaskCanceledException)
+        {
+            Log.Warning(e, "Exception occurred while fetching Autoclient accounts");
+            return Result.Failure<IReadOnlyList<PrivatAccount>>(DomainErrors.HttpClient.Execution);
+        }
+    }
+
+    private async Task<Result<string>> SendAsync(string url, string token, CancellationToken cancellationToken)
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Get, url);
+        request.Headers.Add("token", token);
+        request.Headers.UserAgent.ParseAdd(UserAgent);
+
+        using var response = await client.SendAsync(request, cancellationToken).ConfigureAwait(false);
+
+        var bytes = await response.Content.ReadAsByteArrayAsync(cancellationToken).ConfigureAwait(false);
+        var body = Decode(bytes);
+
+        if (response.IsSuccessStatusCode)
+        {
+            return Result.Success(body);
+        }
+
+        Log.Warning(
+            "Autoclient request failed with status {Status}: {Body}",
+            (int)response.StatusCode,
+            body.Length <= 300 ? body : body[..300]);
+
+        return response.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden
+            ? Result.Failure<string>(DomainErrors.Bank.TokenInvalid)
+            : Result.Failure<string>(DomainErrors.HttpClient.Execution);
+    }
+
+    private static PrivatAccount? MapAccount(JsonElement item)
+    {
+        var iban = ReadString(item, "acc") ?? ReadString(item, "ACC") ?? ReadString(item, "iban");
+
+        if (iban is null || !iban.StartsWith("UA", StringComparison.OrdinalIgnoreCase))
+        {
+            return null;
+        }
+
+        var balance = ReadString(item, "balanceOut") ?? ReadString(item, "balanceIn");
+
+        return new PrivatAccount(
+            iban.ToUpperInvariant(),
+            ReadString(item, "currency") ?? ReadString(item, "ccy") ?? string.Empty,
+            ReadString(item, "nameACC") ?? ReadString(item, "name"),
+            decimal.TryParse(balance?.Replace(',', '.'), NumberStyles.Number, CultureInfo.InvariantCulture, out var amount) ? amount : null);
     }
 
     private static string BuildUrl(PrivatAutoclientSettings settings, string iban, DateTimeOffset from, DateTimeOffset to, string? followId)

@@ -4,7 +4,9 @@ public sealed class PrivatAutoclientSettings
 {
     public string BaseUrl { get; init; } = "https://acp.privatbank.ua/api";
 
-    public string TransactionsPath { get; init; } = "statements/transactions/interim";
+    public string TransactionsPath { get; init; } = "statements/transactions";
+
+    public string BalancesPath { get; init; } = "statements/balance/interim";
 
     public int PageLimit { get; init; } = 100;
 

@@ -9,6 +9,7 @@ import {
   ConnectMonobankRequest,
   ConnectPrivatRequest,
   MonobankAccount,
+  PrivatAccount,
   UpdateBankConnectionRequest
 } from '../models/bank.model';
 
@@ -28,6 +29,12 @@ export class BankConnectionService {
     const context = new HttpContext().set(SKIP_ERROR_TOAST, true);
 
     return this.http.post<void>(`${this.baseUrl}/privat`, request, { context }).pipe(switchMap(() => this.load()));
+  }
+
+  privatAccounts(token: string): Observable<PrivatAccount[]> {
+    const context = new HttpContext().set(SKIP_ERROR_TOAST, true);
+
+    return this.http.post<PrivatAccount[]>(`${this.baseUrl}/privat/accounts`, { token }, { context });
   }
 
   monobankAccounts(token: string): Observable<MonobankAccount[]> {

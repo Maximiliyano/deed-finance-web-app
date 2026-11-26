@@ -360,6 +360,8 @@ public sealed class BankTransactionSyncService(
     private async Task MarkTokenInvalidAsync(BankConnection connection, CancellationToken cancellationToken)
     {
         connection.Status = BankConnectionStatus.TokenInvalid;
+        connection.BackfillFrom = null;
+        connection.BackfillCursor = null;
 
         var issue = new BankNotification
             {

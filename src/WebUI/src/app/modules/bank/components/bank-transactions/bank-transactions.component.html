@@ -15,28 +15,45 @@
 
   @if (backfilling().length > 0) {
     <div class="tx-banner" role="status">
-      <i class="fas fa-spinner fa-spin"></i>
-      Importing older transactions in the background
-      @if (backfillFrom(); as from) {
-        back to {{ from | date: 'dd MMM yyyy' }}
+      <div class="tx-banner-head">
+        <i class="fas fa-spinner fa-spin"></i>
+        <span class="tx-banner-text">Importing older transactions in the background</span>
+        <span class="tx-banner-pct">{{ backfillProgress() }}%</span>
+      </div>
+      <div
+        class="progress"
+        role="progressbar"
+        aria-valuemin="0"
+        aria-valuemax="100"
+        [attr.aria-valuenow]="backfillProgress()"
+      >
+        <div class="progress-bar" [style.width.%]="backfillProgress()"></div>
+      </div>
+      @if (backfillCursor(); as cursor) {
+        <span class="tx-banner-meta">
+          Now at {{ cursor | date: 'dd MMM yyyy' }}, going back to {{ backfillFrom() | date: 'dd MMM yyyy' }}. About one
+          month is added every minute.
+        </span>
       }
     </div>
   }
 
   <div class="card">
-    <div class="segmented tx-filters" role="tablist" aria-label="Filter by type">
-      @for (option of filters; track option.value) {
-        <button
-          type="button"
-          class="segmented-btn"
-          role="tab"
-          [class.active]="filter() === option.value"
-          [attr.aria-selected]="filter() === option.value"
-          (click)="setFilter(option.value)"
-        >
-          {{ option.label }}
-        </button>
-      }
+    <div class="tx-filters-bar">
+      <div class="segmented tx-filters" role="tablist" aria-label="Filter by type">
+        @for (option of filters; track option.value) {
+          <button
+            type="button"
+            class="segmented-btn"
+            role="tab"
+            [class.active]="filter() === option.value"
+            [attr.aria-selected]="filter() === option.value"
+            (click)="setFilter(option.value)"
+          >
+            {{ option.label }}
+          </button>
+        }
+      </div>
     </div>
 
     <app-panel-state
@@ -76,11 +93,13 @@
                   </span>
                 </td>
                 <td data-label="Account">{{ item.accountLabel ?? '—' }}</td>
-                <td class="cell-details">
-                  <span class="tx-name">{{ item.counterparty || '—' }}</span>
-                  @if (item.purpose) {
-                    <span class="tx-purpose">{{ item.purpose }}</span>
-                  }
+                <td class="cell-details" data-label="Details">
+                  <div class="tx-details">
+                    <span class="tx-name">{{ item.counterparty || '—' }}</span>
+                    @if (item.purpose) {
+                      <span class="tx-purpose">{{ item.purpose }}</span>
+                    }
+                  </div>
                 </td>
                 <td
                   class="cell-amount"

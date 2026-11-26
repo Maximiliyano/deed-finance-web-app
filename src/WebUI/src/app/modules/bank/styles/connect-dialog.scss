@@ -54,6 +54,56 @@
   }
 }
 
+.account-list {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.account-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  cursor: pointer;
+  transition: background var(--t);
+
+  & + & {
+    border-top: 1px solid var(--border);
+  }
+
+  &:hover {
+    background: var(--surface-2);
+  }
+}
+
+.account-main {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.account-name {
+  font-size: var(--fs-md);
+  font-weight: 500;
+}
+
+.account-iban {
+  font-size: var(--fs-xs);
+  color: var(--text-light);
+  overflow-wrap: anywhere;
+}
+
+.account-balance {
+  font-size: var(--fs-sm);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
 .form-hint {
   font-size: var(--fs-xs);
   color: var(--text-light);

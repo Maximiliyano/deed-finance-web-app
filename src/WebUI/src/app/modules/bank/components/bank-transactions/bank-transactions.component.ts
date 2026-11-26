@@ -64,14 +64,34 @@ export class BankTransactionsComponent implements OnInit {
   protected readonly loading = signal(false);
   protected readonly busy = signal(false);
 
-  protected readonly backfilling = computed(() => this.connections().filter(c => c.backfillCursor !== null));
+  protected readonly backfilling = computed(() =>
+    this.connections().filter(c => c.status === 'Active' && c.backfillCursor !== null && c.backfillFrom !== null)
+  );
   protected readonly backfillFrom = computed(
     () =>
       this.backfilling()
-        .map(c => c.backfillFrom)
-        .filter((value): value is string => value !== null)
+        .map(c => c.backfillFrom!)
         .sort()[0] ?? null
   );
+  protected readonly backfillCursor = computed(
+    () =>
+      this.backfilling()
+        .map(c => c.backfillCursor!)
+        .sort()
+        .at(-1) ?? null
+  );
+  protected readonly backfillProgress = computed(() => {
+    const now = Date.now();
+    const ratios = this.backfilling().map(c => {
+      const from = Date.parse(c.backfillFrom!);
+      const cursor = Date.parse(c.backfillCursor!);
+      const span = now - from;
+
+      return span > 0 ? Math.min(Math.max((now - cursor) / span, 0), 1) : 0;
+    });
+
+    return ratios.length === 0 ? 0 : Math.round(Math.min(...ratios) * 100);
+  });
 
   protected readonly items = computed(() => this.data()?.items ?? []);
   protected readonly total = computed(() => this.data()?.total ?? 0);
@@ -97,13 +117,22 @@ export class BankTransactionsComponent implements OnInit {
       )
       .subscribe(data => this.data.set(data));
 
-    interval(60_000)
+    let lastCursor = this.backfillCursor();
+
+    interval(15_000)
       .pipe(
         filter(() => this.backfilling().length > 0),
-        switchMap(() => this.connectionService.load()),
+        switchMap(() => this.connectionService.load().pipe(catchError(() => EMPTY))),
         takeUntilDestroyed(this.destroyRef)
       )
-      .subscribe(() => this.goTo(this.page()));
+      .subscribe(() => {
+        const cursor = this.backfillCursor();
+
+        if (cursor !== lastCursor) {
+          lastCursor = cursor;
+          this.goTo(this.page());
+        }
+      });
 
     this.reload$.next();
   }

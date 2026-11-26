@@ -42,6 +42,13 @@ export interface ConnectMonobankRequest {
   label: string;
 }
 
+export interface PrivatAccount {
+  iban: string;
+  currency: string;
+  name: string | null;
+  balance: number | null;
+}
+
 export interface MonobankAccount {
   id: string;
   iban: string;
