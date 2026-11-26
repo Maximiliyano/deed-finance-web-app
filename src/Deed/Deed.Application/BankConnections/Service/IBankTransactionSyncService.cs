@@ -12,5 +12,5 @@ public interface IBankTransactionSyncService
 
     Task<int> BackfillAsync(CancellationToken cancellationToken);
 
-    Task<int> StageHistoryAsync(string createdBy, string label, int? connectionId, IReadOnlyCollection<BankTransaction> transactions, CancellationToken cancellationToken);
+    Task<int> StageHistoryAsync(string createdBy, string label, int? connectionId, string? currency, IReadOnlyCollection<BankTransaction> transactions, CancellationToken cancellationToken);
 }

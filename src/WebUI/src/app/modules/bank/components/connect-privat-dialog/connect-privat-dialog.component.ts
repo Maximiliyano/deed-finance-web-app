@@ -150,7 +150,8 @@ export class ConnectPrivatDialogComponent {
           this.bankConnection.connectPrivat({
             label: ibans.length > 1 ? `${base} ${iban.slice(-4)}`.slice(0, MAX_LABEL) : base,
             token: token.trim(),
-            iban
+            iban,
+            currency: this.accounts()?.find(account => account.iban === iban)?.currency
           })
         ),
         toArray(),

@@ -69,12 +69,21 @@
 
       @if (currencies().length > 1) {
         <div class="segmented tx-currencies" role="group" aria-label="Currency">
+          <button
+            type="button"
+            class="segmented-btn"
+            [class.active]="currencyKey() === 'all'"
+            [attr.aria-pressed]="currencyKey() === 'all'"
+            (click)="setCurrency('all')"
+          >
+            All currencies
+          </button>
           @for (code of currencies(); track code) {
             <button
               type="button"
               class="segmented-btn"
-              [class.active]="currency() === code"
-              [attr.aria-pressed]="currency() === code"
+              [class.active]="currencyKey() === code"
+              [attr.aria-pressed]="currencyKey() === code"
               (click)="setCurrency(code)"
             >
               {{ code }}

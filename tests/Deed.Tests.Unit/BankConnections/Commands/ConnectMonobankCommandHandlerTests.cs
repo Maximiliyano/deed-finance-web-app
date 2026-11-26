@@ -136,4 +136,18 @@ public sealed class ConnectMonobankCommandHandlerTests
         => _bankMock
             .GetTransactionsAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<DateTimeOffset>(), Arg.Any<DateTimeOffset>(), Arg.Any<CancellationToken>())
             .Returns(Result.Success<IReadOnlyList<BankTransaction>>([]));
+
+    [Fact]
+    public async Task Handle_AccountCurrencyGiven_IsStoredOnTheConnectionAndUsedForHistory()
+    {
+        // Arrange
+        ReturnHistory();
+
+        // Act
+        await _handler.Handle(new ConnectMonobankCommand("secret", "acc-1", Iban, null, " uah "), CancellationToken.None);
+
+        // Assert
+        _repositoryMock.Received(1).Create(Arg.Is<BankConnection>(c => c.Currency == "UAH"));
+        await _syncMock.Received(1).StageHistoryAsync("owner", Arg.Any<string>(), Arg.Any<int?>(), "UAH", Arg.Any<IReadOnlyCollection<BankTransaction>>(), Arg.Any<CancellationToken>());
+    }
 }

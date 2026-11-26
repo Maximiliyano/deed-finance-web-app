@@ -299,7 +299,7 @@ public sealed class BankTransactionSyncServiceTests
 
         // Act
         var staged = await _service.StageHistoryAsync(
-            "owner", "Biz", 7, [Transaction("old", Now.AddDays(-9)), Transaction("new", Now.AddDays(-8)), Transaction("new", Now.AddDays(-8))], CancellationToken.None);
+            "owner", "Biz", 7, null, [Transaction("old", Now.AddDays(-9)), Transaction("new", Now.AddDays(-8)), Transaction("new", Now.AddDays(-8))], CancellationToken.None);
 
         // Assert
         staged.Should().Be(1);
@@ -798,5 +798,116 @@ public sealed class BankTransactionSyncServiceTests
         // Assert
         imported.Should().Be(0);
         _notificationsMock.DidNotReceive().CreateRange(Arg.Any<IEnumerable<BankNotification>>());
+    }
+
+    [Fact]
+    public async Task SyncAsync_ConnectionKnowsItsAccountCurrency_StoresAmountsInThatCurrency()
+    {
+        // Arrange
+        _connection.Currency = "UAH";
+        ReturnTransactions(new BankTransaction("fx-1", BankTransactionDirection.Outgoing, 382m, "EUR", "Shop", "Card payment", Now.AddMinutes(-2)));
+
+        // Act
+        await _service.SyncAsync(CancellationToken.None);
+
+        // Assert
+        _notificationsMock.Received(1).CreateRange(Arg.Is<IEnumerable<BankNotification>>(items =>
+            items.Single().Amount == 382m && items.Single().Currency == "UAH"));
+    }
+
+    [Fact]
+    public async Task SyncAsync_ConnectionWithoutCurrency_KeepsTheCurrencyOfTheStatement()
+    {
+        // Arrange
+        ReturnTransactions(new BankTransaction("fx-1", BankTransactionDirection.Outgoing, 7.39m, "EUR", "Shop", null, Now.AddMinutes(-2)));
+
+        // Act
+        await _service.SyncAsync(CancellationToken.None);
+
+        // Assert
+        _notificationsMock.Received(1).CreateRange(Arg.Is<IEnumerable<BankNotification>>(items => items.Single().Currency == "EUR"));
+    }
+
+    [Fact]
+    public async Task StageHistoryAsync_AccountCurrencyGiven_OverridesTheStatementCurrency()
+    {
+        // Act
+        await _service.StageHistoryAsync("owner", "Biz", 7, "UAH", [new BankTransaction("fx-2", BankTransactionDirection.Outgoing, 382m, "EUR", null, null, Now.AddDays(-3))], CancellationToken.None);
+
+        // Assert
+        _notificationsMock.Received(1).CreateRange(Arg.Is<IEnumerable<BankNotification>>(items => items.Single().Currency == "UAH"));
+    }
+
+    [Fact]
+    public async Task SyncAsync_MonobankConnectionWithoutCurrency_LearnsItBeforeFetchingStatements()
+    {
+        // Arrange
+        var monobank = Substitute.For<IMonobankService>();
+        monobank.Provider.Returns(BankProvider.Monobank);
+        IReadOnlyList<MonobankAccount> accounts = [new("acc-id", "UA1", "UAH", null, "black", 10m)];
+        monobank.GetAccountsAsync("token", Arg.Any<CancellationToken>()).Returns(Result.Success(accounts));
+        _connection.Provider = BankProvider.Monobank;
+        _connection.ProviderAccountId = "acc-id";
+        var service = new BankTransactionSyncService(
+            _connectionsMock, _notificationsMock, _settingsMock, [_bankMock, monobank], _importerMock,
+            _protectorMock, _emailMock, _publisherMock, _clockMock, _unitOfWorkMock);
+
+        // Act
+        var created = await service.SyncAsync(CancellationToken.None);
+
+        // Assert
+        created.Should().Be(0);
+        _connection.Currency.Should().Be("UAH");
+        await _notificationsMock.Received(1).SetCurrencyAsync("owner", _connection.Id, "UAH", Arg.Any<CancellationToken>());
+        await monobank.DidNotReceive().GetTransactionsAsync(
+            Arg.Any<string>(), Arg.Any<string>(), Arg.Any<DateTimeOffset>(), Arg.Any<DateTimeOffset>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task SyncAsync_MonobankConnectionWithCurrency_FetchesStatementsInThatCurrency()
+    {
+        // Arrange
+        var monobank = Substitute.For<IMonobankService>();
+        monobank.Provider.Returns(BankProvider.Monobank);
+        monobank
+            .GetTransactionsAsync("token", "acc-id", Arg.Any<DateTimeOffset>(), Arg.Any<DateTimeOffset>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Success<IReadOnlyList<BankTransaction>>([new BankTransaction("mono:1", BankTransactionDirection.Outgoing, 382m, "EUR", "Shop", null, Now.AddMinutes(-2))]));
+        _connection.Provider = BankProvider.Monobank;
+        _connection.ProviderAccountId = "acc-id";
+        _connection.Currency = "UAH";
+        var service = new BankTransactionSyncService(
+            _connectionsMock, _notificationsMock, _settingsMock, [_bankMock, monobank], _importerMock,
+            _protectorMock, _emailMock, _publisherMock, _clockMock, _unitOfWorkMock);
+
+        // Act
+        await service.SyncAsync(CancellationToken.None);
+
+        // Assert
+        await monobank.DidNotReceive().GetAccountsAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
+        _notificationsMock.Received(1).CreateRange(Arg.Is<IEnumerable<BankNotification>>(items =>
+            items.Single().Amount == 382m && items.Single().Currency == "UAH"));
+    }
+
+    [Fact]
+    public async Task SyncAsync_MonobankCurrencyLookupFails_RetriesOnTheNextRun()
+    {
+        // Arrange
+        var monobank = Substitute.For<IMonobankService>();
+        monobank.Provider.Returns(BankProvider.Monobank);
+        monobank
+            .GetAccountsAsync("token", Arg.Any<CancellationToken>())
+            .Returns(Result.Failure<IReadOnlyList<MonobankAccount>>(DomainErrors.Bank.RateLimited));
+        _connection.Provider = BankProvider.Monobank;
+        _connection.ProviderAccountId = "acc-id";
+        var service = new BankTransactionSyncService(
+            _connectionsMock, _notificationsMock, _settingsMock, [_bankMock, monobank], _importerMock,
+            _protectorMock, _emailMock, _publisherMock, _clockMock, _unitOfWorkMock);
+
+        // Act
+        await service.SyncAsync(CancellationToken.None);
+
+        // Assert
+        _connection.Currency.Should().BeNull();
+        await _notificationsMock.DidNotReceive().SetCurrencyAsync(Arg.Any<string>(), Arg.Any<int>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
     }
 }

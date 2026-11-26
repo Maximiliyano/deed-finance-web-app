@@ -108,7 +108,13 @@ export class ConnectMonobankDialogComponent {
     this.error.set(null);
 
     this.bankConnection
-      .connectMonobank({ label: label.trim(), token: token.trim(), accountId: account.id, iban: account.iban })
+      .connectMonobank({
+        label: label.trim(),
+        token: token.trim(),
+        accountId: account.id,
+        iban: account.iban,
+        currency: account.currency
+      })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: () => {

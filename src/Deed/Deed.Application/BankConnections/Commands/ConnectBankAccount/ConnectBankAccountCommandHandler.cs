@@ -63,6 +63,7 @@ internal sealed class ConnectBankAccountCommandHandler(
             EncryptedToken = source.EncryptedToken,
             AccountIban = account.Iban,
             Label = label,
+            Currency = string.IsNullOrWhiteSpace(account.Currency) ? null : account.Currency,
             Status = BankConnectionStatus.Active,
             LastSyncAt = now,
             BackfillFrom = now.AddDays(-FullHistoryDays),

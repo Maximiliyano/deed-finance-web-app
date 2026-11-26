@@ -161,4 +161,19 @@ public sealed class ConnectBankAccountCommandHandlerTests
         // Assert
         await _triggerMock.Received(1).TriggerAsync(Arg.Any<CancellationToken>());
     }
+
+    [Fact]
+    public async Task Handle_AvailableAccount_CopiesItsCurrencyToTheConnection()
+    {
+        // Arrange
+        ReturnAccount(new BankAccount(5) { Iban = Iban, Currency = "USD", Provider = BankProvider.PrivatAutoclient, SourceConnectionId = 1 });
+        ReturnExisting(null);
+        ReturnSource(new BankConnection(1) { EncryptedToken = "enc", AccountIban = "UA1", Label = "Business", Status = BankConnectionStatus.Active });
+
+        // Act
+        await _handler.Handle(new ConnectBankAccountCommand(5, null), CancellationToken.None);
+
+        // Assert
+        _connectionsMock.Received(1).Create(Arg.Is<BankConnection>(c => c.Currency == "USD"));
+    }
 }

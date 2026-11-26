@@ -79,7 +79,7 @@ public sealed class ConnectPrivatCommandHandlerTests
 
         // Assert
         await _bankMock.Received(1).GetTransactionsAsync("secret", Iban, Now.AddDays(-30), Now, Arg.Any<CancellationToken>());
-        await _syncMock.Received(1).StageHistoryAsync("testuser", "Biz", Arg.Any<int?>(), history, Arg.Any<CancellationToken>());
+        await _syncMock.Received(1).StageHistoryAsync("testuser", "Biz", Arg.Any<int?>(), Arg.Any<string?>(), history, Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -182,5 +182,23 @@ public sealed class ConnectPrivatCommandHandlerTests
 
         // Assert
         await _triggerMock.Received(1).TriggerAsync(Arg.Any<CancellationToken>());
+    }
+
+    [Theory]
+    [InlineData(null, null)]
+    [InlineData(" uah ", "UAH")]
+    public async Task Handle_NewConnection_StoresTheAccountCurrency(string? currency, string? expected)
+    {
+        // Arrange
+        ReturnBankSuccess();
+        _repositoryMock.GetAsync(Arg.Any<BankConnectionByAccountSpecification>(), Arg.Any<CancellationToken>())
+            .Returns((BankConnection?)null);
+
+        // Act
+        await _handler.Handle(new ConnectPrivatCommand("secret", Iban, null, currency), CancellationToken.None);
+
+        // Assert
+        _repositoryMock.Received(1).Create(Arg.Is<BankConnection>(c => c.Currency == expected));
+        await _syncMock.Received(1).StageHistoryAsync("testuser", Arg.Any<string>(), Arg.Any<int?>(), Arg.Is<string?>(c => c == expected), Arg.Any<IReadOnlyCollection<BankTransaction>>(), Arg.Any<CancellationToken>());
     }
 }

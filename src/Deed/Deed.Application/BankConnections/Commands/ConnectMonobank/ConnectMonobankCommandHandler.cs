@@ -59,6 +59,7 @@ internal sealed class ConnectMonobankCommandHandler(
 
         var encrypted = tokenProtector.Protect(token);
         var label = BankConnectionExtensions.NormalizeLabel(command.Label) ?? existing?.Label ?? DefaultLabel;
+        var currency = string.IsNullOrWhiteSpace(command.Currency) ? null : command.Currency.Trim().ToUpperInvariant();
 
         BankConnection connection;
 
@@ -71,6 +72,7 @@ internal sealed class ConnectMonobankCommandHandler(
                 AccountIban = iban,
                 ProviderAccountId = accountId,
                 Label = label,
+                Currency = currency,
                 Status = BankConnectionStatus.Active,
                 LastSyncAt = now
             };
@@ -83,6 +85,7 @@ internal sealed class ConnectMonobankCommandHandler(
             existing.EncryptedToken = encrypted;
             existing.ProviderAccountId = accountId;
             existing.Label = label;
+            existing.Currency = currency ?? existing.Currency;
             existing.Status = BankConnectionStatus.Active;
             existing.LastSyncAt = now;
         }
@@ -90,7 +93,7 @@ internal sealed class ConnectMonobankCommandHandler(
         await unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         var imported = await syncService
-            .StageHistoryAsync(user.Name!, label, connection.Id, history, cancellationToken)
+            .StageHistoryAsync(user.Name!, label, connection.Id, connection.Currency, history, cancellationToken)
             .ConfigureAwait(false);
 
         connection.BackfillFrom ??= now.AddDays(-FullHistoryDays);

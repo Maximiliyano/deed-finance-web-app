@@ -75,6 +75,14 @@ export class BankSummaryComponent {
 
     return list.find(item => item.currency === this.currency()) ?? list[0] ?? null;
   });
+  protected readonly showAll = computed(() => this.currency() === null && (this.data()?.currencies.length ?? 0) > 1);
+  protected readonly overview = computed(() =>
+    (this.data()?.currencies ?? []).flatMap(item => {
+      const latest = item.periods[0];
+
+      return latest ? [{ currency: item.currency, latest }] : [];
+    })
+  );
   protected readonly latest = computed(() => this.current()?.periods[0] ?? null);
   protected readonly dateFormat = computed(() => DATE_FORMATS[this.data()?.period.toLowerCase() ?? 'month']);
   protected readonly unit = computed(() => PERIODS.find(item => item.value === this.period())?.label.toLowerCase());

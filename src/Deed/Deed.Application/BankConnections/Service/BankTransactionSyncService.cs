@@ -94,6 +94,11 @@ public sealed class BankTransactionSyncService(
             return 0;
         }
 
+        if (await LearnCurrencyAsync(connection, provider, secret, cancellationToken).ConfigureAwait(false))
+        {
+            return 0;
+        }
+
         var result = await provider
             .GetTransactionsAsync(secret, AccountOf(connection), now - Lookback, now, cancellationToken)
             .ConfigureAwait(false);
@@ -107,7 +112,7 @@ public sealed class BankTransactionSyncService(
 
         var baseline = connection.CreatedAt - BaselineTolerance;
 
-        var candidates = result.Value
+        var candidates = InAccountCurrency(result.Value, connection.Currency)
             .Where(t => t.OccurredAt >= baseline)
             .GroupBy(t => t.ExternalId, StringComparer.OrdinalIgnoreCase)
             .Select(g => g.First())
@@ -239,6 +244,11 @@ public sealed class BankTransactionSyncService(
             return 0;
         }
 
+        if (await LearnCurrencyAsync(connection, provider, secret, cancellationToken).ConfigureAwait(false))
+        {
+            return 0;
+        }
+
         var start = cursor - ChunkWindow > floor ? cursor - ChunkWindow : floor;
 
         var result = await provider
@@ -282,7 +292,7 @@ public sealed class BankTransactionSyncService(
             return 0;
         }
 
-        var staged = await StageHistoryAsync(connection.CreatedBy, connection.Label, connection.Id, result.Value, cancellationToken).ConfigureAwait(false);
+        var staged = await StageHistoryAsync(connection.CreatedBy, connection.Label, connection.Id, connection.Currency, result.Value, cancellationToken).ConfigureAwait(false);
 
         connection.BackfillFailures = 0;
 
@@ -339,9 +349,9 @@ public sealed class BankTransactionSyncService(
         await unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
     }
 
-    public async Task<int> StageHistoryAsync(string createdBy, string label, int? connectionId, IReadOnlyCollection<BankTransaction> transactions, CancellationToken cancellationToken)
+    public async Task<int> StageHistoryAsync(string createdBy, string label, int? connectionId, string? currency, IReadOnlyCollection<BankTransaction> transactions, CancellationToken cancellationToken)
     {
-        var candidates = transactions
+        var candidates = InAccountCurrency(transactions, currency)
             .GroupBy(t => t.ExternalId, StringComparer.OrdinalIgnoreCase)
             .Select(g => g.First())
             .ToList();
@@ -422,6 +432,42 @@ public sealed class BankTransactionSyncService(
             .ConfigureAwait(false)).ToHashSet(StringComparer.OrdinalIgnoreCase);
 
         return candidates.Where(t => !known.Contains(StoredId(t))).ToList();
+    }
+
+    private static IEnumerable<BankTransaction> InAccountCurrency(IEnumerable<BankTransaction> transactions, string? currency)
+        => string.IsNullOrWhiteSpace(currency)
+            ? transactions
+            : transactions.Select(t => t with { Currency = currency });
+
+    private async Task<bool> LearnCurrencyAsync(BankConnection connection, IBankStatementProvider provider, string secret, CancellationToken cancellationToken)
+    {
+        if (!string.IsNullOrWhiteSpace(connection.Currency) || provider is not IMonobankService monobank || connection.ProviderAccountId is null)
+        {
+            return false;
+        }
+
+        var accounts = await monobank.GetAccountsAsync(secret, cancellationToken).ConfigureAwait(false);
+
+        if (!accounts.IsSuccess)
+        {
+            return true;
+        }
+
+        var account = accounts.Value.FirstOrDefault(a => a.Id == connection.ProviderAccountId);
+
+        if (account is null || string.IsNullOrWhiteSpace(account.Currency))
+        {
+            return true;
+        }
+
+        connection.Currency = account.Currency;
+
+        await notificationRepository.SetCurrencyAsync(connection.CreatedBy, connection.Id, account.Currency, cancellationToken).ConfigureAwait(false);
+        await unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+
+        Log.Information("Bank account currency learned for {User} ({Label}): {Currency}", connection.CreatedBy, connection.Label, account.Currency);
+
+        return true;
     }
 
     private static string StoredId(BankTransaction transaction)

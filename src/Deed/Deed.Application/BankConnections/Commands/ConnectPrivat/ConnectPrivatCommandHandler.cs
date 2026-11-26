@@ -48,6 +48,7 @@ internal sealed class ConnectPrivatCommandHandler(
 
         var encrypted = tokenProtector.Protect(token);
         var label = BankConnectionExtensions.NormalizeLabel(command.Label) ?? existing?.Label ?? DefaultLabel;
+        var currency = string.IsNullOrWhiteSpace(command.Currency) ? null : command.Currency.Trim().ToUpperInvariant();
 
         BankConnection connection;
 
@@ -59,6 +60,7 @@ internal sealed class ConnectPrivatCommandHandler(
                 EncryptedToken = encrypted,
                 AccountIban = iban,
                 Label = label,
+                Currency = currency,
                 Status = BankConnectionStatus.Active,
                 LastSyncAt = now
             };
@@ -70,6 +72,7 @@ internal sealed class ConnectPrivatCommandHandler(
             connection = existing;
             existing.EncryptedToken = encrypted;
             existing.Label = label;
+            existing.Currency = currency ?? existing.Currency;
             existing.Status = BankConnectionStatus.Active;
             existing.LastSyncAt = now;
         }
@@ -77,7 +80,7 @@ internal sealed class ConnectPrivatCommandHandler(
         await unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         var imported = await syncService
-            .StageHistoryAsync(user.Name!, label, connection.Id, check.Value, cancellationToken)
+            .StageHistoryAsync(user.Name!, label, connection.Id, connection.Currency, check.Value, cancellationToken)
             .ConfigureAwait(false);
 
         connection.BackfillFrom ??= now.AddDays(-FullHistoryDays);

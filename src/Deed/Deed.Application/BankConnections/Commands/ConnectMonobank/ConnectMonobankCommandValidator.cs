@@ -19,5 +19,8 @@ internal sealed class ConnectMonobankCommandValidator : AbstractValidator<Connec
 
         RuleFor(c => c.Label)
             .MaximumLength(64);
+
+        RuleFor(c => c.Currency)
+            .MaximumLength(8);
     }
 }

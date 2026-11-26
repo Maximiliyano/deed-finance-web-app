@@ -43,6 +43,11 @@ internal sealed class BankNotificationRepository(IDeedDbContext context)
             .Select(n => n.ExternalId)
             .ToListAsync(cancellationToken);
 
+    public async Task<int> SetCurrencyAsync(string createdBy, int connectionId, string currency, CancellationToken cancellationToken = default) =>
+        await DbSet
+            .Where(n => n.CreatedBy == createdBy && n.BankConnectionId == connectionId && n.Currency != currency)
+            .ExecuteUpdateAsync(p => p.SetProperty(n => n.Currency, currency), cancellationToken);
+
     public async Task<int> MarkReadAsync(string createdBy, IReadOnlyCollection<int>? ids, CancellationToken cancellationToken = default)
     {
         var selected = ids?.ToList();

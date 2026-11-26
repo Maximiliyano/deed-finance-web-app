@@ -182,4 +182,19 @@ public sealed class BankAccountRefreshServiceTests
             Status = BankConnectionStatus.Active,
             CreatedBy = "owner"
         };
+
+    [Fact]
+    public async Task RefreshAsync_KnownCurrency_IsWrittenToTheMatchingConnections()
+    {
+        // Arrange
+        var connection = Connection(1, "enc:secret", IbanOne);
+        ReturnConnections(connection);
+        ReturnAccounts("secret", new PrivatAccount(IbanOne, "EUR", null, 5m));
+
+        // Act
+        await _service.RefreshAsync(CancellationToken.None);
+
+        // Assert
+        connection.Currency.Should().Be("EUR");
+    }
 }

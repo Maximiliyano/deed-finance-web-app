@@ -33,6 +33,7 @@ export interface ConnectPrivatRequest {
   token: string;
   iban: string;
   label: string;
+  currency?: string;
 }
 
 export interface ConnectMonobankRequest {
@@ -40,6 +41,7 @@ export interface ConnectMonobankRequest {
   accountId: string;
   iban: string;
   label: string;
+  currency?: string;
 }
 
 export interface PrivatAccount {

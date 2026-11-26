@@ -18,6 +18,8 @@ public sealed class BankConnection : Entity, IAuditableEntity, ISoftDeletableEnt
 
     public string Label { get; set; } = string.Empty;
 
+    public string? Currency { get; set; }
+
     public int? CapitalId { get; set; }
 
     public bool AutoImport { get; set; }

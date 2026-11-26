@@ -20,7 +20,39 @@
     title="Nothing to summarize yet"
     hint="Totals appear here once this account has transactions."
   >
-    @if (current(); as currency) {
+    @if (showAll()) {
+      <div class="sum-body">
+        <ul class="sum-all">
+          @for (item of overview(); track item.currency) {
+            <li class="sum-all-row">
+              <span class="sum-all-head">
+                <span class="sum-all-code">{{ item.currency || 'Other' }}</span>
+                <span class="sum-label">{{ item.latest.start | date: dateFormat() }}</span>
+              </span>
+              <span class="sum-all-figures">
+                <span class="sum-all-figure">
+                  <span class="stat-label">In</span>
+                  <span class="text-success">{{ money(item.latest.income, item.currency) }}</span>
+                </span>
+                <span class="sum-all-figure">
+                  <span class="stat-label">Out</span>
+                  <span class="text-danger">{{ money(item.latest.expense, item.currency) }}</span>
+                </span>
+                <span class="sum-all-figure">
+                  <span class="stat-label">Net</span>
+                  <span
+                    [class.text-success]="item.latest.income - item.latest.expense >= 0"
+                    [class.text-danger]="item.latest.income - item.latest.expense < 0"
+                    >{{ money(item.latest.income - item.latest.expense, item.currency) }}</span
+                  >
+                </span>
+              </span>
+            </li>
+          }
+        </ul>
+        <p class="sum-hint">Amounts in different currencies are never added together. Pick a currency for details.</p>
+      </div>
+    } @else if (current(); as currency) {
       <div class="sum-body">
         @if (latest(); as row) {
           <p class="sum-label">{{ row.start | date: dateFormat() }}</p>

@@ -19,6 +19,8 @@ public interface IBankNotificationRepository
 
     Task<DateTimeOffset?> GetOldestAsync(ISpecification<BankNotification> specification, CancellationToken cancellationToken = default);
 
+    Task<int> SetCurrencyAsync(string createdBy, int connectionId, string currency, CancellationToken cancellationToken = default);
+
     Task<int> MarkReadAsync(string createdBy, IReadOnlyCollection<int>? ids, CancellationToken cancellationToken = default);
 
     Task<int> DeleteByConnectionsAsync(string createdBy, IReadOnlyCollection<int> connectionIds, CancellationToken cancellationToken = default);

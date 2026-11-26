@@ -13,6 +13,9 @@ internal sealed class ConnectPrivatCommandValidator : AbstractValidator<ConnectP
         RuleFor(c => c.Label)
             .MaximumLength(64);
 
+        RuleFor(c => c.Currency)
+            .MaximumLength(8);
+
         RuleFor(c => c.Iban)
             .NotEmpty()
             .Must(iban => IsValidIban(BankConnectionExtensions.NormalizeIban(iban)))

@@ -92,6 +92,14 @@ public sealed class BankAccountRefreshService(
                 seen.Add(account.Iban);
                 refreshed++;
 
+                if (!string.IsNullOrWhiteSpace(account.Currency))
+                {
+                    foreach (var linked in connections.Where(c => string.Equals(c.AccountIban, account.Iban, StringComparison.OrdinalIgnoreCase)))
+                    {
+                        linked.Currency = account.Currency;
+                    }
+                }
+
                 if (byIban.TryGetValue(account.Iban, out var row))
                 {
                     row.Currency = account.Currency;

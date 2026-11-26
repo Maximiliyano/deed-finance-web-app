@@ -85,13 +85,13 @@ export class BankTransactionsComponent implements OnInit {
   protected readonly accountId = signal<number | null>(null);
 
   protected readonly currencies = signal<string[]>([]);
-  private readonly selectedCurrency = signal<string | null>(null);
+  private readonly currencyChoice = signal('all');
   protected readonly currency = computed(() => {
-    const list = this.currencies();
-    const selected = this.selectedCurrency();
+    const choice = this.currencyChoice();
 
-    return selected !== null && list.includes(selected) ? selected : (list[0] ?? null);
+    return choice !== 'all' && this.currencies().includes(choice) ? choice : null;
   });
+  protected readonly currencyKey = computed(() => this.currency() ?? 'all');
 
   protected readonly typeFilter = signal<TypeFilter>('all');
   protected readonly reviewOnly = signal(false);
@@ -232,7 +232,7 @@ export class BankTransactionsComponent implements OnInit {
   protected setProvider(provider: BankProvider): void {
     this.selectedProvider.set(provider);
     this.accountId.set(null);
-    this.selectedCurrency.set(null);
+    this.currencyChoice.set('all');
     this.currencies.set([]);
     this.page.set(1);
     this.reload();
@@ -245,7 +245,7 @@ export class BankTransactionsComponent implements OnInit {
   }
 
   protected setCurrency(currency: string): void {
-    this.selectedCurrency.set(currency);
+    this.currencyChoice.set(currency);
     this.page.set(1);
     this.reload();
   }

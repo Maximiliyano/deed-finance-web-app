@@ -11,7 +11,7 @@ internal sealed class ConnectMonobank : IEndpoint
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
         app.MapPost("api/bank-connections/monobank", async (ConnectMonobankRequest request, ISender sender, CancellationToken ct) =>
-            (await sender.Send(new ConnectMonobankCommand(request.Token, request.AccountId, request.Iban, request.Label), ct))
+            (await sender.Send(new ConnectMonobankCommand(request.Token, request.AccountId, request.Iban, request.Label, request.Currency), ct))
                 .Process(ResultType.NoContent))
             .RequireAuthorization()
             .WithTags(nameof(BankConnections));
