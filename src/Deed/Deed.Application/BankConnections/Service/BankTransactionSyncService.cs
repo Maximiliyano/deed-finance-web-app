@@ -8,6 +8,7 @@ using Deed.Domain.Enums;
 using Deed.Domain.Errors;
 using Deed.Domain.Providers;
 using Deed.Domain.Repositories;
+using Deed.Domain.Results;
 using Serilog;
 
 namespace Deed.Application.BankConnections.Service;
@@ -17,6 +18,7 @@ public sealed class BankTransactionSyncService(
     IBankNotificationRepository notificationRepository,
     IUserSettingsRepository userSettingsRepository,
     IPrivatAutoclientService bank,
+    IPrivatCardService card,
     ITokenProtector tokenProtector,
     IEmailService emailService,
     IDateTimeProvider dateTimeProvider,
@@ -47,18 +49,16 @@ public sealed class BankTransactionSyncService(
     private async Task SyncConnectionAsync(BankConnection connection, CancellationToken cancellationToken)
     {
         var now = dateTimeProvider.UtcNow;
-        var token = tokenProtector.Unprotect(connection.EncryptedToken);
+        var secret = tokenProtector.Unprotect(connection.EncryptedToken);
 
-        if (token is null)
+        if (secret is null)
         {
             await MarkTokenInvalidAsync(connection, cancellationToken).ConfigureAwait(false);
             return;
         }
 
         var since = connection.LastSyncAt - Overlap;
-        var result = await bank
-            .GetTransactionsAsync(token, connection.AccountIban, since, now, cancellationToken)
-            .ConfigureAwait(false);
+        var result = await FetchAsync(connection, secret, since, now, cancellationToken).ConfigureAwait(false);
 
         if (!result.IsSuccess)
         {
@@ -92,6 +92,29 @@ public sealed class BankTransactionSyncService(
             Log.Information("Bank sync created {Count} notification(s) for user {User}", fresh.Count, connection.CreatedBy);
             await SendEmailAsync(connection.CreatedBy, fresh, cancellationToken).ConfigureAwait(false);
         }
+    }
+
+    private async Task<Result<IReadOnlyList<BankTransaction>>> FetchAsync(
+        BankConnection connection,
+        string secret,
+        DateTimeOffset since,
+        DateTimeOffset now,
+        CancellationToken cancellationToken)
+    {
+        if (connection.Provider != BankProvider.PrivatCard)
+        {
+            return await bank
+                .GetTransactionsAsync(secret, connection.AccountIban, since, now, cancellationToken)
+                .ConfigureAwait(false);
+        }
+
+        var credentials = PrivatCardCredentials.Parse(secret);
+
+        return credentials is null
+            ? Result.Failure<IReadOnlyList<BankTransaction>>(DomainErrors.Bank.TokenInvalid)
+            : await card
+                .GetTransactionsAsync(credentials, connection.AccountIban, since, now, cancellationToken)
+                .ConfigureAwait(false);
     }
 
     private async Task<List<BankTransaction>> FilterNewAsync(

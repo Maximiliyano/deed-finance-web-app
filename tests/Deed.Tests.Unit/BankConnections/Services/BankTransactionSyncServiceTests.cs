@@ -22,6 +22,7 @@ public sealed class BankTransactionSyncServiceTests
     private readonly IBankNotificationRepository _notificationsMock = Substitute.For<IBankNotificationRepository>();
     private readonly IUserSettingsRepository _settingsMock = Substitute.For<IUserSettingsRepository>();
     private readonly IPrivatAutoclientService _bankMock = Substitute.For<IPrivatAutoclientService>();
+    private readonly IPrivatCardService _cardMock = Substitute.For<IPrivatCardService>();
     private readonly ITokenProtector _protectorMock = Substitute.For<ITokenProtector>();
     private readonly IEmailService _emailMock = Substitute.For<IEmailService>();
     private readonly IDateTimeProvider _clockMock = Substitute.For<IDateTimeProvider>();
@@ -53,7 +54,7 @@ public sealed class BankTransactionSyncServiceTests
             .Returns([]);
 
         _service = new BankTransactionSyncService(
-            _connectionsMock, _notificationsMock, _settingsMock, _bankMock,
+            _connectionsMock, _notificationsMock, _settingsMock, _bankMock, _cardMock,
             _protectorMock, _emailMock, _clockMock, _unitOfWorkMock);
     }
 
@@ -106,6 +107,46 @@ public sealed class BankTransactionSyncServiceTests
 
         // Assert
         _notificationsMock.DidNotReceive().CreateRange(Arg.Any<IEnumerable<BankNotification>>());
+    }
+
+    [Fact]
+    public async Task SyncAsync_CardConnection_UsesCardServiceWithParsedCredentials()
+    {
+        // Arrange
+        _connection.Provider = BankProvider.PrivatCard;
+        _connection.AccountIban = "4111111111111111";
+        _protectorMock.Unprotect("enc").Returns(new PrivatCardCredentials("12345", "pass").Serialize());
+        _cardMock
+            .GetTransactionsAsync(Arg.Any<PrivatCardCredentials>(), Arg.Any<string>(), Arg.Any<DateTimeOffset>(), Arg.Any<DateTimeOffset>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Success<IReadOnlyList<BankTransaction>>([Transaction("card-1", Now.AddMinutes(-2))]));
+
+        // Act
+        await _service.SyncAsync(CancellationToken.None);
+
+        // Assert
+        await _cardMock.Received(1).GetTransactionsAsync(
+            Arg.Is<PrivatCardCredentials>(c => c.MerchantId == "12345" && c.Password == "pass"),
+            "4111111111111111",
+            Arg.Any<DateTimeOffset>(),
+            Arg.Any<DateTimeOffset>(),
+            Arg.Any<CancellationToken>());
+        await _bankMock.DidNotReceive().GetTransactionsAsync(
+            Arg.Any<string>(), Arg.Any<string>(), Arg.Any<DateTimeOffset>(), Arg.Any<DateTimeOffset>(), Arg.Any<CancellationToken>());
+        _notificationsMock.Received(1).CreateRange(Arg.Is<IEnumerable<BankNotification>>(items => items.Single().ExternalId == "card-1"));
+    }
+
+    [Fact]
+    public async Task SyncAsync_CardConnectionWithUnreadableCredentials_MarksConnectionInvalid()
+    {
+        // Arrange
+        _connection.Provider = BankProvider.PrivatCard;
+        _protectorMock.Unprotect("enc").Returns("not-json");
+
+        // Act
+        await _service.SyncAsync(CancellationToken.None);
+
+        // Assert
+        _connection.Status.Should().Be(BankConnectionStatus.TokenInvalid);
     }
 
     [Fact]

@@ -1,13 +1,20 @@
 export interface BankConnection {
   connected: boolean;
+  provider: 'PrivatAutoclient' | 'PrivatCard' | null;
   status: 'Active' | 'TokenInvalid' | null;
-  maskedIban: string | null;
+  maskedAccount: string | null;
   lastSyncAt: string | null;
 }
 
 export interface ConnectPrivatRequest {
   token: string;
   iban: string;
+}
+
+export interface ConnectPrivatCardRequest {
+  merchantId: string;
+  password: string;
+  cardNumber: string;
 }
 
 export interface BankNotification {
@@ -29,7 +36,8 @@ export interface BankNotifications {
 
 export const EMPTY_BANK_CONNECTION: BankConnection = {
   connected: false,
+  provider: null,
   status: null,
-  maskedIban: null,
+  maskedAccount: null,
   lastSyncAt: null
 };

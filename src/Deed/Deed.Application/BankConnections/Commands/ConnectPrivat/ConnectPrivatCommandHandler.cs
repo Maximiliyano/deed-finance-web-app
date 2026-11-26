@@ -55,6 +55,7 @@ internal sealed class ConnectPrivatCommandHandler(
         }
         else
         {
+            existing.Provider = BankProvider.PrivatAutoclient;
             existing.EncryptedToken = encrypted;
             existing.AccountIban = iban;
             existing.Status = BankConnectionStatus.Active;

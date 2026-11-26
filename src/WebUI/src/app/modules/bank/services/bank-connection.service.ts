@@ -2,7 +2,12 @@ import { HttpClient, HttpContext } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { BehaviorSubject, Observable, switchMap, tap } from 'rxjs';
 import { SKIP_ERROR_TOAST } from '../../../core/interceptors/error.interceptor';
-import { BankConnection, ConnectPrivatRequest, EMPTY_BANK_CONNECTION } from '../models/bank.model';
+import {
+  BankConnection,
+  ConnectPrivatCardRequest,
+  ConnectPrivatRequest,
+  EMPTY_BANK_CONNECTION
+} from '../models/bank.model';
 
 @Injectable({ providedIn: 'root' })
 export class BankConnectionService {
@@ -22,9 +27,13 @@ export class BankConnectionService {
     return this.http.post<void>(`${this.baseUrl}/privat`, request, { context }).pipe(switchMap(() => this.load()));
   }
 
+  connectPrivatCard(request: ConnectPrivatCardRequest): Observable<BankConnection> {
+    const context = new HttpContext().set(SKIP_ERROR_TOAST, true);
+
+    return this.http.post<void>(`${this.baseUrl}/privat-card`, request, { context }).pipe(switchMap(() => this.load()));
+  }
+
   disconnectPrivat(): Observable<void> {
-    return this.http
-      .delete<void>(`${this.baseUrl}/privat`)
-      .pipe(tap(() => this.state$.next(EMPTY_BANK_CONNECTION)));
+    return this.http.delete<void>(`${this.baseUrl}/privat`).pipe(tap(() => this.state$.next(EMPTY_BANK_CONNECTION)));
   }
 }

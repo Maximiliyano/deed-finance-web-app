@@ -38,6 +38,9 @@ public static class DependencyInjection
             services.AddHttpClient<IPrivatAutoclientService, PrivatAutoclientService>()
                 .AddStandardResilienceHandler();
 
+            services.AddHttpClient<IPrivatCardService, PrivatCardService>()
+                .AddStandardResilienceHandler();
+
             services.AddScoped<IBankTransactionSyncService, BankTransactionSyncService>();
 
             return services;
@@ -143,6 +146,8 @@ public static class DependencyInjection
             services.Configure<SmtpSettings>(configuration.GetRequiredSection(nameof(SmtpSettings)));
 
             services.Configure<PrivatAutoclientSettings>(configuration.GetSection(nameof(PrivatAutoclientSettings)));
+
+            services.Configure<PrivatCardSettings>(configuration.GetSection(nameof(PrivatCardSettings)));
 
             return services;
         }

@@ -57,7 +57,7 @@
               [class.badge-success]="connection.status === 'Active'"
               [class.badge-warning]="connection.status === 'TokenInvalid'"
             >
-              {{ connection.status === 'Active' ? 'Connected' : 'Token expired' }}
+              {{ connection.status === 'Active' ? 'Connected' : 'Needs attention' }}
             </span>
           }
         }
@@ -66,22 +66,24 @@
         @if (bankConnection(); as connection) {
           @if (connection.connected) {
             <div class="bank-summary">
-              <span class="toggle-label">Privat24 <span class="bank-iban">{{ connection.maskedIban }}</span></span>
+              <span class="toggle-label"
+                >Privat24 <span class="bank-iban">{{ connection.maskedAccount }}</span></span
+              >
               @if (connection.status === 'TokenInvalid') {
-                <span class="toggle-hint">The bank rejected the token. Reconnect with a new one to resume alerts.</span>
+                <span class="toggle-hint">The bank rejected the credentials. Reconnect to resume alerts.</span>
               } @else if (connection.lastSyncAt) {
                 <span class="toggle-hint">Last checked {{ connection.lastSyncAt | date: 'dd MMM, HH:mm' }}</span>
               }
             </div>
             <div class="settings-footer bank-actions">
               <button type="button" class="btn btn-secondary btn-sm" (click)="connectPrivat()">
-                {{ connection.status === 'TokenInvalid' ? 'Reconnect' : 'Replace token' }}
+                {{ connection.status === 'TokenInvalid' ? 'Reconnect' : 'Change' }}
               </button>
               <button type="button" class="btn btn-danger btn-sm" (click)="disconnectPrivat()">Disconnect</button>
             </div>
           } @else {
             <p class="toggle-hint">
-              Connect your Privat24 business account to get a notification when a new transaction appears.
+              Connect your Privat24 card or business account to get a notification when a new transaction appears.
             </p>
             <div class="settings-footer">
               <button type="button" class="btn btn-primary btn-sm" (click)="connectPrivat()">

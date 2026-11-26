@@ -2,6 +2,7 @@ namespace Deed.Application.BankConnections.Responses;
 
 public sealed record BankConnectionResponse(
     bool Connected,
+    string? Provider,
     string? Status,
-    string? MaskedIban,
+    string? MaskedAccount,
     DateTimeOffset? LastSyncAt);
