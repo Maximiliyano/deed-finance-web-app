@@ -55,6 +55,16 @@ internal static class SpecificationEvaluator
             queryable = queryable.OrderByDescending(specification.OrderByDescending);
         }
 
+        if (specification.ThenByDescending is not null && queryable is IOrderedQueryable<TEntity> ordered)
+        {
+            queryable = ordered.ThenByDescending(specification.ThenByDescending);
+        }
+
+        if (specification.Skip.HasValue)
+        {
+            queryable = queryable.Skip(specification.Skip.Value);
+        }
+
         if (specification.Take.HasValue)
         {
             queryable = queryable.Take(specification.Take.Value);

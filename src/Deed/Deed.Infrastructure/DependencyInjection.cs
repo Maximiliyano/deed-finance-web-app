@@ -2,10 +2,8 @@ using Deed.Application.Abstractions.Caching;
 using Deed.Application.Abstractions.Data;
 using Deed.Application.Abstractions.Services;
 using Deed.Domain.Repositories;
-using Deed.Infrastructure.BackgroundJobs.BalanceReminder;
 using Deed.Infrastructure.BackgroundJobs.BankTransactionSync;
-using Deed.Infrastructure.BackgroundJobs.DebtReminder;
-using Deed.Infrastructure.BackgroundJobs.ExpenseReminder;
+using Deed.Infrastructure.BackgroundJobs.ReminderDigest;
 using Deed.Infrastructure.BackgroundJobs.UpsertLatestExchange;
 using Deed.Infrastructure.Caching;
 using Deed.Infrastructure.Persistence;
@@ -75,11 +73,7 @@ public static class DependencyInjection
 
         services.ConfigureOptions<UpsertLatestExchangeJobSetup>();
 
-        services.ConfigureOptions<BalanceReminderJobSetup>();
-
-        services.ConfigureOptions<ExpenseReminderJobSetup>();
-
-        services.ConfigureOptions<DebtReminderJobSetup>();
+        services.ConfigureOptions<ReminderDigestJobSetup>();
 
         services.ConfigureOptions<BankTransactionSyncJobSetup>();
 

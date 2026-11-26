@@ -5,6 +5,7 @@ using Deed.Application.Auth.Picture;
 using Deed.Application.BankConnections.Service;
 using Deed.Application.Exchanges;
 using Deed.Application.Exchanges.Service;
+using Deed.Application.Reminders;
 using FluentValidation;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
@@ -43,6 +44,8 @@ public static class DependencyInjection
                 .AddStandardResilienceHandler();
 
             services.AddScoped<IBankTransactionSyncService, BankTransactionSyncService>();
+
+            services.AddScoped<IReminderDigestService, ReminderDigestService>();
 
             return services;
         }

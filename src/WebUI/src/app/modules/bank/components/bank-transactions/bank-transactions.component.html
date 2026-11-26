@@ -1,0 +1,127 @@
+<div class="page">
+  <div class="page-header">
+    <h1 class="page-title">Bank transactions</h1>
+    <div class="page-actions">
+      <button type="button" class="btn btn-secondary btn-sm" [disabled]="busy()" (click)="refresh()">
+        <i class="fas fa-rotate" [class.fa-spin]="busy()"></i> Check now
+      </button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="segmented tx-filters" role="tablist" aria-label="Filter by type">
+      @for (option of filters; track option.value) {
+        <button
+          type="button"
+          class="segmented-btn"
+          role="tab"
+          [class.active]="filter() === option.value"
+          [attr.aria-selected]="filter() === option.value"
+          (click)="setFilter(option.value)"
+        >
+          {{ option.label }}
+        </button>
+      }
+    </div>
+
+    <app-panel-state
+      [loading]="loading() && !data()"
+      [empty]="!loading() && items().length === 0"
+      icon="fa-building-columns"
+      title="No transactions yet"
+      [hint]="
+        connections().length > 0
+          ? 'Nothing is recorded for this filter yet. Import the last 30 days from the bank to see earlier activity.'
+          : 'Connect Privat24 in your profile to see your bank activity here.'
+      "
+    >
+      <div class="table-wrap">
+        <table class="table table-stack">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Type</th>
+              <th>Account</th>
+              <th>Details</th>
+              <th class="cell-amount">Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of items(); track item.id) {
+              <tr>
+                <td data-label="Date">{{ item.occurredAt | date: 'dd MMM yyyy, HH:mm' }}</td>
+                <td data-label="Type">
+                  <span
+                    class="tx-type"
+                    [class.in]="item.direction === 'Incoming'"
+                    [class.out]="item.direction === 'Outgoing'"
+                  >
+                    <i class="fas {{ icon(item) }}"></i> {{ typeLabel(item) }}
+                  </span>
+                </td>
+                <td data-label="Account">{{ item.accountLabel ?? '—' }}</td>
+                <td class="cell-details">
+                  <span class="tx-name">{{ item.counterparty || '—' }}</span>
+                  @if (item.purpose) {
+                    <span class="tx-purpose">{{ item.purpose }}</span>
+                  }
+                </td>
+                <td
+                  class="cell-amount"
+                  data-label="Amount"
+                  [class.in]="item.direction === 'Incoming'"
+                  [class.out]="item.direction === 'Outgoing'"
+                >
+                  {{ item.direction === 'Incoming' ? '+' : '-' }}{{ item.amount | currencySymbol: item.currency ?? '' }}
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </app-panel-state>
+
+    @if (connections().length > 0 && !loading() && total() === 0) {
+      <div class="tx-import">
+        <button type="button" class="btn btn-primary btn-sm" [disabled]="busy()" (click)="importHistory()">
+          <i class="fas fa-clock-rotate-left"></i> Import last 30 days
+        </button>
+      </div>
+    }
+
+    @if (total() > 0) {
+      <div class="tx-pager">
+        <span class="tx-range">{{ rangeStart() }}–{{ rangeEnd() }} of {{ total() }}</span>
+        <label class="tx-size">
+          Per page
+          <select class="input" [value]="pageSize()" (change)="setPageSize($any($event.target).value)">
+            @for (size of pageSizes; track size) {
+              <option [value]="size">{{ size }}</option>
+            }
+          </select>
+        </label>
+        <div class="tx-nav">
+          <button
+            type="button"
+            class="icon-btn"
+            aria-label="Previous page"
+            [disabled]="page() <= 1 || loading()"
+            (click)="goTo(page() - 1)"
+          >
+            <i class="fas fa-chevron-left"></i>
+          </button>
+          <span class="tx-page">Page {{ page() }} of {{ totalPages() }}</span>
+          <button
+            type="button"
+            class="icon-btn"
+            aria-label="Next page"
+            [disabled]="page() >= totalPages() || loading()"
+            (click)="goTo(page() + 1)"
+          >
+            <i class="fas fa-chevron-right"></i>
+          </button>
+        </div>
+      </div>
+    }
+  </div>
+</div>

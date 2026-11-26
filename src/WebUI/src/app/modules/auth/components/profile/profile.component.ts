@@ -27,9 +27,9 @@ import { ConnectPrivatDialogComponent } from '../../../bank/components/connect-p
 const DEFAULT_REMINDER_CRON = '0 0 9 * * ?';
 
 const REMINDERS = [
-  { key: 'balance', label: 'Balance reminder', hint: 'Get periodic summaries of your total balance' },
-  { key: 'expense', label: 'Expense reminder', hint: 'Remind you to log your expenses' },
-  { key: 'debt', label: 'Debt reminder', hint: 'Get alerts about upcoming or overdue debts' }
+  { key: 'balance', label: 'Balance summary', hint: 'Total balance and capitals in your summary email' },
+  { key: 'expense', label: 'Expenses & incomes', hint: 'Period totals, top categories and bank transactions' },
+  { key: 'debt', label: 'Debts', hint: 'Unpaid, overdue and soon-due debts' }
 ] as const;
 
 @Component({

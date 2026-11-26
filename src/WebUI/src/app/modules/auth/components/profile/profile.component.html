@@ -106,6 +106,7 @@
       <div class="card-header">
         <h2>Notifications</h2>
       </div>
+      <p class="toggle-hint">Everything you switch on below is combined into one summary email.</p>
       <form class="settings-form" [formGroup]="notificationForm" (ngSubmit)="saveNotifications()">
         @for (reminder of reminders; track reminder.key) {
           <label class="toggle-row">

@@ -7,6 +7,13 @@ const routes: Routes = [
     loadComponent: () => import('./modules/home/home.component').then(x => x.HomeComponent)
   },
   {
+    path: 'bank',
+    loadComponent: () =>
+      import('./modules/bank/components/bank-transactions/bank-transactions.component').then(
+        x => x.BankTransactionsComponent
+      )
+  },
+  {
     path: 'error',
     loadComponent: () => import('./core/layout/error/error.component').then(x => x.ErrorComponent)
   },

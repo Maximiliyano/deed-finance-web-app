@@ -1,5 +1,6 @@
 using Deed.Application.Abstractions;
 using Deed.Domain.Entities;
+using Deed.Domain.Enums;
 
 namespace Deed.Application.BankNotifications.Specifications;
 
@@ -10,11 +11,15 @@ internal sealed class BankNotificationsByUserSpecification : BaseSpecification<B
         bool unreadOnly = false,
         IReadOnlyCollection<int>? ids = null,
         int? take = null,
-        bool tracking = false)
+        bool tracking = false,
+        DateTimeOffset? since = null,
+        BankNotificationKind? kind = null)
         : base(n =>
             n.CreatedBy == createdBy &&
             (!unreadOnly || !n.IsRead) &&
-            (ids == null || ids.Contains(n.Id)))
+            (ids == null || ids.Contains(n.Id)) &&
+            (since == null || n.OccurredAt >= since) &&
+            (kind == null || n.Kind == kind))
     {
         ApplyOrderByDescending(n => n.OccurredAt);
         Take = take;

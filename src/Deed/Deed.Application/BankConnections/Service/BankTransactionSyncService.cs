@@ -26,6 +26,7 @@ public sealed class BankTransactionSyncService(
     : IBankTransactionSyncService
 {
     private static readonly TimeSpan Lookback = TimeSpan.FromHours(12);
+    private static readonly TimeSpan HistoryWindow = TimeSpan.FromDays(30);
     private static readonly TimeSpan BaselineTolerance = TimeSpan.FromMinutes(10);
 
     public Task<int> SyncAsync(CancellationToken cancellationToken)
@@ -95,7 +96,7 @@ public sealed class BankTransactionSyncService(
 
         connection.LastSyncAt = now;
 
-        var notifications = fresh.Select(t => ToNotification(connection, t)).ToList();
+        var notifications = fresh.Select(t => ToNotification(connection.CreatedBy, connection.Label, t, isRead: false)).ToList();
 
         if (notifications.Count > 0)
         {
@@ -118,6 +119,78 @@ public sealed class BankTransactionSyncService(
         }
 
         return notifications.Count;
+    }
+
+    public async Task<int> ImportHistoryAsync(string createdBy, CancellationToken cancellationToken)
+    {
+        var connections = (await connectionRepository
+            .GetAllAsync(new ActiveBankConnectionsSpecification(createdBy), cancellationToken)
+            .ConfigureAwait(false)).ToList();
+
+        var imported = 0;
+
+        foreach (var connection in connections)
+        {
+            try
+            {
+                imported += await ImportConnectionHistoryAsync(connection, cancellationToken).ConfigureAwait(false);
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                Log.Error(ex, "Failed to import bank history for user {User}", createdBy);
+            }
+        }
+
+        return imported;
+    }
+
+    private async Task<int> ImportConnectionHistoryAsync(BankConnection connection, CancellationToken cancellationToken)
+    {
+        var now = dateTimeProvider.UtcNow;
+        var secret = tokenProtector.Unprotect(connection.EncryptedToken);
+
+        if (secret is null)
+        {
+            await MarkTokenInvalidAsync(connection, cancellationToken).ConfigureAwait(false);
+            return 0;
+        }
+
+        var result = await bank
+            .GetTransactionsAsync(secret, connection.AccountIban, now - HistoryWindow, now, cancellationToken)
+            .ConfigureAwait(false);
+
+        if (!result.IsSuccess)
+        {
+            if (result.Errors.Contains(DomainErrors.Bank.TokenInvalid))
+            {
+                await MarkTokenInvalidAsync(connection, cancellationToken).ConfigureAwait(false);
+            }
+
+            return 0;
+        }
+
+        var staged = await StageHistoryAsync(connection.CreatedBy, connection.Label, result.Value, cancellationToken).ConfigureAwait(false);
+
+        await unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+
+        return staged;
+    }
+
+    public async Task<int> StageHistoryAsync(string createdBy, string label, IReadOnlyCollection<BankTransaction> transactions, CancellationToken cancellationToken)
+    {
+        var candidates = transactions
+            .GroupBy(t => t.ExternalId)
+            .Select(g => g.First())
+            .ToList();
+
+        var fresh = await FilterNewAsync(createdBy, candidates, cancellationToken).ConfigureAwait(false);
+
+        if (fresh.Count > 0)
+        {
+            notificationRepository.CreateRange(fresh.Select(t => ToNotification(createdBy, label, t, isRead: true)));
+        }
+
+        return fresh.Count;
     }
 
     private async Task PublishAsync(string createdBy, List<BankNotification> notifications, CancellationToken cancellationToken)
@@ -174,20 +247,21 @@ public sealed class BankTransactionSyncService(
         await PublishAsync(connection.CreatedBy, [issue], cancellationToken).ConfigureAwait(false);
     }
 
-    private static BankNotification ToNotification(BankConnection connection, BankTransaction transaction)
+    private static BankNotification ToNotification(string createdBy, string label, BankTransaction transaction, bool isRead)
         => new()
         {
             Kind = BankNotificationKind.Transaction,
             Direction = transaction.Direction,
             Type = BankTransactionClassifier.Classify(transaction.Direction, transaction.Counterparty, transaction.Purpose),
-            AccountLabel = Truncate(connection.Label, 64),
+            AccountLabel = Truncate(label, 64),
             ExternalId = Truncate(transaction.ExternalId, 128)!,
             Amount = transaction.Amount,
             Currency = Truncate(transaction.Currency, 8),
             Counterparty = Truncate(transaction.Counterparty, 256),
             Purpose = Truncate(transaction.Purpose, 512),
             OccurredAt = transaction.OccurredAt,
-            CreatedBy = connection.CreatedBy
+            IsRead = isRead,
+            CreatedBy = createdBy
         };
 
     private async Task SendEmailAsync(BankConnection connection, List<BankTransaction> transactions, CancellationToken cancellationToken)
@@ -202,7 +276,7 @@ public sealed class BankTransactionSyncService(
         }
 
         var rows = string.Concat(transactions.Select(t =>
-            $"<li>{TypeLabel(BankTransactionClassifier.Classify(t.Direction, t.Counterparty, t.Purpose))}"
+            $"<li>{BankTransactionClassifier.Classify(t.Direction, t.Counterparty, t.Purpose).ToLabel()}"
             + $" <strong>{(t.Direction == BankTransactionDirection.Incoming ? "+" : "-")}{t.Amount.ToString("N2", CultureInfo.InvariantCulture)} {WebUtility.HtmlEncode(t.Currency)}</strong>"
             + $" {WebUtility.HtmlEncode(t.Counterparty ?? string.Empty)}"
             + $" <span style=\"color:#888\">{WebUtility.HtmlEncode(t.Purpose ?? string.Empty)}</span></li>"));
@@ -223,15 +297,6 @@ public sealed class BankTransactionSyncService(
             Log.Error(ex, "Failed to send bank alert e-mail for user {User}", createdBy);
         }
     }
-
-    private static string TypeLabel(BankTransactionType type)
-        => type switch
-        {
-            BankTransactionType.TopUp => "Top-up",
-            BankTransactionType.Withdrawal => "Withdrawal",
-            BankTransactionType.Transfer => "Transfer",
-            _ => "Payment"
-        };
 
     private static string? Truncate(string? value, int max)
         => value is null || value.Length <= max ? value : value[..max];

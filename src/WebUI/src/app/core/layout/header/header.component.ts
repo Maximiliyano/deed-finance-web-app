@@ -18,6 +18,7 @@ export interface NavItem {
   link?: string;
   fragment?: string;
   children?: NavItem[];
+  authOnly?: boolean;
 }
 
 @Component({
@@ -72,8 +73,13 @@ export class HeaderComponent implements OnInit {
         { label: 'Goals', icon: 'fa-star', link: '/', fragment: 'goals' },
         { label: 'Debts', icon: 'fa-hand-holding-dollar', link: '/', fragment: 'debts' }
       ]
-    }
+    },
+    { label: 'Bank', icon: 'fa-building-columns', link: '/bank', authOnly: true }
   ];
+
+  get visibleNavItems(): NavItem[] {
+    return this.navItems.filter(item => !item.authOnly || this.user);
+  }
   user: User | null;
 
   ngOnInit(): void {

@@ -28,6 +28,10 @@ export class BankConnectionService {
       .pipe(tap(() => this.state$.next(this.state$.value.filter(connection => connection.id !== id))));
   }
 
+  importHistory(): Observable<number> {
+    return this.http.post<number>(`${this.baseUrl}/history`, null);
+  }
+
   syncNow(): Observable<number> {
     return this.http.post<number>(`${this.baseUrl}/sync`, null);
   }

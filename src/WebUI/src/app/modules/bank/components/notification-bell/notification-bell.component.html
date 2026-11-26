@@ -40,7 +40,13 @@
       @if (items().length === 0) {
         <div class="empty-state compact">
           <p class="empty-title">No bank activity yet</p>
-          <p class="empty-hint">Connect Privat24 in your profile to get alerts about new transactions.</p>
+          <p class="empty-hint">
+            {{
+              connected()
+                ? 'New transactions on your connected accounts will show up here.'
+                : 'Connect Privat24 in your profile to get alerts about new transactions.'
+            }}
+          </p>
         </div>
       } @else {
         <ul class="bell-list">
@@ -80,6 +86,9 @@
           }
         </ul>
       }
+      <a class="bell-footer" routerLink="/bank" (click)="close()">
+        View all transactions <i class="fas fa-arrow-right"></i>
+      </a>
     </div>
   }
 </div>

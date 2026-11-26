@@ -14,6 +14,8 @@ internal abstract class BaseSpecification<TEntity>(
 
     public Expression<Func<TEntity, object>>? OrderByDescending { get; protected set; }
 
+    public Expression<Func<TEntity, object>>? ThenByDescending { get; protected set; }
+
     public Expression<Func<TEntity, bool>>? Criteria { get; protected init; } = criteria;
 
     public List<Func<IQueryable<TEntity>, IQueryable<TEntity>>> Includes { get; } = [];
@@ -23,6 +25,8 @@ internal abstract class BaseSpecification<TEntity>(
     public bool? Tracking { get; protected set; }
 
     public bool UseSplitQuery { get; protected set; }
+
+    public int? Skip { get; protected set; }
 
     public int? Take { get; protected set; }
 
@@ -34,6 +38,11 @@ internal abstract class BaseSpecification<TEntity>(
     protected void ApplyOrderByDescending(Expression<Func<TEntity, object>> expression)
     {
         OrderByDescending = expression;
+    }
+
+    protected void ApplyThenByDescending(Expression<Func<TEntity, object>> expression)
+    {
+        ThenByDescending = expression;
     }
 
     protected void ApplyOrderBy(Expression<Func<TEntity, object>> expression)

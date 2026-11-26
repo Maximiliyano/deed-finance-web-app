@@ -16,12 +16,14 @@ internal sealed class ConnectPrivatCommandHandler(
     IUser user,
     IBankConnectionRepository repository,
     IPrivatAutoclientService bank,
+    IBankTransactionSyncService syncService,
     ITokenProtector tokenProtector,
     IDateTimeProvider dateTimeProvider,
     IUnitOfWork unitOfWork)
     : ICommandHandler<ConnectPrivatCommand>
 {
     private const string DefaultLabel = "Business";
+    private const int HistoryDays = 30;
 
     public async Task<Result> Handle(ConnectPrivatCommand command, CancellationToken cancellationToken)
     {
@@ -30,7 +32,7 @@ internal sealed class ConnectPrivatCommandHandler(
         var now = dateTimeProvider.UtcNow;
 
         var check = await bank
-            .GetTransactionsAsync(token, iban, now.AddDays(-1), now, cancellationToken)
+            .GetTransactionsAsync(token, iban, now.AddDays(-HistoryDays), now, cancellationToken)
             .ConfigureAwait(false);
 
         if (!check.IsSuccess)
@@ -43,7 +45,7 @@ internal sealed class ConnectPrivatCommandHandler(
             .ConfigureAwait(false);
 
         var encrypted = tokenProtector.Protect(token);
-        var label = BankConnectionExtensions.NormalizeLabel(command.Label);
+        var label = BankConnectionExtensions.NormalizeLabel(command.Label) ?? existing?.Label ?? DefaultLabel;
 
         if (existing is null)
         {
@@ -52,7 +54,7 @@ internal sealed class ConnectPrivatCommandHandler(
                 Provider = BankProvider.PrivatAutoclient,
                 EncryptedToken = encrypted,
                 AccountIban = iban,
-                Label = label ?? DefaultLabel,
+                Label = label,
                 Status = BankConnectionStatus.Active,
                 LastSyncAt = now
             });
@@ -60,14 +62,18 @@ internal sealed class ConnectPrivatCommandHandler(
         else
         {
             existing.EncryptedToken = encrypted;
-            existing.Label = label ?? existing.Label;
+            existing.Label = label;
             existing.Status = BankConnectionStatus.Active;
             existing.LastSyncAt = now;
         }
 
+        var imported = await syncService
+            .StageHistoryAsync(user.Name!, label, check.Value, cancellationToken)
+            .ConfigureAwait(false);
+
         await unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
-        Log.Information("Bank connection saved for {User}", user.Name);
+        Log.Information("Bank connection saved for {User}, imported {Imported} historical transactions", user.Name, imported);
 
         return Result.Success();
     }

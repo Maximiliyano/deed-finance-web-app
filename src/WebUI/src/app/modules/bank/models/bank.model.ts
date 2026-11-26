@@ -36,6 +36,13 @@ export interface BankNotifications {
   items: BankNotification[];
 }
 
+export interface BankTransactionsPage {
+  total: number;
+  page: number;
+  pageSize: number;
+  items: BankNotification[];
+}
+
 export const BANK_TYPE_LABELS: Record<BankTransactionType, string> = {
   None: '',
   TopUp: 'Top-up',

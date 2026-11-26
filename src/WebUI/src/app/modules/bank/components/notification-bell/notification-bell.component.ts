@@ -1,6 +1,10 @@
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
+import { map } from 'rxjs';
 import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { SharedModule } from '../../../../shared/shared.module';
 import { BANK_TYPE_LABELS, BankNotification, BankTransactionType } from '../../models/bank.model';
+import { BankConnectionService } from '../../services/bank-connection.service';
 import { BankNotificationService } from '../../services/bank-notification.service';
 
 type BellFilter = 'all' | Extract<BankTransactionType, 'TopUp' | 'Withdrawal' | 'Transfer'>;
@@ -25,15 +29,19 @@ const TYPE_ICONS: Record<BankTransactionType, string> = {
   templateUrl: './notification-bell.component.html',
   styleUrl: './notification-bell.component.scss',
   standalone: true,
-  imports: [SharedModule],
+  imports: [SharedModule, RouterLink],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class NotificationBellComponent implements OnInit {
   private readonly service = inject(BankNotificationService);
+  private readonly connectionService = inject(BankConnectionService);
   private readonly destroyRef = inject(DestroyRef);
 
   protected readonly filters = FILTERS;
   protected readonly unread = this.service.unreadCount;
+  protected readonly connected = toSignal(this.connectionService.connections$.pipe(map(c => c.length > 0)), {
+    initialValue: false
+  });
   protected readonly open = signal(false);
   protected readonly filter = signal<BellFilter>('all');
 
@@ -45,6 +53,7 @@ export class NotificationBellComponent implements OnInit {
   });
 
   ngOnInit(): void {
+    this.connectionService.load().pipe(takeUntilDestroyed(this.destroyRef)).subscribe();
     this.service.connect(this.destroyRef);
     this.destroyRef.onDestroy(() => this.service.reset());
   }

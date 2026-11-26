@@ -281,6 +281,45 @@ public sealed class BankTransactionSyncServiceTests
         await _emailMock.DidNotReceive().SendAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
     }
 
+    [Fact]
+    public async Task StageHistoryAsync_NewAndKnownTransactions_StoresOnlyNewAsRead()
+    {
+        // Arrange
+        _notificationsMock
+            .GetAllAsync(Arg.Any<BankNotificationsByExternalIdsSpecification>(), Arg.Any<CancellationToken>())
+            .Returns([new BankNotification { ExternalId = "old" }]);
+
+        // Act
+        var staged = await _service.StageHistoryAsync(
+            "owner", "Biz", [Transaction("old", Now.AddDays(-9)), Transaction("new", Now.AddDays(-8)), Transaction("new", Now.AddDays(-8))], CancellationToken.None);
+
+        // Assert
+        staged.Should().Be(1);
+        _notificationsMock.Received(1).CreateRange(Arg.Is<IEnumerable<BankNotification>>(items =>
+            items.Count() == 1 &&
+            items.Single().ExternalId == "new" &&
+            items.Single().IsRead &&
+            items.Single().CreatedBy == "owner" &&
+            items.Single().AccountLabel == "Biz"));
+        await _publisherMock.DidNotReceive().PublishAsync(Arg.Any<string>(), Arg.Any<IReadOnlyList<BankNotificationResponse>>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task ImportHistoryAsync_ActiveConnection_FetchesThirtyDaysAndStoresAsRead()
+    {
+        // Arrange
+        ReturnTransactions(Transaction("tx-old", Now.AddDays(-20)));
+
+        // Act
+        var imported = await _service.ImportHistoryAsync("owner", CancellationToken.None);
+
+        // Assert
+        imported.Should().Be(1);
+        await _bankMock.Received(1).GetTransactionsAsync("token", _connection.AccountIban, Now.AddDays(-30), Now, Arg.Any<CancellationToken>());
+        _notificationsMock.Received(1).CreateRange(Arg.Is<IEnumerable<BankNotification>>(items => items.Single().IsRead));
+        await _unitOfWorkMock.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+
     private static BankTransaction Transaction(string id, DateTimeOffset occurredAt)
         => new(id, BankTransactionDirection.Outgoing, 150m, "UAH", "John", "Rent", occurredAt);
 

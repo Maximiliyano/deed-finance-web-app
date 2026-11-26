@@ -2,18 +2,18 @@ using Deed.Application.Abstractions.Settings;
 using Microsoft.Extensions.Options;
 using Quartz;
 
-namespace Deed.Infrastructure.BackgroundJobs.BalanceReminder;
+namespace Deed.Infrastructure.BackgroundJobs.ReminderDigest;
 
-public sealed class BalanceReminderJobSetup(
+public sealed class ReminderDigestJobSetup(
     IOptions<BackgroundJobsSettings> settings)
     : IConfigureOptions<QuartzOptions>
 {
     public void Configure(QuartzOptions options)
     {
-        var jobKey = JobKey.Create(nameof(BalanceReminderJob));
+        var jobKey = JobKey.Create(nameof(ReminderDigestJob));
 
         options
-            .AddJob<BalanceReminderJob>(jobBuilder => jobBuilder
+            .AddJob<ReminderDigestJob>(jobBuilder => jobBuilder
             .WithIdentity(jobKey));
 
         options.AddTrigger(trigger => trigger

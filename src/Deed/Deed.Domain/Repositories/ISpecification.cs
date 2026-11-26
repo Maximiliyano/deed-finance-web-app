@@ -12,11 +12,15 @@ public interface ISpecification<TEntity>
 
     Expression<Func<TEntity, object>>? OrderByDescending { get; }
 
+    Expression<Func<TEntity, object>>? ThenByDescending { get; }
+
     bool? IgnoreQueryFilter { get; }
 
     bool? Tracking { get; }
 
     bool UseSplitQuery { get; }
+
+    int? Skip { get; }
 
     int? Take { get; }
 }
