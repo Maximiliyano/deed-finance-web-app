@@ -21,6 +21,8 @@ internal sealed class ConnectPrivatCommandHandler(
     IUnitOfWork unitOfWork)
     : ICommandHandler<ConnectPrivatCommand>
 {
+    private const string DefaultLabel = "Business";
+
     public async Task<Result> Handle(ConnectPrivatCommand command, CancellationToken cancellationToken)
     {
         var iban = BankConnectionExtensions.NormalizeIban(command.Iban);
@@ -37,10 +39,11 @@ internal sealed class ConnectPrivatCommandHandler(
         }
 
         var existing = await repository
-            .GetAsync(new BankConnectionByUserSpecification(user.Name!, tracking: true), cancellationToken)
+            .GetAsync(new BankConnectionByAccountSpecification(user.Name!, BankProvider.PrivatAutoclient, iban, tracking: true), cancellationToken)
             .ConfigureAwait(false);
 
         var encrypted = tokenProtector.Protect(token);
+        var label = BankConnectionExtensions.NormalizeLabel(command.Label);
 
         if (existing is null)
         {
@@ -49,15 +52,15 @@ internal sealed class ConnectPrivatCommandHandler(
                 Provider = BankProvider.PrivatAutoclient,
                 EncryptedToken = encrypted,
                 AccountIban = iban,
+                Label = label ?? DefaultLabel,
                 Status = BankConnectionStatus.Active,
                 LastSyncAt = now
             });
         }
         else
         {
-            existing.Provider = BankProvider.PrivatAutoclient;
             existing.EncryptedToken = encrypted;
-            existing.AccountIban = iban;
+            existing.Label = label ?? existing.Label;
             existing.Status = BankConnectionStatus.Active;
             existing.LastSyncAt = now;
         }

@@ -49,49 +49,56 @@
 
     <div class="card">
       <div class="card-header">
-        <h2>Bank connection</h2>
-        @if (bankConnection(); as connection) {
-          @if (connection.connected) {
-            <span
-              class="badge"
-              [class.badge-success]="connection.status === 'Active'"
-              [class.badge-warning]="connection.status === 'TokenInvalid'"
-            >
-              {{ connection.status === 'Active' ? 'Connected' : 'Needs attention' }}
-            </span>
-          }
+        <h2>Bank connections</h2>
+        @if (bankConnections().length > 0) {
+          <button type="button" class="btn btn-ghost btn-sm" [disabled]="syncing()" (click)="syncNow()">
+            <i class="fas fa-rotate" [class.fa-spin]="syncing()"></i> Check now
+          </button>
         }
       </div>
       <div class="settings-form">
-        @if (bankConnection(); as connection) {
-          @if (connection.connected) {
+        @for (connection of bankConnections(); track connection.id) {
+          <div class="bank-row">
+            <span class="bank-icon" [class.warn]="connection.status === 'TokenInvalid'">
+              <i class="fas fa-building"></i>
+            </span>
             <div class="bank-summary">
               <span class="toggle-label"
-                >Privat24 <span class="bank-iban">{{ connection.maskedAccount }}</span></span
+                >{{ connection.label }} <span class="bank-iban">{{ connection.maskedAccount }}</span></span
               >
               @if (connection.status === 'TokenInvalid') {
                 <span class="toggle-hint">The bank rejected the credentials. Reconnect to resume alerts.</span>
-              } @else if (connection.lastSyncAt) {
+              } @else {
                 <span class="toggle-hint">Last checked {{ connection.lastSyncAt | date: 'dd MMM, HH:mm' }}</span>
               }
             </div>
-            <div class="settings-footer bank-actions">
-              <button type="button" class="btn btn-secondary btn-sm" (click)="connectPrivat()">
-                {{ connection.status === 'TokenInvalid' ? 'Reconnect' : 'Change' }}
+            <div class="bank-actions">
+              @if (connection.status === 'TokenInvalid') {
+                <button type="button" class="btn btn-secondary btn-sm" (click)="connectPrivat(connection)">
+                  Reconnect
+                </button>
+              }
+              <button
+                type="button"
+                class="icon-btn icon-btn-danger"
+                [attr.aria-label]="'Disconnect ' + connection.label"
+                (click)="disconnectPrivat(connection)"
+              >
+                <i class="fas fa-trash"></i>
               </button>
-              <button type="button" class="btn btn-danger btn-sm" (click)="disconnectPrivat()">Disconnect</button>
             </div>
-          } @else {
-            <p class="toggle-hint">
-              Connect your Privat24 card or business account to get a notification when a new transaction appears.
-            </p>
-            <div class="settings-footer">
-              <button type="button" class="btn btn-primary btn-sm" (click)="connectPrivat()">
-                <i class="fas fa-link"></i> Connect Privat24
-              </button>
-            </div>
-          }
+          </div>
+        } @empty {
+          <p class="toggle-hint">
+            Connect your Privat24 Business token to get a notification about every top-up, withdrawal and transfer on
+            your business accounts.
+          </p>
         }
+        <div class="settings-footer">
+          <button type="button" class="btn btn-primary btn-sm" (click)="connectPrivat()">
+            <i class="fas fa-plus"></i> Add connection
+          </button>
+        </div>
       </div>
     </div>
 
@@ -131,11 +138,11 @@
           </span>
           <input type="checkbox" class="checkbox" formControlName="emailNotificationsEnabled" />
         </label>
-        @if (bankConnection()?.connected) {
+        @if (bankConnections().length > 0) {
           <label class="toggle-row">
             <span class="toggle-info">
               <span class="toggle-label">Bank transaction alerts</span>
-              <span class="toggle-hint">Email me about new Privat24 transactions</span>
+              <span class="toggle-hint">Email me about new bank transactions</span>
             </span>
             <input type="checkbox" class="checkbox" formControlName="bankAlertsEmailEnabled" />
           </label>

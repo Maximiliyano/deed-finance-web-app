@@ -2,38 +2,33 @@ import { HttpClient, HttpContext } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { BehaviorSubject, Observable, switchMap, tap } from 'rxjs';
 import { SKIP_ERROR_TOAST } from '../../../core/interceptors/error.interceptor';
-import {
-  BankConnection,
-  ConnectPrivatCardRequest,
-  ConnectPrivatRequest,
-  EMPTY_BANK_CONNECTION
-} from '../models/bank.model';
+import { BankConnection, ConnectPrivatRequest } from '../models/bank.model';
 
 @Injectable({ providedIn: 'root' })
 export class BankConnectionService {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = '/api/bank-connections';
 
-  private readonly state$ = new BehaviorSubject<BankConnection | null>(null);
-  readonly connection$ = this.state$.asObservable();
+  private readonly state$ = new BehaviorSubject<BankConnection[]>([]);
+  readonly connections$ = this.state$.asObservable();
 
-  load(): Observable<BankConnection> {
-    return this.http.get<BankConnection>(this.baseUrl).pipe(tap(connection => this.state$.next(connection)));
+  load(): Observable<BankConnection[]> {
+    return this.http.get<BankConnection[]>(this.baseUrl).pipe(tap(connections => this.state$.next(connections)));
   }
 
-  connectPrivat(request: ConnectPrivatRequest): Observable<BankConnection> {
+  connectPrivat(request: ConnectPrivatRequest): Observable<BankConnection[]> {
     const context = new HttpContext().set(SKIP_ERROR_TOAST, true);
 
     return this.http.post<void>(`${this.baseUrl}/privat`, request, { context }).pipe(switchMap(() => this.load()));
   }
 
-  connectPrivatCard(request: ConnectPrivatCardRequest): Observable<BankConnection> {
-    const context = new HttpContext().set(SKIP_ERROR_TOAST, true);
-
-    return this.http.post<void>(`${this.baseUrl}/privat-card`, request, { context }).pipe(switchMap(() => this.load()));
+  disconnect(id: number): Observable<void> {
+    return this.http
+      .delete<void>(`${this.baseUrl}/${id}`)
+      .pipe(tap(() => this.state$.next(this.state$.value.filter(connection => connection.id !== id))));
   }
 
-  disconnectPrivat(): Observable<void> {
-    return this.http.delete<void>(`${this.baseUrl}/privat`).pipe(tap(() => this.state$.next(EMPTY_BANK_CONNECTION)));
+  syncNow(): Observable<number> {
+    return this.http.post<number>(`${this.baseUrl}/sync`, null);
   }
 }

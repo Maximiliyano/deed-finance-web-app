@@ -9,11 +9,13 @@ internal static class BankNotificationExtensions
         => new(
             notification.Id,
             notification.Kind.ToString(),
+            notification.Type.ToString(),
             notification.Direction.ToString(),
             notification.Amount,
             notification.Currency,
             notification.Counterparty,
             notification.Purpose,
+            notification.AccountLabel,
             notification.OccurredAt,
             notification.IsRead);
 

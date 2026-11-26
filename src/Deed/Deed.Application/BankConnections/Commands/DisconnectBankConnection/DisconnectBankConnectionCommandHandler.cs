@@ -6,18 +6,18 @@ using Deed.Domain.Repositories;
 using Deed.Domain.Results;
 using Serilog;
 
-namespace Deed.Application.BankConnections.Commands.DisconnectPrivat;
+namespace Deed.Application.BankConnections.Commands.DisconnectBankConnection;
 
-internal sealed class DisconnectPrivatCommandHandler(
+internal sealed class DisconnectBankConnectionCommandHandler(
     IUser user,
     IBankConnectionRepository repository,
     IUnitOfWork unitOfWork)
-    : ICommandHandler<DisconnectPrivatCommand>
+    : ICommandHandler<DisconnectBankConnectionCommand>
 {
-    public async Task<Result> Handle(DisconnectPrivatCommand command, CancellationToken cancellationToken)
+    public async Task<Result> Handle(DisconnectBankConnectionCommand command, CancellationToken cancellationToken)
     {
         var connection = await repository
-            .GetAsync(new BankConnectionByUserSpecification(user.Name!, tracking: true), cancellationToken)
+            .GetAsync(new BankConnectionByIdSpecification(command.Id, user.Name!, tracking: true), cancellationToken)
             .ConfigureAwait(false);
 
         if (connection is null)
@@ -29,7 +29,7 @@ internal sealed class DisconnectPrivatCommandHandler(
 
         await unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
-        Log.Information("Bank connection removed for {User}", user.Name);
+        Log.Information("Bank connection {Id} removed for {User}", connection.Id, user.Name);
 
         return Result.Success();
     }

@@ -36,13 +36,10 @@ public static class DependencyInjection
             services.AddHttpClient<IExchangeHttpService, ExchangeHttpService>()
                 .AddStandardResilienceHandler();
 
-            services.AddHttpClient<IProfilePictureService, ProfilePictureService>(client => 
+            services.AddHttpClient<IProfilePictureService, ProfilePictureService>(client =>
                 client.Timeout = TimeSpan.FromSeconds(10));
-            
-            services.AddHttpClient<IPrivatAutoclientService, PrivatAutoclientService>()
-                .AddStandardResilienceHandler();
 
-            services.AddHttpClient<IPrivatCardService, PrivatCardService>()
+            services.AddHttpClient<IPrivatAutoclientService, PrivatAutoclientService>()
                 .AddStandardResilienceHandler();
 
             services.AddScoped<IBankTransactionSyncService, BankTransactionSyncService>();
@@ -150,8 +147,6 @@ public static class DependencyInjection
             services.Configure<SmtpSettings>(configuration.GetRequiredSection(nameof(SmtpSettings)));
 
             services.Configure<PrivatAutoclientSettings>(configuration.GetSection(nameof(PrivatAutoclientSettings)));
-
-            services.Configure<PrivatCardSettings>(configuration.GetSection(nameof(PrivatCardSettings)));
 
             return services;
         }

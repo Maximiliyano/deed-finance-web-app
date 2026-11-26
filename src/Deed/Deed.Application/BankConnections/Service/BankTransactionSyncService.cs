@@ -2,13 +2,13 @@ using System.Globalization;
 using System.Net;
 using Deed.Application.Abstractions.Services;
 using Deed.Application.BankConnections.Specifications;
+using Deed.Application.BankNotifications;
 using Deed.Application.BankNotifications.Specifications;
 using Deed.Domain.Entities;
 using Deed.Domain.Enums;
 using Deed.Domain.Errors;
 using Deed.Domain.Providers;
 using Deed.Domain.Repositories;
-using Deed.Domain.Results;
 using Serilog;
 
 namespace Deed.Application.BankConnections.Service;
@@ -18,35 +18,46 @@ public sealed class BankTransactionSyncService(
     IBankNotificationRepository notificationRepository,
     IUserSettingsRepository userSettingsRepository,
     IPrivatAutoclientService bank,
-    IPrivatCardService card,
     ITokenProtector tokenProtector,
     IEmailService emailService,
+    IBankNotificationPublisher publisher,
     IDateTimeProvider dateTimeProvider,
     IUnitOfWork unitOfWork)
     : IBankTransactionSyncService
 {
-    private static readonly TimeSpan Overlap = TimeSpan.FromMinutes(10);
+    private static readonly TimeSpan Lookback = TimeSpan.FromHours(12);
+    private static readonly TimeSpan BaselineTolerance = TimeSpan.FromMinutes(10);
 
-    public async Task SyncAsync(CancellationToken cancellationToken)
+    public Task<int> SyncAsync(CancellationToken cancellationToken)
+        => SyncAsync(new ActiveBankConnectionsSpecification(), cancellationToken);
+
+    public Task<int> SyncUserAsync(string createdBy, CancellationToken cancellationToken)
+        => SyncAsync(new ActiveBankConnectionsSpecification(createdBy), cancellationToken);
+
+    private async Task<int> SyncAsync(ActiveBankConnectionsSpecification specification, CancellationToken cancellationToken)
     {
         var connections = (await connectionRepository
-            .GetAllAsync(new ActiveBankConnectionsSpecification(), cancellationToken)
+            .GetAllAsync(specification, cancellationToken)
             .ConfigureAwait(false)).ToList();
+
+        var created = 0;
 
         foreach (var connection in connections)
         {
             try
             {
-                await SyncConnectionAsync(connection, cancellationToken).ConfigureAwait(false);
+                created += await SyncConnectionAsync(connection, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
             {
                 Log.Error(ex, "Failed to sync bank transactions for user {User}", connection.CreatedBy);
             }
         }
+
+        return created;
     }
 
-    private async Task SyncConnectionAsync(BankConnection connection, CancellationToken cancellationToken)
+    private async Task<int> SyncConnectionAsync(BankConnection connection, CancellationToken cancellationToken)
     {
         var now = dateTimeProvider.UtcNow;
         var secret = tokenProtector.Unprotect(connection.EncryptedToken);
@@ -54,11 +65,13 @@ public sealed class BankTransactionSyncService(
         if (secret is null)
         {
             await MarkTokenInvalidAsync(connection, cancellationToken).ConfigureAwait(false);
-            return;
+            return 0;
         }
 
-        var since = connection.LastSyncAt - Overlap;
-        var result = await FetchAsync(connection, secret, since, now, cancellationToken).ConfigureAwait(false);
+        var since = now - Lookback;
+        var result = await bank
+            .GetTransactionsAsync(secret, connection.AccountIban, since, now, cancellationToken)
+            .ConfigureAwait(false);
 
         if (!result.IsSuccess)
         {
@@ -67,11 +80,13 @@ public sealed class BankTransactionSyncService(
                 await MarkTokenInvalidAsync(connection, cancellationToken).ConfigureAwait(false);
             }
 
-            return;
+            return 0;
         }
 
+        var baseline = connection.CreatedAt - BaselineTolerance;
+
         var candidates = result.Value
-            .Where(t => t.OccurredAt >= since)
+            .Where(t => t.OccurredAt >= baseline)
             .GroupBy(t => t.ExternalId)
             .Select(g => g.First())
             .ToList();
@@ -80,41 +95,41 @@ public sealed class BankTransactionSyncService(
 
         connection.LastSyncAt = now;
 
-        if (fresh.Count > 0)
+        var notifications = fresh.Select(t => ToNotification(connection, t)).ToList();
+
+        if (notifications.Count > 0)
         {
-            notificationRepository.CreateRange(fresh.Select(t => ToNotification(connection, t)));
+            notificationRepository.CreateRange(notifications);
         }
 
         await unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
-        if (fresh.Count > 0)
+        Log.Information(
+            "Bank sync for {User} ({Label}): fetched {Fetched}, new {New}",
+            connection.CreatedBy,
+            connection.Label,
+            result.Value.Count,
+            notifications.Count);
+
+        if (notifications.Count > 0)
         {
-            Log.Information("Bank sync created {Count} notification(s) for user {User}", fresh.Count, connection.CreatedBy);
-            await SendEmailAsync(connection.CreatedBy, fresh, cancellationToken).ConfigureAwait(false);
+            await PublishAsync(connection.CreatedBy, notifications, cancellationToken).ConfigureAwait(false);
+            await SendEmailAsync(connection, fresh, cancellationToken).ConfigureAwait(false);
         }
+
+        return notifications.Count;
     }
 
-    private async Task<Result<IReadOnlyList<BankTransaction>>> FetchAsync(
-        BankConnection connection,
-        string secret,
-        DateTimeOffset since,
-        DateTimeOffset now,
-        CancellationToken cancellationToken)
+    private async Task PublishAsync(string createdBy, List<BankNotification> notifications, CancellationToken cancellationToken)
     {
-        if (connection.Provider != BankProvider.PrivatCard)
+        try
         {
-            return await bank
-                .GetTransactionsAsync(secret, connection.AccountIban, since, now, cancellationToken)
-                .ConfigureAwait(false);
+            await publisher.PublishAsync(createdBy, notifications.ToResponses(), cancellationToken).ConfigureAwait(false);
         }
-
-        var credentials = PrivatCardCredentials.Parse(secret);
-
-        return credentials is null
-            ? Result.Failure<IReadOnlyList<BankTransaction>>(DomainErrors.Bank.TokenInvalid)
-            : await card
-                .GetTransactionsAsync(credentials, connection.AccountIban, since, now, cancellationToken)
-                .ConfigureAwait(false);
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            Log.Warning(ex, "Failed to push bank notifications to user {User}", createdBy);
+        }
     }
 
     private async Task<List<BankTransaction>> FilterNewAsync(
@@ -139,20 +154,24 @@ public sealed class BankTransactionSyncService(
     {
         connection.Status = BankConnectionStatus.TokenInvalid;
 
-        notificationRepository.CreateRange([
-            new BankNotification
+        var issue = new BankNotification
             {
                 Kind = BankNotificationKind.ConnectionIssue,
                 Direction = BankTransactionDirection.None,
+                Type = BankTransactionType.None,
+                AccountLabel = Truncate(connection.Label, 64),
                 ExternalId = $"token-invalid:{Guid.NewGuid():N}",
                 OccurredAt = dateTimeProvider.UtcNow,
                 CreatedBy = connection.CreatedBy
-            }
-        ]);
+            };
+
+        notificationRepository.CreateRange([issue]);
 
         await unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         Log.Warning("Bank token is invalid for user {User}", connection.CreatedBy);
+
+        await PublishAsync(connection.CreatedBy, [issue], cancellationToken).ConfigureAwait(false);
     }
 
     private static BankNotification ToNotification(BankConnection connection, BankTransaction transaction)
@@ -160,6 +179,8 @@ public sealed class BankTransactionSyncService(
         {
             Kind = BankNotificationKind.Transaction,
             Direction = transaction.Direction,
+            Type = BankTransactionClassifier.Classify(transaction.Direction, transaction.Counterparty, transaction.Purpose),
+            AccountLabel = Truncate(connection.Label, 64),
             ExternalId = Truncate(transaction.ExternalId, 128)!,
             Amount = transaction.Amount,
             Currency = Truncate(transaction.Currency, 8),
@@ -169,8 +190,9 @@ public sealed class BankTransactionSyncService(
             CreatedBy = connection.CreatedBy
         };
 
-    private async Task SendEmailAsync(string createdBy, List<BankTransaction> transactions, CancellationToken cancellationToken)
+    private async Task SendEmailAsync(BankConnection connection, List<BankTransaction> transactions, CancellationToken cancellationToken)
     {
+        var createdBy = connection.CreatedBy;
         var settings = await userSettingsRepository.GetAsync(createdBy, cancellationToken).ConfigureAwait(false);
 
         if (settings is not { BankAlertsEmailEnabled: true, EmailNotificationsEnabled: true }
@@ -180,12 +202,13 @@ public sealed class BankTransactionSyncService(
         }
 
         var rows = string.Concat(transactions.Select(t =>
-            $"<li><strong>{(t.Direction == BankTransactionDirection.Incoming ? "+" : "-")}{t.Amount.ToString("N2", CultureInfo.InvariantCulture)} {WebUtility.HtmlEncode(t.Currency)}</strong>"
+            $"<li>{TypeLabel(BankTransactionClassifier.Classify(t.Direction, t.Counterparty, t.Purpose))}"
+            + $" <strong>{(t.Direction == BankTransactionDirection.Incoming ? "+" : "-")}{t.Amount.ToString("N2", CultureInfo.InvariantCulture)} {WebUtility.HtmlEncode(t.Currency)}</strong>"
             + $" {WebUtility.HtmlEncode(t.Counterparty ?? string.Empty)}"
             + $" <span style=\"color:#888\">{WebUtility.HtmlEncode(t.Purpose ?? string.Empty)}</span></li>"));
 
         var html = $"""
-            <h2>New bank transactions</h2>
+            <h2>New bank transactions ({WebUtility.HtmlEncode(connection.Label)})</h2>
             <ul>{rows}</ul>
             <br/>
             <p style="color:#888;font-size:12px">This is an automated alert from Deed Finance.</p>
@@ -200,6 +223,15 @@ public sealed class BankTransactionSyncService(
             Log.Error(ex, "Failed to send bank alert e-mail for user {User}", createdBy);
         }
     }
+
+    private static string TypeLabel(BankTransactionType type)
+        => type switch
+        {
+            BankTransactionType.TopUp => "Top-up",
+            BankTransactionType.Withdrawal => "Withdrawal",
+            BankTransactionType.Transfer => "Transfer",
+            _ => "Payment"
+        };
 
     private static string? Truncate(string? value, int max)
         => value is null || value.Length <= max ? value : value[..max];

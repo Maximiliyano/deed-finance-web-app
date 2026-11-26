@@ -1,5 +1,6 @@
 using Deed.Api;
 using Deed.Api.Extensions;
+using Deed.Api.Hubs;
 using Deed.Application;
 using Deed.Infrastructure;
 using HealthChecks.UI.Client;
@@ -58,6 +59,8 @@ app.MapHealthChecks("health", new HealthCheckOptions
 }).AllowAnonymous();
 
 app.MapEndpoints();
+
+app.MapHub<BankNotificationsHub>(BankNotificationsHub.Route).RequireAuthorization();
 
 await app.RunAsync();
 

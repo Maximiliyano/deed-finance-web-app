@@ -21,6 +21,13 @@ internal sealed class BankNotificationConfiguration : IEntityTypeConfiguration<B
             .IsRequired()
             .HasConversion<int>();
 
+        builder.Property(n => n.Type)
+            .IsRequired()
+            .HasConversion<int>();
+
+        builder.Property(n => n.AccountLabel)
+            .HasMaxLength(64);
+
         builder.Property(n => n.ExternalId)
             .IsRequired()
             .HasMaxLength(128);

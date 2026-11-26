@@ -12,6 +12,10 @@ public sealed class BankNotification : Entity, IAuditableEntity
 
     public BankTransactionDirection Direction { get; set; }
 
+    public BankTransactionType Type { get; set; }
+
+    public string? AccountLabel { get; set; }
+
     public required string ExternalId { get; set; }
 
     public decimal Amount { get; set; }

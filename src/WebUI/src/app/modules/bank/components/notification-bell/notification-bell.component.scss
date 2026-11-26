@@ -73,6 +73,17 @@
   font-weight: 600;
 }
 
+.bell-filters {
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--border);
+}
+
+.bell-tag {
+  font-size: var(--fs-xs);
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
 .bell-list {
   margin: 0;
   padding: 0;

@@ -14,6 +14,8 @@ public sealed class BankConnection : Entity, IAuditableEntity, ISoftDeletableEnt
 
     public required string AccountIban { get; set; }
 
+    public string Label { get; set; } = string.Empty;
+
     public BankConnectionStatus Status { get; set; }
 
     public DateTimeOffset LastSyncAt { get; set; }

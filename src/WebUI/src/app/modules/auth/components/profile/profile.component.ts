@@ -1,4 +1,12 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, DestroyRef, inject } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  OnInit,
+  DestroyRef,
+  inject,
+  signal
+} from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { AuthService } from '../../services/auth-service';
 
@@ -12,6 +20,7 @@ import { UserSettingsService } from '../../../home/services/user-settings.servic
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { CURRENCIES, CURRENCY_DEFAULT } from '../../../../core/types/currency-type';
 import { UserSettings } from '../../../home/models/user-settings.model';
+import { BankConnection } from '../../../bank/models/bank.model';
 import { BankConnectionService } from '../../../bank/services/bank-connection.service';
 import { ConnectPrivatDialogComponent } from '../../../bank/components/connect-privat-dialog/connect-privat-dialog.component';
 
@@ -42,7 +51,8 @@ export class ProfileComponent implements OnInit {
   private readonly dialogRef = inject<DialogRef<void> | null>(DialogRef, { optional: true });
   private readonly destroyRef = inject(DestroyRef);
 
-  readonly bankConnection = toSignal(this.bankConnectionService.connection$, { initialValue: null });
+  readonly bankConnections = toSignal(this.bankConnectionService.connections$, { initialValue: [] });
+  readonly syncing = signal(false);
   user: User | null;
   settingsForm!: FormGroup;
   savingSettings = false;
@@ -104,17 +114,20 @@ export class ProfileComponent implements OnInit {
       });
   }
 
-  connectPrivat(): void {
-    const dialogRef = this.dialogService.open(ConnectPrivatDialogComponent);
+  connectPrivat(existing?: BankConnection): void {
+    const dialogRef = this.dialogService.open(ConnectPrivatDialogComponent, {
+      data: existing ? { label: existing.label } : null
+    });
 
     dialogRef.afterClosed$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.cdr.markForCheck());
   }
 
-  disconnectPrivat(): void {
+  disconnectPrivat(connection: BankConnection): void {
     const dialogRef = this.dialogService.open(ConfirmDialogComponent, {
       data: {
-        title: 'Disconnect Privat24',
-        message: 'You will stop receiving alerts about new bank transactions. The stored token will be deleted.',
+        title: `Disconnect ${connection.label}`,
+        message:
+          'You will stop receiving alerts about new transactions on this account. The stored credentials will be deleted.',
         submitText: 'Disconnect',
         cancelText: 'Cancel',
         icon: 'warning'
@@ -125,10 +138,29 @@ export class ProfileComponent implements OnInit {
       if (!submit) return;
 
       this.bankConnectionService
-        .disconnectPrivat()
+        .disconnect(connection.id)
         .pipe(takeUntilDestroyed(this.destroyRef))
-        .subscribe(() => this.popupMessageService.success('Privat24 disconnected'));
+        .subscribe(() => this.popupMessageService.success(`${connection.label} disconnected`));
     });
+  }
+
+  syncNow(): void {
+    if (this.syncing()) return;
+
+    this.syncing.set(true);
+
+    this.bankConnectionService
+      .syncNow()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: created => {
+          this.syncing.set(false);
+          this.popupMessageService.info(
+            created > 0 ? `${created} new transaction${created === 1 ? '' : 's'} found` : 'No new transactions'
+          );
+        },
+        error: () => this.syncing.set(false)
+      });
   }
 
   saveCurrency(): void {

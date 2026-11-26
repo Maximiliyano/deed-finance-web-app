@@ -6,8 +6,8 @@ namespace Deed.Application.BankConnections.Specifications;
 
 internal sealed class ActiveBankConnectionsSpecification : BaseSpecification<BankConnection>
 {
-    public ActiveBankConnectionsSpecification()
-        : base(c => c.Status == BankConnectionStatus.Active)
+    public ActiveBankConnectionsSpecification(string? createdBy = null)
+        : base(c => c.Status == BankConnectionStatus.Active && (createdBy == null || c.CreatedBy == createdBy))
     {
         Tracking = true;
     }

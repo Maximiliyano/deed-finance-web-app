@@ -9,5 +9,6 @@ internal sealed class BankConnectionByUserSpecification : BaseSpecification<Bank
         : base(c => c.CreatedBy == createdBy)
     {
         Tracking = tracking;
+        ApplyOrderBy(c => c.Id);
     }
 }

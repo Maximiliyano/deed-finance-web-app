@@ -11,7 +11,7 @@ internal sealed class ConnectPrivat : IEndpoint
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
         app.MapPost("api/bank-connections/privat", async (ConnectPrivatRequest request, ISender sender, CancellationToken ct) =>
-            (await sender.Send(new ConnectPrivatCommand(request.Token, request.Iban), ct))
+            (await sender.Send(new ConnectPrivatCommand(request.Token, request.Iban, request.Label), ct))
                 .Process(ResultType.NoContent))
             .RequireAuthorization()
             .WithTags(nameof(BankConnections));

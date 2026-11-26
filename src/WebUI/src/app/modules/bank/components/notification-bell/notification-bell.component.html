@@ -22,6 +22,21 @@
         }
       </div>
 
+      <div class="segmented bell-filters" role="tablist" aria-label="Filter by type">
+        @for (option of filters; track option.value) {
+          <button
+            type="button"
+            class="segmented-btn"
+            role="tab"
+            [class.active]="filter() === option.value"
+            [attr.aria-selected]="filter() === option.value"
+            (click)="setFilter(option.value)"
+          >
+            {{ option.label }}
+          </button>
+        }
+      </div>
+
       @if (items().length === 0) {
         <div class="empty-state compact">
           <p class="empty-title">No bank activity yet</p>
@@ -38,27 +53,25 @@
                   [class.out]="item.direction === 'Outgoing'"
                   [class.warn]="item.kind === 'ConnectionIssue'"
                 >
-                  @if (item.kind === 'ConnectionIssue') {
-                    <i class="fas fa-triangle-exclamation"></i>
-                  } @else if (item.direction === 'Incoming') {
-                    <i class="fas fa-arrow-down"></i>
-                  } @else {
-                    <i class="fas fa-arrow-up"></i>
-                  }
+                  <i class="fas" [ngClass]="icon(item)"></i>
                 </span>
                 <span class="bell-body">
                   <span class="bell-line">
                     <span class="bell-name">{{ title(item) }}</span>
                     @if (item.kind === 'Transaction') {
                       <span class="bell-amount" [class.text-success]="item.direction === 'Incoming'">
-                        {{ item.direction === 'Incoming' ? '+' : '-' }}{{ item.amount | currencySymbol: item.currency ?? '' }}
+                        {{ item.direction === 'Incoming' ? '+' : '-'
+                        }}{{ item.amount | currencySymbol: item.currency ?? '' }}
                       </span>
                     }
                   </span>
                   @if (item.kind === 'ConnectionIssue') {
-                    <span class="bell-meta">The token was rejected. Reconnect it in your profile.</span>
-                  } @else if (item.purpose) {
-                    <span class="bell-meta">{{ item.purpose }}</span>
+                    <span class="bell-meta">The credentials were rejected. Reconnect it in your profile.</span>
+                  } @else {
+                    <span class="bell-tag">{{ subtitle(item) }}</span>
+                    @if (item.purpose) {
+                      <span class="bell-meta">{{ item.purpose }}</span>
+                    }
                   }
                   <span class="bell-time">{{ item.occurredAt | date: 'dd MMM, HH:mm' }}</span>
                 </span>
