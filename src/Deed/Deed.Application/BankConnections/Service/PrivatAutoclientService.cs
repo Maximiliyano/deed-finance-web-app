@@ -59,15 +59,18 @@ public sealed class PrivatAutoclientService(
 
                 using var response = await client.SendAsync(request, cancellationToken).ConfigureAwait(false);
 
-                if (response.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden)
-                {
-                    return Result.Failure<IReadOnlyList<BankTransaction>>(DomainErrors.Bank.TokenInvalid);
-                }
-
                 if (!response.IsSuccessStatusCode)
                 {
-                    Log.Warning("Autoclient request failed with status {Status}", (int)response.StatusCode);
-                    return Result.Failure<IReadOnlyList<BankTransaction>>(DomainErrors.HttpClient.Execution);
+                    var error = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+
+                    Log.Warning(
+                        "Autoclient request failed with status {Status}: {Body}",
+                        (int)response.StatusCode,
+                        error.Length <= 300 ? error : error[..300]);
+
+                    return response.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden
+                        ? Result.Failure<IReadOnlyList<BankTransaction>>(DomainErrors.Bank.TokenInvalid)
+                        : Result.Failure<IReadOnlyList<BankTransaction>>(DomainErrors.HttpClient.Execution);
                 }
 
                 var bytes = await response.Content.ReadAsByteArrayAsync(cancellationToken).ConfigureAwait(false);

@@ -147,24 +147,15 @@ public sealed class BankTransactionSyncService(
             .GetAllAsync(new ActiveBankConnectionsSpecification(createdBy), cancellationToken)
             .ConfigureAwait(false)).ToList();
 
-        var imported = 0;
-
         foreach (var connection in connections)
         {
             connection.BackfillFrom = from;
             connection.BackfillCursor = to;
-
-            try
-            {
-                imported += await BackfillConnectionAsync(connection, cancellationToken).ConfigureAwait(false);
-            }
-            catch (Exception ex) when (ex is not OperationCanceledException)
-            {
-                Log.Error(ex, "Failed to import bank history for user {User}", createdBy);
-            }
         }
 
-        return new BankHistoryImportResponse(imported, connections.Any(c => c.BackfillCursor is not null));
+        await unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+
+        return new BankHistoryImportResponse(0, connections.Count > 0);
     }
 
     public async Task<int> BackfillAsync(CancellationToken cancellationToken)
@@ -222,13 +213,17 @@ public sealed class BankTransactionSyncService(
 
         if (!result.IsSuccess)
         {
-            if (result.Errors.Contains(DomainErrors.Bank.TokenInvalid))
+            if (!result.Errors.Contains(DomainErrors.Bank.RateLimited))
             {
                 connection.BackfillFrom = null;
                 connection.BackfillCursor = null;
+
+                Log.Warning("Bank backfill for {User} ({Label}) was stopped: {Reason}", connection.CreatedBy, connection.Label, result.Errors.FirstOrDefault()?.Code);
             }
 
             await HandleFailureAsync(connection, result.Errors, cancellationToken).ConfigureAwait(false);
+
+            await unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
             return 0;
         }

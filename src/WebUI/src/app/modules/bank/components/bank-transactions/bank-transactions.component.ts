@@ -150,14 +150,10 @@ export class BankTransactionsComponent implements OnInit {
       .subscribe((result: BankHistoryImportResponse | null) => {
         if (!result) return;
 
-        const count = `${result.imported} transaction${result.imported === 1 ? '' : 's'}`;
-
         this.popup.info(
           result.inProgress
-            ? `${count} imported, older ones are coming in the background`
-            : result.imported > 0
-              ? `${count} imported`
-              : 'No new transactions found'
+            ? 'History import started. Transactions will appear in the background, about one month per minute.'
+            : 'No history to import. Connect a bank account first.'
         );
 
         this.connectionService.load().pipe(takeUntilDestroyed(this.destroyRef)).subscribe();

@@ -309,37 +309,43 @@ public sealed class BankTransactionSyncServiceTests
     }
 
     [Fact]
-    public async Task ImportHistoryAsync_ShortPeriod_FetchesOneChunkAndFinishes()
+    public async Task ImportHistoryAsync_ActiveConnection_SchedulesBackfillWithoutCallingBank()
     {
         // Arrange
-        ReturnTransactions(Transaction("tx-old", Now.AddDays(-20)));
+        var from = Now.AddDays(-90);
 
         // Act
-        var response = await _service.ImportHistoryAsync("owner", Now.AddDays(-20), Now, CancellationToken.None);
+        var response = await _service.ImportHistoryAsync("owner", from, Now, CancellationToken.None);
 
         // Assert
-        response.Imported.Should().Be(1);
-        response.InProgress.Should().BeFalse();
-        _connection.BackfillCursor.Should().BeNull();
-        await _bankMock.Received(1).GetTransactionsAsync("token", _connection.AccountIban, Now.AddDays(-20), Now, Arg.Any<CancellationToken>());
-        _notificationsMock.Received(1).CreateRange(Arg.Is<IEnumerable<BankNotification>>(items => items.Single().IsRead));
+        response.Imported.Should().Be(0);
+        response.InProgress.Should().BeTrue();
+        _connection.BackfillFrom.Should().Be(from);
+        _connection.BackfillCursor.Should().Be(Now);
+        await _bankMock.DidNotReceive().GetTransactionsAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<DateTimeOffset>(), Arg.Any<DateTimeOffset>(), Arg.Any<CancellationToken>());
         await _unitOfWorkMock.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 
     [Fact]
-    public async Task ImportHistoryAsync_LongPeriod_ImportsNewestChunkAndKeepsCursor()
+    public async Task BackfillAsync_ProviderFails_StopsBackfill()
     {
         // Arrange
-        ReturnTransactions(Transaction("tx-recent", Now.AddDays(-5)));
+        _connection.BackfillFrom = Now.AddDays(-90);
+        _connection.BackfillCursor = Now;
+        _connectionsMock
+            .GetAllAsync(Arg.Any<BackfillBankConnectionsSpecification>(), Arg.Any<CancellationToken>())
+            .Returns([_connection]);
+        _bankMock
+            .GetTransactionsAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<DateTimeOffset>(), Arg.Any<DateTimeOffset>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Failure<IReadOnlyList<BankTransaction>>(DomainErrors.HttpClient.Execution));
 
         // Act
-        var response = await _service.ImportHistoryAsync("owner", Now.AddDays(-90), Now, CancellationToken.None);
+        var imported = await _service.BackfillAsync(CancellationToken.None);
 
         // Assert
-        response.InProgress.Should().BeTrue();
-        _connection.BackfillFrom.Should().Be(Now.AddDays(-90));
-        _connection.BackfillCursor.Should().Be(Now.AddDays(-30));
-        await _bankMock.Received(1).GetTransactionsAsync("token", _connection.AccountIban, Now.AddDays(-30), Now, Arg.Any<CancellationToken>());
+        imported.Should().Be(0);
+        _connection.BackfillFrom.Should().BeNull();
+        _connection.BackfillCursor.Should().BeNull();
     }
 
     [Fact]
