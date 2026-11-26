@@ -1,4 +1,5 @@
 using Deed.Domain.Entities;
+using Deed.Domain.Enums;
 using Deed.Infrastructure.Persistence.Constants;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -46,6 +47,11 @@ internal sealed class BankNotificationConfiguration : IEntityTypeConfiguration<B
 
         builder.Property(n => n.IsRead)
             .HasDefaultValue(false);
+
+        builder.Property(n => n.ImportStatus)
+            .IsRequired()
+            .HasConversion<int>()
+            .HasDefaultValue(BankImportStatus.None);
 
         builder.Property(n => n.CreatedBy)
             .IsRequired()

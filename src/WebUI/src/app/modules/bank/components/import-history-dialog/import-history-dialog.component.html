@@ -1,0 +1,49 @@
+<form [formGroup]="form" (ngSubmit)="submit()">
+  <div class="dialog-header">
+    <h2 class="dialog-title">Import bank history</h2>
+  </div>
+
+  <div class="dialog-body">
+    <div class="form-group">
+      <label for="preset" class="form-label">Period</label>
+      <select id="preset" class="input" formControlName="preset">
+        @for (preset of presets; track preset.value) {
+          <option [value]="preset.value">{{ preset.label }}</option>
+        }
+      </select>
+    </div>
+
+    @if (custom) {
+      <div class="form-row">
+        <div class="form-group">
+          <label for="from" class="form-label">From</label>
+          <input id="from" type="date" class="input" formControlName="from" [min]="earliest" [max]="today" />
+        </div>
+        <div class="form-group">
+          <label for="to" class="form-label">To</label>
+          <input id="to" type="date" class="input" formControlName="to" [min]="earliest" [max]="today" />
+        </div>
+      </div>
+      @if (customInvalid) {
+        <p class="field-error">Pick a start before the end, within the last 3 years.</p>
+      }
+    }
+
+    <p class="form-hint">
+      The newest part is imported right away. Longer periods continue in the background, one month at a time, because
+      banks limit how often history can be requested. Imported transactions are shown for reference and are not added to
+      your capitals.
+    </p>
+
+    @if (error(); as message) {
+      <p class="field-error" role="alert">{{ message }}</p>
+    }
+  </div>
+
+  <div class="dialog-footer">
+    <button type="button" class="btn btn-secondary btn-sm" (click)="cancel()">Cancel</button>
+    <button type="submit" class="btn btn-primary btn-sm" [disabled]="customInvalid || submitting()">
+      {{ submitting() ? 'Importing...' : 'Import' }}
+    </button>
+  </div>
+</form>

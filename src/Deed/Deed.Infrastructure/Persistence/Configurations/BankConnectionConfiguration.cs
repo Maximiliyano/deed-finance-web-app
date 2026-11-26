@@ -39,6 +39,12 @@ internal sealed class BankConnectionConfiguration : IEntityTypeConfiguration<Ban
             .IsRequired()
             .HasMaxLength(34);
 
+        builder.Property(c => c.ProviderAccountId)
+            .HasMaxLength(64);
+
+        builder.Property(c => c.AutoImport)
+            .HasDefaultValue(false);
+
         builder.Property(c => c.Label)
             .IsRequired()
             .HasMaxLength(64)

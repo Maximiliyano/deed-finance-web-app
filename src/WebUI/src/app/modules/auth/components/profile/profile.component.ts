@@ -22,13 +22,15 @@ import { CURRENCIES, CURRENCY_DEFAULT } from '../../../../core/types/currency-ty
 import { UserSettings } from '../../../home/models/user-settings.model';
 import { BankConnection } from '../../../bank/models/bank.model';
 import { BankConnectionService } from '../../../bank/services/bank-connection.service';
+import { BankConnectionSettingsDialogComponent } from '../../../bank/components/bank-connection-settings-dialog/bank-connection-settings-dialog.component';
+import { ConnectMonobankDialogComponent } from '../../../bank/components/connect-monobank-dialog/connect-monobank-dialog.component';
 import { ConnectPrivatDialogComponent } from '../../../bank/components/connect-privat-dialog/connect-privat-dialog.component';
 
 const DEFAULT_REMINDER_CRON = '0 0 9 * * ?';
 
 const REMINDERS = [
-  { key: 'balance', label: 'Balance summary', hint: 'Total balance and capitals in your summary email' },
-  { key: 'expense', label: 'Expenses & incomes', hint: 'Period totals, top categories and bank transactions' },
+  { key: 'balance', label: 'Balance', hint: 'Total balance and every capital' },
+  { key: 'expense', label: 'Expenses & incomes', hint: 'Totals for the period and top expense categories' },
   { key: 'debt', label: 'Debts', hint: 'Unpaid, overdue and soon-due debts' }
 ] as const;
 
@@ -73,12 +75,8 @@ export class ProfileComponent implements OnInit {
     });
 
     this.notificationForm = this.fb.group({
-      ...Object.fromEntries(
-        REMINDERS.flatMap(({ key }) => [
-          [`${key}ReminderEnabled`, [false]],
-          [`${key}ReminderCron`, [DEFAULT_REMINDER_CRON]]
-        ])
-      ),
+      ...Object.fromEntries(REMINDERS.map(({ key }) => [`${key}ReminderEnabled`, [false]])),
+      summaryCron: [DEFAULT_REMINDER_CRON],
       emailNotificationsEnabled: [false],
       bankAlertsEmailEnabled: [false]
     });
@@ -100,11 +98,9 @@ export class ProfileComponent implements OnInit {
             this.settingsForm.patchValue({ currency: settings.currency });
             this.notificationForm.patchValue({
               ...Object.fromEntries(
-                REMINDERS.flatMap(({ key }) => [
-                  [`${key}ReminderEnabled`, settings[`${key}ReminderEnabled`] ?? false],
-                  [`${key}ReminderCron`, settings[`${key}ReminderCron`] ?? DEFAULT_REMINDER_CRON]
-                ])
+                REMINDERS.map(({ key }) => [`${key}ReminderEnabled`, settings[`${key}ReminderEnabled`] ?? false])
               ),
+              summaryCron: this.resolveSummaryCron(settings),
               emailNotificationsEnabled: settings.emailNotificationsEnabled ?? false,
               bankAlertsEmailEnabled: settings.bankAlertsEmailEnabled ?? false
             });
@@ -120,6 +116,33 @@ export class ProfileComponent implements OnInit {
     });
 
     dialogRef.afterClosed$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.cdr.markForCheck());
+  }
+
+  connectMonobank(existing?: BankConnection): void {
+    const dialogRef = this.dialogService.open(ConnectMonobankDialogComponent, {
+      data: existing ? { label: existing.label } : null
+    });
+
+    dialogRef.afterClosed$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.cdr.markForCheck());
+  }
+
+  reconnect(connection: BankConnection): void {
+    if (connection.provider === 'Monobank') {
+      this.connectMonobank(connection);
+    } else {
+      this.connectPrivat(connection);
+    }
+  }
+
+  openConnectionSettings(connection: BankConnection): void {
+    this.dialogService
+      .open(BankConnectionSettingsDialogComponent, { data: connection })
+      .afterClosed$.pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.cdr.markForCheck());
+  }
+
+  providerName(connection: BankConnection): string {
+    return connection.provider === 'Monobank' ? 'Monobank' : 'Privat24 Business';
   }
 
   disconnectPrivat(connection: BankConnection): void {
@@ -169,7 +192,18 @@ export class ProfileComponent implements OnInit {
   }
 
   saveNotifications(): void {
-    this.save(this.notificationForm.value);
+    const { summaryCron, ...rest } = this.notificationForm.value;
+
+    this.save({
+      ...rest,
+      ...Object.fromEntries(REMINDERS.map(({ key }) => [`${key}ReminderCron`, summaryCron]))
+    });
+  }
+
+  private resolveSummaryCron(settings: UserSettings): string {
+    const enabled = REMINDERS.find(({ key }) => settings[`${key}ReminderEnabled`] && settings[`${key}ReminderCron`]);
+
+    return (enabled && settings[`${enabled.key}ReminderCron`]) || settings.balanceReminderCron || DEFAULT_REMINDER_CRON;
   }
 
   private save(changes: Partial<UserSettings>): void {

@@ -1,17 +1,28 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
-import { EMPTY, Subject, catchError, finalize, switchMap, tap } from 'rxjs';
+import { EMPTY, Subject, catchError, filter, finalize, interval, switchMap, tap } from 'rxjs';
+import { DialogService } from '../../../../shared/components/dialogs/services/dialog.service';
 import { PanelStateComponent } from '../../../../shared/components/panel-state/panel-state.component';
 import { SharedModule } from '../../../../shared/shared.module';
 import { PopupMessageService } from '../../../../shared/services/popup-message.service';
-import { BANK_TYPE_LABELS, BankNotification, BankTransactionsPage, BankTransactionType } from '../../models/bank.model';
+import {
+  BANK_TYPE_LABELS,
+  BankHistoryImportResponse,
+  BankImportStatus,
+  BankNotification,
+  BankTransactionsPage,
+  BankTransactionType
+} from '../../models/bank.model';
 import { BankConnectionService } from '../../services/bank-connection.service';
 import { BankTransactionService } from '../../services/bank-transaction.service';
+import { ImportHistoryDialogComponent } from '../import-history-dialog/import-history-dialog.component';
+import { ImportTransactionDialogComponent } from '../import-transaction-dialog/import-transaction-dialog.component';
 
-type TypeFilter = 'all' | Exclude<BankTransactionType, 'None'>;
+type TypeFilter = 'all' | 'review' | Exclude<BankTransactionType, 'None'>;
 
 const FILTERS: { value: TypeFilter; label: string }[] = [
   { value: 'all', label: 'All' },
+  { value: 'review', label: 'To review' },
   { value: 'TopUp', label: 'Top-ups' },
   { value: 'Withdrawal', label: 'Withdrawals' },
   { value: 'Transfer', label: 'Transfers' },
@@ -38,6 +49,7 @@ export class BankTransactionsComponent implements OnInit {
   private readonly transactions = inject(BankTransactionService);
   private readonly connectionService = inject(BankConnectionService);
   private readonly popup = inject(PopupMessageService);
+  private readonly dialogService = inject(DialogService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly reload$ = new Subject<void>();
 
@@ -51,6 +63,15 @@ export class BankTransactionsComponent implements OnInit {
   protected readonly data = signal<BankTransactionsPage | null>(null);
   protected readonly loading = signal(false);
   protected readonly busy = signal(false);
+
+  protected readonly backfilling = computed(() => this.connections().filter(c => c.backfillCursor !== null));
+  protected readonly backfillFrom = computed(
+    () =>
+      this.backfilling()
+        .map(c => c.backfillFrom)
+        .filter((value): value is string => value !== null)
+        .sort()[0] ?? null
+  );
 
   protected readonly items = computed(() => this.data()?.items ?? []);
   protected readonly total = computed(() => this.data()?.total ?? 0);
@@ -67,7 +88,7 @@ export class BankTransactionsComponent implements OnInit {
       .pipe(
         tap(() => this.loading.set(true)),
         switchMap(() =>
-          this.transactions.loadPage(this.page(), this.pageSize(), this.typeParam()).pipe(
+          this.transactions.loadPage(this.page(), this.pageSize(), this.typeParam(), this.statusParam()).pipe(
             catchError(() => EMPTY),
             finalize(() => this.loading.set(false))
           )
@@ -75,6 +96,14 @@ export class BankTransactionsComponent implements OnInit {
         takeUntilDestroyed(this.destroyRef)
       )
       .subscribe(data => this.data.set(data));
+
+    interval(60_000)
+      .pipe(
+        filter(() => this.backfilling().length > 0),
+        switchMap(() => this.connectionService.load()),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe(() => this.goTo(this.page()));
 
     this.reload$.next();
   }
@@ -115,22 +144,52 @@ export class BankTransactionsComponent implements OnInit {
   }
 
   protected importHistory(): void {
+    this.dialogService
+      .open(ImportHistoryDialogComponent, {})
+      .afterClosed$.pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((result: BankHistoryImportResponse | null) => {
+        if (!result) return;
+
+        const count = `${result.imported} transaction${result.imported === 1 ? '' : 's'}`;
+
+        this.popup.info(
+          result.inProgress
+            ? `${count} imported, older ones are coming in the background`
+            : result.imported > 0
+              ? `${count} imported`
+              : 'No new transactions found'
+        );
+
+        this.connectionService.load().pipe(takeUntilDestroyed(this.destroyRef)).subscribe();
+        this.goTo(1);
+      });
+  }
+
+  protected add(item: BankNotification): void {
+    const connection = this.connections().find(c => c.id === item.bankConnectionId);
+
+    this.dialogService
+      .open(ImportTransactionDialogComponent, { data: { notification: item, connection } })
+      .afterClosed$.pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((added: boolean) => {
+        if (added) {
+          this.goTo(this.page());
+        }
+      });
+  }
+
+  protected skip(item: BankNotification): void {
     if (this.busy()) return;
 
     this.busy.set(true);
 
-    this.connectionService
-      .importHistory()
+    this.transactions
+      .dismiss(item.id)
       .pipe(
         finalize(() => this.busy.set(false)),
         takeUntilDestroyed(this.destroyRef)
       )
-      .subscribe(imported => {
-        this.popup.info(
-          imported > 0 ? `${imported} transaction${imported === 1 ? '' : 's'} imported` : 'No new transactions found'
-        );
-        this.goTo(1);
-      });
+      .subscribe(() => this.goTo(this.page()));
   }
 
   protected icon(item: BankNotification): string {
@@ -144,6 +203,10 @@ export class BankTransactionsComponent implements OnInit {
   private typeParam(): BankTransactionType | null {
     const filter = this.filter();
 
-    return filter === 'all' ? null : filter;
+    return filter === 'all' || filter === 'review' ? null : filter;
+  }
+
+  private statusParam(): BankImportStatus | null {
+    return this.filter() === 'review' ? 'Pending' : null;
   }
 }

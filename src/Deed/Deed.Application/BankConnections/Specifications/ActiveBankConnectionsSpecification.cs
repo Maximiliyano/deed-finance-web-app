@@ -10,5 +10,6 @@ internal sealed class ActiveBankConnectionsSpecification : BaseSpecification<Ban
         : base(c => c.Status == BankConnectionStatus.Active && (createdBy == null || c.CreatedBy == createdBy))
     {
         Tracking = true;
+        ApplyOrderBy(c => c.LastSyncAt);
     }
 }

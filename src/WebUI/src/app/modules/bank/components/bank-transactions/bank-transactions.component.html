@@ -2,11 +2,26 @@
   <div class="page-header">
     <h1 class="page-title">Bank transactions</h1>
     <div class="page-actions">
+      @if (connections().length > 0) {
+        <button type="button" class="btn btn-secondary btn-sm" (click)="importHistory()">
+          <i class="fas fa-clock-rotate-left"></i> Import history
+        </button>
+      }
       <button type="button" class="btn btn-secondary btn-sm" [disabled]="busy()" (click)="refresh()">
         <i class="fas fa-rotate" [class.fa-spin]="busy()"></i> Check now
       </button>
     </div>
   </div>
+
+  @if (backfilling().length > 0) {
+    <div class="tx-banner" role="status">
+      <i class="fas fa-spinner fa-spin"></i>
+      Importing older transactions in the background
+      @if (backfillFrom(); as from) {
+        back to {{ from | date: 'dd MMM yyyy' }}
+      }
+    </div>
+  }
 
   <div class="card">
     <div class="segmented tx-filters" role="tablist" aria-label="Filter by type">
@@ -31,8 +46,8 @@
       title="No transactions yet"
       [hint]="
         connections().length > 0
-          ? 'Nothing is recorded for this filter yet. Import the last 30 days from the bank to see earlier activity.'
-          : 'Connect Privat24 in your profile to see your bank activity here.'
+          ? 'Nothing is recorded for this filter yet. Use Import history to bring in earlier activity from the bank.'
+          : 'Connect a bank in your profile to see your bank activity here.'
       "
     >
       <div class="table-wrap">
@@ -44,6 +59,7 @@
               <th>Account</th>
               <th>Details</th>
               <th class="cell-amount">Amount</th>
+              <th class="cell-status">Capital</th>
             </tr>
           </thead>
           <tbody>
@@ -74,20 +90,35 @@
                 >
                   {{ item.direction === 'Incoming' ? '+' : '-' }}{{ item.amount | currencySymbol: item.currency ?? '' }}
                 </td>
+                <td class="cell-status" data-label="Capital">
+                  @switch (item.importStatus) {
+                    @case ('Pending') {
+                      <span class="tx-actions">
+                        <button type="button" class="btn btn-primary btn-sm" [disabled]="busy()" (click)="add(item)">
+                          <i class="fas fa-plus"></i> Add
+                        </button>
+                        <button type="button" class="btn btn-ghost btn-sm" [disabled]="busy()" (click)="skip(item)">
+                          Skip
+                        </button>
+                      </span>
+                    }
+                    @case ('Imported') {
+                      <span class="badge badge-success">Added</span>
+                    }
+                    @case ('Dismissed') {
+                      <span class="tx-muted">Skipped</span>
+                    }
+                    @default {
+                      <span class="tx-muted">—</span>
+                    }
+                  }
+                </td>
               </tr>
             }
           </tbody>
         </table>
       </div>
     </app-panel-state>
-
-    @if (connections().length > 0 && !loading() && total() === 0) {
-      <div class="tx-import">
-        <button type="button" class="btn btn-primary btn-sm" [disabled]="busy()" (click)="importHistory()">
-          <i class="fas fa-clock-rotate-left"></i> Import last 30 days
-        </button>
-      </div>
-    }
 
     @if (total() > 0) {
       <div class="tx-pager">

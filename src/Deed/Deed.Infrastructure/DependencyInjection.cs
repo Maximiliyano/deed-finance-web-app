@@ -2,6 +2,7 @@ using Deed.Application.Abstractions.Caching;
 using Deed.Application.Abstractions.Data;
 using Deed.Application.Abstractions.Services;
 using Deed.Domain.Repositories;
+using Deed.Infrastructure.BackgroundJobs.BankBackfill;
 using Deed.Infrastructure.BackgroundJobs.BankTransactionSync;
 using Deed.Infrastructure.BackgroundJobs.ReminderDigest;
 using Deed.Infrastructure.BackgroundJobs.UpsertLatestExchange;
@@ -76,6 +77,8 @@ public static class DependencyInjection
         services.ConfigureOptions<ReminderDigestJobSetup>();
 
         services.ConfigureOptions<BankTransactionSyncJobSetup>();
+
+        services.ConfigureOptions<BankBackfillJobSetup>();
 
         return services;
     }

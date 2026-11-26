@@ -3,6 +3,7 @@ using Deed.Application.Abstractions.Settings;
 using Deed.Application.Auth;
 using Deed.Application.Auth.Picture;
 using Deed.Application.BankConnections.Service;
+using Deed.Application.BankNotifications.Import;
 using Deed.Application.Exchanges;
 using Deed.Application.Exchanges.Service;
 using Deed.Application.Reminders;
@@ -42,6 +43,15 @@ public static class DependencyInjection
 
             services.AddHttpClient<IPrivatAutoclientService, PrivatAutoclientService>()
                 .AddStandardResilienceHandler();
+
+            services.AddHttpClient<IMonobankService, MonobankService>(client =>
+                client.Timeout = TimeSpan.FromSeconds(15));
+
+            services.AddTransient<IBankStatementProvider>(sp => sp.GetRequiredService<IPrivatAutoclientService>());
+
+            services.AddTransient<IBankStatementProvider>(sp => sp.GetRequiredService<IMonobankService>());
+
+            services.AddScoped<IBankTransactionImporter, BankTransactionImporter>();
 
             services.AddScoped<IBankTransactionSyncService, BankTransactionSyncService>();
 
@@ -150,6 +160,8 @@ public static class DependencyInjection
             services.Configure<SmtpSettings>(configuration.GetRequiredSection(nameof(SmtpSettings)));
 
             services.Configure<PrivatAutoclientSettings>(configuration.GetSection(nameof(PrivatAutoclientSettings)));
+
+            services.Configure<MonobankPersonalSettings>(configuration.GetSection(nameof(MonobankPersonalSettings)));
 
             return services;
         }

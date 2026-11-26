@@ -30,6 +30,10 @@ public sealed class BankNotification : Entity, IAuditableEntity
 
     public bool IsRead { get; set; }
 
+    public int? BankConnectionId { get; set; }
+
+    public BankImportStatus ImportStatus { get; set; }
+
     public DateTimeOffset CreatedAt { get; init; }
 
     public string CreatedBy { get; init; } = string.Empty;

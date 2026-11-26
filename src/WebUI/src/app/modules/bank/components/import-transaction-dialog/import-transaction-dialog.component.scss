@@ -1,0 +1,32 @@
+.summary {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+
+  div {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-3);
+  }
+
+  dt {
+    font-size: var(--fs-sm);
+    color: var(--text-muted);
+  }
+
+  dd {
+    margin: 0;
+    font-weight: 500;
+    text-align: right;
+    overflow-wrap: anywhere;
+
+    &.in {
+      color: var(--success-text);
+    }
+
+    &.out {
+      color: var(--danger-text);
+    }
+  }
+}

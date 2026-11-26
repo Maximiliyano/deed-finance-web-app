@@ -64,20 +64,38 @@
             </span>
             <div class="bank-summary">
               <span class="toggle-label"
-                >{{ connection.label }} <span class="bank-iban">{{ connection.maskedAccount }}</span></span
+                >{{ connection.label }}
+                <span class="bank-iban">{{ providerName(connection) }} · {{ connection.maskedAccount }}</span></span
               >
               @if (connection.status === 'TokenInvalid') {
                 <span class="toggle-hint">The bank rejected the credentials. Reconnect to resume alerts.</span>
               } @else {
-                <span class="toggle-hint">Last checked {{ connection.lastSyncAt | date: 'dd MMM, HH:mm' }}</span>
+                <span class="toggle-hint"
+                  >Last checked {{ connection.lastSyncAt | date: 'dd MMM, HH:mm' }} ·
+                  @if (connection.capitalId === null) {
+                    No capital linked
+                  } @else if (connection.autoImport) {
+                    Added to your capital automatically
+                  } @else {
+                    Added to your capital after you confirm
+                  }
+                </span>
               }
             </div>
             <div class="bank-actions">
               @if (connection.status === 'TokenInvalid') {
-                <button type="button" class="btn btn-secondary btn-sm" (click)="connectPrivat(connection)">
+                <button type="button" class="btn btn-secondary btn-sm" (click)="reconnect(connection)">
                   Reconnect
                 </button>
               }
+              <button
+                type="button"
+                class="icon-btn"
+                [attr.aria-label]="'Settings for ' + connection.label"
+                (click)="openConnectionSettings(connection)"
+              >
+                <i class="fas fa-sliders"></i>
+              </button>
               <button
                 type="button"
                 class="icon-btn icon-btn-danger"
@@ -90,13 +108,16 @@
           </div>
         } @empty {
           <p class="toggle-hint">
-            Connect your Privat24 Business token to get a notification about every top-up, withdrawal and transfer on
-            your business accounts.
+            Connect Privat24 Business or Monobank to get a notification about every top-up, withdrawal and transfer.
+            Link a capital to add them to your expenses and incomes after you confirm, or automatically.
           </p>
         }
         <div class="settings-footer">
+          <button type="button" class="btn btn-secondary btn-sm" (click)="connectMonobank()">
+            <i class="fas fa-plus"></i> Monobank
+          </button>
           <button type="button" class="btn btn-primary btn-sm" (click)="connectPrivat()">
-            <i class="fas fa-plus"></i> Add connection
+            <i class="fas fa-plus"></i> Privat24 Business
           </button>
         </div>
       </div>
@@ -104,54 +125,52 @@
 
     <div class="card">
       <div class="card-header">
-        <h2>Notifications</h2>
+        <h2>Summary email</h2>
       </div>
-      <p class="toggle-hint">Everything you switch on below is combined into one summary email.</p>
       <form class="settings-form" [formGroup]="notificationForm" (ngSubmit)="saveNotifications()">
-        @for (reminder of reminders; track reminder.key) {
-          <label class="toggle-row">
-            <span class="toggle-info">
-              <span class="toggle-label">{{ reminder.label }}</span>
-              <span class="toggle-hint">{{ reminder.hint }}</span>
-            </span>
-            <input type="checkbox" class="checkbox" [formControlName]="reminder.key + 'ReminderEnabled'" />
-          </label>
-          @if (notificationForm.get(reminder.key + 'ReminderEnabled')?.value) {
-            <div class="form-group">
-              <label class="form-label" [for]="reminder.key + 'ReminderCron'">Schedule</label>
-              <select
-                class="input"
-                [id]="reminder.key + 'ReminderCron'"
-                [formControlName]="reminder.key + 'ReminderCron'"
-              >
-                @for (preset of cronPresets; track preset.value) {
-                  <option [value]="preset.value">{{ preset.label }}</option>
-                }
-              </select>
-            </div>
-          }
-        }
-
         <label class="toggle-row">
           <span class="toggle-info">
             <span class="toggle-label">Email notifications</span>
-            <span class="toggle-hint">Receive reminders via email</span>
+            <span class="toggle-hint">Receive one summary email with everything you pick below</span>
           </span>
           <input type="checkbox" class="checkbox" formControlName="emailNotificationsEnabled" />
         </label>
-        @if (bankConnections().length > 0) {
-          <label class="toggle-row">
-            <span class="toggle-info">
-              <span class="toggle-label">Bank transaction alerts</span>
-              <span class="toggle-hint">Email me about new bank transactions</span>
-            </span>
-            <input type="checkbox" class="checkbox" formControlName="bankAlertsEmailEnabled" />
-          </label>
-        }
-        @if (notificationForm.value.emailNotificationsEnabled && user.email) {
-          <p class="toggle-hint">
-            Notifications will be sent to <strong>{{ user.email }}</strong>
-          </p>
+
+        @if (notificationForm.value.emailNotificationsEnabled) {
+          <div class="form-group">
+            <label class="form-label" for="summaryCron">Schedule</label>
+            <select class="input" id="summaryCron" formControlName="summaryCron">
+              @for (preset of cronPresets; track preset.value) {
+                <option [value]="preset.value">{{ preset.label }}</option>
+              }
+            </select>
+          </div>
+
+          <p class="toggle-label">Include in the email</p>
+          @for (reminder of reminders; track reminder.key) {
+            <label class="toggle-row">
+              <span class="toggle-info">
+                <span class="toggle-label">{{ reminder.label }}</span>
+                <span class="toggle-hint">{{ reminder.hint }}</span>
+              </span>
+              <input type="checkbox" class="checkbox" [formControlName]="reminder.key + 'ReminderEnabled'" />
+            </label>
+          }
+          @if (bankConnections().length > 0) {
+            <label class="toggle-row">
+              <span class="toggle-info">
+                <span class="toggle-label">Bank transactions</span>
+                <span class="toggle-hint">Latest bank activity, plus an instant email for every new transaction</span>
+              </span>
+              <input type="checkbox" class="checkbox" formControlName="bankAlertsEmailEnabled" />
+            </label>
+          }
+
+          @if (user.email) {
+            <p class="toggle-hint">
+              Sent to <strong>{{ user.email }}</strong>
+            </p>
+          }
         }
 
         <div class="settings-footer">

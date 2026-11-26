@@ -10,11 +10,13 @@ internal sealed class BankTransactionsByUserSpecification : BaseSpecification<Ba
         string createdBy,
         BankTransactionType? type = null,
         int? skip = null,
-        int? take = null)
+        int? take = null,
+        BankImportStatus? importStatus = null)
         : base(n =>
             n.CreatedBy == createdBy &&
             n.Kind == BankNotificationKind.Transaction &&
-            (type == null || n.Type == type))
+            (type == null || n.Type == type) &&
+            (importStatus == null || n.ImportStatus == importStatus))
     {
         if (take is null)
         {

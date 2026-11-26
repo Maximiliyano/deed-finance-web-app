@@ -1,0 +1,78 @@
+<form [formGroup]="form" (ngSubmit)="submit()">
+  <div class="dialog-header">
+    <h2 class="dialog-title">Connection settings</h2>
+  </div>
+
+  <div class="dialog-body">
+    <div class="form-group">
+      <label for="label" class="form-label">Name</label>
+      <input id="label" class="input" formControlName="label" maxlength="64" autocomplete="off" />
+    </div>
+
+    <div class="form-group">
+      <label for="capital" class="form-label">Capital</label>
+      <select id="capital" class="input" formControlName="capitalId">
+        <option [ngValue]="null">Not linked</option>
+        @for (capital of capitals(); track capital.id) {
+          <option [ngValue]="capital.id">{{ capital.name }} ({{ capital.currency }})</option>
+        }
+      </select>
+      <span class="form-hint">
+        New transactions of this account wait for your confirmation, then are added to this capital. Only transactions
+        in the capital currency can be added.
+      </span>
+    </div>
+
+    @if (linked) {
+      <div class="form-row">
+        <div class="form-group">
+          <label for="expenseCategory" class="form-label">Expense category</label>
+          <select id="expenseCategory" class="input" formControlName="expenseCategoryId">
+            <option [ngValue]="null">Ask every time</option>
+            @for (category of expenseCategories(); track category.id) {
+              <option [ngValue]="category.id">{{ category.name }}</option>
+            }
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="incomeCategory" class="form-label">Income category</label>
+          <select id="incomeCategory" class="input" formControlName="incomeCategoryId">
+            <option [ngValue]="null">Ask every time</option>
+            @for (category of incomeCategories(); track category.id) {
+              <option [ngValue]="category.id">{{ category.name }}</option>
+            }
+          </select>
+        </div>
+      </div>
+
+      <label class="toggle-row">
+        <span class="toggle-text">
+          <span class="toggle-label">Add automatically</span>
+          <span class="toggle-hint"
+            >Skip the confirmation and add every new transaction using the categories above</span
+          >
+        </span>
+        <input type="checkbox" class="checkbox" formControlName="autoImport" />
+      </label>
+
+      @if (autoIncomplete) {
+        <p class="field-error">Choose both categories to add transactions automatically.</p>
+      }
+    }
+
+    @if (error(); as message) {
+      <p class="field-error" role="alert">{{ message }}</p>
+    }
+  </div>
+
+  <div class="dialog-footer">
+    <button type="button" class="btn btn-secondary btn-sm" (click)="cancel()">Cancel</button>
+    <button
+      type="submit"
+      class="btn btn-primary btn-sm"
+      [disabled]="form.invalid || autoIncomplete || submitting() || loading()"
+    >
+      {{ submitting() ? 'Saving...' : 'Save' }}
+    </button>
+  </div>
+</form>

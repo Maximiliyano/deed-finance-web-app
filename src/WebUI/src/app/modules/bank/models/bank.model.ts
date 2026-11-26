@@ -1,4 +1,6 @@
-export type BankProvider = 'PrivatAutoclient';
+export type BankProvider = 'PrivatAutoclient' | 'Monobank';
+
+export type BankImportStatus = 'None' | 'Pending' | 'Imported' | 'Dismissed';
 
 export type BankTransactionType = 'None' | 'TopUp' | 'Withdrawal' | 'Transfer' | 'Payment';
 
@@ -9,12 +11,52 @@ export interface BankConnection {
   status: 'Active' | 'TokenInvalid';
   maskedAccount: string;
   lastSyncAt: string;
+  capitalId: number | null;
+  autoImport: boolean;
+  expenseCategoryId: number | null;
+  incomeCategoryId: number | null;
+  backfillFrom: string | null;
+  backfillCursor: string | null;
+}
+
+export interface BankHistoryImportRequest {
+  from: string;
+  to: string | null;
+}
+
+export interface BankHistoryImportResponse {
+  imported: number;
+  inProgress: boolean;
 }
 
 export interface ConnectPrivatRequest {
   token: string;
   iban: string;
   label: string;
+}
+
+export interface ConnectMonobankRequest {
+  token: string;
+  accountId: string;
+  iban: string;
+  label: string;
+}
+
+export interface MonobankAccount {
+  id: string;
+  iban: string;
+  currency: string;
+  maskedCard: string | null;
+  type: string;
+  balance: number;
+}
+
+export interface UpdateBankConnectionRequest {
+  label: string | null;
+  capitalId: number | null;
+  autoImport: boolean;
+  expenseCategoryId: number | null;
+  incomeCategoryId: number | null;
 }
 
 export interface BankNotification {
@@ -29,6 +71,8 @@ export interface BankNotification {
   accountLabel: string | null;
   occurredAt: string;
   isRead: boolean;
+  importStatus: BankImportStatus;
+  bankConnectionId: number | null;
 }
 
 export interface BankNotifications {

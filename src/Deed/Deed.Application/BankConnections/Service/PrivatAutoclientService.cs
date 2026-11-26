@@ -29,9 +29,13 @@ public sealed class PrivatAutoclientService(
         "dd.MM.yyyy"
     ];
 
+    public BankProvider Provider => BankProvider.PrivatAutoclient;
+
+    public int? MaxItemsPerRequest => null;
+
     public async Task<Result<IReadOnlyList<BankTransaction>>> GetTransactionsAsync(
         string token,
-        string iban,
+        string account,
         DateTimeOffset from,
         DateTimeOffset to,
         CancellationToken cancellationToken)
@@ -49,7 +53,7 @@ public sealed class PrivatAutoclientService(
                     await Task.Delay(settings.PageDelayMs, cancellationToken).ConfigureAwait(false);
                 }
 
-                using var request = new HttpRequestMessage(HttpMethod.Get, BuildUrl(settings, iban, from, to, followId));
+                using var request = new HttpRequestMessage(HttpMethod.Get, BuildUrl(settings, account, from, to, followId));
                 request.Headers.Add("token", token);
                 request.Headers.UserAgent.ParseAdd(UserAgent);
 

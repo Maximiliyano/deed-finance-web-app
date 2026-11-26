@@ -21,7 +21,7 @@ const ibanValidator = (control: AbstractControl<string>): ValidationErrors | nul
 @Component({
   selector: 'app-connect-privat-dialog',
   templateUrl: './connect-privat-dialog.component.html',
-  styleUrl: './connect-privat-dialog.component.scss',
+  styleUrl: '../../styles/connect-dialog.scss',
   standalone: true,
   imports: [SharedModule],
   changeDetection: ChangeDetectionStrategy.OnPush

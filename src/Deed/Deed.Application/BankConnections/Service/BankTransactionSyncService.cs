@@ -1,14 +1,17 @@
 using System.Globalization;
 using System.Net;
 using Deed.Application.Abstractions.Services;
+using Deed.Application.BankConnections.Responses;
 using Deed.Application.BankConnections.Specifications;
 using Deed.Application.BankNotifications;
+using Deed.Application.BankNotifications.Import;
 using Deed.Application.BankNotifications.Specifications;
 using Deed.Domain.Entities;
 using Deed.Domain.Enums;
 using Deed.Domain.Errors;
 using Deed.Domain.Providers;
 using Deed.Domain.Repositories;
+using Deed.Domain.Results;
 using Serilog;
 
 namespace Deed.Application.BankConnections.Service;
@@ -17,7 +20,8 @@ public sealed class BankTransactionSyncService(
     IBankConnectionRepository connectionRepository,
     IBankNotificationRepository notificationRepository,
     IUserSettingsRepository userSettingsRepository,
-    IPrivatAutoclientService bank,
+    IEnumerable<IBankStatementProvider> providers,
+    IBankTransactionImporter importer,
     ITokenProtector tokenProtector,
     IEmailService emailService,
     IBankNotificationPublisher publisher,
@@ -26,7 +30,7 @@ public sealed class BankTransactionSyncService(
     : IBankTransactionSyncService
 {
     private static readonly TimeSpan Lookback = TimeSpan.FromHours(12);
-    private static readonly TimeSpan HistoryWindow = TimeSpan.FromDays(30);
+    private static readonly TimeSpan ChunkWindow = TimeSpan.FromDays(30);
     private static readonly TimeSpan BaselineTolerance = TimeSpan.FromMinutes(10);
 
     public Task<int> SyncAsync(CancellationToken cancellationToken)
@@ -69,17 +73,20 @@ public sealed class BankTransactionSyncService(
             return 0;
         }
 
-        var since = now - Lookback;
-        var result = await bank
-            .GetTransactionsAsync(secret, connection.AccountIban, since, now, cancellationToken)
+        var provider = ProviderFor(connection);
+
+        if (provider is null)
+        {
+            return 0;
+        }
+
+        var result = await provider
+            .GetTransactionsAsync(secret, AccountOf(connection), now - Lookback, now, cancellationToken)
             .ConfigureAwait(false);
 
         if (!result.IsSuccess)
         {
-            if (result.Errors.Contains(DomainErrors.Bank.TokenInvalid))
-            {
-                await MarkTokenInvalidAsync(connection, cancellationToken).ConfigureAwait(false);
-            }
+            await HandleFailureAsync(connection, result.Errors, cancellationToken).ConfigureAwait(false);
 
             return 0;
         }
@@ -96,10 +103,19 @@ public sealed class BankTransactionSyncService(
 
         connection.LastSyncAt = now;
 
-        var notifications = fresh.Select(t => ToNotification(connection.CreatedBy, connection.Label, t, isRead: false)).ToList();
+        var status = connection.CapitalId is null ? BankImportStatus.None : BankImportStatus.Pending;
+
+        var notifications = fresh
+            .Select(t => ToNotification(connection.CreatedBy, connection.Label, connection.Id, t, isRead: false, status))
+            .ToList();
 
         if (notifications.Count > 0)
         {
+            if (connection.AutoImport)
+            {
+                await AutoImportAsync(connection, notifications, cancellationToken).ConfigureAwait(false);
+            }
+
             notificationRepository.CreateRange(notifications);
         }
 
@@ -121,7 +137,11 @@ public sealed class BankTransactionSyncService(
         return notifications.Count;
     }
 
-    public async Task<int> ImportHistoryAsync(string createdBy, CancellationToken cancellationToken)
+    public async Task<BankHistoryImportResponse> ImportHistoryAsync(
+        string createdBy,
+        DateTimeOffset from,
+        DateTimeOffset to,
+        CancellationToken cancellationToken)
     {
         var connections = (await connectionRepository
             .GetAllAsync(new ActiveBankConnectionsSpecification(createdBy), cancellationToken)
@@ -131,9 +151,12 @@ public sealed class BankTransactionSyncService(
 
         foreach (var connection in connections)
         {
+            connection.BackfillFrom = from;
+            connection.BackfillCursor = to;
+
             try
             {
-                imported += await ImportConnectionHistoryAsync(connection, cancellationToken).ConfigureAwait(false);
+                imported += await BackfillConnectionAsync(connection, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
             {
@@ -141,27 +164,49 @@ public sealed class BankTransactionSyncService(
             }
         }
 
+        return new BankHistoryImportResponse(imported, connections.Any(c => c.BackfillCursor is not null));
+    }
+
+    public async Task<int> BackfillAsync(CancellationToken cancellationToken)
+    {
+        var connections = (await connectionRepository
+            .GetAllAsync(new BackfillBankConnectionsSpecification(), cancellationToken)
+            .ConfigureAwait(false)).ToList();
+
+        var imported = 0;
+
+        foreach (var connection in connections)
+        {
+            try
+            {
+                imported += await BackfillConnectionAsync(connection, cancellationToken).ConfigureAwait(false);
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                Log.Error(ex, "Failed to backfill bank history for user {User}", connection.CreatedBy);
+            }
+        }
+
         return imported;
     }
 
-    private async Task<int> ImportConnectionHistoryAsync(BankConnection connection, CancellationToken cancellationToken)
+    private async Task<int> BackfillConnectionAsync(BankConnection connection, CancellationToken cancellationToken)
     {
-        var now = dateTimeProvider.UtcNow;
-        var secret = tokenProtector.Unprotect(connection.EncryptedToken);
-
-        if (secret is null)
+        if (connection.BackfillCursor is not { } cursor || connection.BackfillFrom is not { } floor || cursor <= floor)
         {
-            await MarkTokenInvalidAsync(connection, cancellationToken).ConfigureAwait(false);
+            await FinishBackfillAsync(connection, cancellationToken).ConfigureAwait(false);
             return 0;
         }
 
-        var result = await bank
-            .GetTransactionsAsync(secret, connection.AccountIban, now - HistoryWindow, now, cancellationToken)
-            .ConfigureAwait(false);
+        var secret = tokenProtector.Unprotect(connection.EncryptedToken);
+        var provider = ProviderFor(connection);
 
-        if (!result.IsSuccess)
+        if (secret is null || provider is null)
         {
-            if (result.Errors.Contains(DomainErrors.Bank.TokenInvalid))
+            connection.BackfillFrom = null;
+            connection.BackfillCursor = null;
+
+            if (secret is null)
             {
                 await MarkTokenInvalidAsync(connection, cancellationToken).ConfigureAwait(false);
             }
@@ -169,11 +214,67 @@ public sealed class BankTransactionSyncService(
             return 0;
         }
 
+        var start = cursor - ChunkWindow > floor ? cursor - ChunkWindow : floor;
+
+        var result = await provider
+            .GetTransactionsAsync(secret, AccountOf(connection), start, cursor, cancellationToken)
+            .ConfigureAwait(false);
+
+        if (!result.IsSuccess)
+        {
+            if (result.Errors.Contains(DomainErrors.Bank.TokenInvalid))
+            {
+                connection.BackfillFrom = null;
+                connection.BackfillCursor = null;
+            }
+
+            await HandleFailureAsync(connection, result.Errors, cancellationToken).ConfigureAwait(false);
+
+            return 0;
+        }
+
         var staged = await StageHistoryAsync(connection.CreatedBy, connection.Label, result.Value, cancellationToken).ConfigureAwait(false);
+
+        var next = start;
+
+        if (provider.MaxItemsPerRequest is { } cap && result.Value.Count >= cap)
+        {
+            var oldest = result.Value.Min(t => t.OccurredAt);
+
+            if (oldest > start && oldest < cursor)
+            {
+                next = oldest;
+            }
+        }
+
+        if (next <= floor)
+        {
+            connection.BackfillFrom = null;
+            connection.BackfillCursor = null;
+        }
+        else
+        {
+            connection.BackfillCursor = next;
+        }
 
         await unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
+        Log.Information(
+            "Bank backfill for {User} ({Label}): imported {Imported}, cursor {Cursor}",
+            connection.CreatedBy,
+            connection.Label,
+            staged,
+            connection.BackfillCursor);
+
         return staged;
+    }
+
+    private async Task FinishBackfillAsync(BankConnection connection, CancellationToken cancellationToken)
+    {
+        connection.BackfillFrom = null;
+        connection.BackfillCursor = null;
+
+        await unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
     }
 
     public async Task<int> StageHistoryAsync(string createdBy, string label, IReadOnlyCollection<BankTransaction> transactions, CancellationToken cancellationToken)
@@ -187,10 +288,48 @@ public sealed class BankTransactionSyncService(
 
         if (fresh.Count > 0)
         {
-            notificationRepository.CreateRange(fresh.Select(t => ToNotification(createdBy, label, t, isRead: true)));
+            notificationRepository.CreateRange(fresh.Select(t => ToNotification(createdBy, label, null, t, isRead: true, BankImportStatus.None)));
         }
 
         return fresh.Count;
+    }
+
+    private IBankStatementProvider? ProviderFor(BankConnection connection)
+        => providers.FirstOrDefault(p => p.Provider == connection.Provider);
+
+    private static string AccountOf(BankConnection connection)
+        => connection.ProviderAccountId ?? connection.AccountIban;
+
+    private async Task HandleFailureAsync(
+        BankConnection connection,
+        IList<Error> errors,
+        CancellationToken cancellationToken)
+    {
+        if (errors.Contains(DomainErrors.Bank.TokenInvalid))
+        {
+            await MarkTokenInvalidAsync(connection, cancellationToken).ConfigureAwait(false);
+        }
+        else if (errors.Contains(DomainErrors.Bank.RateLimited))
+        {
+            Log.Information("Bank rate limit reached for {User} ({Label}), will retry on the next run", connection.CreatedBy, connection.Label);
+        }
+    }
+
+    private async Task AutoImportAsync(BankConnection connection, List<BankNotification> notifications, CancellationToken cancellationToken)
+    {
+        foreach (var notification in notifications.Where(n => n.ImportStatus == BankImportStatus.Pending))
+        {
+            var imported = await importer.ImportAsync(connection, notification, null, cancellationToken).ConfigureAwait(false);
+
+            if (!imported.IsSuccess)
+            {
+                Log.Information(
+                    "Bank transaction {ExternalId} of {User} was not auto-imported: {Reason}",
+                    notification.ExternalId,
+                    connection.CreatedBy,
+                    imported.Errors.FirstOrDefault()?.Code);
+            }
+        }
     }
 
     private async Task PublishAsync(string createdBy, List<BankNotification> notifications, CancellationToken cancellationToken)
@@ -247,7 +386,13 @@ public sealed class BankTransactionSyncService(
         await PublishAsync(connection.CreatedBy, [issue], cancellationToken).ConfigureAwait(false);
     }
 
-    private static BankNotification ToNotification(string createdBy, string label, BankTransaction transaction, bool isRead)
+    private static BankNotification ToNotification(
+        string createdBy,
+        string label,
+        int? connectionId,
+        BankTransaction transaction,
+        bool isRead,
+        BankImportStatus importStatus)
         => new()
         {
             Kind = BankNotificationKind.Transaction,
@@ -261,6 +406,8 @@ public sealed class BankTransactionSyncService(
             Purpose = Truncate(transaction.Purpose, 512),
             OccurredAt = transaction.OccurredAt,
             IsRead = isRead,
+            BankConnectionId = connectionId,
+            ImportStatus = importStatus,
             CreatedBy = createdBy
         };
 

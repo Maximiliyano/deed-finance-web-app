@@ -53,6 +53,27 @@ public static class DomainErrors
 
         public static Error NotConnected
             => Error.NotFound("Bank.NotConnected", "No bank account is connected.");
+
+        public static Error RateLimited
+            => Error.BadRequest("Bank.RateLimited", "The bank allows one request per minute. Try again shortly.");
+
+        public static Error CapitalNotLinked
+            => Error.BadRequest("Bank.CapitalNotLinked", "Link a capital to this bank account first.");
+
+        public static Error CurrencyMismatch
+            => Error.BadRequest("Bank.CurrencyMismatch", "The transaction currency differs from the linked capital currency.");
+
+        public static Error CategoryRequired
+            => Error.BadRequest("Bank.CategoryRequired", "Choose a category for this transaction.");
+
+        public static Error CategoryTypeMismatch
+            => Error.BadRequest("Bank.CategoryTypeMismatch", "The category does not match the transaction direction.");
+
+        public static Error InvalidPeriod
+            => Error.BadRequest("Bank.InvalidPeriod", "The start of the period must be before its end.");
+
+        public static Error NotPending
+            => Error.Conflict("Bank.NotPending", "This transaction is no longer waiting for confirmation.");
     }
 
     public static class Category

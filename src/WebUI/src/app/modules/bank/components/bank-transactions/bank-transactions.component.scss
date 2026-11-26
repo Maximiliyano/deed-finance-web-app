@@ -53,10 +53,32 @@
   }
 }
 
-.tx-import {
+.cell-status {
+  white-space: nowrap;
+}
+
+.tx-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.tx-muted {
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+}
+
+.tx-banner {
   display: flex;
-  justify-content: center;
-  padding: var(--space-3) 0;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
 }
 
 .tx-pager {

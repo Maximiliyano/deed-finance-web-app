@@ -6,4 +6,10 @@ public sealed record BankConnectionResponse(
     string Label,
     string Status,
     string MaskedAccount,
-    DateTimeOffset LastSyncAt);
+    DateTimeOffset LastSyncAt,
+    int? CapitalId,
+    bool AutoImport,
+    int? ExpenseCategoryId,
+    int? IncomeCategoryId,
+    DateTimeOffset? BackfillFrom,
+    DateTimeOffset? BackfillCursor);

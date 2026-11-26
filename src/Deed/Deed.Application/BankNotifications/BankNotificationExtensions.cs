@@ -17,7 +17,9 @@ internal static class BankNotificationExtensions
             notification.Purpose,
             notification.AccountLabel,
             notification.OccurredAt,
-            notification.IsRead);
+            notification.IsRead,
+            notification.ImportStatus.ToString(),
+            notification.BankConnectionId);
 
     internal static IReadOnlyList<BankNotificationResponse> ToResponses(this IEnumerable<BankNotification> notifications)
         => [.. notifications.Select(n => n.ToResponse())];

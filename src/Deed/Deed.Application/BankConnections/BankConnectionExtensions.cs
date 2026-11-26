@@ -14,7 +14,13 @@ internal static class BankConnectionExtensions
             connection.Label,
             connection.Status.ToString(),
             MaskAccount(connection.AccountIban),
-            connection.LastSyncAt);
+            connection.LastSyncAt,
+            connection.CapitalId,
+            connection.AutoImport,
+            connection.ExpenseCategoryId,
+            connection.IncomeCategoryId,
+            connection.BackfillFrom,
+            connection.BackfillCursor);
 
     internal static IReadOnlyList<BankConnectionResponse> ToResponses(this IEnumerable<BankConnection> connections)
         => [.. connections.Select(c => c.ToResponse())];

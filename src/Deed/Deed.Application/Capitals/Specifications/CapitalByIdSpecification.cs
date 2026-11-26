@@ -11,9 +11,15 @@ internal sealed class CapitalByIdSpecification : BaseSpecification<Capital>
         bool includeExpenses = false,
         bool includeIncomes = false,
         bool includeTransfersIn = false,
-        bool includeTransfersOut = false
+        bool includeTransfersOut = false,
+        bool tracking = false
     ) : base(c => c.Id == id && (createdBy == null || c.CreatedBy == createdBy))
     {
+        if (tracking)
+        {
+            Tracking = true;
+        }
+
         if (includeIncomes)
         {
             AddInclude(c => c.Incomes);

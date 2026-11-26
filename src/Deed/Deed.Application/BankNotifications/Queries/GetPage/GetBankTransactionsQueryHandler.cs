@@ -21,12 +21,16 @@ internal sealed class GetBankTransactionsQueryHandler(IUser user, IBankNotificat
             ? parsed
             : null;
 
+        BankImportStatus? status = Enum.TryParse<BankImportStatus>(query.Status, true, out var parsedStatus) && parsedStatus != BankImportStatus.None
+            ? parsedStatus
+            : null;
+
         var total = await repository
-            .CountAsync(new BankTransactionsByUserSpecification(user.Name!, type), cancellationToken)
+            .CountAsync(new BankTransactionsByUserSpecification(user.Name!, type, importStatus: status), cancellationToken)
             .ConfigureAwait(false);
 
         var items = await repository
-            .GetAllAsync(new BankTransactionsByUserSpecification(user.Name!, type, (page - 1) * pageSize, pageSize), cancellationToken)
+            .GetAllAsync(new BankTransactionsByUserSpecification(user.Name!, type, (page - 1) * pageSize, pageSize, status), cancellationToken)
             .ConfigureAwait(false);
 
         return Result.Success(new BankTransactionsPageResponse(total, page, pageSize, items.ToResponses()));

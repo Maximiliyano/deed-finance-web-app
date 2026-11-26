@@ -2,7 +2,15 @@ import { HttpClient, HttpContext } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { BehaviorSubject, Observable, switchMap, tap } from 'rxjs';
 import { SKIP_ERROR_TOAST } from '../../../core/interceptors/error.interceptor';
-import { BankConnection, ConnectPrivatRequest } from '../models/bank.model';
+import {
+  BankConnection,
+  BankHistoryImportRequest,
+  BankHistoryImportResponse,
+  ConnectMonobankRequest,
+  ConnectPrivatRequest,
+  MonobankAccount,
+  UpdateBankConnectionRequest
+} from '../models/bank.model';
 
 @Injectable({ providedIn: 'root' })
 export class BankConnectionService {
@@ -22,14 +30,34 @@ export class BankConnectionService {
     return this.http.post<void>(`${this.baseUrl}/privat`, request, { context }).pipe(switchMap(() => this.load()));
   }
 
+  monobankAccounts(token: string): Observable<MonobankAccount[]> {
+    const context = new HttpContext().set(SKIP_ERROR_TOAST, true);
+
+    return this.http.post<MonobankAccount[]>(`${this.baseUrl}/monobank/accounts`, { token }, { context });
+  }
+
+  connectMonobank(request: ConnectMonobankRequest): Observable<BankConnection[]> {
+    const context = new HttpContext().set(SKIP_ERROR_TOAST, true);
+
+    return this.http.post<void>(`${this.baseUrl}/monobank`, request, { context }).pipe(switchMap(() => this.load()));
+  }
+
+  update(id: number, request: UpdateBankConnectionRequest): Observable<BankConnection[]> {
+    const context = new HttpContext().set(SKIP_ERROR_TOAST, true);
+
+    return this.http.put<void>(`${this.baseUrl}/${id}`, request, { context }).pipe(switchMap(() => this.load()));
+  }
+
   disconnect(id: number): Observable<void> {
     return this.http
       .delete<void>(`${this.baseUrl}/${id}`)
       .pipe(tap(() => this.state$.next(this.state$.value.filter(connection => connection.id !== id))));
   }
 
-  importHistory(): Observable<number> {
-    return this.http.post<number>(`${this.baseUrl}/history`, null);
+  importHistory(request: BankHistoryImportRequest): Observable<BankHistoryImportResponse> {
+    const context = new HttpContext().set(SKIP_ERROR_TOAST, true);
+
+    return this.http.post<BankHistoryImportResponse>(`${this.baseUrl}/history`, request, { context });
   }
 
   syncNow(): Observable<number> {

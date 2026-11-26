@@ -1,0 +1,49 @@
+<form [formGroup]="form" (ngSubmit)="submit()">
+  <div class="dialog-header">
+    <h2 class="dialog-title">{{ outgoing ? 'Add as expense' : 'Add as income' }}</h2>
+  </div>
+
+  <div class="dialog-body">
+    <dl class="summary">
+      <div>
+        <dt>Amount</dt>
+        <dd [class.in]="!outgoing" [class.out]="outgoing">
+          {{ outgoing ? '-' : '+' }}{{ data.notification.amount | currencySymbol: data.notification.currency ?? '' }}
+        </dd>
+      </div>
+      <div>
+        <dt>Date</dt>
+        <dd>{{ data.notification.occurredAt | date: 'dd MMM yyyy, HH:mm' }}</dd>
+      </div>
+      <div>
+        <dt>Details</dt>
+        <dd>{{ data.notification.counterparty || data.notification.purpose || '—' }}</dd>
+      </div>
+      <div>
+        <dt>Capital</dt>
+        <dd>{{ capital() ? capital()!.name + ' (' + capital()!.currency + ')' : '—' }}</dd>
+      </div>
+    </dl>
+
+    <div class="form-group">
+      <label for="category" class="form-label">Category</label>
+      <select id="category" class="input" formControlName="categoryId">
+        <option [ngValue]="null" disabled>Choose a category</option>
+        @for (category of categories(); track category.id) {
+          <option [ngValue]="category.id">{{ category.name }}</option>
+        }
+      </select>
+    </div>
+
+    @if (error(); as message) {
+      <p class="field-error" role="alert">{{ message }}</p>
+    }
+  </div>
+
+  <div class="dialog-footer">
+    <button type="button" class="btn btn-secondary btn-sm" (click)="cancel()">Cancel</button>
+    <button type="submit" class="btn btn-primary btn-sm" [disabled]="form.invalid || submitting() || loading()">
+      {{ submitting() ? 'Adding...' : 'Add' }}
+    </button>
+  </div>
+</form>

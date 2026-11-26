@@ -11,4 +11,6 @@ public sealed record BankNotificationResponse(
     string? Purpose,
     string? AccountLabel,
     DateTimeOffset OccurredAt,
-    bool IsRead);
+    bool IsRead,
+    string ImportStatus,
+    int? BankConnectionId);

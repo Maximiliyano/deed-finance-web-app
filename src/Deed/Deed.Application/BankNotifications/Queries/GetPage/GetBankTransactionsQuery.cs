@@ -3,5 +3,5 @@ using Deed.Application.BankNotifications.Responses;
 
 namespace Deed.Application.BankNotifications.Queries.GetPage;
 
-public sealed record GetBankTransactionsQuery(int Page = 1, int PageSize = 20, string? Type = null)
+public sealed record GetBankTransactionsQuery(int Page = 1, int PageSize = 20, string? Type = null, string? Status = null)
     : IQuery<BankTransactionsPageResponse>;
