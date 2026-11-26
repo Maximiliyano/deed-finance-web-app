@@ -77,7 +77,11 @@
 
 .bp-item-color {
   flex-shrink: 0;
-  width: 4px;
+  align-self: flex-start;
+  width: 0.625rem;
+  height: 0.625rem;
+  margin: 1.05rem 0 0 var(--space-3);
+  border-radius: 50%;
 }
 
 .bp-item-body {

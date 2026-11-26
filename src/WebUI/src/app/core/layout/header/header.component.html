@@ -67,7 +67,7 @@
       <button
         class="btn btn-ghost btn-icon theme-btn"
         [class.theme-dark]="themeService.isDark"
-        (click)="themeService.toggle()"
+        (click)="themeService.toggle($event)"
         aria-label="Switch theme"
       >
         <i class="fas fa-lightbulb"></i>

@@ -39,8 +39,8 @@
     [loading]="loading() || !loaded()"
     [empty]="items.length === 0"
     icon="fa-compass-drafting"
-    title="No budget items yet"
-    hint="Add planned costs, such as rent or a trip, to compare them with what you actually spend."
+    title="Nothing planned"
+    hint="Plan rent, a trip or any big cost and watch it against what you actually spend."
   >
     @if (store.totalCapital() > 0) {
       <div class="bp-bar-wrap">

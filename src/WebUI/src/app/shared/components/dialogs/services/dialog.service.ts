@@ -5,6 +5,8 @@ import { DIALOG_DATA } from '../models/dialog-consts';
 import { DialogComponent } from '../dialog.component';
 import { ScrollLockService } from '../../../../core/services/scroll-lock.service';
 
+const LEAVE_MS = 200;
+
 @Injectable({ providedIn: 'root' })
 export class DialogService {
   private readonly appRef = inject(ApplicationRef);
@@ -53,11 +55,22 @@ export class DialogService {
   }
 
   private close(ref: ComponentRef<DialogComponent>) {
-    this.appRef.detachView(ref.hostView);
-    ref.destroy();
     this.scrollLock.unlock();
 
     this.openDialogs = this.openDialogs.filter(x => x !== ref);
     this.openDialogs.forEach((d, i) => d.instance.index = i);
+
+    const destroy = () => {
+      this.appRef.detachView(ref.hostView);
+      ref.destroy();
+    };
+
+    if (ref.instance.closing || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      destroy();
+      return;
+    }
+
+    ref.location.nativeElement.classList.add('is-leaving');
+    setTimeout(destroy, LEAVE_MS);
   }
 }

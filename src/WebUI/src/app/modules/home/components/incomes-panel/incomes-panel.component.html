@@ -1,7 +1,7 @@
 <div id="incomes" class="card">
   <div class="card-header">
     <h2>
-      <span class="icon-chip chip-success"><i class="fas fa-arrow-trend-up"></i></span> Incomes
+      <span class="icon-chip chip-success"><i class="fas fa-arrow-trend-up"></i></span> Income
     </h2>
     <div class="card-header-actions">
       <span class="badge badge-success">{{ total() | currencySymbol: userCurrency() }}</span>
@@ -28,8 +28,8 @@
     [loading]="loading()"
     [empty]="groups().length === 0"
     icon="fa-arrow-trend-up"
-    title="No incomes in this period"
-    hint="Add an income or pick another period to see a breakdown here."
+    title="No income this period"
+    hint="Log one with Add, or switch to another period."
   >
     <app-category-breakdown
       [groups]="groups()"

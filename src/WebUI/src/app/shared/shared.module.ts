@@ -6,6 +6,7 @@ import { CurrencySymbolPipe } from './components/currency/pipes/currency-symbol-
 import { EnumTextPipe } from '../core/utils/enum';
 import { IconComponent } from './components/icon/icon.component';
 import { NumericInputDirective } from './directives/numeric-input.directive';
+import { CountUpDirective } from './directives/count-up.directive';
 
 @NgModule({
   declarations: [
@@ -18,7 +19,8 @@ import { NumericInputDirective } from './directives/numeric-input.directive';
     FormsModule,
     ReactiveFormsModule,
     IconComponent,
-    NumericInputDirective
+    NumericInputDirective,
+    CountUpDirective
 ],
   exports: [
     CommonModule,
@@ -27,6 +29,7 @@ import { NumericInputDirective } from './directives/numeric-input.directive';
     LayoutComponent,
     IconComponent,
     NumericInputDirective,
+    CountUpDirective,
     CurrencySymbolPipe,
     EnumTextPipe
   ]

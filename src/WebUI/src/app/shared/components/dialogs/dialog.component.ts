@@ -32,7 +32,7 @@ export class DialogComponent implements AfterViewInit, OnDestroy {
   private offset = 0;
   private tracking = false;
   private dragging = false;
-  private closing = false;
+  closing = false;
 
   ngAfterViewInit(): void {
     this.container.createComponent(this.childComponentType, {

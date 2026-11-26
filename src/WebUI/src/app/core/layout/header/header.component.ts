@@ -65,11 +65,11 @@ export class HeaderComponent implements OnInit {
       label: 'Dashboard',
       icon: 'fa-gauge-high',
       children: [
-        { label: 'Budget Planner', icon: 'fa-compass-drafting', link: '/', fragment: 'budgetEstimations' },
+        { label: 'Budget planner', icon: 'fa-compass-drafting', link: '/', fragment: 'budgetEstimations' },
         { label: 'Capitals', icon: 'fa-wallet', link: '/', fragment: 'capitals' },
         { label: 'Expenses', icon: 'fa-money-bill-wave', link: '/', fragment: 'expenses' },
-        { label: 'Incomes', icon: 'fa-arrow-trend-up', link: '/', fragment: 'incomes' },
-        { label: 'Utility Bills', icon: 'fa-bolt', link: '/', fragment: 'utilityBills' },
+        { label: 'Income', icon: 'fa-arrow-trend-up', link: '/', fragment: 'incomes' },
+        { label: 'Utility bills', icon: 'fa-bolt', link: '/', fragment: 'utilityBills' },
         { label: 'Goals', icon: 'fa-star', link: '/', fragment: 'goals' },
         { label: 'Debts', icon: 'fa-hand-holding-dollar', link: '/', fragment: 'debts' }
       ]

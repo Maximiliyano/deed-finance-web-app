@@ -16,6 +16,18 @@
 
   @include respond-below('md') {
     display: grid;
+    animation: dock-in 0.6s var(--ease-out) 0.25s backwards;
+  }
+}
+
+@keyframes dock-in {
+  from {
+    transform: translateY(100%);
+  }
+}
+@keyframes dock-pop {
+  from {
+    transform: scale(0.8);
   }
 }
 
@@ -36,11 +48,27 @@
   transition: color var(--t);
 
   i {
+    width: 3.25rem;
+    padding: 0.2rem 0;
+    border-radius: var(--radius-full);
     font-size: var(--fs-xl);
+    text-align: center;
+    transition:
+      background var(--dur-base) var(--ease-out),
+      transform var(--dur-fast) var(--ease-out);
+  }
+
+  &:active i {
+    transform: scale(0.88);
   }
 
   &.is-active {
     color: var(--primary-text);
+
+    i {
+      background: var(--primary-light);
+      animation: dock-pop 0.45s var(--ease-spring);
+    }
   }
 }
 
@@ -62,8 +90,16 @@
     background var(--t),
     transform var(--t);
 
+  i {
+    transition: transform var(--dur-base) var(--ease-spring);
+  }
+
   &:active {
     background: var(--primary-strong-hover);
-    transform: scale(0.94);
+    transform: scale(0.92);
+
+    i {
+      transform: rotate(90deg);
+    }
   }
 }

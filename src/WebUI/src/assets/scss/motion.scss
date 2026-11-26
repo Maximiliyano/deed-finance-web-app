@@ -1,0 +1,166 @@
+:root {
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring: cubic-bezier(0.34, 1.5, 0.64, 1);
+  --dur-fast: 140ms;
+  --dur-base: 280ms;
+  --dur-slow: 560ms;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+}
+@keyframes rise-sm {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes pop-in {
+  from {
+    opacity: 0;
+    transform: scale(0.88);
+  }
+}
+@keyframes shimmer {
+  from {
+    background-position: 150% 0;
+  }
+  to {
+    background-position: -50% 0;
+  }
+}
+@keyframes breathe {
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+@mixin layer {
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  a,
+  button,
+  [role='button'],
+  input,
+  select,
+  label,
+  summary {
+    touch-action: manipulation;
+  }
+
+  :root {
+    color-scheme: dark;
+  }
+  [data-theme='light'] {
+    color-scheme: light;
+  }
+
+  ::selection {
+    background: color-mix(in srgb, var(--primary) 38%, transparent);
+    color: inherit;
+  }
+  input,
+  textarea {
+    caret-color: var(--primary);
+  }
+
+  @supports not selector(::-webkit-scrollbar) {
+    html {
+      scrollbar-width: thin;
+      scrollbar-color: var(--border-2) transparent;
+    }
+  }
+
+  .btn,
+  .icon-btn,
+  .segmented-btn {
+    transition-property: background, color, border-color, opacity, transform;
+    transition-duration: var(--dur-fast);
+    transition-timing-function: var(--ease-out);
+
+    &:active:not(:disabled) {
+      transform: scale(0.95);
+    }
+  }
+
+  .page > .page-header,
+  .page > .section-links {
+    animation: rise var(--dur-slow) var(--ease-out) backwards;
+  }
+  .page > .section-links {
+    animation-delay: 70ms;
+  }
+  .page .card,
+  .page .ledger {
+    animation: rise var(--dur-slow) var(--ease-out) backwards;
+  }
+  .page .ledger {
+    animation-delay: 120ms;
+  }
+
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none;
+    mix-blend-mode: normal;
+  }
+  ::view-transition-old(root) {
+    z-index: 1;
+  }
+  ::view-transition-new(root) {
+    z-index: 2;
+  }
+
+  .summary-card,
+  .bp-item,
+  .table-stack tbody tr {
+    &:not(.cdk-drag-preview) {
+      animation: rise-sm var(--dur-base) var(--ease-out) backwards;
+    }
+
+    @for $i from 2 through 8 {
+      &:nth-child(#{$i}) {
+        animation-delay: ($i - 1) * 45ms;
+      }
+    }
+  }
+
+  .progress-bar {
+    transition: width 0.7s var(--ease-out);
+
+    @starting-style {
+      width: 0;
+    }
+  }
+
+  .section-spinner {
+    background-image: linear-gradient(100deg, transparent 30%, var(--surface-2) 50%, transparent 70%);
+    background-size: 200% 100%;
+    animation: shimmer 1.8s linear infinite;
+  }
+
+  .empty-icon {
+    animation: breathe 3.6s ease-in-out infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      transition-duration: 0.01ms !important;
+    }
+    .section-spinner,
+    .empty-icon {
+      animation: none !important;
+    }
+  }
+}

@@ -1,6 +1,7 @@
 @use '@fortawesome/fontawesome-free/css/all.min.css';
 @use './mixins.scss' as *;
 @use './popup.scss';
+@use './motion.scss' as motion;
 
 :root {
   --primary: #4f8cf7;
@@ -1038,6 +1039,12 @@ textarea {
   font-size: var(--fs-2xl);
   font-weight: 700;
   letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+.page-sub {
+  margin: var(--space-1) 0 0;
+  font-size: var(--fs-md);
+  color: var(--text-muted);
 }
 
 .text-success {
@@ -1206,3 +1213,5 @@ textarea {
     font-size: 16px;
   }
 }
+
+@include motion.layer;

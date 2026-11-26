@@ -55,9 +55,11 @@
     [loading]="loading()"
     [empty]="capitals().length === 0"
     [icon]="hasFilters() ? 'fa-magnifying-glass' : 'fa-wallet'"
-    [title]="hasFilters() ? 'No capitals match' : 'No capitals yet'"
+    [title]="hasFilters() ? 'No capitals match' : 'No capitals'"
     [hint]="
-      hasFilters() ? 'Try a different name or clear the filter.' : 'Add the accounts and wallets you want to track.'
+      hasFilters()
+        ? 'Try a different name or clear the filter.'
+        : 'Add a card, cash or a savings account. Its balance joins the total above.'
     "
   >
     @if (hasFilters() && capitals().length === 0) {

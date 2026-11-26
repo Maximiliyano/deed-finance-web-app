@@ -2,9 +2,9 @@
   <div class="ledger-lead">
     <span class="ledger-label">Total capital</span>
     @if (summary().totalCapital) {
-      <span class="ledger-lead-value">{{ summary().totalCapital | currencySymbol: store.userCurrency() }}</span>
+      <span class="ledger-lead-value" [appCountUp]="summary().totalCapital" [countUpCurrency]="store.userCurrency()"></span>
       @if (store.showDualCurrency()) {
-        <span class="ledger-alt">{{ summary().totalCapitalInDefaultCurrency | currencySymbol: defaultCurrency }}</span>
+        <span class="ledger-alt" [appCountUp]="summary().totalCapitalInDefaultCurrency" [countUpCurrency]="defaultCurrency"></span>
       }
     } @else {
       <span class="ledger-empty">No capitals yet</span>
@@ -17,19 +17,17 @@
     <div class="ledger-equation">
       <div class="ledger-term">
         <span class="ledger-term-label">Income</span>
-        <span class="ledger-num text-success">{{ summary().totalIncome | currencySymbol: store.userCurrency() }}</span>
+        <span class="ledger-num text-success" [appCountUp]="summary().totalIncome" [countUpCurrency]="store.userCurrency()"></span>
         @if (store.showDualCurrency()) {
-          <span class="ledger-alt">{{ summary().totalIncomeInDefaultCurrency | currencySymbol: defaultCurrency }}</span>
+          <span class="ledger-alt" [appCountUp]="summary().totalIncomeInDefaultCurrency" [countUpCurrency]="defaultCurrency"></span>
         }
       </div>
       <span class="ledger-op" aria-hidden="true">&minus;</span>
       <div class="ledger-term">
         <span class="ledger-term-label">Expenses</span>
-        <span class="ledger-num text-danger">{{ summary().totalExpense | currencySymbol: store.userCurrency() }}</span>
+        <span class="ledger-num text-danger" [appCountUp]="summary().totalExpense" [countUpCurrency]="store.userCurrency()"></span>
         @if (store.showDualCurrency()) {
-          <span class="ledger-alt">{{
-            summary().totalExpenseInDefaultCurrency | currencySymbol: defaultCurrency
-          }}</span>
+          <span class="ledger-alt" [appCountUp]="summary().totalExpenseInDefaultCurrency" [countUpCurrency]="defaultCurrency"></span>
         }
       </div>
       <span class="ledger-op" aria-hidden="true">=</span>
@@ -37,11 +35,15 @@
         <span class="ledger-term-label">{{
           result.amount > 0 ? 'Surplus' : result.amount < 0 ? 'Deficit' : 'Break-even'
         }}</span>
-        <span class="ledger-num" [class.text-success]="result.amount > 0" [class.text-danger]="result.amount < 0">
-          {{ result.amount | currencySymbol: store.userCurrency() }}
-        </span>
+        <span
+          class="ledger-num"
+          [class.text-success]="result.amount > 0"
+          [class.text-danger]="result.amount < 0"
+          [appCountUp]="result.amount"
+          [countUpCurrency]="store.userCurrency()"
+        ></span>
         @if (store.showDualCurrency()) {
-          <span class="ledger-alt">{{ result.inDefaultCurrency | currencySymbol: defaultCurrency }}</span>
+          <span class="ledger-alt" [appCountUp]="result.inDefaultCurrency" [countUpCurrency]="defaultCurrency"></span>
         }
       </div>
     </div>

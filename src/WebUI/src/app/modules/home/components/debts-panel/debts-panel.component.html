@@ -19,7 +19,7 @@
     [empty]="debts().length === 0"
     icon="fa-hand-holding-dollar"
     title="No debts"
-    hint="Add money you owe or are owed, with a deadline, and it shows up here."
+    hint="Track money you owe or are owed, with a due date."
   >
     @let draggable = sortBy() === 'custom' && !store.isAnonymous();
     <div class="table-wrap">

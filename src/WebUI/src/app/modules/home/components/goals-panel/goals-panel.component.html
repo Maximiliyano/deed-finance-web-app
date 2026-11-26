@@ -18,8 +18,8 @@
     [loading]="isLoading()"
     [empty]="goals().length === 0"
     icon="fa-star"
-    title="No goals yet"
-    hint="Add a target amount and a deadline to see how far along you are."
+    title="No goals"
+    hint="Set a target and a deadline. The bar shows how close you are."
   >
     @let summary = budgetSummary();
     @let currency = store.userCurrency();

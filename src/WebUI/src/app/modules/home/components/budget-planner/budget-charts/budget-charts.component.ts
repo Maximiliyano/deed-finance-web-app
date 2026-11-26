@@ -27,7 +27,7 @@ export class BudgetChartsComponent {
   protected readonly tabs: { key: ChartTab; label: string }[] = [
     { key: 'general', label: 'General' },
     { key: 'expenses', label: 'Expenses' },
-    { key: 'incomes', label: 'Incomes' }
+    { key: 'incomes', label: 'Income' }
   ];
 
   protected readonly chartTab = signal<ChartTab>('general');
