@@ -62,6 +62,25 @@ public sealed class ConnectPrivatCommandHandlerTests
     }
 
     [Fact]
+    public async Task Handle_NoIban_StoresConnectionForAllAccounts()
+    {
+        // Arrange
+        ReturnBankSuccess();
+        _repositoryMock.GetAsync(Arg.Any<BankConnectionByUserSpecification>(), Arg.Any<CancellationToken>())
+            .Returns((BankConnection?)null);
+
+        // Act
+        var result = await _handler.Handle(new ConnectPrivatCommand("secret", null), CancellationToken.None);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+
+        await _bankMock.Received(1).GetTransactionsAsync(
+            "secret", string.Empty, Arg.Any<DateTimeOffset>(), Arg.Any<DateTimeOffset>(), Arg.Any<CancellationToken>());
+        _repositoryMock.Received(1).Create(Arg.Is<BankConnection>(c => c.AccountIban == string.Empty));
+    }
+
+    [Fact]
     public async Task Handle_InvalidToken_ReturnsFailureAndDoesNotSave()
     {
         // Arrange

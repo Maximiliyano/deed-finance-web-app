@@ -1,6 +1,7 @@
 using Deed.Application.Abstractions.Behaviours;
 using Deed.Application.Abstractions.Settings;
 using Deed.Application.Auth;
+using Deed.Application.Auth.Picture;
 using Deed.Application.BankConnections.Service;
 using Deed.Application.Exchanges;
 using Deed.Application.Exchanges.Service;
@@ -35,7 +36,13 @@ public static class DependencyInjection
             services.AddHttpClient<IExchangeHttpService, ExchangeHttpService>()
                 .AddStandardResilienceHandler();
 
+            services.AddHttpClient<IProfilePictureService, ProfilePictureService>(client => 
+                client.Timeout = TimeSpan.FromSeconds(10));
+            
             services.AddHttpClient<IPrivatAutoclientService, PrivatAutoclientService>()
+                .AddStandardResilienceHandler();
+
+            services.AddHttpClient<IPrivatCardService, PrivatCardService>()
                 .AddStandardResilienceHandler();
 
             services.AddScoped<IBankTransactionSyncService, BankTransactionSyncService>();
@@ -143,6 +150,8 @@ public static class DependencyInjection
             services.Configure<SmtpSettings>(configuration.GetRequiredSection(nameof(SmtpSettings)));
 
             services.Configure<PrivatAutoclientSettings>(configuration.GetSection(nameof(PrivatAutoclientSettings)));
+
+            services.Configure<PrivatCardSettings>(configuration.GetSection(nameof(PrivatCardSettings)));
 
             return services;
         }

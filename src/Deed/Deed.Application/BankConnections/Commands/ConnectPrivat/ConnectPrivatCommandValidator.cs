@@ -11,10 +11,14 @@ internal sealed class ConnectPrivatCommandValidator : AbstractValidator<ConnectP
             .MaximumLength(512);
 
         RuleFor(c => c.Iban)
-            .NotEmpty()
-            .Must(iban => BankConnectionExtensions.NormalizeIban(iban).Length == 29
-                && BankConnectionExtensions.NormalizeIban(iban).StartsWith("UA", StringComparison.Ordinal)
-                && BankConnectionExtensions.NormalizeIban(iban)[2..].All(char.IsAsciiLetterOrDigit))
-            .WithMessage("The IBAN must look like UA followed by 27 characters.");
+            .Must(iban => string.IsNullOrWhiteSpace(iban) || IsValidIban(BankConnectionExtensions.NormalizeIban(iban)))
+            .WithMessage("The IBAN must look like UA followed by 27 characters, or be left empty to watch all accounts.");
+    }
+
+    private static bool IsValidIban(string iban)
+    {
+        return iban.Length == 29
+            && iban.StartsWith("UA", StringComparison.Ordinal)
+            && iban[2..].All(char.IsAsciiLetterOrDigit);
     }
 }

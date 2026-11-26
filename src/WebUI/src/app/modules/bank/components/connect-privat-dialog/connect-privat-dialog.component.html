@@ -90,9 +90,9 @@
       </div>
     } @else {
       <ol class="steps">
-        <li>Open Privat24 for Business and go to the Autoclient (API) section.</li>
-        <li>Create a token with read access to account statements.</li>
-        <li>Paste the token and your account number (IBAN) below.</li>
+        <li>Open the Privat24 for Business app and go to Settings, then Integrations.</li>
+        <li>Create an API integration and copy the token it gives you.</li>
+        <li>Paste the token below. The token covers every account of that business profile.</li>
       </ol>
 
       <div class="form-group">
@@ -123,17 +123,19 @@
       </div>
 
       <div class="form-group">
-        <label for="iban" class="form-label">Account number (IBAN)</label>
+        <label for="iban" class="form-label">Account number (IBAN), optional</label>
         <input
           id="iban"
           class="input"
           formControlName="iban"
           autocomplete="off"
           spellcheck="false"
-          placeholder="UA00 0000 0000 0000 0000 0000 0000 0"
+          placeholder="Leave empty to watch all accounts"
         />
         @if (businessForm.controls.iban.touched && businessForm.controls.iban.invalid) {
           <p class="field-error">Enter a valid Ukrainian IBAN: UA followed by 27 characters.</p>
+        } @else {
+          <span class="form-hint">Fill it in only to watch a single account.</span>
         }
       </div>
     }

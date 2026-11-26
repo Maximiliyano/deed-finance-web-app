@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Net;
+using System.Text;
 using System.Text.Json;
 using Deed.Application.Abstractions.Settings;
 using Deed.Domain.Enums;
@@ -15,6 +16,12 @@ public sealed class PrivatAutoclientService(
     IOptions<PrivatAutoclientSettings> options)
     : IPrivatAutoclientService
 {
+    static PrivatAutoclientService() => Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+
+    private const string UserAgent = "DeedFinance/1.0";
+
+    private static readonly UTF8Encoding StrictUtf8 = new(false, true);
+
     private static readonly string[] DateTimeFormats =
     [
         "dd.MM.yyyy HH:mm:ss",
@@ -37,8 +44,14 @@ public sealed class PrivatAutoclientService(
         {
             for (var page = 0; page < settings.MaxPages; page++)
             {
+                if (page > 0 && settings.PageDelayMs > 0)
+                {
+                    await Task.Delay(settings.PageDelayMs, cancellationToken).ConfigureAwait(false);
+                }
+
                 using var request = new HttpRequestMessage(HttpMethod.Get, BuildUrl(settings, iban, from, to, followId));
                 request.Headers.Add("token", token);
+                request.Headers.UserAgent.ParseAdd(UserAgent);
 
                 using var response = await client.SendAsync(request, cancellationToken).ConfigureAwait(false);
 
@@ -53,8 +66,8 @@ public sealed class PrivatAutoclientService(
                     return Result.Failure<IReadOnlyList<BankTransaction>>(DomainErrors.HttpClient.Execution);
                 }
 
-                await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
-                using var document = await JsonDocument.ParseAsync(stream, cancellationToken: cancellationToken).ConfigureAwait(false);
+                var bytes = await response.Content.ReadAsByteArrayAsync(cancellationToken).ConfigureAwait(false);
+                using var document = JsonDocument.Parse(Decode(bytes));
 
                 var root = document.RootElement;
 
@@ -92,13 +105,26 @@ public sealed class PrivatAutoclientService(
         var start = KyivTime.ToLocal(from).ToString("dd-MM-yyyy", CultureInfo.InvariantCulture);
         var end = KyivTime.ToLocal(to).ToString("dd-MM-yyyy", CultureInfo.InvariantCulture);
 
+        var account = string.IsNullOrEmpty(iban) ? string.Empty : $"acc={Uri.EscapeDataString(iban)}&";
+
         var url = $"{settings.BaseUrl.TrimEnd('/')}/{settings.TransactionsPath.TrimStart('/')}"
-            + $"?acc={Uri.EscapeDataString(iban)}&startDate={start}&endDate={end}&limit={settings.PageLimit}";
+            + $"?{account}startDate={start}&endDate={end}&limit={settings.PageLimit}";
 
         return followId is null ? url : $"{url}&followId={Uri.EscapeDataString(followId)}";
     }
 
-    // Field names follow the Autoclient statements API and must be verified against the bank documentation.
+    private static string Decode(byte[] bytes)
+    {
+        try
+        {
+            return StrictUtf8.GetString(bytes);
+        }
+        catch (DecoderFallbackException)
+        {
+            return Encoding.GetEncoding(1251).GetString(bytes);
+        }
+    }
+
     private static BankTransaction? Map(JsonElement item)
     {
         var externalId = ReadString(item, "ID") ?? JoinReference(ReadString(item, "REF"), ReadString(item, "REFN"));

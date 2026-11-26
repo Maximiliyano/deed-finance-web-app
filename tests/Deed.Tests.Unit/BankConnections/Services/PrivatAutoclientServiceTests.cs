@@ -58,6 +58,46 @@ public sealed class PrivatAutoclientServiceTests
 
         captured!.Headers.GetValues("token").Should().ContainSingle("secret-token");
         captured.RequestUri!.Query.Should().Contain($"acc={Iban}").And.Contain("startDate=25-11-2026");
+        captured.Headers.UserAgent.ToString().Should().NotBeEmpty();
+    }
+
+    [Fact]
+    public async Task GetTransactionsAsync_NoIban_RequestsAllAccounts()
+    {
+        // Arrange
+        Uri? captured = null;
+        var service = CreateService((request, _) =>
+        {
+            captured = request.RequestUri;
+            return Task.FromResult(Json("""{ "exist_next_page": false, "transactions": [] }"""));
+        });
+
+        // Act
+        var result = await service.GetTransactionsAsync("t", string.Empty, From, To, CancellationToken.None);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        captured!.Query.Should().NotContain("acc=").And.Contain("startDate=25-11-2026");
+    }
+
+    [Fact]
+    public async Task GetTransactionsAsync_Windows1251Response_DecodesCyrillic()
+    {
+        // Arrange
+        System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
+        var body = System.Text.Encoding.GetEncoding(1251).GetBytes(
+            """{ "exist_next_page": false, "transactions": [ { "ID": "1", "SUM": "5", "CCY": "UAH", "TRANTYPE": "D", "AUT_CNTR_NAM": "Сільпо" } ] }""");
+        var service = CreateService((_, _) => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+        {
+            Content = new ByteArrayContent(body)
+        }));
+
+        // Act
+        var result = await service.GetTransactionsAsync("t", string.Empty, From, To, CancellationToken.None);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Single().Counterparty.Should().Be("Сільпо");
     }
 
     [Fact]
@@ -136,7 +176,7 @@ public sealed class PrivatAutoclientServiceTests
 #pragma warning restore CA2000
         handler.Dispose();
 
-        return new PrivatAutoclientService(client, Options.Create(new PrivatAutoclientSettings()));
+        return new PrivatAutoclientService(client, Options.Create(new PrivatAutoclientSettings { PageDelayMs = 0 }));
     }
 
     private static HttpResponseMessage Json(string body)

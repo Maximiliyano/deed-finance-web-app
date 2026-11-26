@@ -13,8 +13,11 @@ type ConnectMode = 'personal' | 'business';
 const normalizeIban = (value: string): string => value.replace(/\s/g, '').toUpperCase();
 const normalizeCard = (value: string): string => value.replace(/\D/g, '');
 
-const ibanValidator = (control: AbstractControl<string>): ValidationErrors | null =>
-  /^UA[0-9A-Z]{27}$/.test(normalizeIban(control.value ?? '')) ? null : { iban: true };
+const ibanValidator = (control: AbstractControl<string>): ValidationErrors | null => {
+  const iban = normalizeIban(control.value ?? '');
+
+  return !iban || /^UA[0-9A-Z]{27}$/.test(iban) ? null : { iban: true };
+};
 
 const luhn = (digits: string): boolean => {
   let sum = 0;
@@ -62,7 +65,7 @@ export class ConnectPrivatDialogComponent {
 
   protected readonly businessForm = this.fb.nonNullable.group({
     token: ['', [Validators.required, Validators.maxLength(512)]],
-    iban: ['', [Validators.required, ibanValidator]]
+    iban: ['', [ibanValidator]]
   });
 
   protected readonly mode = signal<ConnectMode>('personal');

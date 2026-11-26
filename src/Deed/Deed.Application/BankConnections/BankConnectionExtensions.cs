@@ -6,13 +6,15 @@ namespace Deed.Application.BankConnections;
 
 internal static class BankConnectionExtensions
 {
+    private const string AllAccounts = "All accounts";
+
     internal static BankConnectionResponse ToResponse(this BankConnection? connection)
         => connection is null
             ? new(false, null, null, null, null)
             : new(true, connection.Provider.ToString(), connection.Status.ToString(), Mask(connection), connection.LastSyncAt);
 
-    internal static string NormalizeIban(string iban)
-        => string.Concat(iban.Where(c => !char.IsWhiteSpace(c))).ToUpperInvariant();
+    internal static string NormalizeIban(string? iban)
+        => string.Concat((iban ?? string.Empty).Where(c => !char.IsWhiteSpace(c))).ToUpperInvariant();
 
     internal static string NormalizeCardNumber(string card)
         => string.Concat(card.Where(char.IsAsciiDigit));
@@ -43,9 +45,16 @@ internal static class BankConnectionExtensions
     }
 
     private static string Mask(BankConnection connection)
-        => connection.Provider == BankProvider.PrivatCard
-            ? $"{connection.AccountIban[..4]} **** **** {connection.AccountIban[^4..]}"
-            : MaskIban(connection.AccountIban);
+    {
+        var account = connection.AccountIban;
+
+        if (connection.Provider == BankProvider.PrivatCard)
+        {
+            return $"{account[..4]} **** **** {account[^4..]}";
+        }
+
+        return account.Length == 0 ? AllAccounts : MaskIban(account);
+    }
 
     private static string MaskIban(string iban)
         => iban.Length <= 8 ? iban : $"{iban[..4]}{new string('*', iban.Length - 8)}{iban[^4..]}";

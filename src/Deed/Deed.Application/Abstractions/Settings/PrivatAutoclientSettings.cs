@@ -9,4 +9,6 @@ public sealed class PrivatAutoclientSettings
     public int PageLimit { get; init; } = 100;
 
     public int MaxPages { get; init; } = 10;
+
+    public int PageDelayMs { get; init; } = 1000;
 }

@@ -10,7 +10,9 @@ public sealed class ConnectPrivatCommandValidatorTests
     [Theory]
     [InlineData("UA213223130000026007233566001")]
     [InlineData("ua21 3223 1300 0002 6007 2335 6600 1")]
-    public void Validate_ValidIban_PassesValidation(string iban)
+    [InlineData("")]
+    [InlineData(null)]
+    public void Validate_ValidIban_PassesValidation(string? iban)
     {
         var result = _validator.TestValidate(new ConnectPrivatCommand("token", iban));
 
@@ -18,7 +20,6 @@ public sealed class ConnectPrivatCommandValidatorTests
     }
 
     [Theory]
-    [InlineData("")]
     [InlineData("UA123")]
     [InlineData("PL213223130000026007233566001")]
     [InlineData("UA21322313000002600723356600!")]

@@ -1,6 +1,19 @@
 import { DestroyRef, Injectable, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
-import { EMPTY, Observable, catchError, debounceTime, forkJoin, merge, of, switchMap } from 'rxjs';
+import {
+  EMPTY,
+  Observable,
+  catchError,
+  debounceTime,
+  filter,
+  forkJoin,
+  map,
+  merge,
+  of,
+  pairwise,
+  skip,
+  switchMap
+} from 'rxjs';
 import { AuthService } from '../../auth/services/auth-service';
 import { CapitalService } from '../../capital/services/capital.service';
 import { CURRENCY_DEFAULT } from '../../../core/types/currency-type';
@@ -86,8 +99,8 @@ export class DashboardStore {
       toObservable(this.period),
       toObservable(this.selectedCapitalIds),
       toObservable(this.userCurrency),
-      this.capitalService.capitals$,
-      this.budgetEstimationService.estimations$
+      this.capitalChanges(),
+      this.estimationChanges()
     )
       .pipe(
         debounceTime(100),
@@ -128,6 +141,23 @@ export class DashboardStore {
 
   isCapitalSelected(id: number): boolean {
     return this.selectedCapitalIds().has(id);
+  }
+
+  private capitalChanges(): Observable<unknown> {
+    return this.capitalService.capitals$.pipe(skip(2));
+  }
+
+  private estimationChanges(): Observable<unknown> {
+    return this.budgetEstimationService.estimations$.pipe(
+      skip(1),
+      map(() => {
+        const { periodStart, periodEnd } = this.period();
+
+        return `${periodStart?.getTime()}|${periodEnd?.getTime()}`;
+      }),
+      pairwise(),
+      filter(([previous, current]) => previous === current)
+    );
   }
 
   private loadSummaries(): Observable<[DashboardSummary, DashboardSummary | null]> {
