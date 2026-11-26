@@ -1,5 +1,6 @@
 using Deed.Application.Abstractions.Messaging;
 using Deed.Application.Auth;
+using Deed.Application.BankConnections.Specifications;
 using Deed.Application.BankNotifications.Responses;
 using Deed.Application.BankNotifications.Specifications;
 using Deed.Domain.Enums;
@@ -8,7 +9,10 @@ using Deed.Domain.Results;
 
 namespace Deed.Application.BankNotifications.Queries.GetPage;
 
-internal sealed class GetBankTransactionsQueryHandler(IUser user, IBankNotificationRepository repository)
+internal sealed class GetBankTransactionsQueryHandler(
+    IUser user,
+    IBankNotificationRepository repository,
+    IBankConnectionRepository connectionRepository)
     : IQueryHandler<GetBankTransactionsQuery, BankTransactionsPageResponse>
 {
     private const int MaxPageSize = 100;
@@ -25,12 +29,18 @@ internal sealed class GetBankTransactionsQueryHandler(IUser user, IBankNotificat
             ? parsedStatus
             : null;
 
+        var connections = await connectionRepository
+            .GetAllAsync(new BankConnectionByUserSpecification(user.Name!), cancellationToken)
+            .ConfigureAwait(false);
+
+        var (connectionIds, includeUnassigned) = BankConnectionScope.Resolve(connections, query.Provider, query.ConnectionId);
+
         var total = await repository
-            .CountAsync(new BankTransactionsByUserSpecification(user.Name!, type, importStatus: status, connectionId: query.ConnectionId), cancellationToken)
+            .CountAsync(new BankTransactionsByUserSpecification(user.Name!, type, importStatus: status, connectionId: query.ConnectionId, connectionIds: connectionIds, includeUnassigned: includeUnassigned), cancellationToken)
             .ConfigureAwait(false);
 
         var items = await repository
-            .GetAllAsync(new BankTransactionsByUserSpecification(user.Name!, type, (page - 1) * pageSize, pageSize, status, query.ConnectionId), cancellationToken)
+            .GetAllAsync(new BankTransactionsByUserSpecification(user.Name!, type, (page - 1) * pageSize, pageSize, status, query.ConnectionId, connectionIds, includeUnassigned), cancellationToken)
             .ConfigureAwait(false);
 
         return Result.Success(new BankTransactionsPageResponse(total, page, pageSize, items.ToResponses()));

@@ -4,7 +4,7 @@ namespace Deed.Application.BankConnections.Commands.ImportBankHistory;
 
 internal sealed class ImportBankHistoryCommandValidator : AbstractValidator<ImportBankHistoryCommand>
 {
-    internal const int MaxHistoryDays = 1100;
+    internal const int MaxHistoryDays = 3660;
 
     public ImportBankHistoryCommandValidator()
     {

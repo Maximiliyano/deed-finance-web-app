@@ -328,11 +328,73 @@ public sealed class BankTransactionSyncServiceTests
     }
 
     [Fact]
-    public async Task BackfillAsync_ProviderFails_StopsBackfill()
+    public async Task BackfillAsync_FirstFailure_KeepsBackfillAndCountsTheFailure()
     {
         // Arrange
         _connection.BackfillFrom = Now.AddDays(-90);
         _connection.BackfillCursor = Now;
+        _connectionsMock
+            .GetAllAsync(Arg.Any<BackfillBankConnectionsSpecification>(), Arg.Any<CancellationToken>())
+            .Returns([_connection]);
+        _bankMock
+            .GetTransactionsAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<DateTimeOffset>(), Arg.Any<DateTimeOffset>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Failure<IReadOnlyList<BankTransaction>>(DomainErrors.HttpClient.Execution));
+
+        // Act
+        await _service.BackfillAsync(CancellationToken.None);
+
+        // Assert
+        _connection.BackfillCursor.Should().Be(Now);
+        _connection.BackfillFailures.Should().Be(1);
+    }
+
+    [Fact]
+    public async Task BackfillAsync_RateLimited_DoesNotCountAsFailure()
+    {
+        // Arrange
+        _connection.BackfillFrom = Now.AddDays(-90);
+        _connection.BackfillCursor = Now;
+        _connectionsMock
+            .GetAllAsync(Arg.Any<BackfillBankConnectionsSpecification>(), Arg.Any<CancellationToken>())
+            .Returns([_connection]);
+        _bankMock
+            .GetTransactionsAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<DateTimeOffset>(), Arg.Any<DateTimeOffset>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Failure<IReadOnlyList<BankTransaction>>(DomainErrors.Bank.RateLimited));
+
+        // Act
+        await _service.BackfillAsync(CancellationToken.None);
+
+        // Assert
+        _connection.BackfillCursor.Should().Be(Now);
+        _connection.BackfillFailures.Should().Be(0);
+    }
+
+    [Fact]
+    public async Task BackfillAsync_SuccessAfterFailures_ResetsTheCounter()
+    {
+        // Arrange
+        _connection.BackfillFrom = Now.AddDays(-90);
+        _connection.BackfillCursor = Now;
+        _connection.BackfillFailures = 4;
+        _connectionsMock
+            .GetAllAsync(Arg.Any<BackfillBankConnectionsSpecification>(), Arg.Any<CancellationToken>())
+            .Returns([_connection]);
+        ReturnTransactions(Transaction("tx", Now.AddDays(-5)));
+
+        // Act
+        await _service.BackfillAsync(CancellationToken.None);
+
+        // Assert
+        _connection.BackfillFailures.Should().Be(0);
+    }
+
+    [Fact]
+    public async Task BackfillAsync_TenthFailure_StopsBackfill()
+    {
+        // Arrange
+        _connection.BackfillFrom = Now.AddDays(-90);
+        _connection.BackfillCursor = Now;
+        _connection.BackfillFailures = 9;
         _connectionsMock
             .GetAllAsync(Arg.Any<BackfillBankConnectionsSpecification>(), Arg.Any<CancellationToken>())
             .Returns([_connection]);
@@ -387,6 +449,95 @@ public sealed class BankTransactionSyncServiceTests
         _connection.BackfillFrom.Should().BeNull();
         _connection.BackfillCursor.Should().BeNull();
         await _bankMock.Received(1).GetTransactionsAsync("token", _connection.AccountIban, Now.AddDays(-40), Now.AddDays(-30), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task BackfillAsync_ProviderAllowsSeveralChunks_WalksThemInOneRun()
+    {
+        // Arrange
+        _bankMock.MaxChunksPerRun.Returns(3);
+        _connection.BackfillFrom = Now.AddDays(-365);
+        _connection.BackfillCursor = Now;
+        _connectionsMock
+            .GetAllAsync(Arg.Any<BackfillBankConnectionsSpecification>(), Arg.Any<CancellationToken>())
+            .Returns([_connection]);
+        ReturnTransactions(Transaction("tx", Now.AddDays(-5)));
+
+        // Act
+        await _service.BackfillAsync(CancellationToken.None);
+
+        // Assert
+        _connection.BackfillCursor.Should().Be(Now.AddDays(-90));
+        await _bankMock.Received(3).GetTransactionsAsync(
+            Arg.Any<string>(), Arg.Any<string>(), Arg.Any<DateTimeOffset>(), Arg.Any<DateTimeOffset>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task BackfillAsync_RateLimitedInTheMiddle_StopsTheRun()
+    {
+        // Arrange
+        _bankMock.MaxChunksPerRun.Returns(5);
+        _connection.BackfillFrom = Now.AddDays(-365);
+        _connection.BackfillCursor = Now;
+        _connectionsMock
+            .GetAllAsync(Arg.Any<BackfillBankConnectionsSpecification>(), Arg.Any<CancellationToken>())
+            .Returns([_connection]);
+        _bankMock
+            .GetTransactionsAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<DateTimeOffset>(), Arg.Any<DateTimeOffset>(), Arg.Any<CancellationToken>())
+            .Returns(
+                Result.Success<IReadOnlyList<BankTransaction>>([Transaction("tx", Now.AddDays(-5))]),
+                Result.Failure<IReadOnlyList<BankTransaction>>(DomainErrors.Bank.RateLimited));
+
+        // Act
+        await _service.BackfillAsync(CancellationToken.None);
+
+        // Assert
+        _connection.BackfillCursor.Should().Be(Now.AddDays(-30));
+        await _bankMock.Received(2).GetTransactionsAsync(
+            Arg.Any<string>(), Arg.Any<string>(), Arg.Any<DateTimeOffset>(), Arg.Any<DateTimeOffset>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task BackfillAsync_EmptyChunkLongBeforeOldestKnown_StopsBackfill()
+    {
+        // Arrange
+        _connection.BackfillFrom = Now.AddYears(-10);
+        _connection.BackfillCursor = Now.AddDays(-1000);
+        _connectionsMock
+            .GetAllAsync(Arg.Any<BackfillBankConnectionsSpecification>(), Arg.Any<CancellationToken>())
+            .Returns([_connection]);
+        _notificationsMock
+            .GetOldestAsync(Arg.Any<BankTransactionsSummarySpecification>(), Arg.Any<CancellationToken>())
+            .Returns((DateTimeOffset?)Now.AddDays(-200));
+        ReturnTransactions();
+
+        // Act
+        await _service.BackfillAsync(CancellationToken.None);
+
+        // Assert
+        _connection.BackfillFrom.Should().BeNull();
+        _connection.BackfillCursor.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task BackfillAsync_EmptyChunkCloseToOldestKnown_KeepsGoing()
+    {
+        // Arrange
+        _connection.BackfillFrom = Now.AddYears(-10);
+        _connection.BackfillCursor = Now.AddDays(-300);
+        _connectionsMock
+            .GetAllAsync(Arg.Any<BackfillBankConnectionsSpecification>(), Arg.Any<CancellationToken>())
+            .Returns([_connection]);
+        _notificationsMock
+            .GetOldestAsync(Arg.Any<BankTransactionsSummarySpecification>(), Arg.Any<CancellationToken>())
+            .Returns((DateTimeOffset?)Now.AddDays(-200));
+        ReturnTransactions();
+
+        // Act
+        await _service.BackfillAsync(CancellationToken.None);
+
+        // Assert
+        _connection.BackfillCursor.Should().Be(Now.AddDays(-330));
     }
 
     [Fact]

@@ -19,11 +19,13 @@ internal sealed class ConnectPrivatCommandHandler(
     IBankTransactionSyncService syncService,
     ITokenProtector tokenProtector,
     IDateTimeProvider dateTimeProvider,
-    IUnitOfWork unitOfWork)
+    IUnitOfWork unitOfWork,
+    IBankBackfillTrigger backfillTrigger)
     : ICommandHandler<ConnectPrivatCommand>
 {
     private const string DefaultLabel = "Business";
     private const int HistoryDays = 30;
+    private const int FullHistoryDays = 3650;
 
     public async Task<Result> Handle(ConnectPrivatCommand command, CancellationToken cancellationToken)
     {
@@ -78,7 +80,12 @@ internal sealed class ConnectPrivatCommandHandler(
             .StageHistoryAsync(user.Name!, label, connection.Id, check.Value, cancellationToken)
             .ConfigureAwait(false);
 
+        connection.BackfillFrom ??= now.AddDays(-FullHistoryDays);
+        connection.BackfillCursor ??= now.AddDays(-HistoryDays);
+
         await unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+
+        await backfillTrigger.TriggerAsync(cancellationToken).ConfigureAwait(false);
 
         Log.Information("Bank connection saved for {User}, imported {Imported} historical transactions", user.Name, imported);
 

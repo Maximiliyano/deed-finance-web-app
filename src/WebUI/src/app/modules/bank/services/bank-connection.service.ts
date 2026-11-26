@@ -4,6 +4,7 @@ import { BehaviorSubject, Observable, switchMap, tap } from 'rxjs';
 import { SKIP_ERROR_TOAST } from '../../../core/interceptors/error.interceptor';
 import {
   BankConnection,
+  BankProvider,
   BankHistoryImportRequest,
   BankHistoryImportResponse,
   ConnectMonobankRequest,
@@ -55,16 +56,22 @@ export class BankConnectionService {
     return this.http.put<void>(`${this.baseUrl}/${id}`, request, { context }).pipe(switchMap(() => this.load()));
   }
 
-  disconnect(id: number): Observable<void> {
-    return this.http
-      .delete<void>(`${this.baseUrl}/${id}`)
-      .pipe(tap(() => this.state$.next(this.state$.value.filter(connection => connection.id !== id))));
+  setExcluded(id: number, excluded: boolean): Observable<BankConnection[]> {
+    return this.http.put<void>(`${this.baseUrl}/${id}/excluded`, { excluded }).pipe(switchMap(() => this.load()));
+  }
+
+  disconnectProvider(provider: BankProvider): Observable<BankConnection[]> {
+    return this.http.delete<void>(`${this.baseUrl}/provider/${provider}`).pipe(switchMap(() => this.load()));
   }
 
   importHistory(request: BankHistoryImportRequest): Observable<BankHistoryImportResponse> {
     const context = new HttpContext().set(SKIP_ERROR_TOAST, true);
 
     return this.http.post<BankHistoryImportResponse>(`${this.baseUrl}/history`, request, { context });
+  }
+
+  cancelHistory(): Observable<BankConnection[]> {
+    return this.http.delete<void>(`${this.baseUrl}/history`).pipe(switchMap(() => this.load()));
   }
 
   syncNow(): Observable<number> {

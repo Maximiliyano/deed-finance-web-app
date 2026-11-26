@@ -33,6 +33,10 @@ public sealed class PrivatAutoclientService(
 
     public int? MaxItemsPerRequest => null;
 
+    public int MaxChunksPerRun => options.Value.ChunksPerRun;
+
+    public TimeSpan ChunkDelay => TimeSpan.FromMilliseconds(options.Value.ChunkDelayMs);
+
     public async Task<Result<IReadOnlyList<BankTransaction>>> GetTransactionsAsync(
         string token,
         string account,
@@ -187,9 +191,12 @@ public sealed class PrivatAutoclientService(
             (int)response.StatusCode,
             Preview(body));
 
-        return response.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden
-            ? Result.Failure<string>(DomainErrors.Bank.TokenInvalid)
-            : Result.Failure<string>(DomainErrors.HttpClient.Execution);
+        return response.StatusCode switch
+        {
+            HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden => Result.Failure<string>(DomainErrors.Bank.TokenInvalid),
+            HttpStatusCode.TooManyRequests => Result.Failure<string>(DomainErrors.Bank.RateLimited),
+            _ => Result.Failure<string>(DomainErrors.HttpClient.Execution)
+        };
     }
 
     private static string Preview(string body)

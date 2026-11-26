@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import { SKIP_ERROR_TOAST } from '../../../core/interceptors/error.interceptor';
 import {
   BankImportStatus,
+  BankProvider,
   BankSummary,
   BankSummaryPeriod,
   BankTransactionsPage,
@@ -19,7 +20,8 @@ export class BankTransactionService {
     pageSize: number,
     type: BankTransactionType | null,
     status: BankImportStatus | null = null,
-    connectionId: number | null = null
+    connectionId: number | null = null,
+    provider: BankProvider | null = null
   ): Observable<BankTransactionsPage> {
     let params = new HttpParams().set('page', page).set('pageSize', pageSize);
 
@@ -35,14 +37,26 @@ export class BankTransactionService {
       params = params.set('connectionId', connectionId);
     }
 
+    if (provider) {
+      params = params.set('provider', provider);
+    }
+
     return this.http.get<BankTransactionsPage>('/api/bank-transactions', { params });
   }
 
-  summary(period: BankSummaryPeriod, connectionId: number | null): Observable<BankSummary> {
+  summary(
+    period: BankSummaryPeriod,
+    connectionId: number | null,
+    provider: BankProvider | null = null
+  ): Observable<BankSummary> {
     let params = new HttpParams().set('period', period);
 
     if (connectionId !== null) {
       params = params.set('connectionId', connectionId);
+    }
+
+    if (provider) {
+      params = params.set('provider', provider);
     }
 
     return this.http.get<BankSummary>('/api/bank-transactions/summary', { params });

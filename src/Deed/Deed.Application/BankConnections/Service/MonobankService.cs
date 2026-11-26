@@ -23,6 +23,10 @@ public sealed class MonobankService(
 
     public int? MaxItemsPerRequest => StatementLimit;
 
+    public int MaxChunksPerRun => 1;
+
+    public TimeSpan ChunkDelay => TimeSpan.Zero;
+
     public async Task<Result<IReadOnlyList<MonobankAccount>>> GetAccountsAsync(string token, CancellationToken cancellationToken)
     {
         var body = await GetAsync(token, "personal/client-info", cancellationToken).ConfigureAwait(false);

@@ -9,6 +9,7 @@ import {
   signal
 } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
+import { switchMap } from 'rxjs';
 import { AuthService } from '../../services/auth-service';
 
 import { SharedModule } from '../../../../shared/shared.module';
@@ -21,12 +22,17 @@ import { UserSettingsService } from '../../../home/services/user-settings.servic
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { CURRENCIES, CURRENCY_DEFAULT, CURRENCY_SYMBOL } from '../../../../core/types/currency-type';
 import { UserSettings } from '../../../home/models/user-settings.model';
-import { BankAccount, BankConnection } from '../../../bank/models/bank.model';
+import { BankAccount, BankConnection, BankProvider } from '../../../bank/models/bank.model';
 import { BankAccountService } from '../../../bank/services/bank-account.service';
 import { BankConnectionService } from '../../../bank/services/bank-connection.service';
 import { BankConnectionSettingsDialogComponent } from '../../../bank/components/bank-connection-settings-dialog/bank-connection-settings-dialog.component';
 import { ConnectMonobankDialogComponent } from '../../../bank/components/connect-monobank-dialog/connect-monobank-dialog.component';
 import { ConnectPrivatDialogComponent } from '../../../bank/components/connect-privat-dialog/connect-privat-dialog.component';
+
+const BANK_PROVIDERS: { value: BankProvider; label: string }[] = [
+  { value: 'PrivatAutoclient', label: 'Privat24 Business' },
+  { value: 'Monobank', label: 'Monobank' }
+];
 
 const DEFAULT_REMINDER_CRON = '0 0 9 * * ?';
 
@@ -59,6 +65,13 @@ export class ProfileComponent implements OnInit {
   readonly bankConnections = toSignal(this.bankConnectionService.connections$, { initialValue: [] });
   readonly bankAccounts = toSignal(this.bankAccountService.accounts$, { initialValue: [] });
   readonly availableAccounts = computed(() => this.bankAccounts().filter(account => account.connectionId === null));
+  readonly connectedProviders = computed(() =>
+    BANK_PROVIDERS.filter(
+      option =>
+        this.bankConnections().some(connection => connection.provider === option.value) ||
+        this.bankAccounts().some(account => account.provider === option.value)
+    )
+  );
   readonly syncing = signal(false);
   readonly refreshing = signal(false);
   readonly connectingId = signal<number | null>(null);
@@ -211,12 +224,24 @@ export class ProfileComponent implements OnInit {
     return connection.provider === 'Monobank' ? 'Monobank' : 'Privat24 Business';
   }
 
-  disconnectPrivat(connection: BankConnection): void {
+  toggleExcluded(connection: BankConnection): void {
+    this.bankConnectionService
+      .setExcluded(connection.id, !connection.isExcluded)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() =>
+        this.popupMessageService.info(
+          connection.isExcluded
+            ? `${connection.label} is counted on the bank page again`
+            : `${connection.label} is hidden from the bank page`
+        )
+      );
+  }
+
+  disconnectProvider(option: { value: BankProvider; label: string }): void {
     const dialogRef = this.dialogService.open(ConfirmDialogComponent, {
       data: {
-        title: `Disconnect ${connection.label}`,
-        message:
-          'You will stop receiving alerts about new transactions on this account. The stored credentials will be deleted.',
+        title: `Disconnect ${option.label}`,
+        message: `Every ${option.label} account, its stored token and its imported transactions will be removed from Deed and from the bank page. Your accounts at the bank are not affected.`,
         submitText: 'Disconnect',
         cancelText: 'Cancel',
         icon: 'warning'
@@ -227,9 +252,12 @@ export class ProfileComponent implements OnInit {
       if (!submit) return;
 
       this.bankConnectionService
-        .disconnect(connection.id)
-        .pipe(takeUntilDestroyed(this.destroyRef))
-        .subscribe(() => this.popupMessageService.success(`${connection.label} disconnected`));
+        .disconnectProvider(option.value)
+        .pipe(
+          switchMap(() => this.bankAccountService.load()),
+          takeUntilDestroyed(this.destroyRef)
+        )
+        .subscribe(() => this.popupMessageService.success(`${option.label} disconnected`));
     });
   }
 

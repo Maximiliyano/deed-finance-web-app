@@ -1,6 +1,15 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  OnInit,
+  computed,
+  effect,
+  inject,
+  signal
+} from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
-import { EMPTY, Subject, catchError, filter, finalize, interval, switchMap, tap } from 'rxjs';
+import { EMPTY, Subject, catchError, filter, finalize, interval, switchMap, tap, timer } from 'rxjs';
 import { DialogService } from '../../../../shared/components/dialogs/services/dialog.service';
 import { PanelStateComponent } from '../../../../shared/components/panel-state/panel-state.component';
 import { SharedModule } from '../../../../shared/shared.module';
@@ -10,6 +19,7 @@ import {
   BankHistoryImportResponse,
   BankImportStatus,
   BankNotification,
+  BankProvider,
   BankTransactionsPage,
   BankTransactionType
 } from '../../models/bank.model';
@@ -29,6 +39,11 @@ const FILTERS: { value: TypeFilter; label: string }[] = [
   { value: 'Transfer', label: 'Transfers' },
   { value: 'Payment', label: 'Payments' },
   { value: 'Exchange', label: 'Exchanges' }
+];
+
+const PROVIDER_OPTIONS: { value: BankProvider; label: string }[] = [
+  { value: 'PrivatAutoclient', label: 'Privat24' },
+  { value: 'Monobank', label: 'Monobank' }
 ];
 
 const TYPE_ICONS: Record<BankTransactionType, string> = {
@@ -57,11 +72,20 @@ export class BankTransactionsComponent implements OnInit {
   private readonly reload$ = new Subject<void>();
 
   protected readonly filters = FILTERS;
-  protected readonly pageSizes = [10, 20, 50];
-  protected readonly connections = toSignal(this.connectionService.connections$, { initialValue: [] });
+  protected readonly pageSizes = [10, 20, 50, 100];
+  private readonly allConnections = toSignal(this.connectionService.connections$, { initialValue: [] });
+  protected readonly connections = computed(() => this.allConnections().filter(connection => !connection.isExcluded));
 
   protected readonly filter = signal<TypeFilter>('all');
   protected readonly accountId = signal<number | null>(null);
+  protected readonly provider = signal<BankProvider | null>(null);
+
+  protected readonly providers = computed(() =>
+    PROVIDER_OPTIONS.filter(option => this.connections().some(connection => connection.provider === option.value))
+  );
+  protected readonly accountOptions = computed(() =>
+    this.connections().filter(connection => !this.provider() || connection.provider === this.provider())
+  );
   protected readonly page = signal(1);
   protected readonly pageSize = signal(20);
   protected readonly data = signal<BankTransactionsPage | null>(null);
@@ -103,6 +127,34 @@ export class BankTransactionsComponent implements OnInit {
   protected readonly rangeStart = computed(() => (this.total() === 0 ? 0 : (this.page() - 1) * this.pageSize() + 1));
   protected readonly rangeEnd = computed(() => Math.min(this.page() * this.pageSize(), this.total()));
 
+  protected readonly version = signal(0);
+  protected readonly finished = signal(false);
+  protected readonly eta = signal<string | null>(null);
+
+  private wasImporting = false;
+  private importStart: { at: number; progress: number } | null = null;
+
+  constructor() {
+    effect(() => {
+      if (this.backfilling().length > 0) {
+        this.wasImporting = true;
+        return;
+      }
+
+      if (!this.wasImporting) return;
+
+      this.wasImporting = false;
+      this.importStart = null;
+      this.eta.set(null);
+      this.finished.set(true);
+      this.version.update(value => value + 1);
+
+      timer(5000)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe(() => this.finished.set(false));
+    });
+  }
+
   ngOnInit(): void {
     document.title = 'Deed - Bank transactions';
 
@@ -113,7 +165,14 @@ export class BankTransactionsComponent implements OnInit {
         tap(() => this.loading.set(true)),
         switchMap(() =>
           this.transactions
-            .loadPage(this.page(), this.pageSize(), this.typeParam(), this.statusParam(), this.accountId())
+            .loadPage(
+              this.page(),
+              this.pageSize(),
+              this.typeParam(),
+              this.statusParam(),
+              this.accountId(),
+              this.provider()
+            )
             .pipe(
               catchError(() => EMPTY),
               finalize(() => this.loading.set(false))
@@ -125,7 +184,7 @@ export class BankTransactionsComponent implements OnInit {
 
     let lastCursor = this.backfillCursor();
 
-    interval(15_000)
+    interval(4_000)
       .pipe(
         filter(() => this.backfilling().length > 0),
         switchMap(() => this.connectionService.load().pipe(catchError(() => EMPTY))),
@@ -134,8 +193,11 @@ export class BankTransactionsComponent implements OnInit {
       .subscribe(() => {
         const cursor = this.backfillCursor();
 
+        this.updateEta();
+
         if (cursor !== lastCursor) {
           lastCursor = cursor;
+          this.version.update(value => value + 1);
           this.goTo(this.page());
         }
       });
@@ -145,6 +207,16 @@ export class BankTransactionsComponent implements OnInit {
 
   protected setFilter(filter: TypeFilter): void {
     this.filter.set(filter);
+    this.goTo(1);
+  }
+
+  protected setProvider(provider: BankProvider | null): void {
+    this.provider.set(provider);
+
+    if (!this.accountOptions().some(connection => connection.id === this.accountId())) {
+      this.accountId.set(null);
+    }
+
     this.goTo(1);
   }
 
@@ -183,6 +255,48 @@ export class BankTransactionsComponent implements OnInit {
       });
   }
 
+  private updateEta(): void {
+    const progress = this.backfillProgress();
+    const now = Date.now();
+
+    if (!this.importStart) {
+      this.importStart = { at: now, progress };
+      return;
+    }
+
+    const minutes = (now - this.importStart.at) / 60_000;
+    const gained = progress - this.importStart.progress;
+
+    if (minutes < 0.25 || gained < 1) {
+      this.eta.set(null);
+      return;
+    }
+
+    const left = Math.ceil(((100 - progress) / gained) * minutes);
+
+    this.eta.set(left <= 1 ? 'Less than a minute left' : `About ${left} min left`);
+  }
+
+  protected cancelImport(): void {
+    if (this.busy()) return;
+
+    this.busy.set(true);
+
+    this.connectionService
+      .cancelHistory()
+      .pipe(
+        finalize(() => this.busy.set(false)),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe(() => {
+        this.wasImporting = false;
+        this.importStart = null;
+        this.eta.set(null);
+        this.popup.info('History import cancelled. What was imported so far is kept.');
+        this.goTo(this.page());
+      });
+  }
+
   protected importHistory(): void {
     this.dialogService
       .open(ImportHistoryDialogComponent, {})
@@ -190,11 +304,9 @@ export class BankTransactionsComponent implements OnInit {
       .subscribe((result: BankHistoryImportResponse | null) => {
         if (!result) return;
 
-        this.popup.info(
-          result.inProgress
-            ? 'History import started. Transactions will appear in the background, about one month per minute.'
-            : 'No history to import. Connect a bank account first.'
-        );
+        if (!result.inProgress) {
+          this.popup.info('No history to import. Connect a bank account first.');
+        }
 
         this.connectionService.load().pipe(takeUntilDestroyed(this.destroyRef)).subscribe();
         this.goTo(1);

@@ -12,4 +12,5 @@ public sealed record BankConnectionResponse(
     int? ExpenseCategoryId,
     int? IncomeCategoryId,
     DateTimeOffset? BackfillFrom,
-    DateTimeOffset? BackfillCursor);
+    DateTimeOffset? BackfillCursor,
+    bool IsExcluded);

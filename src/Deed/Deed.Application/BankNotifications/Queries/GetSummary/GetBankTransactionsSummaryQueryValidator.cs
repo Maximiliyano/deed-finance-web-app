@@ -4,7 +4,7 @@ namespace Deed.Application.BankNotifications.Queries.GetSummary;
 
 internal sealed class GetBankTransactionsSummaryQueryValidator : AbstractValidator<GetBankTransactionsSummaryQuery>
 {
-    private const int MaxYears = 5;
+    private const int MaxYears = 10;
 
     public GetBankTransactionsSummaryQueryValidator()
     {

@@ -17,6 +17,7 @@ export interface BankConnection {
   incomeCategoryId: number | null;
   backfillFrom: string | null;
   backfillCursor: string | null;
+  isExcluded: boolean;
 }
 
 export interface BankHistoryImportRequest {

@@ -141,6 +141,20 @@ public sealed class PrivatAutoclientServiceTests
     }
 
     [Fact]
+    public async Task GetTransactionsAsync_TooManyRequests_ReturnsRateLimited()
+    {
+        // Arrange
+        var service = CreateService((_, _) => Task.FromResult(new HttpResponseMessage(HttpStatusCode.TooManyRequests)));
+
+        // Act
+        var result = await service.GetTransactionsAsync("t", Iban, From, To, CancellationToken.None);
+
+        // Assert
+        result.IsSuccess.Should().BeFalse();
+        result.Errors.Should().Contain(DomainErrors.Bank.RateLimited);
+    }
+
+    [Fact]
     public async Task GetTransactionsAsync_ServerError_ReturnsExecutionFailure()
     {
         // Arrange

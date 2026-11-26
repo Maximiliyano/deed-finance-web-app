@@ -25,14 +25,14 @@
         </div>
       </div>
       @if (customInvalid) {
-        <p class="field-error">Pick a start before the end, within the last 3 years.</p>
+        <p class="field-error">Pick a start before the end, within the last 10 years.</p>
       }
     }
 
     <p class="form-hint">
-      The newest part is imported right away. Longer periods continue in the background, one month at a time, because
-      banks limit how often history can be requested. Imported transactions are shown for reference and are not added to
-      your capitals.
+      History is imported in the background, newest first, one month at a time, because banks limit how often it can be
+      requested. All time goes back up to 10 years and stops once an account has been silent for over a year. Imported
+      transactions are shown for reference and are not added to your capitals.
     </p>
 
     @if (error(); as message) {

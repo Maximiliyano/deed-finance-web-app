@@ -20,7 +20,8 @@ internal static class BankConnectionExtensions
             connection.ExpenseCategoryId,
             connection.IncomeCategoryId,
             connection.BackfillFrom,
-            connection.BackfillCursor);
+            connection.BackfillCursor,
+            connection.IsExcluded);
 
     internal static IReadOnlyList<BankConnectionResponse> ToResponses(this IEnumerable<BankConnection> connections)
         => [.. connections.Select(c => c.ToResponse())];

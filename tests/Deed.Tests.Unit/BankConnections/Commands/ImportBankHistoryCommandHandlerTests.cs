@@ -16,13 +16,14 @@ public sealed class ImportBankHistoryCommandHandlerTests
     private readonly IUser _user = Substitute.For<IUser>();
     private readonly IBankTransactionSyncService _sync = Substitute.For<IBankTransactionSyncService>();
     private readonly IDateTimeProvider _clock = Substitute.For<IDateTimeProvider>();
+    private readonly IBankBackfillTrigger _trigger = Substitute.For<IBankBackfillTrigger>();
     private readonly ImportBankHistoryCommandHandler _sut;
 
     public ImportBankHistoryCommandHandlerTests()
     {
         _user.Name.Returns("owner");
         _clock.UtcNow.Returns(Now);
-        _sut = new ImportBankHistoryCommandHandler(_user, _sync, _clock);
+        _sut = new ImportBankHistoryCommandHandler(_user, _sync, _clock, _trigger);
     }
 
     [Fact]
@@ -65,5 +66,33 @@ public sealed class ImportBankHistoryCommandHandlerTests
         result.Errors.Should().Contain(DomainErrors.Bank.InvalidPeriod);
         await _sync.DidNotReceive().ImportHistoryAsync(
             Arg.Any<string>(), Arg.Any<DateTimeOffset>(), Arg.Any<DateTimeOffset>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Handle_ImportInProgress_StartsTheHistoryJobRightAway()
+    {
+        // Arrange
+        _sync.ImportHistoryAsync(Arg.Any<string>(), Arg.Any<DateTimeOffset>(), Arg.Any<DateTimeOffset>(), Arg.Any<CancellationToken>())
+            .Returns(new BankHistoryImportResponse(0, true));
+
+        // Act
+        await _sut.Handle(new ImportBankHistoryCommand(Now.AddYears(-1), null), CancellationToken.None);
+
+        // Assert
+        await _trigger.Received(1).TriggerAsync(Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Handle_NothingToImport_DoesNotStartTheJob()
+    {
+        // Arrange
+        _sync.ImportHistoryAsync(Arg.Any<string>(), Arg.Any<DateTimeOffset>(), Arg.Any<DateTimeOffset>(), Arg.Any<CancellationToken>())
+            .Returns(new BankHistoryImportResponse(0, false));
+
+        // Act
+        await _sut.Handle(new ImportBankHistoryCommand(Now.AddYears(-1), null), CancellationToken.None);
+
+        // Assert
+        await _trigger.DidNotReceive().TriggerAsync(Arg.Any<CancellationToken>());
     }
 }

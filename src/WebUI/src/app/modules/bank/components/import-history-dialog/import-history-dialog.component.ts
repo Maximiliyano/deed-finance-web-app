@@ -7,9 +7,9 @@ import { SharedModule } from '../../../../shared/shared.module';
 import { BankHistoryImportResponse } from '../../models/bank.model';
 import { BankConnectionService } from '../../services/bank-connection.service';
 
-type Preset = '30d' | '3m' | '6m' | '1y' | '3y' | 'custom';
+type Preset = '30d' | '3m' | '6m' | '1y' | '3y' | 'all' | 'custom';
 
-const MAX_YEARS = 3;
+const MAX_YEARS = 10;
 
 const PRESETS: { value: Preset; label: string }[] = [
   { value: '30d', label: 'Last 30 days' },
@@ -17,6 +17,7 @@ const PRESETS: { value: Preset; label: string }[] = [
   { value: '6m', label: 'Last 6 months' },
   { value: '1y', label: 'Last year' },
   { value: '3y', label: 'Last 3 years' },
+  { value: 'all', label: 'All time' },
   { value: 'custom', label: 'Custom period' }
 ];
 
@@ -116,6 +117,9 @@ export class ImportHistoryDialogComponent {
         break;
       case '1y':
         start.setFullYear(start.getFullYear() - 1);
+        break;
+      case '3y':
+        start.setFullYear(start.getFullYear() - 3);
         break;
       default:
         start.setFullYear(start.getFullYear() - MAX_YEARS);

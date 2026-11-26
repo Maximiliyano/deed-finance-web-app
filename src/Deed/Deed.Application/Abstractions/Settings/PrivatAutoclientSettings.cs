@@ -10,7 +10,11 @@ public sealed class PrivatAutoclientSettings
 
     public int PageLimit { get; init; } = 100;
 
-    public int MaxPages { get; init; } = 10;
+    public int MaxPages { get; init; } = 50;
 
     public int PageDelayMs { get; init; } = 1000;
+
+    public int ChunksPerRun { get; init; } = 6;
+
+    public int ChunkDelayMs { get; init; } = 1000;
 }

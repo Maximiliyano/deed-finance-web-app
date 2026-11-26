@@ -72,6 +72,8 @@
                 <span class="toggle-label">{{ connection.label }}</span>
                 @if (connection.status === 'TokenInvalid') {
                   <span class="badge badge-danger">Reconnect needed</span>
+                } @else if (connection.isExcluded) {
+                  <span class="badge">Not counted</span>
                 } @else {
                   <span class="badge badge-success">Active</span>
                 }
@@ -84,6 +86,8 @@
               </span>
               @if (connection.status === 'TokenInvalid') {
                 <span class="toggle-hint">The bank rejected the credentials. Reconnect to resume alerts.</span>
+              } @else if (connection.isExcluded) {
+                <span class="toggle-hint">Hidden from the bank page and not checked. Count it again to resume.</span>
               } @else {
                 <span class="toggle-hint"
                   >Last checked {{ connection.lastSyncAt | date: 'dd MMM, HH:mm' }} ·
@@ -113,11 +117,12 @@
               </button>
               <button
                 type="button"
-                class="icon-btn icon-btn-danger"
-                [attr.aria-label]="'Disconnect ' + connection.label"
-                (click)="disconnectPrivat(connection)"
+                class="icon-btn"
+                [attr.aria-label]="(connection.isExcluded ? 'Count ' : 'Stop counting ') + connection.label"
+                [attr.title]="connection.isExcluded ? 'Count on the bank page' : 'Hide from the bank page'"
+                (click)="toggleExcluded(connection)"
               >
-                <i class="fas fa-trash"></i>
+                <i class="fas" [class.fa-eye]="connection.isExcluded" [class.fa-eye-slash]="!connection.isExcluded"></i>
               </button>
             </div>
           </div>
@@ -158,6 +163,23 @@
                 </div>
               </div>
             }
+          </div>
+        }
+
+        @if (connectedProviders().length > 0) {
+          <div class="bank-add">
+            <span class="bank-add-title">Disconnect a bank</span>
+            <p class="toggle-hint">
+              Removes all its accounts, the stored token and the imported transactions from Deed. To only hide one
+              account, use the eye button instead.
+            </p>
+            <div class="bank-add-options">
+              @for (option of connectedProviders(); track option.value) {
+                <button type="button" class="btn btn-secondary btn-sm text-danger" (click)="disconnectProvider(option)">
+                  <i class="fas fa-link-slash"></i> {{ option.label }}
+                </button>
+              }
+            </div>
           </div>
         }
 

@@ -11,7 +11,8 @@ namespace Deed.Application.BankConnections.Commands.ImportBankHistory;
 internal sealed class ImportBankHistoryCommandHandler(
     IUser user,
     IBankTransactionSyncService syncService,
-    IDateTimeProvider dateTimeProvider)
+    IDateTimeProvider dateTimeProvider,
+    IBankBackfillTrigger backfillTrigger)
     : ICommandHandler<ImportBankHistoryCommand, BankHistoryImportResponse>
 {
     public async Task<Result<BankHistoryImportResponse>> Handle(ImportBankHistoryCommand command, CancellationToken cancellationToken)
@@ -25,6 +26,11 @@ internal sealed class ImportBankHistoryCommandHandler(
         }
 
         var response = await syncService.ImportHistoryAsync(user.Name!, command.From, to, cancellationToken).ConfigureAwait(false);
+
+        if (response.InProgress)
+        {
+            await backfillTrigger.TriggerAsync(cancellationToken).ConfigureAwait(false);
+        }
 
         return Result.Success(response);
     }

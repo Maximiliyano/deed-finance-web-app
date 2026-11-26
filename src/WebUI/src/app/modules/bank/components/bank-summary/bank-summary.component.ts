@@ -6,6 +6,7 @@ import { PanelStateComponent } from '../../../../shared/components/panel-state/p
 import { SharedModule } from '../../../../shared/shared.module';
 import {
   BANK_TYPE_LABELS,
+  BankProvider,
   BankSummaryCurrency,
   BankSummaryPeriod,
   BankSummaryType,
@@ -39,16 +40,25 @@ export class BankSummaryComponent {
   private readonly transactions = inject(BankTransactionService);
 
   readonly connectionId = input<number | null>(null);
+  readonly provider = input<BankProvider | null>(null);
+  readonly version = input(0);
 
   protected readonly periods = PERIODS;
   protected readonly period = signal<BankSummaryPeriod>('month');
   protected readonly loading = signal(false);
 
   protected readonly data = toSignal(
-    toObservable(computed(() => ({ period: this.period(), connectionId: this.connectionId() }))).pipe(
+    toObservable(
+      computed(() => ({
+        period: this.period(),
+        connectionId: this.connectionId(),
+        provider: this.provider(),
+        version: this.version()
+      }))
+    ).pipe(
       tap(() => this.loading.set(true)),
-      switchMap(({ period, connectionId }) =>
-        this.transactions.summary(period, connectionId).pipe(
+      switchMap(({ period, connectionId, provider }) =>
+        this.transactions.summary(period, connectionId, provider).pipe(
           catchError(() => of(null)),
           finalize(() => this.loading.set(false))
         )

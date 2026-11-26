@@ -22,6 +22,8 @@ public sealed class BankConnection : Entity, IAuditableEntity, ISoftDeletableEnt
 
     public bool AutoImport { get; set; }
 
+    public bool IsExcluded { get; set; }
+
     public int? ExpenseCategoryId { get; set; }
 
     public int? IncomeCategoryId { get; set; }
@@ -33,6 +35,8 @@ public sealed class BankConnection : Entity, IAuditableEntity, ISoftDeletableEnt
     public DateTimeOffset? BackfillFrom { get; set; }
 
     public DateTimeOffset? BackfillCursor { get; set; }
+
+    public int BackfillFailures { get; set; }
 
     public DateTimeOffset CreatedAt { get; init; }
 

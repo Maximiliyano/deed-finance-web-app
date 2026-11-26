@@ -38,9 +38,9 @@ public sealed class GetBankTransactionsSummaryQueryValidatorTests
     }
 
     [Fact]
-    public void Validate_RangeLongerThanFiveYears_FailsValidation()
+    public void Validate_RangeLongerThanTenYears_FailsValidation()
     {
-        var result = _validator.TestValidate(new GetBankTransactionsSummaryQuery(From: Now.AddYears(-6), To: Now));
+        var result = _validator.TestValidate(new GetBankTransactionsSummaryQuery(From: Now.AddYears(-11), To: Now));
 
         result.ShouldHaveAnyValidationError();
     }

@@ -2,12 +2,20 @@
   display: block;
 }
 
+.tx-scope {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-3) var(--space-5);
+  margin-bottom: var(--space-4);
+}
+
 .tx-account {
   display: flex;
+  flex: 1 1 14rem;
   flex-direction: column;
   gap: var(--space-1);
   max-width: 24rem;
-  margin-bottom: var(--space-4);
 }
 
 .tx-account-label {
@@ -116,6 +124,77 @@
 .tx-banner-pct {
   font-variant-numeric: tabular-nums;
   font-weight: 600;
+}
+
+@keyframes tx-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes tx-out {
+  to {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes tx-row-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes tx-stripes {
+  to {
+    background-position: 1rem 0;
+  }
+}
+
+.tx-enter {
+  animation: tx-in 0.3s ease-out;
+}
+
+.tx-leave {
+  animation: tx-out 0.25s ease-in forwards;
+}
+
+.tx-row {
+  animation: tx-row-in 0.35s ease-out both;
+}
+
+.tx-banner .progress-bar {
+  background-image: linear-gradient(
+    45deg,
+    rgb(255 255 255 / 0.22) 25%,
+    transparent 25%,
+    transparent 50%,
+    rgb(255 255 255 / 0.22) 50%,
+    rgb(255 255 255 / 0.22) 75%,
+    transparent 75%
+  );
+  background-size: 1rem 1rem;
+  animation: tx-stripes 0.8s linear infinite;
+  transition: width 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.tx-banner-done {
+  border-color: var(--success-text);
+  color: var(--success-text);
+
+  .tx-banner-head {
+    color: inherit;
+  }
 }
 
 .tx-banner-meta {

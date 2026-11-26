@@ -32,6 +32,19 @@ internal sealed class BankNotificationRepository(IDeedDbContext context)
                 g.Count()))
             .ToListAsync(cancellationToken);
 
+    public async Task<int> DeleteByConnectionsAsync(string createdBy, IReadOnlyCollection<int> connectionIds, CancellationToken cancellationToken = default)
+    {
+        var ids = connectionIds.ToList();
+
+        return await DbSet
+            .Where(n => n.CreatedBy == createdBy && n.BankConnectionId != null && ids.Contains(n.BankConnectionId.Value))
+            .ExecuteDeleteAsync(cancellationToken);
+    }
+
+    public async Task<DateTimeOffset?> GetOldestAsync(ISpecification<BankNotification> specification, CancellationToken cancellationToken = default) =>
+        await ApplySpecification(specification)
+            .MinAsync(n => (DateTimeOffset?)n.OccurredAt, cancellationToken);
+
     public async Task<IReadOnlyList<BankCounterpartyTotal>> GetCounterpartyTotalsAsync(ISpecification<BankNotification> specification, CancellationToken cancellationToken = default) =>
         await ApplySpecification(specification)
             .GroupBy(n => new { n.Currency, n.Direction, n.Counterparty })

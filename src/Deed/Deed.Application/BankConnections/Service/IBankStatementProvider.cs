@@ -9,6 +9,10 @@ public interface IBankStatementProvider
 
     int? MaxItemsPerRequest { get; }
 
+    int MaxChunksPerRun { get; }
+
+    TimeSpan ChunkDelay { get; }
+
     Task<Result<IReadOnlyList<BankTransaction>>> GetTransactionsAsync(
         string token,
         string account,

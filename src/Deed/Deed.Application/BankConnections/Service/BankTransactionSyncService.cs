@@ -32,6 +32,9 @@ public sealed class BankTransactionSyncService(
     private static readonly TimeSpan Lookback = TimeSpan.FromDays(2);
     private static readonly TimeSpan ChunkWindow = TimeSpan.FromDays(30);
     private static readonly TimeSpan BaselineTolerance = TimeSpan.FromMinutes(10);
+    private static readonly TimeSpan SilenceLimit = TimeSpan.FromDays(730);
+    private const int MaxBackfillFailures = 10;
+    private static readonly DateTimeOffset EarliestPossible = new(2000, 1, 1, 0, 0, 0, TimeSpan.Zero);
 
     public Task<int> SyncAsync(CancellationToken cancellationToken)
         => SyncAsync(new ActiveBankConnectionsSpecification(), cancellationToken);
@@ -151,6 +154,7 @@ public sealed class BankTransactionSyncService(
         {
             connection.BackfillFrom = from;
             connection.BackfillCursor = to;
+            connection.BackfillFailures = 0;
         }
 
         await unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
@@ -168,13 +172,32 @@ public sealed class BankTransactionSyncService(
 
         foreach (var connection in connections)
         {
-            try
+            var provider = ProviderFor(connection);
+            var chunks = Math.Max(provider?.MaxChunksPerRun ?? 1, 1);
+
+            for (var chunk = 0; chunk < chunks && connection.BackfillCursor is not null; chunk++)
             {
-                imported += await BackfillConnectionAsync(connection, cancellationToken).ConfigureAwait(false);
-            }
-            catch (Exception ex) when (ex is not OperationCanceledException)
-            {
-                Log.Error(ex, "Failed to backfill bank history for user {User}", connection.CreatedBy);
+                var cursorBefore = connection.BackfillCursor;
+
+                try
+                {
+                    imported += await BackfillConnectionAsync(connection, cancellationToken).ConfigureAwait(false);
+                }
+                catch (Exception ex) when (ex is not OperationCanceledException)
+                {
+                    Log.Error(ex, "Failed to backfill bank history for user {User}", connection.CreatedBy);
+                    break;
+                }
+
+                if (connection.BackfillCursor is null || connection.BackfillCursor == cursorBefore)
+                {
+                    break;
+                }
+
+                if (provider is not null && provider.ChunkDelay > TimeSpan.Zero && chunk + 1 < chunks)
+                {
+                    await Task.Delay(provider.ChunkDelay, cancellationToken).ConfigureAwait(false);
+                }
             }
         }
 
@@ -213,12 +236,23 @@ public sealed class BankTransactionSyncService(
 
         if (!result.IsSuccess)
         {
-            if (!result.Errors.Contains(DomainErrors.Bank.RateLimited))
+            if (!result.Errors.Contains(DomainErrors.Bank.RateLimited) && !result.Errors.Contains(DomainErrors.Bank.TokenInvalid))
             {
-                connection.BackfillFrom = null;
-                connection.BackfillCursor = null;
+                connection.BackfillFailures++;
 
-                Log.Warning("Bank backfill for {User} ({Label}) was stopped: {Reason}", connection.CreatedBy, connection.Label, result.Errors.FirstOrDefault()?.Code);
+                Log.Warning(
+                    "Bank backfill for {User} ({Label}) failed {Count} time(s): {Reason}",
+                    connection.CreatedBy,
+                    connection.Label,
+                    connection.BackfillFailures,
+                    result.Errors.FirstOrDefault()?.Code);
+
+                if (connection.BackfillFailures >= MaxBackfillFailures)
+                {
+                    connection.BackfillFrom = null;
+                    connection.BackfillCursor = null;
+                    connection.BackfillFailures = 0;
+                }
             }
 
             await HandleFailureAsync(connection, result.Errors, cancellationToken).ConfigureAwait(false);
@@ -229,6 +263,8 @@ public sealed class BankTransactionSyncService(
         }
 
         var staged = await StageHistoryAsync(connection.CreatedBy, connection.Label, connection.Id, result.Value, cancellationToken).ConfigureAwait(false);
+
+        connection.BackfillFailures = 0;
 
         var next = start;
 
@@ -242,7 +278,7 @@ public sealed class BankTransactionSyncService(
             }
         }
 
-        if (next <= floor)
+        if (next <= floor || result.Value.Count == 0 && await HasNoOlderHistoryAsync(connection, start, cancellationToken).ConfigureAwait(false))
         {
             connection.BackfillFrom = null;
             connection.BackfillCursor = null;
@@ -262,6 +298,17 @@ public sealed class BankTransactionSyncService(
             connection.BackfillCursor);
 
         return staged;
+    }
+
+    private async Task<bool> HasNoOlderHistoryAsync(BankConnection connection, DateTimeOffset start, CancellationToken cancellationToken)
+    {
+        var now = dateTimeProvider.UtcNow;
+
+        var oldest = await notificationRepository
+            .GetOldestAsync(new BankTransactionsSummarySpecification(connection.CreatedBy, connection.Id, EarliestPossible, now), cancellationToken)
+            .ConfigureAwait(false);
+
+        return start < (oldest ?? now) - SilenceLimit;
     }
 
     private async Task FinishBackfillAsync(BankConnection connection, CancellationToken cancellationToken)

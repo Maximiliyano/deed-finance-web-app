@@ -26,14 +26,19 @@ internal sealed class GetBankTransactionsSummaryQueryHandler(
         var to = query.To ?? dateTimeProvider.UtcNow;
         var from = query.From ?? DefaultFrom(period, to);
 
-        var specification = new BankTransactionsSummarySpecification(user.Name!, query.ConnectionId, from, to);
+        var connections = (await connectionRepository
+            .GetAllAsync(new BankConnectionByUserSpecification(user.Name!), cancellationToken)
+            .ConfigureAwait(false)).ToList();
+
+        var (connectionIds, includeUnassigned) = BankConnectionScope.Resolve(connections, query.Provider, query.ConnectionId);
+
+        var specification = new BankTransactionsSummarySpecification(
+            user.Name!, query.ConnectionId, from, to, connectionIds, includeUnassigned);
 
         var totals = await repository.GetTotalsAsync(specification, cancellationToken).ConfigureAwait(false);
         var counterparties = await repository.GetCounterpartyTotalsAsync(specification, cancellationToken).ConfigureAwait(false);
 
-        var labels = (await connectionRepository
-            .GetAllAsync(new BankConnectionByUserSpecification(user.Name!), cancellationToken)
-            .ConfigureAwait(false)).ToDictionary(c => c.Id, c => c.Label);
+        var labels = connections.ToDictionary(c => c.Id, c => c.Label);
 
         var currencies = totals
             .GroupBy(t => t.Currency ?? string.Empty)
@@ -116,6 +121,6 @@ internal sealed class GetBankTransactionsSummaryQueryHandler(
         {
             BankSummaryPeriod.Day => new DateTimeOffset(to.Year, to.Month, to.Day, 0, 0, 0, to.Offset).AddDays(-29),
             BankSummaryPeriod.Month => new DateTimeOffset(to.Year, to.Month, 1, 0, 0, 0, to.Offset).AddMonths(-11),
-            _ => new DateTimeOffset(to.Year, 1, 1, 0, 0, 0, to.Offset).AddYears(-2)
+            _ => new DateTimeOffset(to.Year, 1, 1, 0, 0, 0, to.Offset).AddYears(-9)
         };
 }

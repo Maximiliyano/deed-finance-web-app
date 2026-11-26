@@ -142,6 +142,31 @@ public sealed class GetBankTransactionsSummaryQueryHandlerTests
     }
 
     [Fact]
+    public async Task Handle_ProviderFilter_RestrictsToThatProvidersConnections()
+    {
+        // Arrange
+        _connectionsMock
+            .GetAllAsync(Arg.Any<BankConnectionByUserSpecification>(), Arg.Any<CancellationToken>())
+            .Returns(
+            [
+                new BankConnection(1) { EncryptedToken = "x", AccountIban = "UA1", Label = "Privat", Provider = BankProvider.PrivatAutoclient },
+                new BankConnection(2) { EncryptedToken = "x", AccountIban = "UA2", Label = "Mono", Provider = BankProvider.Monobank }
+            ]);
+        ISpecification<BankNotification>? captured = null;
+        _repositoryMock
+            .GetTotalsAsync(Arg.Do<ISpecification<BankNotification>>(s => captured = s), Arg.Any<CancellationToken>())
+            .Returns([]);
+
+        // Act
+        await _handler.Handle(new GetBankTransactionsSummaryQuery(Provider: "monobank"), CancellationToken.None);
+
+        // Assert
+        var matches = captured!.Criteria!.Compile();
+        matches(Notification(2)).Should().BeTrue();
+        matches(Notification(1)).Should().BeFalse();
+    }
+
+    [Fact]
     public async Task Handle_NoTransactions_ReturnsEmptyCurrencies()
     {
         // Arrange
@@ -154,6 +179,17 @@ public sealed class GetBankTransactionsSummaryQueryHandlerTests
         result.IsSuccess.Should().BeTrue();
         result.Value.Currencies.Should().BeEmpty();
     }
+
+    private static BankNotification Notification(int connectionId)
+        => new()
+        {
+            ExternalId = "x",
+            Kind = BankNotificationKind.Transaction,
+            Direction = BankTransactionDirection.Incoming,
+            OccurredAt = Now.AddDays(-1),
+            BankConnectionId = connectionId,
+            CreatedBy = "owner"
+        };
 
     private void ReturnTotals(params BankTransactionTotal[] totals)
         => _repositoryMock

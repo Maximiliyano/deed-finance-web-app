@@ -13,26 +13,57 @@
     </div>
   </div>
 
-  @if (connections().length > 1) {
-    <label class="tx-account">
-      <span class="tx-account-label">Account</span>
-      <select class="input" (change)="setAccount($any($event.target).value)">
-        <option value="" [selected]="accountId() === null">All accounts</option>
-        @for (connection of connections(); track connection.id) {
-          <option [value]="connection.id" [selected]="connection.id === accountId()">
-            {{ connection.label }} · {{ connection.maskedAccount }}
-          </option>
-        }
-      </select>
-    </label>
+  @if (providers().length > 1 || accountOptions().length > 1) {
+    <div class="tx-scope">
+      @if (providers().length > 1) {
+        <div class="segmented" role="tablist" aria-label="Bank">
+          <button
+            type="button"
+            class="segmented-btn"
+            role="tab"
+            [class.active]="provider() === null"
+            [attr.aria-selected]="provider() === null"
+            (click)="setProvider(null)"
+          >
+            All banks
+          </button>
+          @for (option of providers(); track option.value) {
+            <button
+              type="button"
+              class="segmented-btn"
+              role="tab"
+              [class.active]="provider() === option.value"
+              [attr.aria-selected]="provider() === option.value"
+              (click)="setProvider(option.value)"
+            >
+              {{ option.label }}
+            </button>
+          }
+        </div>
+      }
+      @if (accountOptions().length > 1) {
+        <label class="tx-account">
+          <span class="tx-account-label">Account</span>
+          <select class="input" (change)="setAccount($any($event.target).value)">
+            <option value="" [selected]="accountId() === null">All accounts</option>
+            @for (connection of accountOptions(); track connection.id) {
+              <option [value]="connection.id" [selected]="connection.id === accountId()">
+                {{ connection.label }} · {{ connection.maskedAccount }}
+              </option>
+            }
+          </select>
+        </label>
+      }
+    </div>
   }
 
   @if (backfilling().length > 0) {
-    <div class="tx-banner" role="status">
+    <div class="tx-banner" role="status" animate.enter="tx-enter" animate.leave="tx-leave">
       <div class="tx-banner-head">
         <i class="fas fa-spinner fa-spin"></i>
         <span class="tx-banner-text">Importing older transactions in the background</span>
         <span class="tx-banner-pct">{{ backfillProgress() }}%</span>
+        <button type="button" class="btn btn-ghost btn-sm" [disabled]="busy()" (click)="cancelImport()">Cancel</button>
       </div>
       <div
         class="progress"
@@ -45,14 +76,23 @@
       </div>
       @if (backfillCursor(); as cursor) {
         <span class="tx-banner-meta">
-          Now at {{ cursor | date: 'dd MMM yyyy' }}, going back to {{ backfillFrom() | date: 'dd MMM yyyy' }}. About one
-          month is added every minute.
+          Now at {{ cursor | date: 'dd MMM yyyy' }}, going back to {{ backfillFrom() | date: 'dd MMM yyyy' }}.
+          @if (eta(); as left) {
+            {{ left }}.
+          }
         </span>
       }
     </div>
+  } @else if (finished()) {
+    <div class="tx-banner tx-banner-done" role="status" animate.enter="tx-enter" animate.leave="tx-leave">
+      <div class="tx-banner-head">
+        <i class="fas fa-circle-check"></i>
+        <span class="tx-banner-text">History imported</span>
+      </div>
+    </div>
   }
 
-  <app-bank-summary [connectionId]="accountId()" />
+  <app-bank-summary [connectionId]="accountId()" [provider]="provider()" [version]="version()" />
 
   <div class="card">
     <div class="tx-filters-bar">
@@ -97,7 +137,7 @@
           </thead>
           <tbody>
             @for (item of items(); track item.id) {
-              <tr>
+              <tr class="tx-row">
                 <td data-label="Date">{{ item.occurredAt | date: 'dd MMM yyyy, HH:mm' }}</td>
                 <td data-label="Type">
                   <span

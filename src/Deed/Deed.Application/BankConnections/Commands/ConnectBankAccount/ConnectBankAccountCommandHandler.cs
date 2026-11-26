@@ -1,5 +1,6 @@
 using Deed.Application.Abstractions.Messaging;
 using Deed.Application.Auth;
+using Deed.Application.BankConnections.Service;
 using Deed.Application.BankConnections.Specifications;
 using Deed.Domain.Entities;
 using Deed.Domain.Enums;
@@ -16,10 +17,12 @@ internal sealed class ConnectBankAccountCommandHandler(
     IBankAccountRepository accountRepository,
     IBankConnectionRepository connectionRepository,
     IDateTimeProvider dateTimeProvider,
-    IUnitOfWork unitOfWork)
+    IUnitOfWork unitOfWork,
+    IBankBackfillTrigger backfillTrigger)
     : ICommandHandler<ConnectBankAccountCommand>
 {
     private const int MaxLabelLength = 64;
+    private const int FullHistoryDays = 3650;
 
     public async Task<Result> Handle(ConnectBankAccountCommand command, CancellationToken cancellationToken)
     {
@@ -52,6 +55,8 @@ internal sealed class ConnectBankAccountCommandHandler(
 
         var label = BankConnectionExtensions.NormalizeLabel(command.Label) ?? DefaultLabel(source, account);
 
+        var now = dateTimeProvider.UtcNow;
+
         connectionRepository.Create(new BankConnection
         {
             Provider = account.Provider,
@@ -59,10 +64,14 @@ internal sealed class ConnectBankAccountCommandHandler(
             AccountIban = account.Iban,
             Label = label,
             Status = BankConnectionStatus.Active,
-            LastSyncAt = dateTimeProvider.UtcNow
+            LastSyncAt = now,
+            BackfillFrom = now.AddDays(-FullHistoryDays),
+            BackfillCursor = now
         });
 
         await unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+
+        await backfillTrigger.TriggerAsync(cancellationToken).ConfigureAwait(false);
 
         Log.Information("Bank account {Id} connected for {User}", account.Id, user.Name);
 

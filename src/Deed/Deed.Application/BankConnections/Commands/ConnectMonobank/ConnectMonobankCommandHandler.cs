@@ -20,11 +20,13 @@ internal sealed class ConnectMonobankCommandHandler(
     IBankTransactionSyncService syncService,
     ITokenProtector tokenProtector,
     IDateTimeProvider dateTimeProvider,
-    IUnitOfWork unitOfWork)
+    IUnitOfWork unitOfWork,
+    IBankBackfillTrigger backfillTrigger)
     : ICommandHandler<ConnectMonobankCommand>
 {
     private const string DefaultLabel = "Monobank";
     private const int HistoryDays = 30;
+    private const int FullHistoryDays = 3650;
     private const int MaxIbanLength = 34;
 
     public async Task<Result> Handle(ConnectMonobankCommand command, CancellationToken cancellationToken)
@@ -91,7 +93,12 @@ internal sealed class ConnectMonobankCommandHandler(
             .StageHistoryAsync(user.Name!, label, connection.Id, history, cancellationToken)
             .ConfigureAwait(false);
 
+        connection.BackfillFrom ??= now.AddDays(-FullHistoryDays);
+        connection.BackfillCursor ??= check.IsSuccess ? now.AddDays(-HistoryDays) : now;
+
         await unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+
+        await backfillTrigger.TriggerAsync(cancellationToken).ConfigureAwait(false);
 
         Log.Information("Monobank connection saved for {User}, imported {Imported} historical transactions", user.Name, imported);
 

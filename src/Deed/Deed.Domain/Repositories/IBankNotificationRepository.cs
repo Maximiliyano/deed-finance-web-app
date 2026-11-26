@@ -12,5 +12,9 @@ public interface IBankNotificationRepository
 
     Task<IReadOnlyList<BankCounterpartyTotal>> GetCounterpartyTotalsAsync(ISpecification<BankNotification> specification, CancellationToken cancellationToken = default);
 
+    Task<DateTimeOffset?> GetOldestAsync(ISpecification<BankNotification> specification, CancellationToken cancellationToken = default);
+
+    Task<int> DeleteByConnectionsAsync(string createdBy, IReadOnlyCollection<int> connectionIds, CancellationToken cancellationToken = default);
+
     void CreateRange(IEnumerable<BankNotification> notifications);
 }

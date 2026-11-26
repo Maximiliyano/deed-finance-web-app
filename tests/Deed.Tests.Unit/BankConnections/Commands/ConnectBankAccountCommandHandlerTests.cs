@@ -1,5 +1,6 @@
 using Deed.Application.Auth;
 using Deed.Application.BankConnections.Commands.ConnectBankAccount;
+using Deed.Application.BankConnections.Service;
 using Deed.Application.BankConnections.Specifications;
 using Deed.Domain.Entities;
 using Deed.Domain.Enums;
@@ -21,6 +22,7 @@ public sealed class ConnectBankAccountCommandHandlerTests
     private readonly IBankConnectionRepository _connectionsMock = Substitute.For<IBankConnectionRepository>();
     private readonly IDateTimeProvider _clockMock = Substitute.For<IDateTimeProvider>();
     private readonly IUnitOfWork _unitOfWorkMock = Substitute.For<IUnitOfWork>();
+    private readonly IBankBackfillTrigger _triggerMock = Substitute.For<IBankBackfillTrigger>();
 
     private readonly ConnectBankAccountCommandHandler _handler;
 
@@ -29,7 +31,7 @@ public sealed class ConnectBankAccountCommandHandlerTests
         _userMock.Name.Returns("owner");
         _clockMock.UtcNow.Returns(Now);
 
-        _handler = new ConnectBankAccountCommandHandler(_userMock, _accountsMock, _connectionsMock, _clockMock, _unitOfWorkMock);
+        _handler = new ConnectBankAccountCommandHandler(_userMock, _accountsMock, _connectionsMock, _clockMock, _unitOfWorkMock, _triggerMock);
     }
 
     [Fact]
@@ -68,6 +70,22 @@ public sealed class ConnectBankAccountCommandHandlerTests
 
         // Assert
         _connectionsMock.Received(1).Create(Arg.Is<BankConnection>(c => c.Label == "Savings"));
+    }
+
+    [Fact]
+    public async Task Handle_AvailableAccount_StartsFullHistoryBackfill()
+    {
+        // Arrange
+        ReturnAccount(new BankAccount(5) { Iban = Iban, SourceConnectionId = 1 });
+        ReturnExisting(null);
+        ReturnSource(new BankConnection(1) { EncryptedToken = "enc", AccountIban = "UA1", Label = "Business", Status = BankConnectionStatus.Active });
+
+        // Act
+        await _handler.Handle(new ConnectBankAccountCommand(5, null), CancellationToken.None);
+
+        // Assert
+        _connectionsMock.Received(1).Create(Arg.Is<BankConnection>(c =>
+            c.BackfillFrom == Now.AddDays(-3650) && c.BackfillCursor == Now));
     }
 
     [Fact]

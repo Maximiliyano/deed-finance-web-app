@@ -7,7 +7,7 @@ namespace Deed.Application.BankConnections.Specifications;
 internal sealed class BackfillBankConnectionsSpecification : BaseSpecification<BankConnection>
 {
     public BackfillBankConnectionsSpecification()
-        : base(c => c.Status == BankConnectionStatus.Active && c.BackfillCursor != null)
+        : base(c => c.Status == BankConnectionStatus.Active && !c.IsExcluded && c.BackfillCursor != null)
     {
         Tracking = true;
     }

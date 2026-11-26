@@ -18,10 +18,10 @@ public sealed class BankAccountRefreshService(
     : IBankAccountRefreshService
 {
     public Task<int> RefreshAsync(CancellationToken cancellationToken)
-        => RefreshAsync(new ActiveBankConnectionsSpecification(), cancellationToken);
+        => RefreshAsync(new ActiveBankConnectionsSpecification(includeExcluded: true), cancellationToken);
 
     public Task<int> RefreshUserAsync(string createdBy, CancellationToken cancellationToken)
-        => RefreshAsync(new ActiveBankConnectionsSpecification(createdBy), cancellationToken);
+        => RefreshAsync(new ActiveBankConnectionsSpecification(createdBy, includeExcluded: true), cancellationToken);
 
     private async Task<int> RefreshAsync(ActiveBankConnectionsSpecification specification, CancellationToken cancellationToken)
     {

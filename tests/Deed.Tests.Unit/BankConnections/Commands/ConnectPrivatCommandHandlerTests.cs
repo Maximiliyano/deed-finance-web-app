@@ -26,6 +26,7 @@ public sealed class ConnectPrivatCommandHandlerTests
     private readonly ITokenProtector _protectorMock = Substitute.For<ITokenProtector>();
     private readonly IDateTimeProvider _clockMock = Substitute.For<IDateTimeProvider>();
     private readonly IUnitOfWork _unitOfWorkMock = Substitute.For<IUnitOfWork>();
+    private readonly IBankBackfillTrigger _triggerMock = Substitute.For<IBankBackfillTrigger>();
 
     private readonly ConnectPrivatCommandHandler _handler;
 
@@ -36,7 +37,7 @@ public sealed class ConnectPrivatCommandHandlerTests
         _protectorMock.Protect(Arg.Any<string>()).Returns(call => $"enc:{call.Arg<string>()}");
 
         _handler = new ConnectPrivatCommandHandler(
-            _userMock, _repositoryMock, _bankMock, _syncMock, _protectorMock, _clockMock, _unitOfWorkMock);
+            _userMock, _repositoryMock, _bankMock, _syncMock, _protectorMock, _clockMock, _unitOfWorkMock, _triggerMock);
     }
 
     [Fact]
@@ -79,6 +80,22 @@ public sealed class ConnectPrivatCommandHandlerTests
         // Assert
         await _bankMock.Received(1).GetTransactionsAsync("secret", string.Empty, Now.AddDays(-30), Now, Arg.Any<CancellationToken>());
         await _syncMock.Received(1).StageHistoryAsync("testuser", "Biz", Arg.Any<int?>(), history, Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Handle_NewConnection_StartsFullHistoryBackfillAfterTheFirstChunk()
+    {
+        // Arrange
+        ReturnBankSuccess();
+        _repositoryMock.GetAsync(Arg.Any<BankConnectionByAccountSpecification>(), Arg.Any<CancellationToken>())
+            .Returns((BankConnection?)null);
+
+        // Act
+        await _handler.Handle(new ConnectPrivatCommand("secret", Iban), CancellationToken.None);
+
+        // Assert
+        _repositoryMock.Received(1).Create(Arg.Is<BankConnection>(c =>
+            c.BackfillFrom == Now.AddDays(-3650) && c.BackfillCursor == Now.AddDays(-30)));
     }
 
     [Fact]
@@ -170,4 +187,19 @@ public sealed class ConnectPrivatCommandHandlerTests
         => _bankMock
             .GetTransactionsAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<DateTimeOffset>(), Arg.Any<DateTimeOffset>(), Arg.Any<CancellationToken>())
             .Returns(Result.Success<IReadOnlyList<BankTransaction>>([]));
+
+    [Fact]
+    public async Task Handle_NewConnection_StartsTheHistoryJobRightAway()
+    {
+        // Arrange
+        ReturnBankSuccess();
+        _repositoryMock.GetAsync(Arg.Any<BankConnectionByAccountSpecification>(), Arg.Any<CancellationToken>())
+            .Returns((BankConnection?)null);
+
+        // Act
+        await _handler.Handle(new ConnectPrivatCommand("secret", Iban), CancellationToken.None);
+
+        // Assert
+        await _triggerMock.Received(1).TriggerAsync(Arg.Any<CancellationToken>());
+    }
 }
