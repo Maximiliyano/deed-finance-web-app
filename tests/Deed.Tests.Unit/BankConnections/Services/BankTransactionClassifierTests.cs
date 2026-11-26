@@ -17,6 +17,9 @@ public sealed class BankTransactionClassifierTests
     [InlineData(BankTransactionDirection.Outgoing, "SILPO", "Purchase", BankTransactionType.Payment)]
     [InlineData(BankTransactionDirection.Incoming, "Employer", "Salary", BankTransactionType.TopUp)]
     [InlineData(BankTransactionDirection.Outgoing, "ATMOSPHERE CAFE", "Coffee", BankTransactionType.Payment)]
+    [InlineData(BankTransactionDirection.Outgoing, null, "Обмін валют UAH/USD", BankTransactionType.Exchange)]
+    [InlineData(BankTransactionDirection.Incoming, null, "Конвертація коштів", BankTransactionType.Exchange)]
+    [InlineData(BankTransactionDirection.Outgoing, null, "Currency exchange", BankTransactionType.Exchange)]
     public void Classify_UsesDirectionAndDescription(
         BankTransactionDirection direction,
         string? counterparty,

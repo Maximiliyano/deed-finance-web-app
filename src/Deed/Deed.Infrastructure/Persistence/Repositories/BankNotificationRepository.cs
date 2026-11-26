@@ -1,8 +1,45 @@
 using Deed.Application.Abstractions.Data;
 using Deed.Domain.Entities;
 using Deed.Domain.Repositories;
+using Microsoft.EntityFrameworkCore;
 
 namespace Deed.Infrastructure.Persistence.Repositories;
 
 internal sealed class BankNotificationRepository(IDeedDbContext context)
-    : GeneralRepository<BankNotification>(context), IBankNotificationRepository;
+    : GeneralRepository<BankNotification>(context), IBankNotificationRepository
+{
+    public async Task<IReadOnlyList<BankTransactionTotal>> GetTotalsAsync(ISpecification<BankNotification> specification, CancellationToken cancellationToken = default) =>
+        await ApplySpecification(specification)
+            .GroupBy(n => new
+            {
+                n.BankConnectionId,
+                n.Currency,
+                n.Direction,
+                n.Type,
+                n.OccurredAt.Year,
+                n.OccurredAt.Month,
+                n.OccurredAt.Day
+            })
+            .Select(g => new BankTransactionTotal(
+                g.Key.BankConnectionId,
+                g.Key.Currency,
+                g.Key.Direction,
+                g.Key.Type,
+                g.Key.Year,
+                g.Key.Month,
+                g.Key.Day,
+                g.Sum(n => n.Amount),
+                g.Count()))
+            .ToListAsync(cancellationToken);
+
+    public async Task<IReadOnlyList<BankCounterpartyTotal>> GetCounterpartyTotalsAsync(ISpecification<BankNotification> specification, CancellationToken cancellationToken = default) =>
+        await ApplySpecification(specification)
+            .GroupBy(n => new { n.Currency, n.Direction, n.Counterparty })
+            .Select(g => new BankCounterpartyTotal(
+                g.Key.Currency,
+                g.Key.Direction,
+                g.Key.Counterparty,
+                g.Sum(n => n.Amount),
+                g.Count()))
+            .ToListAsync(cancellationToken);
+}

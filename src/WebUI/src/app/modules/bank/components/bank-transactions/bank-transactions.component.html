@@ -13,6 +13,20 @@
     </div>
   </div>
 
+  @if (connections().length > 1) {
+    <label class="tx-account">
+      <span class="tx-account-label">Account</span>
+      <select class="input" (change)="setAccount($any($event.target).value)">
+        <option value="" [selected]="accountId() === null">All accounts</option>
+        @for (connection of connections(); track connection.id) {
+          <option [value]="connection.id" [selected]="connection.id === accountId()">
+            {{ connection.label }} · {{ connection.maskedAccount }}
+          </option>
+        }
+      </select>
+    </label>
+  }
+
   @if (backfilling().length > 0) {
     <div class="tx-banner" role="status">
       <div class="tx-banner-head">
@@ -37,6 +51,8 @@
       }
     </div>
   }
+
+  <app-bank-summary [connectionId]="accountId()" />
 
   <div class="card">
     <div class="tx-filters-bar">

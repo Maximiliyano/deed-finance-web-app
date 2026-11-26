@@ -4,6 +4,7 @@ import {
   Component,
   OnInit,
   DestroyRef,
+  computed,
   inject,
   signal
 } from '@angular/core';
@@ -18,9 +19,10 @@ import { PopupMessageService } from '../../../../shared/services/popup-message.s
 import { User } from '../../models/user';
 import { UserSettingsService } from '../../../home/services/user-settings.service';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { CURRENCIES, CURRENCY_DEFAULT } from '../../../../core/types/currency-type';
+import { CURRENCIES, CURRENCY_DEFAULT, CURRENCY_SYMBOL } from '../../../../core/types/currency-type';
 import { UserSettings } from '../../../home/models/user-settings.model';
-import { BankConnection } from '../../../bank/models/bank.model';
+import { BankAccount, BankConnection } from '../../../bank/models/bank.model';
+import { BankAccountService } from '../../../bank/services/bank-account.service';
 import { BankConnectionService } from '../../../bank/services/bank-connection.service';
 import { BankConnectionSettingsDialogComponent } from '../../../bank/components/bank-connection-settings-dialog/bank-connection-settings-dialog.component';
 import { ConnectMonobankDialogComponent } from '../../../bank/components/connect-monobank-dialog/connect-monobank-dialog.component';
@@ -48,13 +50,18 @@ export class ProfileComponent implements OnInit {
   private readonly popupMessageService = inject(PopupMessageService);
   private readonly userSettingsService = inject(UserSettingsService);
   private readonly bankConnectionService = inject(BankConnectionService);
+  private readonly bankAccountService = inject(BankAccountService);
   private readonly fb = inject(FormBuilder);
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly dialogRef = inject<DialogRef<void> | null>(DialogRef, { optional: true });
   private readonly destroyRef = inject(DestroyRef);
 
   readonly bankConnections = toSignal(this.bankConnectionService.connections$, { initialValue: [] });
+  readonly bankAccounts = toSignal(this.bankAccountService.accounts$, { initialValue: [] });
+  readonly availableAccounts = computed(() => this.bankAccounts().filter(account => account.connectionId === null));
   readonly syncing = signal(false);
+  readonly refreshing = signal(false);
+  readonly connectingId = signal<number | null>(null);
   user: User | null;
   settingsForm!: FormGroup;
   savingSettings = false;
@@ -88,6 +95,7 @@ export class ProfileComponent implements OnInit {
     });
 
     this.bankConnectionService.load().pipe(takeUntilDestroyed(this.destroyRef)).subscribe();
+    this.bankAccountService.load().pipe(takeUntilDestroyed(this.destroyRef)).subscribe();
 
     this.userSettingsService
       .load()
@@ -115,7 +123,13 @@ export class ProfileComponent implements OnInit {
       data: existing ? { label: existing.label } : null
     });
 
-    dialogRef.afterClosed$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.cdr.markForCheck());
+    dialogRef.afterClosed$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((connected: boolean) => {
+      if (connected) {
+        this.bankAccountService.refresh().pipe(takeUntilDestroyed(this.destroyRef)).subscribe();
+      }
+
+      this.cdr.markForCheck();
+    });
   }
 
   connectMonobank(existing?: BankConnection): void {
@@ -139,6 +153,58 @@ export class ProfileComponent implements OnInit {
       .open(BankConnectionSettingsDialogComponent, { data: connection })
       .afterClosed$.pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => this.cdr.markForCheck());
+  }
+
+  balanceOf(connection: BankConnection): string | null {
+    const account = this.bankAccounts().find(item => item.connectionId === connection.id);
+
+    return account?.balance == null ? null : this.money(account.balance, account.currency);
+  }
+
+  money(amount: number, currency: string): string {
+    const text = new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(amount);
+    const symbol = CURRENCY_SYMBOL[currency] ?? currency;
+
+    return symbol ? `${symbol} ${text}` : text;
+  }
+
+  accountName(account: BankAccount): string {
+    return account.name || `${account.currency} account`.trim();
+  }
+
+  refreshAccounts(): void {
+    if (this.refreshing()) return;
+
+    this.refreshing.set(true);
+
+    this.bankAccountService
+      .refresh()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.refreshing.set(false);
+          this.popupMessageService.info('Accounts refreshed');
+        },
+        error: () => this.refreshing.set(false)
+      });
+  }
+
+  connectAvailable(account: BankAccount): void {
+    if (this.connectingId() !== null) return;
+
+    this.connectingId.set(account.id);
+
+    this.bankAccountService
+      .connect(account.id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.connectingId.set(null);
+          this.popupMessageService.success(`${this.accountName(account)} connected`);
+          this.bankConnectionService.load().pipe(takeUntilDestroyed(this.destroyRef)).subscribe();
+        },
+        error: () => this.connectingId.set(null)
+      });
   }
 
   providerName(connection: BankConnection): string {

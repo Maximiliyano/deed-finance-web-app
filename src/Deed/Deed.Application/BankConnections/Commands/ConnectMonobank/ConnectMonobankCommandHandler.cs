@@ -58,9 +58,11 @@ internal sealed class ConnectMonobankCommandHandler(
         var encrypted = tokenProtector.Protect(token);
         var label = BankConnectionExtensions.NormalizeLabel(command.Label) ?? existing?.Label ?? DefaultLabel;
 
+        BankConnection connection;
+
         if (existing is null)
         {
-            repository.Create(new BankConnection
+            connection = new BankConnection
             {
                 Provider = BankProvider.Monobank,
                 EncryptedToken = encrypted,
@@ -69,10 +71,13 @@ internal sealed class ConnectMonobankCommandHandler(
                 Label = label,
                 Status = BankConnectionStatus.Active,
                 LastSyncAt = now
-            });
+            };
+
+            repository.Create(connection);
         }
         else
         {
+            connection = existing;
             existing.EncryptedToken = encrypted;
             existing.ProviderAccountId = accountId;
             existing.Label = label;
@@ -80,8 +85,10 @@ internal sealed class ConnectMonobankCommandHandler(
             existing.LastSyncAt = now;
         }
 
+        await unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+
         var imported = await syncService
-            .StageHistoryAsync(user.Name!, label, history, cancellationToken)
+            .StageHistoryAsync(user.Name!, label, connection.Id, history, cancellationToken)
             .ConfigureAwait(false);
 
         await unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);

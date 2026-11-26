@@ -2,7 +2,13 @@ import { HttpClient, HttpContext, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { SKIP_ERROR_TOAST } from '../../../core/interceptors/error.interceptor';
-import { BankImportStatus, BankTransactionsPage, BankTransactionType } from '../models/bank.model';
+import {
+  BankImportStatus,
+  BankSummary,
+  BankSummaryPeriod,
+  BankTransactionsPage,
+  BankTransactionType
+} from '../models/bank.model';
 
 @Injectable({ providedIn: 'root' })
 export class BankTransactionService {
@@ -12,7 +18,8 @@ export class BankTransactionService {
     page: number,
     pageSize: number,
     type: BankTransactionType | null,
-    status: BankImportStatus | null = null
+    status: BankImportStatus | null = null,
+    connectionId: number | null = null
   ): Observable<BankTransactionsPage> {
     let params = new HttpParams().set('page', page).set('pageSize', pageSize);
 
@@ -24,7 +31,21 @@ export class BankTransactionService {
       params = params.set('status', status);
     }
 
+    if (connectionId !== null) {
+      params = params.set('connectionId', connectionId);
+    }
+
     return this.http.get<BankTransactionsPage>('/api/bank-transactions', { params });
+  }
+
+  summary(period: BankSummaryPeriod, connectionId: number | null): Observable<BankSummary> {
+    let params = new HttpParams().set('period', period);
+
+    if (connectionId !== null) {
+      params = params.set('connectionId', connectionId);
+    }
+
+    return this.http.get<BankSummary>('/api/bank-transactions/summary', { params });
   }
 
   addToCapital(id: number, categoryId: number | null): Observable<void> {

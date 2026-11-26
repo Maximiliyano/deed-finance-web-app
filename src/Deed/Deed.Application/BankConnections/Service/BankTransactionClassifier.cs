@@ -9,6 +9,11 @@ internal static partial class BankTransactionClassifier
     {
         var text = $"{counterparty} {purpose}";
 
+        if (ExchangePattern().IsMatch(text))
+        {
+            return BankTransactionType.Exchange;
+        }
+
         if (direction == BankTransactionDirection.Outgoing && WithdrawalPattern().IsMatch(text))
         {
             return BankTransactionType.Withdrawal;
@@ -26,6 +31,9 @@ internal static partial class BankTransactionClassifier
 
         return direction == BankTransactionDirection.Incoming ? BankTransactionType.TopUp : BankTransactionType.Payment;
     }
+
+    [GeneratedRegex(@"обмін\s+валют|обмен\s+валют|конвертаці|купівля\s+валют|продаж\s+валют|currency\s+(exchange|conversion)|\bfx\b", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 100)]
+    private static partial Regex ExchangePattern();
 
     [GeneratedRegex(@"зняття\s+готівки|видача\s+готівки|банкомат|\batm\b|cash\s*(withdrawal|out)", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 100)]
     private static partial Regex WithdrawalPattern();

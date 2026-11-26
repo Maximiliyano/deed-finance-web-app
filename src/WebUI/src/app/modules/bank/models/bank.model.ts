@@ -2,7 +2,7 @@ export type BankProvider = 'PrivatAutoclient' | 'Monobank';
 
 export type BankImportStatus = 'None' | 'Pending' | 'Imported' | 'Dismissed';
 
-export type BankTransactionType = 'None' | 'TopUp' | 'Withdrawal' | 'Transfer' | 'Payment';
+export type BankTransactionType = 'None' | 'TopUp' | 'Withdrawal' | 'Transfer' | 'Payment' | 'Exchange';
 
 export interface BankConnection {
   id: number;
@@ -47,6 +47,18 @@ export interface PrivatAccount {
   currency: string;
   name: string | null;
   balance: number | null;
+}
+
+export interface BankAccount {
+  id: number;
+  provider: BankProvider;
+  iban: string;
+  maskedAccount: string;
+  currency: string;
+  name: string | null;
+  balance: number | null;
+  lastRefreshedAt: string;
+  connectionId: number | null;
 }
 
 export interface MonobankAccount {
@@ -99,5 +111,55 @@ export const BANK_TYPE_LABELS: Record<BankTransactionType, string> = {
   TopUp: 'Top-up',
   Withdrawal: 'Withdrawal',
   Transfer: 'Transfer',
-  Payment: 'Payment'
+  Payment: 'Payment',
+  Exchange: 'Exchange'
 };
+
+export type BankSummaryPeriod = 'day' | 'month' | 'year';
+
+export interface BankSummaryPeriodRow {
+  start: string;
+  income: number;
+  expense: number;
+  count: number;
+}
+
+export interface BankSummaryType {
+  direction: 'Incoming' | 'Outgoing';
+  type: string;
+  amount: number;
+  count: number;
+}
+
+export interface BankSummaryAccount {
+  connectionId: number | null;
+  label: string;
+  income: number;
+  expense: number;
+  count: number;
+}
+
+export interface BankSummaryCounterparty {
+  name: string | null;
+  amount: number;
+  count: number;
+}
+
+export interface BankSummaryCurrency {
+  currency: string;
+  income: number;
+  expense: number;
+  count: number;
+  periods: BankSummaryPeriodRow[];
+  types: BankSummaryType[];
+  accounts: BankSummaryAccount[];
+  topIncome: BankSummaryCounterparty[];
+  topExpense: BankSummaryCounterparty[];
+}
+
+export interface BankSummary {
+  period: string;
+  from: string;
+  to: string;
+  currencies: BankSummaryCurrency[];
+}

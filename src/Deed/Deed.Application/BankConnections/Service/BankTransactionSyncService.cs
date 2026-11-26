@@ -29,7 +29,7 @@ public sealed class BankTransactionSyncService(
     IUnitOfWork unitOfWork)
     : IBankTransactionSyncService
 {
-    private static readonly TimeSpan Lookback = TimeSpan.FromHours(12);
+    private static readonly TimeSpan Lookback = TimeSpan.FromDays(2);
     private static readonly TimeSpan ChunkWindow = TimeSpan.FromDays(30);
     private static readonly TimeSpan BaselineTolerance = TimeSpan.FromMinutes(10);
 
@@ -228,7 +228,7 @@ public sealed class BankTransactionSyncService(
             return 0;
         }
 
-        var staged = await StageHistoryAsync(connection.CreatedBy, connection.Label, result.Value, cancellationToken).ConfigureAwait(false);
+        var staged = await StageHistoryAsync(connection.CreatedBy, connection.Label, connection.Id, result.Value, cancellationToken).ConfigureAwait(false);
 
         var next = start;
 
@@ -272,7 +272,7 @@ public sealed class BankTransactionSyncService(
         await unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
     }
 
-    public async Task<int> StageHistoryAsync(string createdBy, string label, IReadOnlyCollection<BankTransaction> transactions, CancellationToken cancellationToken)
+    public async Task<int> StageHistoryAsync(string createdBy, string label, int? connectionId, IReadOnlyCollection<BankTransaction> transactions, CancellationToken cancellationToken)
     {
         var candidates = transactions
             .GroupBy(t => t.ExternalId)
@@ -283,7 +283,7 @@ public sealed class BankTransactionSyncService(
 
         if (fresh.Count > 0)
         {
-            notificationRepository.CreateRange(fresh.Select(t => ToNotification(createdBy, label, null, t, isRead: true, BankImportStatus.None)));
+            notificationRepository.CreateRange(fresh.Select(t => ToNotification(createdBy, label, connectionId, t, isRead: true, BankImportStatus.None)));
         }
 
         return fresh.Count;

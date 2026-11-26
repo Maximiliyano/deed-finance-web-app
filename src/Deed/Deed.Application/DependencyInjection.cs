@@ -55,6 +55,8 @@ public static class DependencyInjection
 
             services.AddScoped<IBankTransactionSyncService, BankTransactionSyncService>();
 
+            services.AddScoped<IBankAccountRefreshService, BankAccountRefreshService>();
+
             services.AddScoped<IReminderDigestService, ReminderDigestService>();
 
             return services;

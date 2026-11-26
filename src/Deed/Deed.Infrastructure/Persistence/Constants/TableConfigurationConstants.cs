@@ -32,5 +32,7 @@ internal static class TableConfigurationConstants
 
     public const string BankConnections = nameof(BankConnections);
 
+    public const string BankAccounts = nameof(BankAccounts);
+
     public const string BankNotifications = nameof(BankNotifications);
 }

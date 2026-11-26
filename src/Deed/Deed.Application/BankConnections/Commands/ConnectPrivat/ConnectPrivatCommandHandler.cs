@@ -47,9 +47,11 @@ internal sealed class ConnectPrivatCommandHandler(
         var encrypted = tokenProtector.Protect(token);
         var label = BankConnectionExtensions.NormalizeLabel(command.Label) ?? existing?.Label ?? DefaultLabel;
 
+        BankConnection connection;
+
         if (existing is null)
         {
-            repository.Create(new BankConnection
+            connection = new BankConnection
             {
                 Provider = BankProvider.PrivatAutoclient,
                 EncryptedToken = encrypted,
@@ -57,18 +59,23 @@ internal sealed class ConnectPrivatCommandHandler(
                 Label = label,
                 Status = BankConnectionStatus.Active,
                 LastSyncAt = now
-            });
+            };
+
+            repository.Create(connection);
         }
         else
         {
+            connection = existing;
             existing.EncryptedToken = encrypted;
             existing.Label = label;
             existing.Status = BankConnectionStatus.Active;
             existing.LastSyncAt = now;
         }
 
+        await unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+
         var imported = await syncService
-            .StageHistoryAsync(user.Name!, label, check.Value, cancellationToken)
+            .StageHistoryAsync(user.Name!, label, connection.Id, check.Value, cancellationToken)
             .ConfigureAwait(false);
 
         await unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);

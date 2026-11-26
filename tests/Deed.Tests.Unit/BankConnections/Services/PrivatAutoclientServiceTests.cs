@@ -57,7 +57,7 @@ public sealed class PrivatAutoclientServiceTests
         second.Amount.Should().Be(20m);
 
         captured!.Headers.GetValues("token").Should().ContainSingle("secret-token");
-        captured.RequestUri!.Query.Should().Contain($"acc={Iban}").And.Contain("startDate=25-11-2026");
+        captured.RequestUri!.Query.Should().Contain($"iban={Iban}").And.Contain("startDate=25-11-2026");
         captured.Headers.UserAgent.ToString().Should().NotBeEmpty();
     }
 
@@ -77,7 +77,7 @@ public sealed class PrivatAutoclientServiceTests
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        captured!.Query.Should().NotContain("acc=").And.Contain("startDate=25-11-2026");
+        captured!.Query.Should().NotContain("iban=").And.Contain("startDate=25-11-2026");
     }
 
     [Fact]
@@ -166,6 +166,55 @@ public sealed class PrivatAutoclientServiceTests
         // Assert
         result.IsSuccess.Should().BeFalse();
         result.Errors.Should().Contain(DomainErrors.HttpClient.Execution);
+    }
+
+    [Fact]
+    public async Task GetAccountsAsync_ValidResponse_MapsAccountsAndCallsBalanceEndpoint()
+    {
+        // Arrange
+        HttpRequestMessage? captured = null;
+        var service = CreateService((request, _) =>
+        {
+            captured = request;
+            return Task.FromResult(Json("""
+                {
+                  "status": "SUCCESS",
+                  "exist_next_page": false,
+                  "balances": [
+                    { "acc": "UA213223130000026007233566001", "currency": "UAH", "nameACC": "Main", "balanceOut": "1234,56" },
+                    { "acc": "ua213223130000026007233566002", "currency": "USD", "balanceOut": "10.00" },
+                    { "acc": "UA213223130000026007233566001", "currency": "UAH" },
+                    { "currency": "EUR" }
+                  ]
+                }
+                """));
+        });
+
+        // Act
+        var result = await service.GetAccountsAsync("secret-token", CancellationToken.None);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().HaveCount(2);
+        result.Value[0].Should().Be(new PrivatAccount(Iban, "UAH", "Main", 1234.56m));
+        result.Value[1].Iban.Should().Be("UA213223130000026007233566002");
+        result.Value[1].Name.Should().BeNull();
+        captured!.RequestUri!.AbsolutePath.Should().EndWith("statements/balance/interim");
+        captured.Headers.GetValues("token").Should().ContainSingle("secret-token");
+    }
+
+    [Fact]
+    public async Task GetAccountsAsync_AuthFailure_ReturnsTokenInvalid()
+    {
+        // Arrange
+        var service = CreateService((_, _) => Task.FromResult(new HttpResponseMessage(HttpStatusCode.Forbidden)));
+
+        // Act
+        var result = await service.GetAccountsAsync("t", CancellationToken.None);
+
+        // Assert
+        result.IsSuccess.Should().BeFalse();
+        result.Errors.Should().Contain(DomainErrors.Bank.TokenInvalid);
     }
 
     private static PrivatAutoclientService CreateService(Func<HttpRequestMessage, CancellationToken, Task<HttpResponseMessage>> sendAsync)

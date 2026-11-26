@@ -295,7 +295,7 @@ public sealed class BankTransactionSyncServiceTests
 
         // Act
         var staged = await _service.StageHistoryAsync(
-            "owner", "Biz", [Transaction("old", Now.AddDays(-9)), Transaction("new", Now.AddDays(-8)), Transaction("new", Now.AddDays(-8))], CancellationToken.None);
+            "owner", "Biz", 7, [Transaction("old", Now.AddDays(-9)), Transaction("new", Now.AddDays(-8)), Transaction("new", Now.AddDays(-8))], CancellationToken.None);
 
         // Assert
         staged.Should().Be(1);
@@ -304,7 +304,8 @@ public sealed class BankTransactionSyncServiceTests
             items.Single().ExternalId == "new" &&
             items.Single().IsRead &&
             items.Single().CreatedBy == "owner" &&
-            items.Single().AccountLabel == "Biz"));
+            items.Single().AccountLabel == "Biz" &&
+            items.Single().BankConnectionId == 7));
         await _publisherMock.DidNotReceive().PublishAsync(Arg.Any<string>(), Arg.Any<IReadOnlyList<BankNotificationResponse>>(), Arg.Any<CancellationToken>());
     }
 

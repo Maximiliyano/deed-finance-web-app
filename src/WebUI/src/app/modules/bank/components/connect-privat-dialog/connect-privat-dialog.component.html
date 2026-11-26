@@ -7,7 +7,7 @@
     <ol class="steps">
       <li>Open the Privat24 for Business app and go to Settings, then Integrations.</li>
       <li>Create an Autoclient integration and copy the token it gives you.</li>
-      <li>Paste the token and load your accounts. Pick one account or all of them.</li>
+      <li>Paste the token and load your accounts. Pick the ones to watch. The rest stay available to connect later.</li>
     </ol>
 
     <div class="form-group">
@@ -83,25 +83,6 @@
       }
     }
 
-    @if (manual() && !hasAccounts) {
-      <div class="form-group">
-        <label for="iban" class="form-label">Account number (IBAN)</label>
-        <input
-          id="iban"
-          class="input"
-          formControlName="iban"
-          autocomplete="off"
-          spellcheck="false"
-          placeholder="UA..."
-        />
-        @if (form.controls.iban.touched && form.controls.iban.invalid) {
-          <p class="field-error">Enter a valid Ukrainian IBAN: UA followed by 27 characters.</p>
-        }
-      </div>
-    } @else if (!hasAccounts) {
-      <button type="button" class="quick-chip" (click)="enterManually()">Enter account number manually</button>
-    }
-
     @if (error(); as message) {
       <p class="field-error" role="alert">{{ message }}</p>
     }
@@ -118,14 +99,6 @@
               ? 'Connect ' + selected().length + ' accounts'
               : 'Connect'
         }}
-      </button>
-    } @else if (manual()) {
-      <button
-        type="submit"
-        class="btn btn-primary btn-sm"
-        [disabled]="form.controls.token.invalid || manualInvalid || submitting()"
-      >
-        {{ submitting() ? 'Checking...' : 'Connect' }}
       </button>
     } @else {
       <button type="submit" class="btn btn-primary btn-sm" [disabled]="form.controls.token.invalid || loading()">

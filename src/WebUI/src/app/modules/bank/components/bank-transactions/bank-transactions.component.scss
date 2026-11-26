@@ -2,6 +2,22 @@
   display: block;
 }
 
+.tx-account {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  max-width: 24rem;
+  margin-bottom: var(--space-4);
+}
+
+.tx-account-label {
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
 .tx-filters-bar {
   padding: var(--space-3) var(--space-4);
   border-bottom: 1px solid var(--border);

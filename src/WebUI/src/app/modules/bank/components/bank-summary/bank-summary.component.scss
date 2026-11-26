@@ -1,0 +1,125 @@
+@use '../../../../../assets/scss/mixins.scss' as *;
+
+:host {
+  display: block;
+  margin-bottom: var(--space-4);
+}
+
+.sum-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  padding: var(--space-4);
+
+  @include respond-to('sm') {
+    padding: var(--space-5);
+  }
+}
+
+.sum-currency {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.sum-title {
+  margin: 0;
+  font-size: var(--fs-lg);
+  font-weight: 700;
+}
+
+.sum-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(10rem, 100%), 1fr));
+  gap: var(--space-3);
+}
+
+.sum-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(20rem, 100%), 1fr));
+  gap: var(--space-5);
+  align-items: start;
+}
+
+.sum-wide {
+  grid-column: 1 / -1;
+}
+
+.sum-block {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.sum-heading {
+  margin: 0;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+
+.sum-subheading {
+  margin: var(--space-2) 0 0;
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.sum-num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.sum-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sum-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--space-1) var(--space-3);
+  align-items: baseline;
+  font-size: var(--fs-md);
+}
+
+.sum-row-flat {
+  gap: 0 var(--space-3);
+}
+
+.sum-row-name {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.sum-row-meta {
+  margin-left: var(--space-1);
+  font-size: var(--fs-xs);
+  color: var(--text-light);
+}
+
+.sum-row-amount {
+  display: inline-flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.sum-row-bar {
+  grid-column: 1 / -1;
+}
+
+.sum-empty {
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+}

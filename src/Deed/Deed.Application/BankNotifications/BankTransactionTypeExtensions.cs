@@ -10,6 +10,7 @@ internal static class BankTransactionTypeExtensions
             BankTransactionType.TopUp => "Top-up",
             BankTransactionType.Withdrawal => "Withdrawal",
             BankTransactionType.Transfer => "Transfer",
+            BankTransactionType.Exchange => "Exchange",
             _ => "Payment"
         };
 }

@@ -98,6 +98,7 @@ public sealed class PrivatAutoclientService(
         var settings = options.Value;
         var accounts = new Dictionary<string, PrivatAccount>(StringComparer.OrdinalIgnoreCase);
         string? followId = null;
+        var lastBody = string.Empty;
 
         try
         {
@@ -117,6 +118,8 @@ public sealed class PrivatAutoclientService(
                 {
                     return Result.Failure<IReadOnlyList<PrivatAccount>>(body.Errors);
                 }
+
+                lastBody = body.Value;
 
                 using var document = JsonDocument.Parse(body.Value);
 
@@ -151,7 +154,7 @@ public sealed class PrivatAutoclientService(
 
             if (accounts.Count == 0)
             {
-                Log.Warning("Autoclient balance response contained no recognizable accounts");
+                Log.Warning("Autoclient balance response contained no recognizable accounts, shape: {Shape}", Shape(lastBody));
             }
 
             return Result.Success<IReadOnlyList<PrivatAccount>>([.. accounts.Values]);
@@ -182,11 +185,38 @@ public sealed class PrivatAutoclientService(
         Log.Warning(
             "Autoclient request failed with status {Status}: {Body}",
             (int)response.StatusCode,
-            body.Length <= 300 ? body : body[..300]);
+            Preview(body));
 
         return response.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden
             ? Result.Failure<string>(DomainErrors.Bank.TokenInvalid)
             : Result.Failure<string>(DomainErrors.HttpClient.Execution);
+    }
+
+    private static string Preview(string body)
+        => body.Length <= 300 ? body : body[..300];
+
+    private static string Shape(string body)
+    {
+        try
+        {
+            using var document = JsonDocument.Parse(body);
+            var root = document.RootElement;
+
+            if (root.ValueKind != JsonValueKind.Object)
+            {
+                return root.ValueKind.ToString();
+            }
+
+            var list = root.EnumerateObject().Select(p => p.Value).FirstOrDefault(v => v.ValueKind == JsonValueKind.Array);
+            var item = list.ValueKind == JsonValueKind.Array && list.GetArrayLength() > 0 ? list[0] : default;
+            var fields = item.ValueKind == JsonValueKind.Object ? item.EnumerateObject().Select(p => p.Name) : Array.Empty<string>();
+
+            return $"root=[{string.Join(',', root.EnumerateObject().Select(p => p.Name))}] item=[{string.Join(',', fields)}]";
+        }
+        catch (JsonException)
+        {
+            return "invalid json";
+        }
     }
 
     private static PrivatAccount? MapAccount(JsonElement item)
@@ -212,7 +242,7 @@ public sealed class PrivatAutoclientService(
         var start = KyivTime.ToLocal(from).ToString("dd-MM-yyyy", CultureInfo.InvariantCulture);
         var end = KyivTime.ToLocal(to).ToString("dd-MM-yyyy", CultureInfo.InvariantCulture);
 
-        var account = string.IsNullOrEmpty(iban) ? string.Empty : $"acc={Uri.EscapeDataString(iban)}&";
+        var account = string.IsNullOrEmpty(iban) ? string.Empty : $"iban={Uri.EscapeDataString(iban)}&";
 
         var url = $"{settings.BaseUrl.TrimEnd('/')}/{settings.TransactionsPath.TrimStart('/')}"
             + $"?{account}startDate={start}&endDate={end}&limit={settings.PageLimit}";

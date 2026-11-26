@@ -45,6 +45,8 @@ public sealed class DeedDbContext(DbContextOptions<DeedDbContext> options)
 
     public DbSet<BankConnection> BankConnections { get; set; }
 
+    public DbSet<BankAccount> BankAccounts { get; set; }
+
     public DbSet<BankNotification> BankNotifications { get; set; }
 
     public new DbSet<TEntity> Set<TEntity>()

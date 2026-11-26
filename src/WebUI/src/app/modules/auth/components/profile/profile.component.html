@@ -51,22 +51,37 @@
       <div class="card-header">
         <h2>Bank connections</h2>
         @if (bankConnections().length > 0) {
-          <button type="button" class="btn btn-ghost btn-sm" [disabled]="syncing()" (click)="syncNow()">
-            <i class="fas fa-rotate" [class.fa-spin]="syncing()"></i> Check now
-          </button>
+          <div class="card-header-actions">
+            <button type="button" class="btn btn-ghost btn-sm" [disabled]="refreshing()" (click)="refreshAccounts()">
+              <i class="fas fa-arrows-rotate" [class.fa-spin]="refreshing()"></i> Refresh accounts
+            </button>
+            <button type="button" class="btn btn-ghost btn-sm" [disabled]="syncing()" (click)="syncNow()">
+              <i class="fas fa-rotate" [class.fa-spin]="syncing()"></i> Check now
+            </button>
+          </div>
         }
       </div>
       <div class="settings-form">
         @for (connection of bankConnections(); track connection.id) {
-          <div class="bank-row">
+          <div class="bank-row" [class.warn]="connection.status === 'TokenInvalid'">
             <span class="bank-icon" [class.warn]="connection.status === 'TokenInvalid'">
-              <i class="fas fa-building"></i>
+              <i class="fas fa-building-columns"></i>
             </span>
             <div class="bank-summary">
-              <span class="toggle-label"
-                >{{ connection.label }}
-                <span class="bank-iban">{{ providerName(connection) }} · {{ connection.maskedAccount }}</span></span
-              >
+              <span class="bank-title">
+                <span class="toggle-label">{{ connection.label }}</span>
+                @if (connection.status === 'TokenInvalid') {
+                  <span class="badge badge-danger">Reconnect needed</span>
+                } @else {
+                  <span class="badge badge-success">Active</span>
+                }
+              </span>
+              <span class="bank-iban"
+                >{{ providerName(connection) }} · {{ connection.maskedAccount }}
+                @if (balanceOf(connection); as balance) {
+                  · {{ balance }}
+                }
+              </span>
               @if (connection.status === 'TokenInvalid') {
                 <span class="toggle-hint">The bank rejected the credentials. Reconnect to resume alerts.</span>
               } @else {
@@ -112,13 +127,50 @@
             Link a capital to add them to your expenses and incomes after you confirm, or automatically.
           </p>
         }
-        <div class="settings-footer">
-          <button type="button" class="btn btn-secondary btn-sm" (click)="connectMonobank()">
-            <i class="fas fa-plus"></i> Monobank
-          </button>
-          <button type="button" class="btn btn-primary btn-sm" (click)="connectPrivat()">
-            <i class="fas fa-plus"></i> Privat24 Business
-          </button>
+        @if (availableAccounts().length > 0) {
+          <div class="bank-available">
+            <span class="bank-add-title">Available accounts</span>
+            <p class="toggle-hint">Found in your Privat24 profile. Connect an account to track its transactions.</p>
+            @for (account of availableAccounts(); track account.id) {
+              <div class="bank-row">
+                <span class="bank-icon"><i class="fas fa-building-columns"></i></span>
+                <div class="bank-summary">
+                  <span class="bank-title">
+                    <span class="toggle-label">{{ accountName(account) }}</span>
+                    <span class="badge">Not connected</span>
+                  </span>
+                  <span class="bank-iban"
+                    >{{ account.maskedAccount }}
+                    @if (account.balance !== null) {
+                      · {{ money(account.balance, account.currency) }}
+                    }
+                  </span>
+                </div>
+                <div class="bank-actions">
+                  <button
+                    type="button"
+                    class="btn btn-secondary btn-sm"
+                    [disabled]="connectingId() !== null"
+                    (click)="connectAvailable(account)"
+                  >
+                    {{ connectingId() === account.id ? 'Connecting...' : 'Connect' }}
+                  </button>
+                </div>
+              </div>
+            }
+          </div>
+        }
+
+        <div class="bank-add">
+          <span class="bank-add-title">Add a bank</span>
+          <div class="bank-add-options">
+            <button type="button" class="btn btn-secondary" (click)="connectPrivat()">
+              <i class="fas fa-plus"></i> Privat24 Business
+            </button>
+            <button type="button" class="btn btn-secondary" (click)="connectMonobank()">
+              <i class="fas fa-plus"></i> Monobank
+            </button>
+          </div>
         </div>
       </div>
     </div>

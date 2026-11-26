@@ -59,7 +59,7 @@ public sealed class ConnectPrivatCommandHandlerTests
             c.Status == BankConnectionStatus.Active &&
             c.Provider == BankProvider.PrivatAutoclient &&
             c.LastSyncAt == Now));
-        await _unitOfWorkMock.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
+        await _unitOfWorkMock.Received(2).SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -78,7 +78,7 @@ public sealed class ConnectPrivatCommandHandlerTests
 
         // Assert
         await _bankMock.Received(1).GetTransactionsAsync("secret", string.Empty, Now.AddDays(-30), Now, Arg.Any<CancellationToken>());
-        await _syncMock.Received(1).StageHistoryAsync("testuser", "Biz", history, Arg.Any<CancellationToken>());
+        await _syncMock.Received(1).StageHistoryAsync("testuser", "Biz", Arg.Any<int?>(), history, Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -146,7 +146,7 @@ public sealed class ConnectPrivatCommandHandlerTests
         existing.LastSyncAt.Should().Be(Now);
 
         _repositoryMock.DidNotReceive().Create(Arg.Any<BankConnection>());
-        await _unitOfWorkMock.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
+        await _unitOfWorkMock.Received(2).SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 
     [Theory]

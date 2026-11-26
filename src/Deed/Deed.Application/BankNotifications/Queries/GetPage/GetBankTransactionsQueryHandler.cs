@@ -26,11 +26,11 @@ internal sealed class GetBankTransactionsQueryHandler(IUser user, IBankNotificat
             : null;
 
         var total = await repository
-            .CountAsync(new BankTransactionsByUserSpecification(user.Name!, type, importStatus: status), cancellationToken)
+            .CountAsync(new BankTransactionsByUserSpecification(user.Name!, type, importStatus: status, connectionId: query.ConnectionId), cancellationToken)
             .ConfigureAwait(false);
 
         var items = await repository
-            .GetAllAsync(new BankTransactionsByUserSpecification(user.Name!, type, (page - 1) * pageSize, pageSize, status), cancellationToken)
+            .GetAllAsync(new BankTransactionsByUserSpecification(user.Name!, type, (page - 1) * pageSize, pageSize, status, query.ConnectionId), cancellationToken)
             .ConfigureAwait(false);
 
         return Result.Success(new BankTransactionsPageResponse(total, page, pageSize, items.ToResponses()));

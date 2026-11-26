@@ -1,7 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { AbstractControl, FormBuilder, ValidationErrors, Validators } from '@angular/forms';
+import { FormBuilder, Validators } from '@angular/forms';
 import { concatMap, from, toArray } from 'rxjs';
 import { DIALOG_DATA } from '../../../../shared/components/dialogs/models/dialog-consts';
 import { DialogRef } from '../../../../shared/components/dialogs/models/dialog-ref';
@@ -12,14 +12,6 @@ import { BankConnectionService } from '../../services/bank-connection.service';
 
 const DEFAULT_LABEL = 'Business';
 const MAX_LABEL = 64;
-
-const normalizeIban = (value: string): string => value.replace(/\s/g, '').toUpperCase();
-
-const ibanValidator = (control: AbstractControl<string>): ValidationErrors | null => {
-  const iban = normalizeIban(control.value ?? '');
-
-  return !iban || /^UA[0-9A-Z]{27}$/.test(iban) ? null : { iban: true };
-};
 
 @Component({
   selector: 'app-connect-privat-dialog',
@@ -39,13 +31,11 @@ export class ConnectPrivatDialogComponent {
 
   protected readonly form = this.fb.nonNullable.group({
     label: [this.data?.label ?? DEFAULT_LABEL, [Validators.maxLength(MAX_LABEL)]],
-    token: ['', [Validators.required, Validators.maxLength(512)]],
-    iban: ['', [ibanValidator]]
+    token: ['', [Validators.required, Validators.maxLength(512)]]
   });
 
   protected readonly accounts = signal<PrivatAccount[] | null>(null);
   protected readonly selected = signal<string[]>([]);
-  protected readonly manual = signal(false);
   protected readonly loading = signal(false);
   protected readonly submitting = signal(false);
   protected readonly error = signal<string | null>(null);
@@ -59,12 +49,6 @@ export class ConnectPrivatDialogComponent {
 
   protected get hasAccounts(): boolean {
     return (this.accounts()?.length ?? 0) > 0;
-  }
-
-  protected get manualInvalid(): boolean {
-    const { iban } = this.form.getRawValue();
-
-    return !iban || this.form.controls.iban.invalid;
   }
 
   protected async paste(): Promise<void> {
@@ -85,11 +69,6 @@ export class ConnectPrivatDialogComponent {
   protected tokenChanged(): void {
     this.accounts.set(null);
     this.selected.set([]);
-    this.error.set(null);
-  }
-
-  protected enterManually(): void {
-    this.manual.set(true);
     this.error.set(null);
   }
 
@@ -131,30 +110,18 @@ export class ConnectPrivatDialogComponent {
           this.selected.set(accounts.map(account => account.iban));
 
           if (accounts.length === 0) {
-            this.manual.set(true);
-            this.error.set('No accounts were found for this token. Enter the account number manually.');
+            this.error.set('No accounts were found for this token. Check that it is an Autoclient token.');
           }
         },
         error: (response: HttpErrorResponse) => {
           this.loading.set(false);
-          this.manual.set(true);
-          this.error.set(
-            this.message(response, 'Could not load accounts. Check the token or enter the account number.')
-          );
+          this.error.set(this.message(response, 'Could not load accounts. Check the token.'));
         }
       });
   }
 
   protected submit(): void {
     if (this.submitting()) return;
-
-    if (this.manual() && !this.hasAccounts) {
-      if (!this.form.controls.token.invalid && !this.manualInvalid) {
-        this.connect([normalizeIban(this.form.getRawValue().iban)]);
-      }
-
-      return;
-    }
 
     if (this.accounts() === null) {
       this.loadAccounts();
@@ -197,10 +164,7 @@ export class ConnectPrivatDialogComponent {
         error: (response: HttpErrorResponse) => {
           this.submitting.set(false);
           this.error.set(
-            this.message(
-              response,
-              'Could not connect. Check the token and the account number. Accounts connected so far are kept.'
-            )
+            this.message(response, 'Could not connect. Check the token. Accounts connected so far are kept.')
           );
         }
       });

@@ -15,6 +15,7 @@ import {
 } from '../../models/bank.model';
 import { BankConnectionService } from '../../services/bank-connection.service';
 import { BankTransactionService } from '../../services/bank-transaction.service';
+import { BankSummaryComponent } from '../bank-summary/bank-summary.component';
 import { ImportHistoryDialogComponent } from '../import-history-dialog/import-history-dialog.component';
 import { ImportTransactionDialogComponent } from '../import-transaction-dialog/import-transaction-dialog.component';
 
@@ -26,7 +27,8 @@ const FILTERS: { value: TypeFilter; label: string }[] = [
   { value: 'TopUp', label: 'Top-ups' },
   { value: 'Withdrawal', label: 'Withdrawals' },
   { value: 'Transfer', label: 'Transfers' },
-  { value: 'Payment', label: 'Payments' }
+  { value: 'Payment', label: 'Payments' },
+  { value: 'Exchange', label: 'Exchanges' }
 ];
 
 const TYPE_ICONS: Record<BankTransactionType, string> = {
@@ -34,7 +36,8 @@ const TYPE_ICONS: Record<BankTransactionType, string> = {
   TopUp: 'fa-arrow-down',
   Withdrawal: 'fa-money-bill-wave',
   Transfer: 'fa-right-left',
-  Payment: 'fa-credit-card'
+  Payment: 'fa-credit-card',
+  Exchange: 'fa-arrows-rotate'
 };
 
 @Component({
@@ -42,7 +45,7 @@ const TYPE_ICONS: Record<BankTransactionType, string> = {
   templateUrl: './bank-transactions.component.html',
   styleUrl: './bank-transactions.component.scss',
   standalone: true,
-  imports: [SharedModule, PanelStateComponent],
+  imports: [SharedModule, PanelStateComponent, BankSummaryComponent],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class BankTransactionsComponent implements OnInit {
@@ -58,6 +61,7 @@ export class BankTransactionsComponent implements OnInit {
   protected readonly connections = toSignal(this.connectionService.connections$, { initialValue: [] });
 
   protected readonly filter = signal<TypeFilter>('all');
+  protected readonly accountId = signal<number | null>(null);
   protected readonly page = signal(1);
   protected readonly pageSize = signal(20);
   protected readonly data = signal<BankTransactionsPage | null>(null);
@@ -108,10 +112,12 @@ export class BankTransactionsComponent implements OnInit {
       .pipe(
         tap(() => this.loading.set(true)),
         switchMap(() =>
-          this.transactions.loadPage(this.page(), this.pageSize(), this.typeParam(), this.statusParam()).pipe(
-            catchError(() => EMPTY),
-            finalize(() => this.loading.set(false))
-          )
+          this.transactions
+            .loadPage(this.page(), this.pageSize(), this.typeParam(), this.statusParam(), this.accountId())
+            .pipe(
+              catchError(() => EMPTY),
+              finalize(() => this.loading.set(false))
+            )
         ),
         takeUntilDestroyed(this.destroyRef)
       )
@@ -139,6 +145,11 @@ export class BankTransactionsComponent implements OnInit {
 
   protected setFilter(filter: TypeFilter): void {
     this.filter.set(filter);
+    this.goTo(1);
+  }
+
+  protected setAccount(value: string): void {
+    this.accountId.set(value === '' ? null : Number(value));
     this.goTo(1);
   }
 

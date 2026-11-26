@@ -35,7 +35,7 @@ internal static class BankConnectionExtensions
     internal static string NormalizeIban(string? iban)
         => string.Concat((iban ?? string.Empty).Where(c => !char.IsWhiteSpace(c))).ToUpperInvariant();
 
-    private static string MaskAccount(string iban)
+    internal static string MaskAccount(string iban)
         => iban.Length switch
         {
             0 => AllAccounts,

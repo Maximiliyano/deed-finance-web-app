@@ -8,5 +8,9 @@ public interface IBankNotificationRepository
 
     Task<int> CountAsync(ISpecification<BankNotification> specification, CancellationToken cancellationToken = default);
 
+    Task<IReadOnlyList<BankTransactionTotal>> GetTotalsAsync(ISpecification<BankNotification> specification, CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<BankCounterpartyTotal>> GetCounterpartyTotalsAsync(ISpecification<BankNotification> specification, CancellationToken cancellationToken = default);
+
     void CreateRange(IEnumerable<BankNotification> notifications);
 }

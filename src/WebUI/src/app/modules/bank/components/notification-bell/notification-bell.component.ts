@@ -21,7 +21,8 @@ const TYPE_ICONS: Record<BankTransactionType, string> = {
   TopUp: 'fa-arrow-down',
   Withdrawal: 'fa-money-bill-wave',
   Transfer: 'fa-right-left',
-  Payment: 'fa-credit-card'
+  Payment: 'fa-credit-card',
+  Exchange: 'fa-arrows-rotate'
 };
 
 @Component({

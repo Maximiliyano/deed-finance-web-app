@@ -1,0 +1,42 @@
+using Deed.Application.Abstractions.Messaging;
+using Deed.Application.Auth;
+using Deed.Application.BankConnections.Responses;
+using Deed.Application.BankConnections.Specifications;
+using Deed.Domain.Repositories;
+using Deed.Domain.Results;
+
+namespace Deed.Application.BankConnections.Queries.GetBankAccounts;
+
+internal sealed class GetBankAccountsQueryHandler(
+    IUser user,
+    IBankAccountRepository accountRepository,
+    IBankConnectionRepository connectionRepository)
+    : IQueryHandler<GetBankAccountsQuery, IReadOnlyList<BankAccountResponse>>
+{
+    public async Task<Result<IReadOnlyList<BankAccountResponse>>> Handle(GetBankAccountsQuery query, CancellationToken cancellationToken)
+    {
+        var accounts = await accountRepository
+            .GetAllAsync(new BankAccountsByUserSpecification(user.Name!), cancellationToken)
+            .ConfigureAwait(false);
+
+        var connections = (await connectionRepository
+            .GetAllAsync(new BankConnectionByUserSpecification(user.Name!), cancellationToken)
+            .ConfigureAwait(false)).ToList();
+
+        IReadOnlyList<BankAccountResponse> response =
+        [
+            .. accounts.Select(a => new BankAccountResponse(
+                a.Id,
+                a.Provider.ToString(),
+                a.Iban,
+                BankConnectionExtensions.MaskAccount(a.Iban),
+                a.Currency,
+                a.Name,
+                a.Balance,
+                a.LastRefreshedAt,
+                connections.FirstOrDefault(c => c.Provider == a.Provider && string.Equals(c.AccountIban, a.Iban, StringComparison.OrdinalIgnoreCase))?.Id))
+        ];
+
+        return Result.Success(response);
+    }
+}

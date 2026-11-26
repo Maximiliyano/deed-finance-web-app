@@ -2,6 +2,7 @@ using Deed.Application.Abstractions.Caching;
 using Deed.Application.Abstractions.Data;
 using Deed.Application.Abstractions.Services;
 using Deed.Domain.Repositories;
+using Deed.Infrastructure.BackgroundJobs.BankAccountRefresh;
 using Deed.Infrastructure.BackgroundJobs.BankBackfill;
 using Deed.Infrastructure.BackgroundJobs.BankTransactionSync;
 using Deed.Infrastructure.BackgroundJobs.ReminderDigest;
@@ -80,6 +81,8 @@ public static class DependencyInjection
 
         services.ConfigureOptions<BankBackfillJobSetup>();
 
+        services.ConfigureOptions<BankAccountRefreshJobSetup>();
+
         return services;
     }
 
@@ -112,6 +115,8 @@ public static class DependencyInjection
         services.AddScoped<IUtilityBillRepository, UtilityBillRepository>();
 
         services.AddScoped<IBankConnectionRepository, BankConnectionRepository>();
+
+        services.AddScoped<IBankAccountRepository, BankAccountRepository>();
 
         services.AddScoped<IBankNotificationRepository, BankNotificationRepository>();
 

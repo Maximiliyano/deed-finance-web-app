@@ -72,6 +72,12 @@ public static class DomainErrors
         public static Error InvalidPeriod
             => Error.BadRequest("Bank.InvalidPeriod", "The start of the period must be before its end.");
 
+        public static Error AccountNotFound
+            => Error.NotFound("Bank.AccountNotFound", "This bank account was not found. Refresh your accounts and try again.");
+
+        public static Error AccountAlreadyConnected
+            => Error.Conflict("Bank.AccountAlreadyConnected", "This bank account is already connected.");
+
         public static Error NotPending
             => Error.Conflict("Bank.NotPending", "This transaction is no longer waiting for confirmation.");
     }
