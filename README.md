@@ -2,7 +2,7 @@
 
 Personal finance management web app: track money across multiple accounts ("capitals") and currencies, log expenses and incomes, plan budgets, set savings goals, track debts and recurring utility bills, and get e-mail reminders.
 
-Built with Clean Architecture (ASP.NET Core 9 + CQRS/MediatR) and an Angular 20 SPA.
+Built with Clean Architecture (ASP.NET Core 10 + CQRS/MediatR) and an Angular 20 SPA.
 
 <hr />
 
@@ -26,7 +26,7 @@ Built with Clean Architecture (ASP.NET Core 9 + CQRS/MediatR) and an Angular 20 
 
 ## Tech stack
 
-- **Backend:** ASP.NET Core 9 (Minimal APIs), EF Core 9 (SQL Server), MediatR (CQRS), FluentValidation, Quartz.NET (background jobs), Serilog, Polly/`Microsoft.Extensions.Http.Resilience`, Swashbuckle (Swagger), health checks.
+- **Backend:** ASP.NET Core 10 (Minimal APIs), EF Core 10 (SQL Server), MediatR (CQRS), FluentValidation, Quartz.NET (background jobs), Serilog, Polly/`Microsoft.Extensions.Http.Resilience`, Swashbuckle (Swagger), health checks.
 - **Infrastructure:** SQL Server 2022, Redis 7 (distributed cache), SMTP (e-mail), Auth0 (OpenID Connect).
 - **Frontend:** Angular 20 (NgModules + standalone components), SCSS with CSS custom properties, Font Awesome 7, Inter font, RxJS.
 - **Tests:** xUnit, NSubstitute, FluentAssertions, `Microsoft.AspNetCore.Mvc.Testing`.
@@ -50,7 +50,7 @@ Built with Clean Architecture (ASP.NET Core 9 + CQRS/MediatR) and an Angular 20 
 ├── .github/workflows              # backend-deploy, frontend-deploy, claude
 ├── docker-compose.yml             # SQL Server + Redis + API (+ UI via profiles)
 ├── fly.toml                       # Fly.io app config for the API
-├── Directory.Build.props          # net9.0, nullable, warnings-as-errors, SonarAnalyzer
+├── Directory.Build.props          # net10.0, nullable, warnings-as-errors, SonarAnalyzer
 └── CLAUDE.md                      # Conventions for AI coding assistants
 ```
 
@@ -86,7 +86,7 @@ HTTP request
 
 ### Prerequisites
 
-- .NET SDK 9.0 (`src/Deed/global.json`)
+- .NET SDK 10.0 (`src/Deed/global.json`)
 - Node.js 20+ and npm
 - Docker (for SQL Server and Redis)
 - `dotnet-ef` CLI: `dotnet tool install --global dotnet-ef`

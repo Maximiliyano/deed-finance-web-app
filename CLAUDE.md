@@ -6,7 +6,7 @@ Personal finance management app built with Clean Architecture.
 Domain: multi-currency accounts ("capitals"), expenses/incomes with categories and tags, transfers, budget planner ("estimations"), goals, debts, recurring utility bills, daily exchange rates, e-mail reminders. See `README.md` for the feature list, setup and API overview.
 
 ## Tech Stack
-- **Backend**: ASP.NET Core 9, EF Core 9, MediatR (CQRS), FluentValidation, SQL Server, Redis (distributed cache), Quartz.NET (jobs), Serilog, Auth0 (OIDC) + cookie auth
+- **Backend**: ASP.NET Core 10, EF Core 10, MediatR (CQRS), FluentValidation, SQL Server, Redis (distributed cache), Quartz.NET (jobs), Serilog, Auth0 (OIDC) + cookie auth
 - **Frontend**: Angular 20, SCSS, Font Awesome 7, Inter font
 - **Hosting**: API on Fly.io (`fly.toml`), UI on Netlify, DB on FreeAspNetHosting
 
