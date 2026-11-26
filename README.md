@@ -162,7 +162,7 @@ Never commit real secrets - the values in `appsettings.Development.json` are pla
 - Cookie authentication (HttpOnly, `SameSite=Lax`, secure, 1 hour sliding expiration) backed by an Auth0 OpenID Connect challenge (authorization-code flow, scopes `openid profile email offline_access`).
 - `GET /api/auth/login?returnUrl=/path` starts the login, `GET /api/auth/logout` clears the cookie and redirects through Auth0's `/v2/logout`, `GET /api/users/me` returns the profile, roles and user settings.
 - API calls from the SPA never get redirected to Auth0: a challenge on `/api/*` returns `401` unless it is the explicit login endpoint.
-- Signed-in users are required for `/api/users/me`, `GET /api/user-settings`, creating budget estimations, category writes (create, update, delete, restore) and `POST /api/tags`. `GET /api/bank/details` and `DELETE /api/tags/{id}` additionally require the `admin` role. All other endpoints are anonymous-accessible and operate on the `System` user until the visitor signs in (see anonymous limits above).
+- Signed-in users are required for `/api/users/me`, `GET /api/user-settings`, `/api/bank-connections/*`, `/api/bank-notifications/*`, creating budget estimations, category writes (create, update, delete, restore) and `POST /api/tags`. `GET /api/bank/details` and `DELETE /api/tags/{id}` additionally require the `admin` role. All other endpoints are anonymous-accessible and operate on the `System` user until the visitor signs in (see anonymous limits above).
 - Data protection keys are persisted in the database (`DataProtectionKeys` table) so cookies survive restarts and multiple instances.
 
 ## API overview
@@ -172,8 +172,8 @@ All routes are prefixed with `/api`. Request/response bodies are JSON; errors ar
 | Resource | Routes |
 | --- | --- |
 | Capitals | `POST /capitals/all` (search/sort/filter), `GET /capitals/{id}`, `POST /capitals`, `PUT /capitals/{id}`, `DELETE /capitals/{id}`, `PUT /capitals/orders`, `PATCH /capitals/{id}/include-in-total`, `PATCH /capitals/{id}/savings-only` |
-| Expenses | `GET /expenses` (grouped by category), `GET /expenses/{id}`, `POST /expenses`, `PUT /expenses`, `DELETE /expenses/{id}` |
-| Incomes | `GET /incomes`, `GET /incomes/{id}`, `POST /incomes`, `PUT /incomes`, `DELETE /incomes/{id}` |
+| Expenses | `GET /expenses?capitalId=&periodStart=&periodEnd=` (grouped by category, period filters on `PaymentDate`, end exclusive), `GET /expenses/{id}`, `POST /expenses`, `PUT /expenses`, `DELETE /expenses/{id}` |
+| Incomes | `GET /incomes?periodStart=&periodEnd=`, `GET /incomes/{id}`, `POST /incomes`, `PUT /incomes`, `DELETE /incomes/{id}` |
 | Categories | `GET /categories`, `POST /categories`, `PUT /categories/updateRange`, `DELETE /categories/{id}`, `POST /categories/{id}/restore` |
 | Tags | `GET /tags`, `POST /tags`, `DELETE /tags/{id}` |
 | Transfers | `GET /transfers`, `POST /transfers`, `DELETE /transfers/{id}` |
@@ -182,6 +182,8 @@ All routes are prefixed with `/api`. Request/response bodies are JSON; errors ar
 | Debts | `GET /debts`, `POST /debts`, `PUT /debts/{id}`, `PUT /debts/orders`, `DELETE /debts/{id}` |
 | Utility bills | `GET /utility-bills`, `POST /utility-bills`, `PUT /utility-bills/{id}`, `POST /utility-bills/{id}/pay`, `DELETE /utility-bills/{id}` |
 | Exchanges / Bank | `GET /exchanges`, `GET /bank/details` |
+| Bank connection (Privat24 Autoclient, signed-in) | `GET /bank-connections`, `POST /bank-connections/privat` (`{ token, iban }`, validated against the bank, token stored encrypted), `DELETE /bank-connections/privat` |
+| Bank notifications (signed-in) | `GET /bank-notifications?unreadOnly=&limit=`, `POST /bank-notifications/read` (`{ ids }`, empty = all) |
 | Dashboard | `GET /dashboard/summary?currency=&capitalIds=&periodStart=&periodEnd=` (totals, category breakdowns and budget, converted server-side) |
 | User | `GET /auth/login`, `GET /auth/logout`, `GET /users/me`, `GET /user-settings`, `PUT /user-settings` |
 
@@ -195,6 +197,7 @@ Operational endpoints (no `/api` prefix): `GET /health/live` (liveness, no depen
 | `BalanceReminderJob` | every 15 min | For users whose own cron (`BalanceReminderCron`, UTC) fired in the last 15 minutes, e-mails the total balance of "include in total" capitals converted to the user's main currency. |
 | `ExpenseReminderJob` | every 15 min | E-mails a reminder to log expenses (`ExpenseReminderCron`). |
 | `DebtReminderJob` | every 15 min | E-mails unpaid debts, flagging overdue and due-within-7-days items (`DebtReminderCron`). |
+| `BankTransactionSyncJob` | `CronBankSyncSchedule` (default every 5 min) | Polls the Privat24 Autoclient statements API for every active bank connection and stores each new transaction as a `BankNotification` (in-app bell, optional e-mail when `BankAlertsEmailEnabled`). A rejected token marks the connection `TokenInvalid` and raises one reconnect notification. |
 
 Reminders require `EmailNotificationsEnabled`, an e-mail address and a working `SmtpSettings` section. All jobs use `[DisallowConcurrentExecution]`.
 

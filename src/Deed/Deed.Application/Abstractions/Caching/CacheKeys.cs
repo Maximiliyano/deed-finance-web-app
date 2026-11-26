@@ -1,3 +1,5 @@
+using System.Security.Cryptography;
+using System.Text;
 using Deed.Domain.Enums;
 
 namespace Deed.Application.Abstractions.Caching;
@@ -9,6 +11,9 @@ public static class CacheKeys
 
     private static readonly CategoryType?[] CategoryTypes = [null, .. Enum.GetValues<CategoryType>().Cast<CategoryType?>()];
     private static readonly bool?[] IncludeDeletedValues = [null, true, false];
+
+    public static string ProfilePicture(Uri source) =>
+        $"deed:picture:{Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(source.AbsoluteUri)))}";
 
     public static string Category(CategoryType? type, bool? includeDeleted) => $"{Categories}:{type}:{includeDeleted}";
 

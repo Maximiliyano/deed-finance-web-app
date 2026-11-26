@@ -27,7 +27,7 @@ internal sealed class Me : IEndpoint
                 user.IsEmailVerified,
                 user.Name,
                 user.Roles,
-                user.PictureUrl,
+                user.PictureUrl is null ? null : new Uri(Picture.Route, UriKind.Relative),
                 userSettings));
         })
         .RequireAuthorization()
