@@ -2,6 +2,8 @@ using Deed.Application.Auth;
 using Deed.Application.Capitals.Specifications;
 using Deed.Application.Debts.Commands.Update;
 using Deed.Application.Debts.Specifications;
+using Deed.Application.Exchanges;
+using Deed.Application.Exchanges.Responses;
 using Deed.Domain.Entities;
 using Deed.Domain.Enums;
 using Deed.Domain.Errors;
@@ -16,6 +18,7 @@ public sealed class UpdateDebtCommandHandlerTests
 {
     private readonly IDebtRepository _repositoryMock = Substitute.For<IDebtRepository>();
     private readonly ICapitalRepository _capitalRepositoryMock = Substitute.For<ICapitalRepository>();
+    private readonly IExchangeRateProvider _ratesMock = Substitute.For<IExchangeRateProvider>();
     private readonly IUnitOfWork _unitOfWorkMock = Substitute.For<IUnitOfWork>();
     private readonly IUser _userMock = Substitute.For<IUser>();
 
@@ -24,7 +27,7 @@ public sealed class UpdateDebtCommandHandlerTests
     public UpdateDebtCommandHandlerTests()
     {
         _userMock.Name.Returns("testuser");
-        _handler = new UpdateDebtCommandHandler(_repositoryMock, _capitalRepositoryMock, _unitOfWorkMock, _userMock);
+        _handler = new UpdateDebtCommandHandler(_repositoryMock, _capitalRepositoryMock, _ratesMock, _unitOfWorkMock, _userMock);
     }
 
     [Fact]
@@ -143,6 +146,51 @@ public sealed class UpdateDebtCommandHandlerTests
 
         _capitalRepositoryMock.Received(1).Update(capital);
         await _unitOfWorkMock.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Handle_WhenPayingFromCapitalOfOtherCurrency_DeductsConvertedAmount()
+    {
+        // Arrange
+        var debt = CreateDebt();
+        var capital = new Capital(5) { Name = "Wallet", Balance = 10000m, Currency = CurrencyType.UAH };
+        var command = new UpdateDebtCommand(1, IsPaid: true, PayFromCapitalId: 5);
+
+        _repositoryMock.GetAsync(Arg.Any<DebtByIdSpecification>()).Returns(debt);
+        _capitalRepositoryMock.GetAsync(Arg.Any<CapitalByIdSpecification>()).Returns(capital);
+        _ratesMock.GetLatestAsync(Arg.Any<CancellationToken>())
+            .Returns([new ExchangeResponse("USD", "UAH", 41m, 42m, null)]);
+
+        // Act
+        var result = await _handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        capital.Balance.Should().Be(5800m);
+    }
+
+    [Fact]
+    public async Task Handle_WhenPayingFromCapitalAndRateIsMissing_FailsWithoutSaving()
+    {
+        // Arrange
+        var debt = CreateDebt();
+        var capital = new Capital(5) { Name = "Wallet", Balance = 10000m, Currency = CurrencyType.UAH };
+        var command = new UpdateDebtCommand(1, IsPaid: true, PayFromCapitalId: 5);
+
+        _repositoryMock.GetAsync(Arg.Any<DebtByIdSpecification>()).Returns(debt);
+        _capitalRepositoryMock.GetAsync(Arg.Any<CapitalByIdSpecification>()).Returns(capital);
+        _ratesMock.GetLatestAsync(Arg.Any<CancellationToken>()).Returns([]);
+
+        // Act
+        var result = await _handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        result.IsSuccess.Should().BeFalse();
+        result.Errors.Should().OnlyContain(e => e == DomainErrors.Exchange.RateNotFound);
+        capital.Balance.Should().Be(10000m);
+
+        _capitalRepositoryMock.DidNotReceive().Update(Arg.Any<Capital>());
+        await _unitOfWorkMock.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 
     [Fact]

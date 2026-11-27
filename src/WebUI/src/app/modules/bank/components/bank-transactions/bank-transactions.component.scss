@@ -110,6 +110,40 @@
   min-width: 9rem;
 }
 
+.tx-search {
+  position: relative;
+  flex: 1 1 14rem;
+  min-width: 0;
+}
+
+.tx-search-icon,
+.tx-search-clear {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  height: fit-content;
+  margin-block: auto;
+}
+
+.tx-search-icon {
+  left: var(--space-3);
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.tx-search-clear {
+  right: var(--space-1);
+}
+
+.tx-search-input {
+  padding-inline: 2.25rem 2.5rem;
+
+  @include touch {
+    min-height: var(--touch);
+  }
+}
+
 .tx-list {
   min-height: calc(var(--tx-rows, 1) * var(--tx-row-h));
   margin: 0;

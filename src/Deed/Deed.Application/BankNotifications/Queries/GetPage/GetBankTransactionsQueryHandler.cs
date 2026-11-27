@@ -1,3 +1,4 @@
+using System.Globalization;
 using Deed.Application.Abstractions.Messaging;
 using Deed.Application.Auth;
 using Deed.Application.BankConnections.Specifications;
@@ -31,6 +32,11 @@ internal sealed class GetBankTransactionsQueryHandler(
 
         var currency = string.IsNullOrWhiteSpace(query.Currency) ? null : query.Currency.Trim().ToUpperInvariant();
 
+        var search = string.IsNullOrWhiteSpace(query.Search) ? null : query.Search.Trim().ToUpperInvariant();
+        decimal? amount = search is not null && decimal.TryParse(search.Replace(',', '.'), NumberStyles.Number, CultureInfo.InvariantCulture, out var parsedAmount)
+            ? Math.Abs(parsedAmount)
+            : null;
+
         var connections = await connectionRepository
             .GetAllAsync(new BankConnectionByUserSpecification(user.Name!), cancellationToken)
             .ConfigureAwait(false);
@@ -38,11 +44,11 @@ internal sealed class GetBankTransactionsQueryHandler(
         var (connectionIds, includeUnassigned) = BankConnectionScope.Resolve(connections, query.Provider, query.ConnectionId);
 
         var total = await repository
-            .CountAsync(new BankTransactionsByUserSpecification(user.Name!, type, importStatus: status, connectionId: query.ConnectionId, connectionIds: connectionIds, includeUnassigned: includeUnassigned, currency: currency), cancellationToken)
+            .CountAsync(new BankTransactionsByUserSpecification(user.Name!, type, importStatus: status, connectionId: query.ConnectionId, connectionIds: connectionIds, includeUnassigned: includeUnassigned, currency: currency, search: search, amount: amount, from: query.From, to: query.To), cancellationToken)
             .ConfigureAwait(false);
 
         var items = await repository
-            .GetAllAsync(new BankTransactionsByUserSpecification(user.Name!, type, (page - 1) * pageSize, pageSize, status, query.ConnectionId, connectionIds, includeUnassigned, currency), cancellationToken)
+            .GetAllAsync(new BankTransactionsByUserSpecification(user.Name!, type, (page - 1) * pageSize, pageSize, status, query.ConnectionId, connectionIds, includeUnassigned, currency, search, amount, query.From, query.To), cancellationToken)
             .ConfigureAwait(false);
 
         return Result.Success(new BankTransactionsPageResponse(total, page, pageSize, items.ToResponses()));

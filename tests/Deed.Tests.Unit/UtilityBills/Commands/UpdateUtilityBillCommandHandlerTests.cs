@@ -107,4 +107,95 @@ public sealed class UpdateUtilityBillCommandHandlerTests
         _repositoryMock.DidNotReceive().Update(Arg.Any<UtilityBill>());
         await _unitOfWorkMock.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
     }
+
+    [Fact]
+    public async Task Handle_WhenUnitPriceAndUnitProvided_StoresTrimmedUnit()
+    {
+        // Arrange
+        var bill = new UtilityBill(1)
+        {
+            Name = "Electric",
+            EstimatedAmount = 0m,
+            Currency = CurrencyType.UAH,
+            DueDayOfMonth = 10,
+            CapitalId = 1,
+            CategoryId = 5,
+            IsActive = true
+        };
+        var command = new UpdateUtilityBillCommand(
+            1, "Electric", 0m, nameof(CurrencyType.UAH), 10, 1, 5, true, 4.32m, "  kWh ");
+
+        _repositoryMock.GetAsync(Arg.Any<UtilityBillByIdSpecification>()).Returns(bill);
+
+        // Act
+        var result = await _handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        bill.UnitPrice.Should().Be(4.32m);
+        bill.Unit.Should().Be("kWh");
+        _repositoryMock.Received(1).Update(bill);
+        await _unitOfWorkMock.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Handle_WhenUnitPriceIsNull_ClearsUnitPriceAndUnit()
+    {
+        // Arrange
+        var bill = new UtilityBill(1)
+        {
+            Name = "Electric",
+            EstimatedAmount = 0m,
+            Currency = CurrencyType.UAH,
+            DueDayOfMonth = 10,
+            CapitalId = 1,
+            CategoryId = 5,
+            IsActive = true,
+            UnitPrice = 4.32m,
+            Unit = "kWh"
+        };
+        var command = new UpdateUtilityBillCommand(
+            1, "Electric", 0m, nameof(CurrencyType.UAH), 10, 1, 5, true, null, "kWh");
+
+        _repositoryMock.GetAsync(Arg.Any<UtilityBillByIdSpecification>()).Returns(bill);
+
+        // Act
+        var result = await _handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        bill.UnitPrice.Should().BeNull();
+        bill.Unit.Should().BeNull();
+        _repositoryMock.Received(1).Update(bill);
+    }
+
+    [Fact]
+    public async Task Handle_WhenMeteredFieldsUnchanged_SkipsSave()
+    {
+        // Arrange
+        var bill = new UtilityBill(1)
+        {
+            Name = "Electric",
+            EstimatedAmount = 0m,
+            Currency = CurrencyType.UAH,
+            DueDayOfMonth = 10,
+            CapitalId = 1,
+            CategoryId = 5,
+            IsActive = true,
+            UnitPrice = 4.32m,
+            Unit = "kWh"
+        };
+        var command = new UpdateUtilityBillCommand(
+            1, "Electric", 0m, nameof(CurrencyType.UAH), 10, 1, 5, true, 4.32m, "kWh");
+
+        _repositoryMock.GetAsync(Arg.Any<UtilityBillByIdSpecification>()).Returns(bill);
+
+        // Act
+        var result = await _handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        _repositoryMock.DidNotReceive().Update(Arg.Any<UtilityBill>());
+        await _unitOfWorkMock.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
 }

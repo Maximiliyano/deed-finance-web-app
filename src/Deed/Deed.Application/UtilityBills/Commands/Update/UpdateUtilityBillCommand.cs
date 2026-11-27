@@ -10,5 +10,7 @@ public sealed record UpdateUtilityBillCommand(
     int DueDayOfMonth,
     int CapitalId,
     int CategoryId,
-    bool IsActive)
+    bool IsActive,
+    decimal? UnitPrice = null,
+    string? Unit = null)
     : ICommand;

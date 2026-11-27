@@ -38,4 +38,28 @@ public sealed class PayUtilityBillCommandValidatorTests
         var result = await _validator.TestValidateAsync(command);
         result.ShouldHaveValidationErrorFor(c => c.Amount);
     }
+
+    [Fact]
+    public async Task Validate_MeterReadingWithoutAmount_PassesValidation()
+    {
+        var command = new PayUtilityBillCommand(1, 0m, null, 1350m);
+        var result = await _validator.TestValidateAsync(command);
+        result.ShouldNotHaveAnyValidationErrors();
+    }
+
+    [Fact]
+    public async Task Validate_NegativeMeterReading_FailsValidation()
+    {
+        var command = new PayUtilityBillCommand(1, 0m, null, -1m);
+        var result = await _validator.TestValidateAsync(command);
+        result.ShouldHaveValidationErrorFor(c => c.MeterReading);
+    }
+
+    [Fact]
+    public async Task Validate_MeterReadingAtUpperBound_FailsValidation()
+    {
+        var command = new PayUtilityBillCommand(1, 0m, null, 1_000_000_000_000m);
+        var result = await _validator.TestValidateAsync(command);
+        result.ShouldHaveValidationErrorFor(c => c.MeterReading);
+    }
 }

@@ -16,6 +16,7 @@ const toDateInput = (date: Date): string => `${date.getFullYear()}-${pad(date.ge
 export class PeriodBarComponent {
   readonly state = input.required<PeriodState>();
   readonly flush = input(false);
+  readonly allowAll = input(false);
 
   protected readonly periods: { key: PeriodFilter; label: string }[] = [
     { key: 'day', label: 'Day' },

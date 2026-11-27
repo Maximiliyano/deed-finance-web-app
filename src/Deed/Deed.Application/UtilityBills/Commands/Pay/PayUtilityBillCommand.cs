@@ -5,5 +5,6 @@ namespace Deed.Application.UtilityBills.Commands.Pay;
 public sealed record PayUtilityBillCommand(
     int Id,
     decimal Amount,
-    DateTimeOffset? PaymentDate)
+    DateTimeOffset? PaymentDate,
+    decimal? MeterReading = null)
     : ICommand<int>;

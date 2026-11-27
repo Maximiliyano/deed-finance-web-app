@@ -39,6 +39,8 @@ internal sealed class UpdateUtilityBillCommandHandler(
         bill.CapitalId = command.CapitalId;
         bill.CategoryId = command.CategoryId;
         bill.IsActive = command.IsActive;
+        bill.UnitPrice = command.UnitPrice;
+        bill.Unit = UtilityBillExtensions.NormalizeUnit(command.UnitPrice, command.Unit);
 
         repository.Update(bill);
 
@@ -56,5 +58,7 @@ internal sealed class UpdateUtilityBillCommandHandler(
         bill.DueDayOfMonth == command.DueDayOfMonth &&
         bill.CapitalId == command.CapitalId &&
         bill.CategoryId == command.CategoryId &&
-        bill.IsActive == command.IsActive;
+        bill.IsActive == command.IsActive &&
+        bill.UnitPrice == command.UnitPrice &&
+        bill.Unit == UtilityBillExtensions.NormalizeUnit(command.UnitPrice, command.Unit);
 }

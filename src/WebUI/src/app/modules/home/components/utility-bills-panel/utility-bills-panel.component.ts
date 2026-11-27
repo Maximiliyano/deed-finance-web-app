@@ -121,7 +121,7 @@ export class UtilityBillsPanelComponent implements OnInit {
   }
 
   pay(bill: UtilityBillResponse): void {
-    const data: PayUtilityBillDialogData = { bill };
+    const data: PayUtilityBillDialogData = { bill, exchanges: this.store.exchanges() };
     const ref = this.dialogService.open(PayUtilityBillDialogComponent, { data });
 
     ref.afterClosed$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((result: PayUtilityBillRequest | null) => {

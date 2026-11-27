@@ -5,4 +5,5 @@ export interface IncomeResponse {
     amount: number;
     paymentDate: Date;
     purpose: string | null;
+    tags?: string[];
 }

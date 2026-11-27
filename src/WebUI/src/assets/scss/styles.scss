@@ -698,6 +698,11 @@ textarea {
 .toolbar-spacer {
   flex: 1;
 }
+.toolbar-search--grow {
+  @include respond-below('sm') {
+    max-width: none;
+  }
+}
 .toolbar-search {
   flex: 1;
   min-width: 8.75rem;

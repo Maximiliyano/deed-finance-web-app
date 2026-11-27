@@ -18,7 +18,9 @@
 
     <div class="form-row">
       <div class="form-group">
-        <label for="estimatedAmount" class="form-label">Estimated amount</label>
+        <label for="estimatedAmount" class="form-label">{{
+          form.value.metered ? 'Typical amount (optional)' : 'Estimated amount'
+        }}</label>
         <input id="estimatedAmount" appNumeric class="input" formControlName="estimatedAmount" />
       </div>
       <div class="form-group">
@@ -30,6 +32,37 @@
         </select>
       </div>
     </div>
+
+    <label class="checkbox-row">
+      <input type="checkbox" formControlName="metered" class="checkbox" />
+      <span class="checkbox-label">Billed by meter (electricity, water, gas)</span>
+    </label>
+
+    @if (form.value.metered) {
+      <div class="form-row">
+        <div class="form-group">
+          <label for="unitPrice" class="form-label">Price per unit</label>
+          <input id="unitPrice" appNumeric class="input" formControlName="unitPrice" />
+        </div>
+        <div class="form-group">
+          <label for="unit" class="form-label">Unit</label>
+          <input
+            id="unit"
+            type="text"
+            class="input"
+            formControlName="unit"
+            maxlength="16"
+            placeholder="kWh, m3"
+            autocomplete="off"
+          />
+        </div>
+      </div>
+      <span class="form-hint"
+        >When you pay, enter the current meter reading. The amount is the difference from last month's reading times the
+        price per unit. With no payment last month, it counts from 0. The typical amount is only a guide in the
+        list.</span
+      >
+    }
 
     <div class="form-group">
       <label for="dueDayOfMonth" class="form-label">Pay by day of month (1-31)</label>

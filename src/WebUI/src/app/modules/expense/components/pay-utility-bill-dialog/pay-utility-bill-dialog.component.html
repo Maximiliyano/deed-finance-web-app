@@ -4,15 +4,59 @@
   </div>
 
   <div class="dialog-body">
-    <p class="pay-hint">
-      Estimated: <strong>{{ bill.estimatedAmount }} {{ bill.currency }}</strong
-      >. Adjust to the actual amount if different.
-    </p>
+    @if (metered) {
+      <div class="meter-facts">
+        <div class="stat-tile">
+          <span class="stat-label">Previous reading</span>
+          <span class="stat-value">{{ previousReading | number: '1.0-3' }} {{ bill.unit }}</span>
+          @if (previousReading === 0) {
+            <span class="form-hint">No payment last month, so it counts from 0.</span>
+          }
+        </div>
+        <div class="stat-tile">
+          <span class="stat-label">Price per {{ bill.unit || 'unit' }}</span>
+          <span class="stat-value">{{ bill.unitPrice | number: '1.2-4' }} {{ bill.currency }}</span>
+        </div>
+      </div>
 
-    <div class="form-group">
-      <label for="amount" class="form-label">Actual amount ({{ bill.currency }})</label>
-      <input id="amount" appNumeric class="input" formControlName="amount" />
-    </div>
+      <div class="form-group">
+        <label for="meterReading" class="form-label"
+          >Current reading{{ bill.unit ? ' (' + bill.unit + ')' : '' }}</label
+        >
+        <input id="meterReading" appNumeric class="input" formControlName="meterReading" autocomplete="off" />
+        @if (form.controls['meterReading'].dirty && form.controls['meterReading'].errors?.['belowPrevious']) {
+          <span class="field-error">Must be greater than the previous reading ({{ previousReading | number: '1.0-3' }}).</span>
+        }
+      </div>
+
+      <div class="stat-tile" aria-live="polite">
+        <span class="stat-label">To pay</span>
+        <span class="stat-value">{{ consumptionAmount | number: '1.2-2' }} {{ bill.currency }}</span>
+        <span class="form-hint"
+          >{{ consumption | number: '1.0-3' }} {{ bill.unit }} &times; {{ bill.unitPrice | number: '1.2-4' }}</span
+        >
+        @if (capitalCurrency && convertedAmount !== null) {
+          <span class="form-hint">
+            Deducted from {{ bill.capitalName }} as about {{ convertedAmount | number: '1.2-2' }} {{ capitalCurrency }}
+          </span>
+        }
+      </div>
+    } @else {
+      <p class="pay-hint">
+        Estimated: <strong>{{ bill.estimatedAmount }} {{ bill.currency }}</strong
+        >. Adjust to the actual amount if different.
+      </p>
+
+      <div class="form-group">
+        <label for="amount" class="form-label">Actual amount ({{ bill.currency }})</label>
+        <input id="amount" appNumeric class="input" formControlName="amount" />
+        @if (capitalCurrency && convertedAmount !== null) {
+          <span class="form-hint">
+            Deducted from {{ bill.capitalName }} as about {{ convertedAmount | number: '1.2-2' }} {{ capitalCurrency }}
+          </span>
+        }
+      </div>
+    }
 
     <div class="form-group">
       <label for="paymentDate" class="form-label">Payment date</label>

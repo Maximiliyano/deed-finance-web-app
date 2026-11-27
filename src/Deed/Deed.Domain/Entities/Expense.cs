@@ -26,6 +26,8 @@ public sealed class Expense
 
     public string? Purpose { get; set; }
 
+    public decimal? MeterReading { get; set; }
+
     public int? UtilityBillId { get; set; }
 
     public UtilityBill? UtilityBill { get; init; }

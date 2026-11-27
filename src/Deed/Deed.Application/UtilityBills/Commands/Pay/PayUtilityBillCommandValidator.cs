@@ -11,6 +11,12 @@ internal sealed class PayUtilityBillCommandValidator : AbstractValidator<PayUtil
             .GreaterThan(0);
 
         RuleFor(c => c.Amount)
-            .GreaterThan(ValidationConstants.ZeroValue);
+            .GreaterThan(ValidationConstants.ZeroValue)
+            .When(c => c.MeterReading is null);
+
+        RuleFor(c => c.MeterReading)
+            .GreaterThanOrEqualTo(ValidationConstants.ZeroValue)
+            .LessThan(ValidationConstants.MaxMeterReading)
+            .When(c => c.MeterReading is not null);
     }
 }

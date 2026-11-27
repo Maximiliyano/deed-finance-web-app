@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, OnInit, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { DialogRef } from '../../../../shared/components/dialogs/models/dialog-ref';
@@ -26,6 +27,7 @@ export class UtilityBillDialogComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly dialogRef = inject<DialogRef<CreateUtilityBillRequest | null>>(DialogRef);
   private readonly data = inject<UtilityBillDialogData>(DIALOG_DATA);
+  private readonly destroyRef = inject(DestroyRef);
 
   form!: FormGroup;
   capitals: CapitalResponse[] = [];
@@ -49,8 +51,16 @@ export class UtilityBillDialogComponent implements OnInit {
       ],
       capitalId: [src?.capitalId ?? this.capitals[0]?.id ?? '', Validators.required],
       categoryId: [src?.categoryId ?? this.categories[0]?.id ?? '', Validators.required],
-      isActive: [src?.isActive ?? true]
+      isActive: [src?.isActive ?? true],
+      metered: [src?.unitPrice != null],
+      unitPrice: [src?.unitPrice ?? null],
+      unit: [src?.unit ?? '', Validators.maxLength(16)]
     });
+
+    this.applyMeteredValidators(this.form.value.metered);
+    this.form.controls['metered'].valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(metered => this.applyMeteredValidators(!!metered));
   }
 
   submit(): void {
@@ -63,11 +73,20 @@ export class UtilityBillDialogComponent implements OnInit {
       dueDayOfMonth: Number(val.dueDayOfMonth),
       capitalId: Number(val.capitalId),
       categoryId: Number(val.categoryId),
-      isActive: !!val.isActive
+      isActive: !!val.isActive,
+      unitPrice: val.metered ? Number(val.unitPrice) : null,
+      unit: val.metered && val.unit?.trim() ? val.unit.trim() : null
     });
   }
 
   cancel(): void {
     this.dialogRef.close(null);
+  }
+
+  private applyMeteredValidators(metered: boolean): void {
+    const price = this.form.controls['unitPrice'];
+
+    price.setValidators(metered ? [Validators.required, Validators.min(0.0001)] : []);
+    price.updateValueAndValidity({ emitEvent: false });
   }
 }

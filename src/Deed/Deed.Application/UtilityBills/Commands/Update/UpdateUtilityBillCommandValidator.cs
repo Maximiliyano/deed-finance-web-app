@@ -24,6 +24,14 @@ internal sealed class UpdateUtilityBillCommandValidator : AbstractValidator<Upda
         RuleFor(c => c.EstimatedAmount)
             .GreaterThanOrEqualTo(ValidationConstants.ZeroValue);
 
+        RuleFor(c => c.UnitPrice)
+            .GreaterThan(ValidationConstants.ZeroValue)
+            .LessThan(ValidationConstants.MaxUnitPrice)
+            .When(c => c.UnitPrice is not null);
+
+        RuleFor(c => c.Unit)
+            .MaximumLength(ValidationConstants.MaxLengthUnit);
+
         RuleFor(c => c.Currency)
             .Must(c => Enum.TryParse<CurrencyType>(c, out var pc) && !pc.Equals(CurrencyType.None))
             .WithError(ValidationErrors.General.InvalidCurrencyType);

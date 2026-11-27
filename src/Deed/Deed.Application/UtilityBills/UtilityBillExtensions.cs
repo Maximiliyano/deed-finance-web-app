@@ -7,7 +7,7 @@ namespace Deed.Application.UtilityBills;
 
 internal static class UtilityBillExtensions
 {
-    internal static UtilityBillResponse ToResponse(this UtilityBill bill, DateTimeOffset? nowOverride = null)
+    internal static UtilityBillResponse ToResponse(this UtilityBill bill, DateTimeOffset? nowOverride = null, decimal? previousReading = null)
     {
         var now = nowOverride ?? DateTimeOffset.UtcNow;
         var monthStart = new DateTimeOffset(now.Year, now.Month, 1, 0, 0, 0, TimeSpan.Zero);
@@ -26,18 +26,31 @@ internal static class UtilityBillExtensions
             bill.DueDayOfMonth,
             bill.CapitalId,
             bill.Capital?.Name,
+            bill.Capital?.Currency.ToString(),
             bill.CategoryId,
             bill.Category?.Name,
             bill.IsActive,
             payment is not null,
             payment?.Amount,
             payment?.PaymentDate,
-            bill.CreatedAt
+            bill.CreatedAt,
+            bill.UnitPrice,
+            bill.Unit,
+            bill.UnitPrice is null ? null : previousReading ?? 0,
+            payment?.MeterReading
         );
     }
 
-    internal static IEnumerable<UtilityBillResponse> ToResponses(this IEnumerable<UtilityBill> bills, DateTimeOffset? nowOverride = null)
-        => bills.Select(b => b.ToResponse(nowOverride));
+    internal static IEnumerable<UtilityBillResponse> ToResponses(
+        this IEnumerable<UtilityBill> bills,
+        DateTimeOffset? nowOverride = null,
+        IReadOnlyDictionary<int, decimal>? previousReadings = null)
+        => bills.Select(b => b.ToResponse(
+            nowOverride,
+            previousReadings is not null && previousReadings.TryGetValue(b.Id, out var reading) ? reading : null));
+
+    internal static string? NormalizeUnit(decimal? unitPrice, string? unit)
+        => unitPrice is null || string.IsNullOrWhiteSpace(unit) ? null : unit.Trim();
 
     internal static UtilityBill ToEntity(this CreateUtilityBillCommand cmd)
         => new()
@@ -48,6 +61,8 @@ internal static class UtilityBillExtensions
             DueDayOfMonth = cmd.DueDayOfMonth,
             CapitalId = cmd.CapitalId,
             CategoryId = cmd.CategoryId,
-            IsActive = cmd.IsActive
+            IsActive = cmd.IsActive,
+            UnitPrice = cmd.UnitPrice,
+            Unit = NormalizeUnit(cmd.UnitPrice, cmd.Unit)
         };
 }

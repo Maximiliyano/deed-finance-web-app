@@ -23,6 +23,7 @@ import { DashboardStore } from '../../services/dashboard-store.service';
 import { PeriodBarComponent } from '../period-bar/period-bar.component';
 import { CategoryBreakdownComponent } from '../category-breakdown/category-breakdown.component';
 import { BreakdownGroup, BreakdownItem, ReorderEvent } from '../category-breakdown/category-breakdown.model';
+import { BreakdownSearch, searchGroups, sortGroups } from '../category-breakdown/breakdown-search';
 import { QuickAddService } from '../../services/quick-add.service';
 import { QuickTransactionDialogComponent } from '../quick-transaction-dialog/quick-transaction-dialog.component';
 
@@ -50,6 +51,7 @@ export class ExpensesPanelComponent implements OnInit {
 
   protected readonly period = new PeriodState();
   protected readonly sortBy = signal<AmountSort>('default');
+  protected readonly search = new BreakdownSearch();
   private readonly categories = signal<CategoryResponse[]>([]);
   private readonly expenses = signal<ExpenseCategoryResponse[]>([]);
   private readonly loaded = signal(false);
@@ -76,11 +78,10 @@ export class ExpensesPanelComponent implements OnInit {
     }));
   });
 
-  protected readonly total = computed(() =>
-    this.visibleExpenses().reduce((sum, category) => sum + category.categorySum, 0)
+  protected readonly reorderable = computed(
+    () => this.sortBy() === 'custom' && !this.isAnonymous() && !this.search.active()
   );
-  protected readonly reorderable = computed(() => this.sortBy() === 'custom' && !this.isAnonymous());
-  protected readonly groups = computed<BreakdownGroup[]>(() =>
+  protected readonly allGroups = computed<BreakdownGroup[]>(() =>
     this.visibleExpenses().map(category => ({
       key: category.categoryId,
       name: category.name,
@@ -90,6 +91,14 @@ export class ExpensesPanelComponent implements OnInit {
       items: category.expenses.map(expense => ({ ...expense, categoryId: category.categoryId }))
     }))
   );
+  protected readonly groups = computed<BreakdownGroup[]>(() => {
+    const found = searchGroups(this.allGroups(), this.search.term());
+
+    return this.search.active() ? sortGroups(found, this.sortBy()) : found;
+  });
+  protected readonly total = computed(() => this.groups().reduce((sum, group) => sum + group.total, 0));
+  protected readonly allCount = computed(() => this.allGroups().reduce((sum, group) => sum + group.count, 0));
+  protected readonly matchCount = computed(() => this.groups().reduce((sum, group) => sum + group.count, 0));
 
   constructor() {
     toObservable(this.period.range)

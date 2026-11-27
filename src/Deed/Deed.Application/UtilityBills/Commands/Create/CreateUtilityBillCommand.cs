@@ -9,5 +9,7 @@ public sealed record CreateUtilityBillCommand(
     int DueDayOfMonth,
     int CapitalId,
     int CategoryId,
-    bool IsActive)
+    bool IsActive,
+    decimal? UnitPrice = null,
+    string? Unit = null)
     : ICommand<int>;

@@ -12,6 +12,10 @@ public sealed class UtilityBill : Entity, IAuditableEntity, ISoftDeletableEntity
 
     public required decimal EstimatedAmount { get; set; }
 
+    public decimal? UnitPrice { get; set; }
+
+    public string? Unit { get; set; }
+
     public required CurrencyType Currency { get; set; }
 
     public required int DueDayOfMonth { get; set; }

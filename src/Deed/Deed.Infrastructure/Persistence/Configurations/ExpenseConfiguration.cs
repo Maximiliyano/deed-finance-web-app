@@ -32,6 +32,9 @@ internal sealed class ExpenseConfiguration : IEntityTypeConfiguration<Expense>
             .IsRequired()
             .HasPrecision(18,2);
 
+        builder.Property(e => e.MeterReading)
+            .HasPrecision(18, 3);
+
         builder.Property(e => e.Purpose)
             .HasMaxLength(255);
 

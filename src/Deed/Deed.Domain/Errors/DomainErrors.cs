@@ -85,6 +85,21 @@ public static class DomainErrors
             => Error.BadRequest("Bank.MailNotConfigured", "Importing statements by e-mail is not set up on this server.");
     }
 
+    public static class Exchange
+    {
+        public static Error RateNotFound
+            => Error.BadRequest("Exchange.RateNotFound", "No exchange rate is available to convert between these currencies.");
+    }
+
+    public static class UtilityBill
+    {
+        public static Error MeterReadingRequired
+            => Error.BadRequest("UtilityBill.MeterReadingRequired", "Enter the current meter reading to pay this bill.");
+
+        public static Error MeterReadingNotIncreasing
+            => Error.BadRequest("UtilityBill.MeterReadingNotIncreasing", "The current meter reading must be greater than the previous one.");
+    }
+
     public static class Category
     {
         public static Error PeriodAmountGreaterEqualZero

@@ -1,6 +1,7 @@
 using Deed.Application.Auth;
 using Deed.Application.Debts.Commands.Create;
 using Deed.Application.Debts.Commands.Update;
+using Deed.Application.Exchanges;
 using Deed.Application.Expenses.Commands.Create;
 using Deed.Application.Incomes.Commands.Create;
 using Deed.Application.Transfers.Commands.Create;
@@ -103,7 +104,7 @@ public sealed class CapitalOwnershipScopingTests
     public async Task CreateDebt_LooksUpCapitalScopedToCurrentUser()
     {
         // Arrange
-        var handler = new CreateDebtCommandHandler(_user, Substitute.For<IDebtRepository>(), _capitalRepository, _unitOfWork);
+        var handler = new CreateDebtCommandHandler(_user, Substitute.For<IDebtRepository>(), _capitalRepository, Substitute.For<IExchangeRateProvider>(), _unitOfWork);
         var command = new CreateDebtCommand("Laptop", 100m, nameof(CurrencyType.USD), "A", "B", DateTimeOffset.UtcNow, null, null, 7);
 
         // Act
@@ -129,7 +130,7 @@ public sealed class CapitalOwnershipScopingTests
                 BorrowedAt = DateTimeOffset.UtcNow
             });
 
-        var handler = new UpdateDebtCommandHandler(debtRepository, _capitalRepository, _unitOfWork, _user);
+        var handler = new UpdateDebtCommandHandler(debtRepository, _capitalRepository, Substitute.For<IExchangeRateProvider>(), _unitOfWork, _user);
 
         // Act
         await handler.Handle(new UpdateDebtCommand(1, IsPaid: true, PayFromCapitalId: 7), CancellationToken.None);
@@ -155,7 +156,7 @@ public sealed class CapitalOwnershipScopingTests
             });
 
         var handler = new PayUtilityBillCommandHandler(
-            billRepository, _capitalRepository, Substitute.For<IExpenseRepository>(), _unitOfWork, _user);
+            billRepository, _capitalRepository, Substitute.For<IExpenseRepository>(), Substitute.For<IExchangeRateProvider>(), _unitOfWork, _user);
 
         // Act
         await handler.Handle(new PayUtilityBillCommand(1, 50m, null), CancellationToken.None);

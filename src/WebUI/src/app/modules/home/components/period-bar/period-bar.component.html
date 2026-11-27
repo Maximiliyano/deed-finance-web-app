@@ -1,12 +1,25 @@
 <div class="period-bar" [class.flush]="flush()">
   <div class="segmented period-tabs" role="tablist" aria-label="Period">
+    @if (allowAll()) {
+      <button
+        type="button"
+        role="tab"
+        class="segmented-btn"
+        aria-label="All time"
+        [class.active]="!state().enabled()"
+        [attr.aria-selected]="!state().enabled()"
+        (click)="state().enabled.set(false)"
+      >
+        All
+      </button>
+    }
     @for (option of periods; track option.key) {
       <button
         type="button"
         role="tab"
         class="segmented-btn"
-        [class.active]="state().filter() === option.key"
-        [attr.aria-selected]="state().filter() === option.key"
+        [class.active]="state().enabled() && state().filter() === option.key"
+        [attr.aria-selected]="state().enabled() && state().filter() === option.key"
         (click)="state().setFilter(option.key)"
       >
         {{ option.label }}
@@ -14,66 +27,68 @@
     }
   </div>
 
-  <div class="period-nav">
-    @if (state().filter() !== 'custom') {
-      <button type="button" class="segmented-btn" aria-label="Previous period" (click)="state().shift(-1)">
-        <i class="fas fa-chevron-left"></i>
-      </button>
-    }
+  @if (state().enabled()) {
+    <div class="period-nav">
+      @if (state().filter() !== 'custom') {
+        <button type="button" class="segmented-btn" aria-label="Previous period" (click)="state().shift(-1)">
+          <i class="fas fa-chevron-left"></i>
+        </button>
+      }
 
-    @switch (state().filter()) {
-      @case ('day') {
-        <input
-          type="date"
-          class="input period-input"
-          [attr.aria-label]="selectedPeriodLabel()"
-          [value]="selectedDay()"
-          (change)="onDayChange($any($event.target).value)"
-        />
+      @switch (state().filter()) {
+        @case ('day') {
+          <input
+            type="date"
+            class="input period-input"
+            [attr.aria-label]="selectedPeriodLabel()"
+            [value]="selectedDay()"
+            (change)="onDayChange($any($event.target).value)"
+          />
+        }
+        @case ('month') {
+          <input
+            type="month"
+            class="input period-input"
+            [attr.aria-label]="selectedPeriodLabel()"
+            [value]="selectedMonth()"
+            (change)="onMonthChange($any($event.target).value)"
+          />
+        }
+        @case ('year') {
+          <input
+            appNumeric="integer"
+            class="input period-input period-input-year"
+            [attr.aria-label]="selectedPeriodLabel()"
+            [value]="selectedYear()"
+            (change)="onYearChange($any($event.target).value)"
+          />
+        }
+        @case ('custom') {
+          <input
+            type="date"
+            class="input period-input"
+            aria-label="From date"
+            [value]="customFrom()"
+            [max]="customTo()"
+            (change)="onFromChange($any($event.target).value)"
+          />
+          <span class="period-sep" aria-hidden="true">&ndash;</span>
+          <input
+            type="date"
+            class="input period-input"
+            aria-label="To date"
+            [value]="customTo()"
+            [min]="customFrom()"
+            (change)="onToChange($any($event.target).value)"
+          />
+        }
       }
-      @case ('month') {
-        <input
-          type="month"
-          class="input period-input"
-          [attr.aria-label]="selectedPeriodLabel()"
-          [value]="selectedMonth()"
-          (change)="onMonthChange($any($event.target).value)"
-        />
-      }
-      @case ('year') {
-        <input
-          appNumeric="integer"
-          class="input period-input period-input-year"
-          [attr.aria-label]="selectedPeriodLabel()"
-          [value]="selectedYear()"
-          (change)="onYearChange($any($event.target).value)"
-        />
-      }
-      @case ('custom') {
-        <input
-          type="date"
-          class="input period-input"
-          aria-label="From date"
-          [value]="customFrom()"
-          [max]="customTo()"
-          (change)="onFromChange($any($event.target).value)"
-        />
-        <span class="period-sep" aria-hidden="true">&ndash;</span>
-        <input
-          type="date"
-          class="input period-input"
-          aria-label="To date"
-          [value]="customTo()"
-          [min]="customFrom()"
-          (change)="onToChange($any($event.target).value)"
-        />
-      }
-    }
 
-    @if (state().filter() !== 'custom') {
-      <button type="button" class="segmented-btn" aria-label="Next period" (click)="state().shift(1)">
-        <i class="fas fa-chevron-right"></i>
-      </button>
-    }
-  </div>
+      @if (state().filter() !== 'custom') {
+        <button type="button" class="segmented-btn" aria-label="Next period" (click)="state().shift(1)">
+          <i class="fas fa-chevron-right"></i>
+        </button>
+      }
+    </div>
+  }
 </div>

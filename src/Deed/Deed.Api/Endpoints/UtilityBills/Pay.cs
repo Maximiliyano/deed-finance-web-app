@@ -9,7 +9,7 @@ internal sealed class Pay : IEndpoint
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
         app.MapPost("api/utility-bills/{id:int}/pay", async (int id, PayUtilityBillRequest request, ISender sender, CancellationToken ct) =>
-            (await sender.Send(new PayUtilityBillCommand(id, request.Amount, request.PaymentDate), ct))
+            (await sender.Send(new PayUtilityBillCommand(id, request.Amount, request.PaymentDate, request.MeterReading), ct))
                 .Process())
             .AllowAnonymous()
             .WithTags(nameof(UtilityBills));

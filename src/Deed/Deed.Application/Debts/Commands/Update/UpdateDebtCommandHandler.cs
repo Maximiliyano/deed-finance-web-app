@@ -2,6 +2,7 @@ using Deed.Application.Abstractions.Messaging;
 using Deed.Application.Auth;
 using Deed.Application.Capitals.Specifications;
 using Deed.Application.Debts.Specifications;
+using Deed.Application.Exchanges;
 using Deed.Domain.Entities;
 using Deed.Domain.Enums;
 using Deed.Domain.Errors;
@@ -14,6 +15,7 @@ namespace Deed.Application.Debts.Commands.Update;
 internal sealed class UpdateDebtCommandHandler(
     IDebtRepository repository,
     ICapitalRepository capitalRepository,
+    IExchangeRateProvider exchangeRateProvider,
     IUnitOfWork unitOfWork,
     IUser user)
     : ICommandHandler<UpdateDebtCommand>
@@ -57,7 +59,16 @@ internal sealed class UpdateDebtCommandHandler(
                 return Result.Failure(DomainErrors.General.NotFound("capital"));
             }
 
-            capital.Balance -= debt.Amount;
+            var amount = await exchangeRateProvider
+                .ConvertAsync(debt.Amount, debt.Currency, capital.Currency, cancellationToken)
+                .ConfigureAwait(false);
+
+            if (!amount.IsSuccess)
+            {
+                return Result.Failure(amount.Errors);
+            }
+
+            capital.Balance -= amount.Value;
             capitalRepository.Update(capital);
         }
 

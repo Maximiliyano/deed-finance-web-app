@@ -82,8 +82,13 @@
 
   .cell-item {
     flex-direction: row;
+    flex-wrap: wrap;
     align-items: baseline;
     justify-content: space-between;
     gap: var(--space-3);
+  }
+
+  .bill-meter {
+    flex: 1 0 100%;
   }
 }

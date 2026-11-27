@@ -73,4 +73,40 @@ public sealed class CreateUtilityBillCommandHandlerTests
         _repositoryMock.DidNotReceive().Create(Arg.Any<UtilityBill>());
         await _unitOfWorkMock.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
     }
+
+    [Fact]
+    public async Task Handle_WhenMeteredBill_StoresUnitPriceAndTrimmedUnit()
+    {
+        // Arrange
+        var command = new CreateUtilityBillCommand(
+            "Electric", 0m, nameof(CurrencyType.UAH), 15, 1, 7, true, 4.32m, " kWh ");
+
+        // Act
+        var result = await _handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+
+        _repositoryMock.Received(1).Create(Arg.Is<UtilityBill>(b =>
+            b.UnitPrice == 4.32m &&
+            b.Unit == "kWh"));
+    }
+
+    [Fact]
+    public async Task Handle_WhenNotMeteredButUnitProvided_DropsUnit()
+    {
+        // Arrange
+        var command = new CreateUtilityBillCommand(
+            "Internet", 300m, nameof(CurrencyType.UAH), 15, 1, 7, true, null, "kWh");
+
+        // Act
+        var result = await _handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+
+        _repositoryMock.Received(1).Create(Arg.Is<UtilityBill>(b =>
+            b.UnitPrice == null &&
+            b.Unit == null));
+    }
 }

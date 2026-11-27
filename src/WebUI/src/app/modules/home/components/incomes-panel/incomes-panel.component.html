@@ -21,15 +21,41 @@
       <button type="button" class="btn btn-ghost btn-sm" (click)="store.clearCapitals()">Show all</button>
     </div>
   }
+  @if (allGroups().length > 0) {
+    <div class="toolbar">
+      <input
+        class="toolbar-search toolbar-search--grow"
+        type="search"
+        enterkeyhint="search"
+        autocomplete="off"
+        maxlength="40"
+        placeholder="Search category, purpose or tag"
+        aria-label="Search category, purpose or tag"
+        [value]="search.input()"
+        (input)="search.set($event)"
+      />
+    </div>
+  }
+  @if (search.active()) {
+    <div class="filter-note">
+      <i class="fas fa-magnifying-glass"></i> {{ matchCount() }} of {{ allCount() }}
+      {{ allCount() === 1 ? 'transaction matches' : 'transactions match' }}. The total above counts matches only.
+      <button type="button" class="btn btn-ghost btn-sm" (click)="search.clear()">Clear search</button>
+    </div>
+  }
   @if (groups().length > 1) {
     <app-sort-toolbar [options]="sortOptions" [value]="sortBy()" (changed)="sort($event)" />
   }
   <app-panel-state
     [loading]="loading()"
     [empty]="groups().length === 0"
-    icon="fa-arrow-trend-up"
-    title="No income this period"
-    hint="Log one with Add, or switch to another period."
+    [icon]="search.active() ? 'fa-magnifying-glass' : 'fa-arrow-trend-up'"
+    [title]="search.active() ? 'No matches' : 'No income this period'"
+    [hint]="
+      search.active()
+        ? 'Try another category, purpose or tag. Search covers this period only.'
+        : 'Log one with Add, or switch to another period.'
+    "
   >
     <app-category-breakdown
       [groups]="groups()"
@@ -38,6 +64,7 @@
       tone="success"
       percentFormat="1.0-0"
       [reorderable]="reorderable()"
+      [autoExpand]="search.active()"
       [readonly]="isAnonymous()"
       (reordered)="reorder($event)"
       (edit)="editIncome($event)"

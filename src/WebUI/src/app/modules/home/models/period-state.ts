@@ -16,6 +16,7 @@ const shiftMonths = (date: Date, months: number): Date => {
 
 export class PeriodState {
   readonly filter = signal<PeriodFilter>('month');
+  readonly enabled = signal(true);
   readonly date = signal(new Date());
   readonly customFrom = signal(new Date(new Date().getFullYear(), new Date().getMonth(), 1));
   readonly customTo = signal(startOfDay(new Date()));
@@ -54,6 +55,7 @@ export class PeriodState {
     }
 
     this.filter.set(filter);
+    this.enabled.set(true);
   }
 
   setDate(date: Date): void {

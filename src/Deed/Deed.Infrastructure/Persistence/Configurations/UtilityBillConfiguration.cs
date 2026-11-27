@@ -31,6 +31,12 @@ internal sealed class UtilityBillConfiguration : IEntityTypeConfiguration<Utilit
             .IsRequired()
             .HasPrecision(18, 2);
 
+        builder.Property(b => b.UnitPrice)
+            .HasPrecision(18, 4);
+
+        builder.Property(b => b.Unit)
+            .HasMaxLength(16);
+
         builder.Property(b => b.Currency)
             .IsRequired()
             .HasConversion<int>();

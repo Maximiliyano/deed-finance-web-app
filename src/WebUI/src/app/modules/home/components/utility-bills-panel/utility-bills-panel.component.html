@@ -46,10 +46,25 @@
                 @if (row.bill.capitalName) {
                   <span class="bill-meta">{{ row.bill.capitalName }}</span>
                 }
+                @if (row.bill.unitPrice != null) {
+                  <span class="bill-meta bill-meter">
+                    {{ row.bill.unitPrice | currencySymbol: row.bill.currency : '1.2-4' }} per
+                    {{ row.bill.unit || 'unit' }}
+                    @if (row.status === 'paid' && row.bill.paidMeterReading != null) {
+                      &middot; reading {{ row.bill.paidMeterReading | number: '1.0-3' }}
+                    } @else if ((row.bill.previousReading ?? 0) > 0) {
+                      &middot; last reading {{ row.bill.previousReading | number: '1.0-3' }}
+                    } @else {
+                      &middot; no reading last month
+                    }
+                  </span>
+                }
               </td>
               <td class="cell-num" data-label="Amount">
                 @if (row.status === 'paid') {
-                  {{ row.bill.paidAmount ?? 0 | currencySymbol: row.bill.currency }}
+                  {{ row.bill.paidAmount ?? 0 | currencySymbol: row.bill.capitalCurrency ?? row.bill.currency }}
+                } @else if (row.bill.unitPrice != null && !row.bill.estimatedAmount) {
+                  By meter
                 } @else {
                   ~{{ row.bill.estimatedAmount | currencySymbol: row.bill.currency }}
                 }

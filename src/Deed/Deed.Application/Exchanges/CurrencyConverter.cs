@@ -7,11 +7,21 @@ internal sealed class CurrencyConverter(IReadOnlyCollection<ExchangeResponse> ra
 {
     private readonly string? _baseCurrency = rates.FirstOrDefault()?.NationalCurrency;
 
-    public decimal Convert(decimal amount, CurrencyType from, CurrencyType to)
+    public decimal Convert(decimal amount, CurrencyType from, CurrencyType to) =>
+        TryConvert(amount, from, to, out var converted) ? converted : amount;
+
+    public bool TryConvert(decimal amount, CurrencyType from, CurrencyType to, out decimal converted)
     {
-        if (from == to || from == CurrencyType.None || to == CurrencyType.None || rates.Count == 0)
+        converted = amount;
+
+        if (from == to || from == CurrencyType.None || to == CurrencyType.None)
         {
-            return amount;
+            return true;
+        }
+
+        if (rates.Count == 0)
+        {
+            return false;
         }
 
         var fromCode = from.ToString();
@@ -20,13 +30,15 @@ internal sealed class CurrencyConverter(IReadOnlyCollection<ExchangeResponse> ra
         var direct = Find(toCode, fromCode);
         if (direct is not null)
         {
-            return amount * direct.Sale;
+            converted = amount * direct.Sale;
+            return true;
         }
 
         var reverse = Find(fromCode, toCode);
         if (reverse is { Buy: > 0 })
         {
-            return amount / reverse.Buy;
+            converted = amount / reverse.Buy;
+            return true;
         }
 
         if (_baseCurrency is not null && fromCode != _baseCurrency && toCode != _baseCurrency)
@@ -36,11 +48,12 @@ internal sealed class CurrencyConverter(IReadOnlyCollection<ExchangeResponse> ra
 
             if (fromBase is not null && toBase is { Buy: > 0 })
             {
-                return amount * fromBase.Sale / toBase.Buy;
+                converted = amount * fromBase.Sale / toBase.Buy;
+                return true;
             }
         }
 
-        return amount;
+        return false;
     }
 
     private ExchangeResponse? Find(string nationalCurrency, string targetCurrency) =>

@@ -8,11 +8,16 @@ public sealed record UtilityBillResponse(
     int DueDayOfMonth,
     int CapitalId,
     string? CapitalName,
+    string? CapitalCurrency,
     int CategoryId,
     string? CategoryName,
     bool IsActive,
     bool IsPaidThisMonth,
     decimal? PaidAmount,
     DateTimeOffset? PaidAt,
-    DateTimeOffset CreatedAt
+    DateTimeOffset CreatedAt,
+    decimal? UnitPrice = null,
+    string? Unit = null,
+    decimal? PreviousReading = null,
+    decimal? PaidMeterReading = null
 );

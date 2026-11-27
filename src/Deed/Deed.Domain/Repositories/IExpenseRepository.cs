@@ -18,5 +18,7 @@ public interface IExpenseRepository
 
     Task<int> CountAsync(ISpecification<Expense> specification, CancellationToken cancellationToken = default);
 
+    Task<IReadOnlyDictionary<int, decimal>> GetLatestMeterReadingsAsync(IReadOnlyCollection<int> utilityBillIds, DateTimeOffset from, DateTimeOffset to, CancellationToken cancellationToken = default);
+
     Task<IReadOnlyList<CategoryAmount>> GetTotalsByCategoryAsync(string createdBy, IReadOnlyCollection<int>? capitalIds, DateTimeOffset? periodStart, DateTimeOffset? periodEnd, CancellationToken cancellationToken = default);
 }

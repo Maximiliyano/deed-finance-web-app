@@ -1,6 +1,7 @@
 using Deed.Application.Abstractions.Messaging;
 using Deed.Application.Auth;
 using Deed.Application.Capitals.Specifications;
+using Deed.Application.Exchanges;
 using Deed.Application.UtilityBills.Specifications;
 using Deed.Domain.Entities;
 using Deed.Domain.Errors;
@@ -14,6 +15,7 @@ internal sealed class PayUtilityBillCommandHandler(
     IUtilityBillRepository billRepository,
     ICapitalRepository capitalRepository,
     IExpenseRepository expenseRepository,
+    IExchangeRateProvider exchangeRateProvider,
     IUnitOfWork unitOfWork,
     IUser user)
     : ICommandHandler<PayUtilityBillCommand, int>
@@ -43,13 +45,51 @@ internal sealed class PayUtilityBillCommandHandler(
             return Result.Failure<int>(DomainErrors.Capital.ForSavingsOnly);
         }
 
+        var paymentDate = command.PaymentDate ?? DateTimeOffset.UtcNow;
+        var billAmount = command.Amount;
+        decimal? meterReading = null;
+
+        if (bill.UnitPrice is { } unitPrice)
+        {
+            if (command.MeterReading is not { } currentReading)
+            {
+                return Result.Failure<int>(DomainErrors.UtilityBill.MeterReadingRequired);
+            }
+
+            var (from, to) = UtilityBillMonths.Previous(paymentDate);
+
+            var previousReadings = await expenseRepository
+                .GetLatestMeterReadingsAsync([bill.Id], from, to, cancellationToken)
+                .ConfigureAwait(false);
+
+            var previousReading = previousReadings.GetValueOrDefault(bill.Id);
+
+            if (currentReading <= previousReading)
+            {
+                return Result.Failure<int>(DomainErrors.UtilityBill.MeterReadingNotIncreasing);
+            }
+
+            billAmount = Math.Round((currentReading - previousReading) * unitPrice, 2, MidpointRounding.AwayFromZero);
+            meterReading = currentReading;
+        }
+
+        var amount = await exchangeRateProvider
+            .ConvertAsync(billAmount, bill.Currency, capital.Currency, cancellationToken)
+            .ConfigureAwait(false);
+
+        if (!amount.IsSuccess)
+        {
+            return Result.Failure<int>(amount.Errors);
+        }
+
         var expense = new Expense
         {
-            Amount = command.Amount,
+            Amount = amount.Value,
             CategoryId = bill.CategoryId,
             CapitalId = bill.CapitalId,
-            PaymentDate = command.PaymentDate ?? DateTimeOffset.UtcNow,
+            PaymentDate = paymentDate,
             Purpose = bill.Name,
+            MeterReading = meterReading,
             UtilityBillId = bill.Id
         };
 

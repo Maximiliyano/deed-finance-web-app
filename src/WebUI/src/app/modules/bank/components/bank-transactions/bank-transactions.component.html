@@ -155,7 +155,29 @@
       <app-collapsible heading="Transactions" icon="fa-list" storageKey="deed-bank-transactions">
         <span actions class="tx-total">{{ total() }}</span>
 
+        <app-period-bar [state]="period" [allowAll]="true" />
+
         <div class="tx-filters-bar">
+          <div class="tx-search">
+            <i class="fas fa-magnifying-glass tx-search-icon" aria-hidden="true"></i>
+            <input
+              class="input tx-search-input"
+              type="text"
+              inputmode="search"
+              enterkeyhint="search"
+              autocomplete="off"
+              maxlength="100"
+              placeholder="Search name, details or amount"
+              aria-label="Search transactions"
+              [value]="search()"
+              (input)="onSearch($any($event.target).value)"
+            />
+            @if (search()) {
+              <button type="button" class="icon-btn tx-search-clear" aria-label="Clear search" (click)="clearSearch()">
+                <i class="fas fa-xmark" aria-hidden="true"></i>
+              </button>
+            }
+          </div>
           <div class="segmented" role="group" aria-label="Show">
             <button
               type="button"
@@ -186,13 +208,9 @@
         <app-panel-state
           [loading]="loading() && !data()"
           [empty]="!loading() && items().length === 0"
-          icon="fa-building-columns"
-          title="No transactions here"
-          [hint]="
-            reviewOnly()
-              ? 'Nothing is waiting for your review.'
-              : 'Nothing matches these filters yet. Use Import history to bring in earlier activity.'
-          "
+          [icon]="narrowed() ? 'fa-magnifying-glass' : 'fa-building-columns'"
+          [title]="emptyTitle()"
+          [hint]="emptyHint()"
         >
           <ul class="tx-list" [style.--tx-rows]="reservedRows()" [attr.aria-busy]="loading()">
             @for (item of items(); track item.id) {

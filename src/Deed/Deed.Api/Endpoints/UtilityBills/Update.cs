@@ -18,7 +18,9 @@ internal sealed class Update : IEndpoint
                 request.DueDayOfMonth,
                 request.CapitalId,
                 request.CategoryId,
-                request.IsActive), ct))
+                request.IsActive,
+                request.UnitPrice,
+                request.Unit), ct))
                 .Process(ResultType.NoContent))
             .AllowAnonymous()
             .WithTags(nameof(UtilityBills));

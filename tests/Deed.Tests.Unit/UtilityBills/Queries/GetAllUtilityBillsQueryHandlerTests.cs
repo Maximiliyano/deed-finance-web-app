@@ -12,6 +12,7 @@ namespace Deed.Tests.Unit.UtilityBills.Queries;
 public sealed class GetAllUtilityBillsQueryHandlerTests
 {
     private readonly IUtilityBillRepository _repositoryMock = Substitute.For<IUtilityBillRepository>();
+    private readonly IExpenseRepository _expenseRepositoryMock = Substitute.For<IExpenseRepository>();
     private readonly IUser _userMock = Substitute.For<IUser>();
 
     private readonly GetAllUtilityBillsQueryHandler _handler;
@@ -19,7 +20,7 @@ public sealed class GetAllUtilityBillsQueryHandlerTests
     public GetAllUtilityBillsQueryHandlerTests()
     {
         _userMock.Name.Returns("testuser");
-        _handler = new GetAllUtilityBillsQueryHandler(_repositoryMock, _userMock);
+        _handler = new GetAllUtilityBillsQueryHandler(_repositoryMock, _expenseRepositoryMock, _userMock);
     }
 
     [Fact]
@@ -104,5 +105,87 @@ public sealed class GetAllUtilityBillsQueryHandlerTests
         var response = result.Value.Single();
         response.IsPaidThisMonth.Should().BeTrue();
         response.PaidAmount.Should().Be(295m);
+    }
+
+    [Fact]
+    public async Task Handle_WhenBillsAreNotMetered_DoesNotQueryMeterReadings()
+    {
+        // Arrange
+        var bill = new UtilityBill(1)
+        {
+            Name = "Internet",
+            EstimatedAmount = 300m,
+            Currency = CurrencyType.UAH,
+            DueDayOfMonth = 20,
+            CapitalId = 1,
+            CategoryId = 7
+        };
+
+        _repositoryMock
+            .GetAllAsync(Arg.Any<UtilityBillsByUserSpecification>(), Arg.Any<CancellationToken>())
+            .Returns(new[] { bill });
+
+        // Act
+        var result = await _handler.Handle(new GetAllUtilityBillsQuery(), CancellationToken.None);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Single().PreviousReading.Should().BeNull();
+        result.Value.Single().UnitPrice.Should().BeNull();
+
+        await _expenseRepositoryMock.DidNotReceive().GetLatestMeterReadingsAsync(
+            Arg.Any<IReadOnlyCollection<int>>(), Arg.Any<DateTimeOffset>(), Arg.Any<DateTimeOffset>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Handle_WhenBillsAreMetered_LoadsPreviousReadingsInOneQuery()
+    {
+        // Arrange
+        var electric = new UtilityBill(1)
+        {
+            Name = "Electric",
+            EstimatedAmount = 0m,
+            Currency = CurrencyType.UAH,
+            DueDayOfMonth = 15,
+            CapitalId = 1,
+            CategoryId = 7,
+            UnitPrice = 4.32m,
+            Unit = "kWh"
+        };
+        var water = new UtilityBill(2)
+        {
+            Name = "Water",
+            EstimatedAmount = 0m,
+            Currency = CurrencyType.UAH,
+            DueDayOfMonth = 16,
+            CapitalId = 1,
+            CategoryId = 7,
+            UnitPrice = 35m,
+            Unit = "m3"
+        };
+
+        _repositoryMock
+            .GetAllAsync(Arg.Any<UtilityBillsByUserSpecification>(), Arg.Any<CancellationToken>())
+            .Returns(new[] { electric, water });
+        _expenseRepositoryMock
+            .GetLatestMeterReadingsAsync(Arg.Any<IReadOnlyCollection<int>>(), Arg.Any<DateTimeOffset>(), Arg.Any<DateTimeOffset>(), Arg.Any<CancellationToken>())
+            .Returns(new Dictionary<int, decimal> { [1] = 1200m });
+
+        // Act
+        var result = await _handler.Handle(new GetAllUtilityBillsQuery(), CancellationToken.None);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+
+        var responses = result.Value.ToList();
+        responses[0].PreviousReading.Should().Be(1200m);
+        responses[0].Unit.Should().Be("kWh");
+        responses[1].PreviousReading.Should().Be(0m);
+
+        await _expenseRepositoryMock.Received(1).GetLatestMeterReadingsAsync(
+            Arg.Is<IReadOnlyCollection<int>>(ids => ids.Count == 2 && ids.Contains(1) && ids.Contains(2)),
+            Arg.Any<DateTimeOffset>(),
+            Arg.Any<DateTimeOffset>(),
+            Arg.Any<CancellationToken>());
     }
 }

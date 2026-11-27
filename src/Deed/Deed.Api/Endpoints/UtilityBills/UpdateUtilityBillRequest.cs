@@ -7,4 +7,6 @@ internal sealed record UpdateUtilityBillRequest(
     int DueDayOfMonth,
     int CapitalId,
     int CategoryId,
-    bool IsActive);
+    bool IsActive,
+    decimal? UnitPrice = null,
+    string? Unit = null);

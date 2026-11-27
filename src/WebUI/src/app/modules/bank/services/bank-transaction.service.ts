@@ -2,6 +2,7 @@ import { HttpClient, HttpContext, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { SKIP_ERROR_TOAST } from '../../../core/interceptors/error.interceptor';
+import { QueryTimeRange } from '../../home/models/query-time-range';
 import {
   BankImportStatus,
   BankProvider,
@@ -22,7 +23,9 @@ export class BankTransactionService {
     status: BankImportStatus | null = null,
     connectionId: number | null = null,
     provider: BankProvider | null = null,
-    currency: string | null = null
+    currency: string | null = null,
+    search: string | null = null,
+    range: QueryTimeRange | null = null
   ): Observable<BankTransactionsPage> {
     let params = new HttpParams().set('page', page).set('pageSize', pageSize);
 
@@ -44,6 +47,14 @@ export class BankTransactionService {
 
     if (currency) {
       params = params.set('currency', currency);
+    }
+
+    if (search) {
+      params = params.set('search', search);
+    }
+
+    if (range) {
+      params = params.set('from', range.periodStart.toISOString()).set('to', range.periodEnd.toISOString());
     }
 
     return this.http.get<BankTransactionsPage>('/api/bank-transactions', { params });

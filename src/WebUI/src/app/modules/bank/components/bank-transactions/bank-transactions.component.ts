@@ -6,13 +6,16 @@ import {
   computed,
   effect,
   inject,
-  signal
+  signal,
+  untracked
 } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
-import { EMPTY, Subject, catchError, filter, finalize, interval, switchMap, tap, timer } from 'rxjs';
+import { EMPTY, Subject, catchError, debounceTime, filter, finalize, interval, switchMap, tap, timer } from 'rxjs';
 import { DialogService } from '../../../../shared/components/dialogs/services/dialog.service';
 import { PanelStateComponent } from '../../../../shared/components/panel-state/panel-state.component';
 import { SharedModule } from '../../../../shared/shared.module';
+import { PeriodBarComponent } from '../../../home/components/period-bar/period-bar.component';
+import { PeriodState } from '../../../home/models/period-state';
 import { PopupMessageService } from '../../../../shared/services/popup-message.service';
 import {
   BankConnection,
@@ -53,7 +56,7 @@ const PROVIDER_OPTIONS: { value: BankProvider; label: string }[] = [
   templateUrl: './bank-transactions.component.html',
   styleUrl: './bank-transactions.component.scss',
   standalone: true,
-  imports: [SharedModule, PanelStateComponent, BankSummaryComponent, CollapsibleComponent],
+  imports: [SharedModule, PanelStateComponent, BankSummaryComponent, CollapsibleComponent, PeriodBarComponent],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class BankTransactionsComponent implements OnInit {
@@ -63,6 +66,7 @@ export class BankTransactionsComponent implements OnInit {
   private readonly dialogService = inject(DialogService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly reload$ = new Subject<void>();
+  private readonly searchInput$ = new Subject<string>();
 
   protected readonly typeOptions = TYPE_OPTIONS;
   protected readonly pageSizes = [10, 20, 50, 100];
@@ -94,6 +98,17 @@ export class BankTransactionsComponent implements OnInit {
   });
   protected readonly currencyKey = computed(() => this.currency() ?? 'all');
 
+  protected readonly period = new PeriodState();
+  private readonly periodKey = computed(() => {
+    if (!this.period.enabled()) return 'all';
+
+    const range = this.period.range();
+
+    return `${range.periodStart.getTime()}-${range.periodEnd.getTime()}`;
+  });
+  protected readonly search = signal('');
+  private readonly appliedSearch = signal('');
+
   protected readonly typeFilter = signal<TypeFilter>('all');
   protected readonly reviewOnly = signal(false);
   protected readonly page = signal(1);
@@ -108,6 +123,15 @@ export class BankTransactionsComponent implements OnInit {
   protected readonly rangeStart = computed(() => (this.total() === 0 ? 0 : (this.page() - 1) * this.pageSize() + 1));
   protected readonly rangeEnd = computed(() => Math.min(this.page() * this.pageSize(), this.total()));
   protected readonly reservedRows = computed(() => Math.max(Math.min(this.pageSize(), this.total()), 1));
+  protected readonly narrowed = computed(() => this.appliedSearch() !== '' || this.period.enabled());
+  protected readonly emptyTitle = computed(() => (this.narrowed() ? 'No matches' : 'No transactions here'));
+  protected readonly emptyHint = computed(() => {
+    if (this.narrowed()) return 'Try another search or period.';
+
+    return this.reviewOnly()
+      ? 'Nothing is waiting for your review.'
+      : 'Nothing matches these filters yet. Use Import history to bring in earlier activity.';
+  });
   protected readonly showAccount = computed(() => this.accountId() === null && this.accountOptions().length > 1);
 
   protected readonly backfilling = computed(() =>
@@ -148,6 +172,17 @@ export class BankTransactionsComponent implements OnInit {
   private importStart: { at: number; progress: number } | null = null;
 
   constructor() {
+    this.period.enabled.set(false);
+
+    effect(() => {
+      this.periodKey();
+
+      untracked(() => {
+        this.page.set(1);
+        this.reload();
+      });
+    });
+
     effect(() => {
       if (this.backfilling().length > 0) {
         this.wasImporting = true;
@@ -176,6 +211,8 @@ export class BankTransactionsComponent implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => this.reload());
 
+    this.searchInput$.pipe(debounceTime(300), takeUntilDestroyed(this.destroyRef)).subscribe(term => this.applySearch(term));
+
     this.reload$
       .pipe(
         tap(() => this.loading.set(true)),
@@ -188,7 +225,9 @@ export class BankTransactionsComponent implements OnInit {
               this.statusParam(),
               this.accountId(),
               this.provider(),
-              this.currency()
+              this.currency(),
+              this.appliedSearch() || null,
+              this.period.enabled() ? this.period.range() : null
             )
             .pipe(
               catchError(() => EMPTY),
@@ -260,6 +299,24 @@ export class BankTransactionsComponent implements OnInit {
       this.page.set(1);
       this.reload();
     }
+  }
+
+  protected onSearch(value: string): void {
+    this.search.set(value);
+    this.searchInput$.next(value.trim());
+  }
+
+  protected clearSearch(): void {
+    this.search.set('');
+    this.applySearch('');
+  }
+
+  private applySearch(term: string): void {
+    if (term === this.appliedSearch()) return;
+
+    this.appliedSearch.set(term);
+    this.page.set(1);
+    this.reload();
   }
 
   protected setType(value: string): void {

@@ -118,13 +118,110 @@ public sealed class GetBankTransactionsQueryHandlerTests
         }
     }
 
-    private static BankNotification Notification(int? connectionId, string currency = "UAH")
+    [Fact]
+    public async Task Handle_Search_IsTrimmedUppercasedAndMatchesText()
+    {
+        // Arrange
+        var query = new GetBankTransactionsQuery(Search: "  silpo ");
+
+        // Act
+        await _handler.Handle(query, CancellationToken.None);
+
+        // Assert
+        _specifications.Should().HaveCount(2);
+        foreach (var specification in _specifications)
+        {
+            var matches = specification.Criteria!.Compile();
+
+            matches(Notification(1, counterparty: "Silpo Market")).Should().BeTrue();
+            matches(Notification(1, counterparty: "Bolt")).Should().BeFalse();
+        }
+    }
+
+    [Theory]
+    [InlineData("312.40")]
+    [InlineData("312,40")]
+    [InlineData("-312.40")]
+    public async Task Handle_NumericSearch_AlsoMatchesTheAmount(string search)
+    {
+        // Arrange
+        var query = new GetBankTransactionsQuery(Search: search);
+
+        // Act
+        await _handler.Handle(query, CancellationToken.None);
+
+        // Assert
+        foreach (var specification in _specifications)
+        {
+            var matches = specification.Criteria!.Compile();
+
+            matches(Notification(1, amount: 312.40m)).Should().BeTrue();
+            matches(Notification(1, amount: 100m)).Should().BeFalse();
+        }
+    }
+
+    [Fact]
+    public async Task Handle_BlankSearch_IsIgnored()
+    {
+        // Arrange
+        var query = new GetBankTransactionsQuery(Search: "   ");
+
+        // Act
+        await _handler.Handle(query, CancellationToken.None);
+
+        // Assert
+        foreach (var specification in _specifications)
+        {
+            specification.Criteria!.Compile()(Notification(1, counterparty: "Anything")).Should().BeTrue();
+        }
+    }
+
+    [Fact]
+    public async Task Handle_Period_KeepsTheStartAndExcludesTheEnd()
+    {
+        // Arrange
+        var from = new DateTimeOffset(2026, 11, 1, 0, 0, 0, TimeSpan.Zero);
+        var to = new DateTimeOffset(2026, 12, 1, 0, 0, 0, TimeSpan.Zero);
+        var query = new GetBankTransactionsQuery(From: from, To: to);
+
+        // Act
+        await _handler.Handle(query, CancellationToken.None);
+
+        // Assert
+        foreach (var specification in _specifications)
+        {
+            var matches = specification.Criteria!.Compile();
+
+            matches(Notification(1, occurredAt: from)).Should().BeTrue();
+            matches(Notification(1, occurredAt: to.AddTicks(-1))).Should().BeTrue();
+            matches(Notification(1, occurredAt: to)).Should().BeFalse();
+            matches(Notification(1, occurredAt: from.AddTicks(-1))).Should().BeFalse();
+        }
+    }
+
+    [Fact]
+    public async Task Handle_SearchAndPeriod_RunsOneCountAndOnePageQuery()
+    {
+        // Arrange
+        var query = new GetBankTransactionsQuery(Search: "silpo", From: Now.AddDays(-10), To: Now);
+
+        // Act
+        await _handler.Handle(query, CancellationToken.None);
+
+        // Assert
+        await _repositoryMock.Received(1).CountAsync(Arg.Any<ISpecification<BankNotification>>(), Arg.Any<CancellationToken>());
+        await _repositoryMock.Received(1).GetAllAsync(Arg.Any<ISpecification<BankNotification>>(), Arg.Any<CancellationToken>());
+    }
+
+    private static BankNotification Notification(int? connectionId, string currency = "UAH", string? counterparty = null, decimal amount = 0, DateTimeOffset? occurredAt = null)
         => new()
         {
             ExternalId = "x",
             Kind = BankNotificationKind.Transaction,
             Currency = currency,
-            OccurredAt = Now.AddDays(-1),
+            Counterparty = counterparty,
+            Amount = amount,
+            OccurredAt = occurredAt ?? Now.AddDays(-1),
             BankConnectionId = connectionId,
             CreatedBy = "owner"
         };

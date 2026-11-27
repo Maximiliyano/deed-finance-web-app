@@ -17,7 +17,7 @@ Built with Clean Architecture (ASP.NET Core 10 + CQRS/MediatR) and an Angular 20
 | **Budget planner** (estimations) | Ordered list of planned purchases with a budget amount/currency that can be linked to a capital and marked completed. |
 | **Goals** | Savings goals with target/current amount, optional deadline and completion state. |
 | **Debts** | Money borrowed/lent with source, recipient, deadline, optional capital and paid flag. |
-| **Utility bills** | Recurring monthly bills (due day of month, estimated amount). "Pay" creates an expense linked to the bill and decreases the capital balance. |
+| **Utility bills** | Recurring monthly bills (due day of month, estimated amount). "Pay" creates an expense linked to the bill and decreases the capital balance. Metered bills (electricity, water, gas) take a price per unit; when paying you enter the current meter reading and the amount is the difference from last month's reading times the price (counted from 0 when nothing was paid last month). |
 | **Exchange rates** | Daily rates (USD, EUR, PLN, CZK vs. UAH) fetched from the PrivatBank public API, stored in the DB and cached in Redis. A currency-conversion dialog is available in the header. |
 | **Bank details** | Reads client info (accounts, jars) from the Monobank personal API using a token from configuration. |
 | **Bank connections** | Signed-in users connect Privat24 Business (Autoclient token) and Monobank (personal token). Every account becomes its own connection that can be linked to a capital, counted or hidden, and disconnected per bank. New accounts of a connected Privat24 token are listed as available and refreshed daily. |

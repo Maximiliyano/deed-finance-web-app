@@ -89,6 +89,98 @@ public sealed class BankTransactionSpecificationTests
     }
 
     [Fact]
+    public void ListSpecification_Period_KeepsRowsFromStartUpToButExcludingEnd()
+    {
+        // Arrange
+        var from = new DateTimeOffset(2026, 11, 1, 0, 0, 0, TimeSpan.Zero);
+        var to = new DateTimeOffset(2026, 12, 1, 0, 0, 0, TimeSpan.Zero);
+        var matches = new BankTransactionsByUserSpecification("owner", from: from, to: to).Criteria!.Compile();
+
+        // Act
+        var kept = new[] { At(from.AddTicks(-1)), At(from), At(to.AddTicks(-1)), At(to) }.Select(matches).ToArray();
+
+        // Assert
+        kept.Should().Equal(false, true, true, false);
+    }
+
+    [Fact]
+    public void ListSpecification_OpenEndedPeriod_OnlyAppliesTheGivenBound()
+    {
+        // Arrange
+        var from = new DateTimeOffset(2026, 11, 10, 0, 0, 0, TimeSpan.Zero);
+        var matches = new BankTransactionsByUserSpecification("owner", from: from).Criteria!.Compile();
+
+        // Act
+        var kept = new[] { At(from.AddDays(-1)), At(from.AddYears(5)) }.Select(matches).ToArray();
+
+        // Assert
+        kept.Should().Equal(false, true);
+    }
+
+    [Theory]
+    [InlineData("SILPO", true)]
+    [InlineData("CARD PAY", true)]
+    [InlineData("KYIV", true)]
+    [InlineData("BOLT", false)]
+    public void ListSpecification_Search_MatchesCounterpartyPurposeAndAccount(string search, bool expected)
+    {
+        // Arrange
+        var matches = new BankTransactionsByUserSpecification("owner", search: search).Criteria!.Compile();
+        var item = Described("Silpo Market", "Card payment", "Kyiv wallet");
+
+        // Act
+        var kept = matches(item);
+
+        // Assert
+        kept.Should().Be(expected);
+    }
+
+    [Fact]
+    public void ListSpecification_SearchWithAmount_MatchesTheAmountEvenWhenTextDoesNot()
+    {
+        // Arrange
+        var matches = new BankTransactionsByUserSpecification("owner", search: "312.40", amount: 312.40m).Criteria!.Compile();
+        var hit = Described("Silpo", null, null);
+        hit.Amount = 312.40m;
+        var miss = Described("Silpo", null, null);
+        miss.Amount = 99m;
+
+        // Act
+        var kept = new[] { hit, miss }.Select(matches).ToArray();
+
+        // Assert
+        kept.Should().Equal(true, false);
+    }
+
+    [Fact]
+    public void ListSpecification_SearchWithoutAmount_NeverMatchesByAmount()
+    {
+        // Arrange
+        var matches = new BankTransactionsByUserSpecification("owner", search: "ZZZ").Criteria!.Compile();
+        var item = Described("Silpo", null, null);
+
+        // Act
+        var kept = matches(item);
+
+        // Assert
+        kept.Should().BeFalse();
+    }
+
+    [Fact]
+    public void ListSpecification_SearchWithMissingTextFields_DoesNotThrow()
+    {
+        // Arrange
+        var matches = new BankTransactionsByUserSpecification("owner", search: "SILPO").Criteria!.Compile();
+        var item = Described(null, null, null);
+
+        // Act
+        var kept = matches(item);
+
+        // Assert
+        kept.Should().BeFalse();
+    }
+
+    [Fact]
     public void SummarySpecification_ConnectionIds_KeepsOnlyThoseConnections()
     {
         // Arrange
@@ -123,6 +215,24 @@ public sealed class BankTransactionSpecificationTests
         privat.Ids.Should().BeEquivalentTo([1]);
         privat.IncludeUnassigned.Should().BeFalse();
         account.IncludeUnassigned.Should().BeFalse();
+    }
+
+    private static BankNotification At(DateTimeOffset occurredAt)
+    {
+        var item = Notification(1);
+        item.OccurredAt = occurredAt;
+
+        return item;
+    }
+
+    private static BankNotification Described(string? counterparty, string? purpose, string? accountLabel)
+    {
+        var item = Notification(1);
+        item.Counterparty = counterparty;
+        item.Purpose = purpose;
+        item.AccountLabel = accountLabel;
+
+        return item;
     }
 
     private static BankNotification Notification(int? connectionId, string? currency = "UAH")

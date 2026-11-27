@@ -32,6 +32,7 @@ import { DashboardStore } from '../../services/dashboard-store.service';
 import { PeriodBarComponent } from '../period-bar/period-bar.component';
 import { CategoryBreakdownComponent } from '../category-breakdown/category-breakdown.component';
 import { BreakdownGroup, BreakdownItem, ReorderEvent } from '../category-breakdown/category-breakdown.model';
+import { BreakdownSearch, searchGroups, sortGroups } from '../category-breakdown/breakdown-search';
 import { QuickAddService } from '../../services/quick-add.service';
 import { QuickTransactionDialogComponent } from '../quick-transaction-dialog/quick-transaction-dialog.component';
 
@@ -59,13 +60,19 @@ export class IncomesPanelComponent implements OnInit {
 
   protected readonly period = new PeriodState();
   protected readonly sortBy = signal<AmountSort>('default');
+  protected readonly search = new BreakdownSearch();
   private readonly categories = signal<CategoryResponse[]>([]);
   private readonly incomes = signal<IncomeResponse[]>([]);
   private readonly orderedGroups = signal<BreakdownGroup[]>([]);
   private readonly loaded = signal(false);
   private readonly requestPending = toSignal(this.sectionLoading.isLoading$('incomes'), { initialValue: false });
 
-  protected readonly groups = this.orderedGroups.asReadonly();
+  protected readonly allGroups = this.orderedGroups.asReadonly();
+  protected readonly groups = computed<BreakdownGroup[]>(() => {
+    const found = searchGroups(this.allGroups(), this.search.term());
+
+    return this.search.active() ? sortGroups(found, this.sortBy()) : found;
+  });
   protected readonly loading = computed(() => !this.loaded() || this.requestPending());
   private readonly visibleIncomes = computed(() => {
     const ids = this.store.selectedCapitalIds();
@@ -73,8 +80,14 @@ export class IncomesPanelComponent implements OnInit {
     return ids.size === 0 ? this.incomes() : this.incomes().filter(income => ids.has(income.capitalId));
   });
 
-  protected readonly total = computed(() => this.visibleIncomes().reduce((sum, income) => sum + income.amount, 0));
-  protected readonly reorderable = computed(() => this.sortBy() === 'custom' && !this.isAnonymous());
+  private readonly visibleTotal = computed(() => this.visibleIncomes().reduce((sum, income) => sum + income.amount, 0));
+
+  protected readonly total = computed(() => this.groups().reduce((sum, group) => sum + group.total, 0));
+  protected readonly allCount = computed(() => this.allGroups().reduce((sum, group) => sum + group.count, 0));
+  protected readonly matchCount = computed(() => this.groups().reduce((sum, group) => sum + group.count, 0));
+  protected readonly reorderable = computed(
+    () => this.sortBy() === 'custom' && !this.isAnonymous() && !this.search.active()
+  );
 
   constructor() {
     effect(() => {
@@ -196,7 +209,7 @@ export class IncomesPanelComponent implements OnInit {
   }
 
   private groupByCategory(): BreakdownGroup[] {
-    const total = this.total();
+    const total = this.visibleTotal();
     const byCategory = new Map<number, BreakdownGroup>();
 
     for (const income of this.visibleIncomes()) {
@@ -211,7 +224,7 @@ export class IncomesPanelComponent implements OnInit {
 
       group.total += income.amount;
       group.count++;
-      group.items.push(income);
+      group.items.push({ ...income, tagNames: income.tags ?? null });
       byCategory.set(income.categoryId, group);
     }
 
