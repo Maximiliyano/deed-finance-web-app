@@ -20,7 +20,9 @@ export default async (req: Request, context: Context) => {
   headers.delete('host');
   headers.delete('content-length');
   headers.delete('accept-encoding');
+  headers.delete('x-client-ip');
 
+  headers.set('x-client-ip', context.ip);
   headers.set('x-forwarded-host', incomingUrl.host);
   headers.set('x-forwarded-proto', incomingUrl.protocol.replace(':', ''));
   headers.set('X-Internal-Proxy-Key', proxySecret);
