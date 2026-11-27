@@ -28,7 +28,7 @@ public sealed class PayUtilityBillCommandHandlerTests
 
     public PayUtilityBillCommandHandlerTests()
     {
-        _userMock.Name.Returns("testuser");
+        _userMock.Id.Returns("testuser");
         _handler = new PayUtilityBillCommandHandler(
             _billRepositoryMock, _capitalRepositoryMock, _expenseRepositoryMock, _ratesMock, _unitOfWorkMock, _userMock);
     }

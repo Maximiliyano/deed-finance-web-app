@@ -21,7 +21,7 @@ public sealed class DeleteIncomeCommandHandlerTests
 
     public DeleteIncomeCommandHandlerTests()
     {
-        _userMock.Name.Returns("testuser");
+        _userMock.Id.Returns("testuser");
         _handler = new DeleteIncomeCommandHandler(_incomeRepository, _capitalRepository, _unitOfWork, _userMock);
     }
 

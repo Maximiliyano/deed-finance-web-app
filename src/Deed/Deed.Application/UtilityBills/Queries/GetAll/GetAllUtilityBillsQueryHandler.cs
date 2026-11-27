@@ -18,7 +18,7 @@ internal sealed class GetAllUtilityBillsQueryHandler(
         CancellationToken cancellationToken)
     {
         var bills = await repository
-            .GetAllAsync(new UtilityBillsByUserSpecification(user.Name!, includeRelations: true, currentMonthPaymentsOnly: true), cancellationToken)
+            .GetAllAsync(new UtilityBillsByUserSpecification(user.Id, includeRelations: true, currentMonthPaymentsOnly: true), cancellationToken)
             .ConfigureAwait(false);
 
         var meteredIds = bills.Where(b => b.UnitPrice is not null).Select(b => b.Id).ToList();

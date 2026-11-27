@@ -20,7 +20,7 @@ public sealed class UpdateCapitalCommandHandlerTests
 
     public UpdateCapitalCommandHandlerTests()
     {
-        _userMock.Name.Returns("testUser");
+        _userMock.Id.Returns("testUser");
         _handler = new UpdateCapitalCommandHandler(_repositoryMock, _unitOfWorkMock, _userMock);
     }
 

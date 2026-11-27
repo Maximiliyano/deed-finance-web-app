@@ -26,7 +26,7 @@ public sealed class GetDashboardSummaryQueryHandlerTests
 
     public GetDashboardSummaryQueryHandlerTests()
     {
-        _user.Name.Returns("testuser");
+        _user.Id.Returns("testuser");
         _exchangeRateProvider.GetLatestAsync(Arg.Any<CancellationToken>())
             .Returns([new ExchangeResponse("USD", "UAH", 40m, 40m, null)]);
         _capitalRepository.GetAllAsync(Arg.Any<CapitalsByQueryParamsSpecification>(), Arg.Any<CancellationToken>())

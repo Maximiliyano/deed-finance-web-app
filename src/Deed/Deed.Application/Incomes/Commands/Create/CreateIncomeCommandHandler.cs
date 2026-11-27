@@ -24,7 +24,7 @@ internal sealed class CreateIncomeCommandHandler(
         if (!user.IsAuthenticated)
         {
             var count = await incomeRepository.CountAsync(
-                new IncomesByQuerySpecification(user.Name!), cancellationToken).ConfigureAwait(false);
+                new IncomesByQuerySpecification(user.Id), cancellationToken).ConfigureAwait(false);
             
             if (count >= AuthConstants.EntityLimit)
             {
@@ -32,7 +32,7 @@ internal sealed class CreateIncomeCommandHandler(
             }
         }
 
-        var capital = await capitalRepository.GetAsync(new CapitalByIdSpecification(command.CapitalId, user.Name), cancellationToken).ConfigureAwait(false);
+        var capital = await capitalRepository.GetAsync(new CapitalByIdSpecification(command.CapitalId, user.Id), cancellationToken).ConfigureAwait(false);
 
         if (capital is null)
         {

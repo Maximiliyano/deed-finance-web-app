@@ -19,7 +19,7 @@ public sealed class UpdateExpenseCommandValidatorTests
 
     public UpdateExpenseCommandValidatorTests()
     {
-        _user.Name.Returns("testuser");
+        _user.Id.Returns("testuser");
         _provider.UtcNow.Returns(DateTimeOffset.UtcNow);
         _categoryRepository.GetAsync(Arg.Any<ISpecification<Category>>(), Arg.Any<CancellationToken>())
             .Returns(new Category { Name = "Food", Type = CategoryType.Expenses });

@@ -16,7 +16,7 @@ internal sealed class CancelBankHistoryCommandHandler(
     public async Task<Result> Handle(CancelBankHistoryCommand command, CancellationToken cancellationToken)
     {
         var connections = (await repository
-            .GetAllAsync(new BankConnectionByUserSpecification(user.Name!, tracking: true), cancellationToken)
+            .GetAllAsync(new BankConnectionByUserSpecification(user.Id, tracking: true), cancellationToken)
             .ConfigureAwait(false))
             .Where(c => c.BackfillCursor is not null)
             .ToList();
@@ -32,7 +32,7 @@ internal sealed class CancelBankHistoryCommandHandler(
         {
             await unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
-            Log.Information("Bank history import cancelled for {User} on {Count} connection(s)", user.Name, connections.Count);
+            Log.Information("Bank history import cancelled for {User} on {Count} connection(s)", user.Id, connections.Count);
         }
 
         return Result.Success();

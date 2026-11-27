@@ -17,6 +17,10 @@ export class UserSettingsService {
     return this.state$.value;
   }
 
+  seed(settings: UserSettings | null): void {
+    this.state$.next(settings);
+  }
+
   load(): Observable<UserSettings | null> {
     return this.http.get<UserSettings | null>(this.baseUrl).pipe(tap(settings => this.state$.next(settings)));
   }

@@ -15,7 +15,7 @@ internal sealed class CreateCapitalCommandValidator : AbstractValidator<CreateCa
     {
         RuleFor(c => c.Name)
             .MustAsync(async (name, ct) => !await repository
-                .AnyAsync(new CapitalByNameSpecification(name, user.Name), ct).ConfigureAwait(false))
+                .AnyAsync(new CapitalByNameSpecification(name, user.Id), ct).ConfigureAwait(false))
             .WithError(ValidationErrors.Capital.AlreadyExists)
             .NotEmpty()
             .MaximumLength(ValidationConstants.MaxLengthName);

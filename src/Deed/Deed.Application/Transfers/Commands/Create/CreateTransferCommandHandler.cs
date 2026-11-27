@@ -22,7 +22,7 @@ internal sealed class CreateTransferCommandHandler(
         if (!user.IsAuthenticated)
         {
             var count = await transferRepository.CountAsync(
-                new TransfersByUserSpecification(user.Name!), cancellationToken).ConfigureAwait(false);
+                new TransfersByUserSpecification(user.Id), cancellationToken).ConfigureAwait(false);
 
             if (count >= AuthConstants.EntityLimit)
             {
@@ -36,7 +36,7 @@ internal sealed class CreateTransferCommandHandler(
         }
 
         var source = await capitalRepository
-            .GetAsync(new CapitalByIdSpecification(command.SourceCapitalId, user.Name), cancellationToken)
+            .GetAsync(new CapitalByIdSpecification(command.SourceCapitalId, user.Id), cancellationToken)
             .ConfigureAwait(false);
 
         if (source is null)
@@ -45,7 +45,7 @@ internal sealed class CreateTransferCommandHandler(
         }
 
         var destination = await capitalRepository
-            .GetAsync(new CapitalByIdSpecification(command.DestinationCapitalId, user.Name), cancellationToken)
+            .GetAsync(new CapitalByIdSpecification(command.DestinationCapitalId, user.Id), cancellationToken)
             .ConfigureAwait(false);
 
         if (destination is null)

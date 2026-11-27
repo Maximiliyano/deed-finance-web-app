@@ -20,7 +20,7 @@ public sealed class GetAllGoalsQueryHandlerTests
 
     public GetAllGoalsQueryHandlerTests()
     {
-        _userMock.Name.Returns("testuser");
+        _userMock.Id.Returns("testuser");
         _handler = new GetAllGoalsQueryHandler(_repositoryMock, _userMock);
     }
 

@@ -1,4 +1,5 @@
 using Deed.Domain.Entities;
+using Deed.Domain.Enums;
 using Deed.Infrastructure.Persistence.Constants;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -16,6 +17,11 @@ internal sealed class UserSettingsConfiguration : IEntityTypeConfiguration<UserS
         builder.Property(s => s.Currency)
             .IsRequired()
             .HasConversion<int>();
+
+        builder.Property(s => s.Theme)
+            .IsRequired()
+            .HasConversion<int>()
+            .HasDefaultValue(ThemeType.System);
 
         builder.Property(s => s.BalanceReminderEnabled)
             .HasDefaultValue(false);

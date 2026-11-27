@@ -15,7 +15,7 @@ internal sealed class GetAllTransfersQueryHandler(ITransferRepository repository
         CancellationToken cancellationToken)
     {
         var transfers = await repository
-            .GetAllAsync(new TransfersByUserSpecification(user.Name!), cancellationToken)
+            .GetAllAsync(new TransfersByUserSpecification(user.Id), cancellationToken)
             .ConfigureAwait(false);
 
         var responses = transfers.Select(t => new TransferResponse(

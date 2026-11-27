@@ -15,7 +15,7 @@ internal sealed class GetIncomeByIdQueryHandler(
 {
     public async Task<Result<IncomeResponse>> Handle(GetIncomeByIdQuery query, CancellationToken cancellationToken)
     {
-        var income = await repository.GetAsync(new IncomeByIdSpecification(query.Id, user.Name), cancellationToken).ConfigureAwait(false);
+        var income = await repository.GetAsync(new IncomeByIdSpecification(query.Id, user.Id), cancellationToken).ConfigureAwait(false);
 
         if (income is null)
         {

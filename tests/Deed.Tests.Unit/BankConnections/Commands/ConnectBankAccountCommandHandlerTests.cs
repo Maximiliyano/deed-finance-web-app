@@ -28,7 +28,7 @@ public sealed class ConnectBankAccountCommandHandlerTests
 
     public ConnectBankAccountCommandHandlerTests()
     {
-        _userMock.Name.Returns("owner");
+        _userMock.Id.Returns("owner");
         _clockMock.UtcNow.Returns(Now);
 
         _handler = new ConnectBankAccountCommandHandler(_userMock, _accountsMock, _connectionsMock, _clockMock, _unitOfWorkMock, _triggerMock);

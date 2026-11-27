@@ -13,7 +13,7 @@ internal sealed class GetBankConnectionsQueryHandler(IUser user, IBankConnection
     public async Task<Result<IReadOnlyList<BankConnectionResponse>>> Handle(GetBankConnectionsQuery query, CancellationToken cancellationToken)
     {
         var connections = await repository
-            .GetAllAsync(new BankConnectionByUserSpecification(user.Name!), cancellationToken)
+            .GetAllAsync(new BankConnectionByUserSpecification(user.Id), cancellationToken)
             .ConfigureAwait(false);
 
         return Result.Success(connections.ToResponses());

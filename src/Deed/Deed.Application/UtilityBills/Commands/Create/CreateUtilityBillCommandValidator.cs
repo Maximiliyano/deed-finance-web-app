@@ -42,7 +42,7 @@ internal sealed class CreateUtilityBillCommandValidator : AbstractValidator<Crea
         RuleFor(c => c.CapitalId)
             .GreaterThan(0)
             .MustAsync(async (capitalId, ct) => await capitalRepository
-                .AnyAsync(new CapitalByIdSpecification(capitalId, user.Name), ct).ConfigureAwait(false))
+                .AnyAsync(new CapitalByIdSpecification(capitalId, user.Id), ct).ConfigureAwait(false))
             .WithError(ValidationErrors.General.NotFound("capital"));
 
         RuleFor(c => c.CategoryId)

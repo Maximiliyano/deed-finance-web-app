@@ -66,11 +66,11 @@ internal static class RateLimitingExtensions
     {
         if (context.User.Identity?.IsAuthenticated == true)
         {
-            string? name = context.User.FindFirst(AuthClaimTypes.Name)?.Value;
+            string? id = context.User.FindFirst(AuthClaimTypes.Sub)?.Value;
 
-            if (!string.IsNullOrEmpty(name))
+            if (!string.IsNullOrEmpty(id))
             {
-                return $"user:{name}";
+                return $"user:{id}";
             }
         }
 

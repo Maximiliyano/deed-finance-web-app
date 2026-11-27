@@ -16,7 +16,7 @@ public sealed class CreateCapitalCommandValidatorTests
 
     public CreateCapitalCommandValidatorTests()
     {
-        _user.Name.Returns("testuser");
+        _user.Id.Returns("testuser");
         _repository.AnyAsync(Arg.Any<ISpecification<Capital>>(), Arg.Any<CancellationToken>()).Returns(false);
         _validator = new CreateCapitalCommandValidator(_repository, _user);
     }

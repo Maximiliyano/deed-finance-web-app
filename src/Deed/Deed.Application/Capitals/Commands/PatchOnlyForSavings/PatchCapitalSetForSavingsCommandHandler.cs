@@ -11,9 +11,9 @@ internal sealed class PatchCapitalSetForSavingsCommandHandler(ICapitalRepository
 {
     public async Task<Result> Handle(PatchCapitalSetForSavingsCommand request, CancellationToken cancellationToken)
     {
-        ArgumentNullException.ThrowIfNullOrEmpty(user.Name);
+        ArgumentNullException.ThrowIfNullOrEmpty(user.Id);
 
-        var isUpdateSuccessfull = await repository.PatchSavingsOnlyAsync(request.Id, request.OnlyForSavings, user.Name, cancellationToken);
+        var isUpdateSuccessfull = await repository.PatchSavingsOnlyAsync(request.Id, request.OnlyForSavings, user.Id, cancellationToken);
 
         if (!isUpdateSuccessfull)
         {

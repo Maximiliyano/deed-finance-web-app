@@ -16,11 +16,11 @@ internal sealed class GetBankAccountsQueryHandler(
     public async Task<Result<IReadOnlyList<LinkedBankAccountResponse>>> Handle(GetBankAccountsQuery query, CancellationToken cancellationToken)
     {
         var accounts = await accountRepository
-            .GetAllAsync(new BankAccountsByUserSpecification(user.Name!), cancellationToken)
+            .GetAllAsync(new BankAccountsByUserSpecification(user.Id), cancellationToken)
             .ConfigureAwait(false);
 
         var connections = (await connectionRepository
-            .GetAllAsync(new BankConnectionByUserSpecification(user.Name!), cancellationToken)
+            .GetAllAsync(new BankConnectionByUserSpecification(user.Id), cancellationToken)
             .ConfigureAwait(false)).ToList();
 
         IReadOnlyList<LinkedBankAccountResponse> response =

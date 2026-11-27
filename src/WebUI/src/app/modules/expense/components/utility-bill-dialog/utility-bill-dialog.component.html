@@ -76,6 +76,7 @@
     <div class="form-group">
       <label for="capitalId" class="form-label">Capital</label>
       <select id="capitalId" class="input" formControlName="capitalId">
+        <option value="" disabled>Select a capital</option>
         @for (cap of capitals; track cap.id) {
           <option [value]="cap.id">{{ cap.name }} ({{ cap.currency }})</option>
         }
@@ -85,6 +86,7 @@
     <div class="form-group">
       <label for="categoryId" class="form-label">Category</label>
       <select id="categoryId" class="input" formControlName="categoryId">
+        <option value="" disabled>Select a category</option>
         @for (cat of categories; track cat.id) {
           <option [value]="cat.id">{{ cat.name }}</option>
         }

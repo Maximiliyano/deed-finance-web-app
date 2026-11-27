@@ -19,7 +19,7 @@ internal sealed class UpdateBudgetEstimationCommandHandler(
     public async Task<Result> Handle(UpdateBudgetEstimationCommand command, CancellationToken cancellationToken)
     {
         var estimation = await repository
-            .GetAsync(new BudgetEstimationByIdSpecification(command.Id, user.Name), cancellationToken)
+            .GetAsync(new BudgetEstimationByIdSpecification(command.Id, user.Id), cancellationToken)
             .ConfigureAwait(false);
 
         if (estimation is null)

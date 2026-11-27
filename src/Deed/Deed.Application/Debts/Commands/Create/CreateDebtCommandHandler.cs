@@ -23,7 +23,7 @@ internal sealed class CreateDebtCommandHandler(
         if (!user.IsAuthenticated)
         {
             var count = await repository.CountAsync(
-                new DebtsByUserSpecification(user.Name!), cancellationToken).ConfigureAwait(false);
+                new DebtsByUserSpecification(user.Id), cancellationToken).ConfigureAwait(false);
 
             if (count >= AuthConstants.EntityLimit)
             {
@@ -36,7 +36,7 @@ internal sealed class CreateDebtCommandHandler(
         if (command.CapitalId.HasValue)
         {
             var capital = await capitalRepository
-                .GetAsync(new CapitalByIdSpecification(command.CapitalId.Value, user.Name), cancellationToken)
+                .GetAsync(new CapitalByIdSpecification(command.CapitalId.Value, user.Id), cancellationToken)
                 .ConfigureAwait(false);
 
             if (capital is null)

@@ -21,7 +21,7 @@ public sealed class ImportBankHistoryCommandHandlerTests
 
     public ImportBankHistoryCommandHandlerTests()
     {
-        _user.Name.Returns("owner");
+        _user.Id.Returns("owner");
         _clock.UtcNow.Returns(Now);
         _sut = new ImportBankHistoryCommandHandler(_user, _sync, _clock, _trigger);
     }

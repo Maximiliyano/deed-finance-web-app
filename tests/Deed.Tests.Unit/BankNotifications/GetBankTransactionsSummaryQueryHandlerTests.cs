@@ -24,7 +24,7 @@ public sealed class GetBankTransactionsSummaryQueryHandlerTests
 
     public GetBankTransactionsSummaryQueryHandlerTests()
     {
-        _userMock.Name.Returns("owner");
+        _userMock.Id.Returns("owner");
         _clockMock.UtcNow.Returns(Now);
         _connectionsMock
             .GetAllAsync(Arg.Any<BankConnectionByUserSpecification>(), Arg.Any<CancellationToken>())

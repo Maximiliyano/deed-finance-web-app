@@ -27,13 +27,13 @@ internal sealed class GetBankTransactionsSummaryQueryHandler(
         var from = query.From ?? DefaultFrom(period, to);
 
         var connections = (await connectionRepository
-            .GetAllAsync(new BankConnectionByUserSpecification(user.Name!), cancellationToken)
+            .GetAllAsync(new BankConnectionByUserSpecification(user.Id), cancellationToken)
             .ConfigureAwait(false)).ToList();
 
         var (connectionIds, includeUnassigned) = BankConnectionScope.Resolve(connections, query.Provider, query.ConnectionId);
 
         var specification = new BankTransactionsSummarySpecification(
-            user.Name!, query.ConnectionId, from, to, connectionIds, includeUnassigned);
+            user.Id, query.ConnectionId, from, to, connectionIds, includeUnassigned);
 
         var totals = await repository.GetTotalsAsync(specification, period, cancellationToken).ConfigureAwait(false);
         var counterparties = await repository.GetCounterpartyTotalsAsync(specification, cancellationToken).ConfigureAwait(false);

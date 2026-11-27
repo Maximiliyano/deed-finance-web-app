@@ -17,6 +17,7 @@ internal sealed class TestAuthHandler(
         Claim[] claims = new[]
         {
             new Claim("name", DeedApiFactory.TestUser),
+            new Claim("sub", DeedApiFactory.TestUser),
             new Claim(ClaimTypes.NameIdentifier, DeedApiFactory.TestUser),
             new Claim(ClaimTypes.Email, "test@deed.finance"),
             new Claim("email_verified", "true")

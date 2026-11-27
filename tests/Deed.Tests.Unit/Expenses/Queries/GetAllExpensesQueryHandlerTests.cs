@@ -18,7 +18,7 @@ public sealed class GetAllExpensesQueryHandlerTests
 
     public GetAllExpensesQueryHandlerTests()
     {
-        _userMock.Name.Returns("testuser");
+        _userMock.Id.Returns("testuser");
         _handler = new GetExpensesByCategoryHandler(_userMock, _expenseRepositoryMock);
     }
 

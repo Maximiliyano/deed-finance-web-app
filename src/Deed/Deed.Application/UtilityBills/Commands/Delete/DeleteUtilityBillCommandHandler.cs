@@ -17,7 +17,7 @@ internal sealed class DeleteUtilityBillCommandHandler(
     public async Task<Result> Handle(DeleteUtilityBillCommand command, CancellationToken cancellationToken)
     {
         var bill = await repository
-            .GetAsync(new UtilityBillByIdSpecification(command.Id, user.Name), cancellationToken)
+            .GetAsync(new UtilityBillByIdSpecification(command.Id, user.Id), cancellationToken)
             .ConfigureAwait(false);
 
         if (bill is null)

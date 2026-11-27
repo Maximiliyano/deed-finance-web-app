@@ -23,7 +23,7 @@ public sealed class UpdateExpenseCommandHandlerTests
 
     public UpdateExpenseCommandHandlerTests()
     {
-        _userMock.Name.Returns("testuser");
+        _userMock.Id.Returns("testuser");
         _tagRepository.GetAllAsync(Arg.Any<ISpecification<Tag>>(), Arg.Any<CancellationToken>())
             .Returns(Enumerable.Empty<Tag>());
         _handler = new UpdateExpenseCommandHandler(_expenseRepository, _capitalRepository, _tagRepository, _unitOfWork, _userMock);

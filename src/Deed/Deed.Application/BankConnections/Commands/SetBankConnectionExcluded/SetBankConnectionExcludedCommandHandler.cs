@@ -16,7 +16,7 @@ internal sealed class SetBankConnectionExcludedCommandHandler(
     public async Task<Result> Handle(SetBankConnectionExcludedCommand command, CancellationToken cancellationToken)
     {
         var connection = await repository
-            .GetAsync(new BankConnectionByIdSpecification(command.Id, user.Name!, tracking: true), cancellationToken)
+            .GetAsync(new BankConnectionByIdSpecification(command.Id, user.Id, tracking: true), cancellationToken)
             .ConfigureAwait(false);
 
         if (connection is null)

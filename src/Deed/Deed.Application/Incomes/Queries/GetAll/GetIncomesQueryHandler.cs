@@ -14,9 +14,9 @@ internal sealed class GetIncomesQueryHandler(
 {
     public async Task<Result<IEnumerable<IncomeResponse>>> Handle(GetIncomesQuery query, CancellationToken cancellationToken)
     {
-        ArgumentException.ThrowIfNullOrEmpty(user.Name);
+        ArgumentException.ThrowIfNullOrEmpty(user.Id);
 
-        var incomes = (await incomeRepository.GetAllAsync(new IncomesByQuerySpecification(user.Name, ToOffset(query.PeriodStart), ToOffset(query.PeriodEnd)), cancellationToken).ConfigureAwait(false)).ToResponses();
+        var incomes = (await incomeRepository.GetAllAsync(new IncomesByQuerySpecification(user.Id, ToOffset(query.PeriodStart), ToOffset(query.PeriodEnd)), cancellationToken).ConfigureAwait(false)).ToResponses();
         return Result.Success(incomes);
     }
 

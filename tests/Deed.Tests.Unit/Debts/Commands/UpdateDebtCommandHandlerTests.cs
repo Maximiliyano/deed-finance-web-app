@@ -26,7 +26,7 @@ public sealed class UpdateDebtCommandHandlerTests
 
     public UpdateDebtCommandHandlerTests()
     {
-        _userMock.Name.Returns("testuser");
+        _userMock.Id.Returns("testuser");
         _handler = new UpdateDebtCommandHandler(_repositoryMock, _capitalRepositoryMock, _ratesMock, _unitOfWorkMock, _userMock);
     }
 

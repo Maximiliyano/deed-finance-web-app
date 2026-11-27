@@ -21,7 +21,7 @@ public sealed class DeleteDebtCommandHandlerTests
 
     public DeleteDebtCommandHandlerTests()
     {
-        _userMock.Name.Returns("testuser");
+        _userMock.Id.Returns("testuser");
         _handler = new DeleteDebtCommandHandler(_repositoryMock, _unitOfWorkMock, _userMock);
     }
 

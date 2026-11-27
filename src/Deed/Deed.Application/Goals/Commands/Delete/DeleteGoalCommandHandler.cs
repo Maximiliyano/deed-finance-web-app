@@ -17,7 +17,7 @@ internal sealed class DeleteGoalCommandHandler(
     public async Task<Result> Handle(DeleteGoalCommand command, CancellationToken cancellationToken)
     {
         var goal = await repository
-            .GetAsync(new GoalByIdSpecification(command.Id, user.Name), cancellationToken)
+            .GetAsync(new GoalByIdSpecification(command.Id, user.Id), cancellationToken)
             .ConfigureAwait(false);
 
         if (goal is null)

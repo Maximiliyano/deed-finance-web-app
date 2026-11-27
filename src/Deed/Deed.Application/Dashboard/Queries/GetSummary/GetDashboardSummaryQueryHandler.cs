@@ -25,13 +25,13 @@ internal sealed class GetDashboardSummaryQueryHandler(
 
     public async Task<Result<DashboardSummaryResponse>> Handle(GetDashboardSummaryQuery query, CancellationToken cancellationToken)
     {
-        ArgumentException.ThrowIfNullOrEmpty(user.Name);
+        ArgumentException.ThrowIfNullOrEmpty(user.Id);
 
         var currency = await ResolveCurrencyAsync(query.Currency, cancellationToken).ConfigureAwait(false);
         var converter = new CurrencyConverter(await exchangeRateProvider.GetLatestAsync(cancellationToken).ConfigureAwait(false));
 
         var capitals = await capitalRepository
-            .GetAllAsync(new CapitalsByQueryParamsSpecification(user.Name), cancellationToken)
+            .GetAllAsync(new CapitalsByQueryParamsSpecification(user.Id), cancellationToken)
             .ConfigureAwait(false);
 
         var capitalIds = query.CapitalIds is { Count: > 0 } ? query.CapitalIds : null;
@@ -39,11 +39,11 @@ internal sealed class GetDashboardSummaryQueryHandler(
         var periodEnd = ToUtc(query.PeriodEnd);
 
         var incomes = await incomeRepository
-            .GetTotalsByCategoryAsync(user.Name, capitalIds, periodStart, periodEnd, cancellationToken)
+            .GetTotalsByCategoryAsync(user.Id, capitalIds, periodStart, periodEnd, cancellationToken)
             .ConfigureAwait(false);
 
         var expenses = await expenseRepository
-            .GetTotalsByCategoryAsync(user.Name, capitalIds, periodStart, periodEnd, cancellationToken)
+            .GetTotalsByCategoryAsync(user.Id, capitalIds, periodStart, periodEnd, cancellationToken)
             .ConfigureAwait(false);
 
         var budgets = await GetBudgetsAsync(query, capitalIds, cancellationToken).ConfigureAwait(false);
@@ -74,7 +74,7 @@ internal sealed class GetDashboardSummaryQueryHandler(
         }
 
         var estimations = await budgetEstimationRepository
-            .GetAllAsync(new BudgetEstimationsByUserSpecification(query.PeriodStart.Value, query.PeriodEnd.Value, user.Name!), cancellationToken)
+            .GetAllAsync(new BudgetEstimationsByUserSpecification(query.PeriodStart.Value, query.PeriodEnd.Value, user.Id), cancellationToken)
             .ConfigureAwait(false);
 
         return [.. estimations.Where(e => capitalIds is null || e.CapitalId.HasValue && capitalIds.Contains(e.CapitalId.Value))];
@@ -90,7 +90,7 @@ internal sealed class GetDashboardSummaryQueryHandler(
             return Enum.Parse<CurrencyType>(requested);
         }
 
-        var settings = await userSettingsRepository.GetAsync(user.Name!, cancellationToken).ConfigureAwait(false);
+        var settings = await userSettingsRepository.GetAsync(user.Id, cancellationToken).ConfigureAwait(false);
 
         return settings is null || settings.Currency == CurrencyType.None ? DefaultCurrency : settings.Currency;
     }

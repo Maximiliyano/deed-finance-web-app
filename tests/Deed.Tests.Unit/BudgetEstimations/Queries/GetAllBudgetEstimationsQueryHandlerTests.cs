@@ -20,7 +20,7 @@ public sealed class GetAllBudgetEstimationsQueryHandlerTests
 
     public GetAllBudgetEstimationsQueryHandlerTests()
     {
-        _userMock.Name.Returns("testuser");
+        _userMock.Id.Returns("testuser");
         _handler = new GetAllBudgetEstimationsQueryHandler(_repositoryMock, _userMock);
     }
 

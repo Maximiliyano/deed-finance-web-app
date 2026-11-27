@@ -19,7 +19,7 @@ public sealed class GetAllUtilityBillsQueryHandlerTests
 
     public GetAllUtilityBillsQueryHandlerTests()
     {
-        _userMock.Name.Returns("testuser");
+        _userMock.Id.Returns("testuser");
         _handler = new GetAllUtilityBillsQueryHandler(_repositoryMock, _expenseRepositoryMock, _userMock);
     }
 

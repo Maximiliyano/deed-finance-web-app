@@ -10,7 +10,7 @@ internal sealed class Get : IEndpoint
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
         app.MapGet("api/user-settings", async (IUser user, ISender sender, CancellationToken ct) =>
-            (await sender.Send(new GetUserSettingsQuery(user.Name!), ct)).Process())
+            (await sender.Send(new GetUserSettingsQuery(user.Id), ct)).Process())
                 .RequireAuthorization()
                 .WithTags(nameof(UserSettings));
     }

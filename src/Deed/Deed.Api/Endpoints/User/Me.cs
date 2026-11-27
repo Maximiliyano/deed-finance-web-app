@@ -13,16 +13,16 @@ internal sealed class Me : IEndpoint
     {
         app.MapGet("api/users/me", async (IUser user, ISender sender, ICacheService cacheService) =>
         {
-            if (user.Name is null)
+            if (user.Id is null)
             {
                 return Results.InternalServerError(DomainErrors.Anonymous.NameInvalid);
             }
 
-            var userSettingRetrievalResult = await sender.Send(new GetUserSettingsQuery(user.Name));
+            var userSettingRetrievalResult = await sender.Send(new GetUserSettingsQuery(user.Id));
             UserSettingsResponse? userSettings = userSettingRetrievalResult.Value;
             
             return Results.Ok(new UserResponse(
-                user.ExternalId,
+                user.Id,
                 user.Email,
                 user.IsEmailVerified,
                 user.Name,

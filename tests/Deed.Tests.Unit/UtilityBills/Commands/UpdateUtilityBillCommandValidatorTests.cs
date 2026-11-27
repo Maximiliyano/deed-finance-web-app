@@ -17,7 +17,7 @@ public sealed class UpdateUtilityBillCommandValidatorTests
 
     public UpdateUtilityBillCommandValidatorTests()
     {
-        _user.Name.Returns("testuser");
+        _user.Id.Returns("testuser");
         _capitalRepository.AnyAsync(Arg.Any<ISpecification<Capital>>(), Arg.Any<CancellationToken>()).Returns(true);
         _categoryRepository.GetAsync(Arg.Any<ISpecification<Category>>(), Arg.Any<CancellationToken>())
             .Returns(new Category { Name = "Utilities", Type = CategoryType.Expenses });

@@ -15,7 +15,7 @@ internal sealed class GetAllGoalsQueryHandler(IGoalRepository repository, IUser 
         CancellationToken cancellationToken)
     {
         var goals = await repository
-            .GetAllAsync(new GoalsByUserSpecification(user.Name!), cancellationToken)
+            .GetAllAsync(new GoalsByUserSpecification(user.Id), cancellationToken)
             .ConfigureAwait(false);
 
         return Result.Success(goals.ToResponses());

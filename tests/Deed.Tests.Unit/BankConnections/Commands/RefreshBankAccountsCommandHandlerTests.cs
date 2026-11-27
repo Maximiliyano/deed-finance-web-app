@@ -13,7 +13,7 @@ public sealed class RefreshBankAccountsCommandHandlerTests
     {
         // Arrange
         var user = Substitute.For<IUser>();
-        user.Name.Returns("owner");
+        user.Id.Returns("owner");
         var service = Substitute.For<IBankAccountRefreshService>();
         service.RefreshUserAsync("owner", Arg.Any<CancellationToken>()).Returns(3);
         var handler = new RefreshBankAccountsCommandHandler(user, service);

@@ -49,7 +49,7 @@ internal sealed class UpdateAuditableEntitiesInterceptor(IDateTimeProvider dateT
             .Where(e => e.State == EntityState.Added || e.State == EntityState.Modified)
             .ToList();
 
-        var username = accessor.HttpContext?.User.FindFirst(x => x.Type == "name")?.Value ?? SystemUser.Name;
+        var username = accessor.HttpContext?.User.FindFirst(x => x.Type == "sub")?.Value ?? SystemUser.Name;
 
         foreach (var entry in entries)
         {

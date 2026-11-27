@@ -54,5 +54,8 @@ public static class ValidationErrors
 
         public static Error InvalidCurrencyType
             => Error.BadRequest(nameof(InvalidCurrencyType), "The currency type is invalid.");
+
+        public static Error InvalidTheme
+            => Error.BadRequest(nameof(InvalidTheme), "The theme is invalid.");
     }
 }

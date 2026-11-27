@@ -23,7 +23,7 @@ internal sealed class UpdateDebtCommandHandler(
     public async Task<Result> Handle(UpdateDebtCommand command, CancellationToken cancellationToken)
     {
         var debt = await repository
-            .GetAsync(new DebtByIdSpecification(command.Id, user.Name), cancellationToken)
+            .GetAsync(new DebtByIdSpecification(command.Id, user.Id), cancellationToken)
             .ConfigureAwait(false);
 
         if (debt is null)
@@ -51,7 +51,7 @@ internal sealed class UpdateDebtCommandHandler(
         if (becomingPaid && command.PayFromCapitalId.HasValue)
         {
             var capital = await capitalRepository
-                .GetAsync(new CapitalByIdSpecification(command.PayFromCapitalId.Value, user.Name), cancellationToken)
+                .GetAsync(new CapitalByIdSpecification(command.PayFromCapitalId.Value, user.Id), cancellationToken)
                 .ConfigureAwait(false);
 
             if (capital is null)

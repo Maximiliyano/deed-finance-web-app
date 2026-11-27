@@ -21,17 +21,17 @@ internal sealed class GetBankNotificationsQueryHandler(
         var limit = Math.Clamp(query.Limit, 1, MaxLimit);
 
         var connections = await connectionRepository
-            .GetAllAsync(new BankConnectionByUserSpecification(user.Name!), cancellationToken)
+            .GetAllAsync(new BankConnectionByUserSpecification(user.Id), cancellationToken)
             .ConfigureAwait(false);
 
         var (connectionIds, _) = BankConnectionScope.Resolve(connections, null, null);
 
         var items = await repository
-            .GetAllAsync(new BankNotificationsByUserSpecification(user.Name!, query.UnreadOnly, take: limit, connectionIds: connectionIds), cancellationToken)
+            .GetAllAsync(new BankNotificationsByUserSpecification(user.Id, query.UnreadOnly, take: limit, connectionIds: connectionIds), cancellationToken)
             .ConfigureAwait(false);
 
         var unread = await repository
-            .CountAsync(new BankNotificationsByUserSpecification(user.Name!, unreadOnly: true, connectionIds: connectionIds), cancellationToken)
+            .CountAsync(new BankNotificationsByUserSpecification(user.Id, unreadOnly: true, connectionIds: connectionIds), cancellationToken)
             .ConfigureAwait(false);
 
         return Result.Success(new BankNotificationsResponse(unread, items.ToResponses()));

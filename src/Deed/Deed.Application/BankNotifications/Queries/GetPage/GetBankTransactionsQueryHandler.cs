@@ -38,17 +38,17 @@ internal sealed class GetBankTransactionsQueryHandler(
             : null;
 
         var connections = await connectionRepository
-            .GetAllAsync(new BankConnectionByUserSpecification(user.Name!), cancellationToken)
+            .GetAllAsync(new BankConnectionByUserSpecification(user.Id), cancellationToken)
             .ConfigureAwait(false);
 
         var (connectionIds, includeUnassigned) = BankConnectionScope.Resolve(connections, query.Provider, query.ConnectionId);
 
         var total = await repository
-            .CountAsync(new BankTransactionsByUserSpecification(user.Name!, type, importStatus: status, connectionId: query.ConnectionId, connectionIds: connectionIds, includeUnassigned: includeUnassigned, currency: currency, search: search, amount: amount, from: query.From, to: query.To), cancellationToken)
+            .CountAsync(new BankTransactionsByUserSpecification(user.Id, type, importStatus: status, connectionId: query.ConnectionId, connectionIds: connectionIds, includeUnassigned: includeUnassigned, currency: currency, search: search, amount: amount, from: query.From, to: query.To), cancellationToken)
             .ConfigureAwait(false);
 
         var items = await repository
-            .GetAllAsync(new BankTransactionsByUserSpecification(user.Name!, type, (page - 1) * pageSize, pageSize, status, query.ConnectionId, connectionIds, includeUnassigned, currency, search, amount, query.From, query.To), cancellationToken)
+            .GetAllAsync(new BankTransactionsByUserSpecification(user.Id, type, (page - 1) * pageSize, pageSize, status, query.ConnectionId, connectionIds, includeUnassigned, currency, search, amount, query.From, query.To), cancellationToken)
             .ConfigureAwait(false);
 
         return Result.Success(new BankTransactionsPageResponse(total, page, pageSize, items.ToResponses()));

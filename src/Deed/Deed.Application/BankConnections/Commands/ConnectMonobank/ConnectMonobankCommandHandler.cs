@@ -54,7 +54,7 @@ internal sealed class ConnectMonobankCommandHandler(
         IReadOnlyCollection<BankTransaction> history = check.IsSuccess ? check.Value : [];
 
         var existing = await repository
-            .GetAsync(new BankConnectionByAccountSpecification(user.Name!, BankProvider.Monobank, iban, tracking: true), cancellationToken)
+            .GetAsync(new BankConnectionByAccountSpecification(user.Id, BankProvider.Monobank, iban, tracking: true), cancellationToken)
             .ConfigureAwait(false);
 
         var encrypted = tokenProtector.Protect(token);
@@ -93,7 +93,7 @@ internal sealed class ConnectMonobankCommandHandler(
         await unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         var imported = await syncService
-            .StageHistoryAsync(user.Name!, label, connection.Id, connection.Currency, history, cancellationToken)
+            .StageHistoryAsync(user.Id, label, connection.Id, connection.Currency, history, cancellationToken)
             .ConfigureAwait(false);
 
         connection.BackfillFrom ??= now.AddDays(-FullHistoryDays);
@@ -103,7 +103,7 @@ internal sealed class ConnectMonobankCommandHandler(
 
         await backfillTrigger.TriggerAsync(cancellationToken).ConfigureAwait(false);
 
-        Log.Information("Monobank connection saved for {User}, imported {Imported} historical transactions", user.Name, imported);
+        Log.Information("Monobank connection saved for {User}, imported {Imported} historical transactions", user.Id, imported);
 
         return Result.Success();
     }

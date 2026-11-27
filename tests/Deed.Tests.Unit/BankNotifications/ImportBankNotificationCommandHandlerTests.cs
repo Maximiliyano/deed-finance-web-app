@@ -33,7 +33,7 @@ public sealed class ImportBankNotificationCommandHandlerTests
     public ImportBankNotificationCommandHandlerTests()
     {
         var user = Substitute.For<IUser>();
-        user.Name.Returns("owner");
+        user.Id.Returns("owner");
         _notificationsMock.GetAsync(Arg.Any<BankNotificationsByUserSpecification>(), Arg.Any<CancellationToken>()).Returns(_notification);
         _connectionsMock
             .GetAsync(Arg.Any<BankConnectionByIdSpecification>(), Arg.Any<CancellationToken>())

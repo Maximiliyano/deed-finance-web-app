@@ -15,7 +15,7 @@ internal sealed class GetAllBudgetEstimationsQueryHandler(IBudgetEstimationRepos
         CancellationToken cancellationToken)
     {
         var estimations = await repository
-            .GetAllAsync(new BudgetEstimationsByUserSpecification(query.PeriodStart, query.PeriodEnd, user.Name!, includeCapital: true), cancellationToken)
+            .GetAllAsync(new BudgetEstimationsByUserSpecification(query.PeriodStart, query.PeriodEnd, user.Id, includeCapital: true), cancellationToken)
             .ConfigureAwait(false);
 
         return Result.Success(estimations.ToResponses());

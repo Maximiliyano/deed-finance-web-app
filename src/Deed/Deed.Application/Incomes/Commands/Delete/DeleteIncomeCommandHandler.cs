@@ -17,7 +17,7 @@ internal sealed class DeleteIncomeCommandHandler(
 {
     public async Task<Result> Handle(DeleteIncomeCommand command, CancellationToken cancellationToken)
     {
-        var income = await incomeRepository.GetAsync(new IncomeByIdSpecification(command.Id, user.Name), cancellationToken).ConfigureAwait(false);
+        var income = await incomeRepository.GetAsync(new IncomeByIdSpecification(command.Id, user.Id), cancellationToken).ConfigureAwait(false);
 
         if (income is null || income.Capital is null)
         {

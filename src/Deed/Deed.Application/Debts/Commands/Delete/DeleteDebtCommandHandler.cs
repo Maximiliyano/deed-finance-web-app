@@ -17,7 +17,7 @@ internal sealed class DeleteDebtCommandHandler(
     public async Task<Result> Handle(DeleteDebtCommand command, CancellationToken cancellationToken)
     {
         var debt = await repository
-            .GetAsync(new DebtByIdSpecification(command.Id, user.Name), cancellationToken)
+            .GetAsync(new DebtByIdSpecification(command.Id, user.Id), cancellationToken)
             .ConfigureAwait(false);
 
         if (debt is null)

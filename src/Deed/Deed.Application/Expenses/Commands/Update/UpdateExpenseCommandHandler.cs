@@ -20,7 +20,7 @@ internal sealed class UpdateExpenseCommandHandler(
 {
     public async Task<Result> Handle(UpdateExpenseCommand command, CancellationToken cancellationToken)
     {
-        var expense = await expenseRepository.GetAsync(new ExpenseByIdSpecification(command.Id, user.Name, includeCapital: true, includeCategory: true, includeTags: true, enableTracking: true), cancellationToken).ConfigureAwait(false);
+        var expense = await expenseRepository.GetAsync(new ExpenseByIdSpecification(command.Id, user.Id, includeCapital: true, includeCategory: true, includeTags: true, enableTracking: true), cancellationToken).ConfigureAwait(false);
 
         if (expense?.Capital is null || expense?.Category is null)
         {
@@ -43,7 +43,7 @@ internal sealed class UpdateExpenseCommandHandler(
         if (command.CapitalId.HasValue && command.CapitalId.Value != expense.CapitalId)
         {
             var target = await capitalRepository
-                .GetAsync(new CapitalByIdSpecification(command.CapitalId.Value, user.Name), cancellationToken)
+                .GetAsync(new CapitalByIdSpecification(command.CapitalId.Value, user.Id), cancellationToken)
                 .ConfigureAwait(false);
 
             if (target is null)

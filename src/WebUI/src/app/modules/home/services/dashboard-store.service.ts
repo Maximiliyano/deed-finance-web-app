@@ -50,7 +50,7 @@ export class DashboardStore {
   readonly exchanges = toSignal(this.exchangeService.getLatest(), { initialValue: [] });
 
   readonly isAnonymous = computed(() => !this.user());
-  readonly userCurrency = computed(() => this.settings()?.currency ?? this.user()?.currency ?? CURRENCY_DEFAULT);
+  readonly userCurrency = computed(() => this.settings()?.currency ?? CURRENCY_DEFAULT);
   readonly showDualCurrency = computed(() => this.userCurrency() !== CURRENCY_DEFAULT);
   readonly hasCapitalFilter = computed(() => this.selectedCapitalIds().size > 0);
 

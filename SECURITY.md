@@ -30,7 +30,7 @@ This is a personal project maintained on a best-effort basis. Reports are acknow
 Areas that are in scope:
 
 - **Authentication and sessions** - Auth0 OpenID Connect with an HttpOnly, `SameSite=Lax`, secure cookie (1 hour sliding expiration); data protection keys are stored in the database.
-- **Authorization and data isolation** - user data is scoped by the `CreatedBy` value (the OIDC `name` claim). Most API endpoints also accept anonymous callers, who share a single `System` user and are limited to 3 created items per entity.
+- **Authorization and data isolation** - user data is scoped by the `CreatedBy` value (the OIDC `sub` claim). Most API endpoints also accept anonymous callers, who share a single `System` user and are limited to 3 created items per entity.
 - **API surface** - ASP.NET Core Minimal API (`/api/*`), CORS restricted to the configured `WebUrlSettings:UIUrl` with credentials, FluentValidation on commands.
 - **Netlify proxy** - `src/WebUI/netlify/functions/api.mts` forwards `/api/*`, `/signin-oidc` and `/signout-callback-oidc` to the backend and adds an `X-Internal-Proxy-Key` header, which the API checks in constant time (`ProxySettings:Key`) and rejects with 403 when it is missing. The API also sends security headers (nosniff, frame deny, no-referrer, CSP `default-src 'none'`, `Cache-Control: no-store` unless set) and rate-limits per user or client IP (`RateLimitSettings`).
 - **Third-party integrations** - PrivatBank rates API, Monobank personal API token (`BankSettings:ApiKey`) and SMTP credentials.

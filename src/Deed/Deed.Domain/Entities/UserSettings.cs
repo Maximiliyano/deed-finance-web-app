@@ -10,6 +10,8 @@ public sealed class UserSettings : Entity, IAuditableEntity
 
     public CurrencyType Currency { get; set; }
 
+    public ThemeType Theme { get; set; }
+
     public bool BalanceReminderEnabled { get; set; }
 
     public string? BalanceReminderCron { get; set; }

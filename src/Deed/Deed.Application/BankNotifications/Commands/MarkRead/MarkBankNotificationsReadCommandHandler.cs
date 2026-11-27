@@ -14,7 +14,7 @@ internal sealed class MarkBankNotificationsReadCommandHandler(
     {
         var ids = command.Ids is { Count: > 0 } ? command.Ids : null;
 
-        await repository.MarkReadAsync(user.Name!, ids, cancellationToken).ConfigureAwait(false);
+        await repository.MarkReadAsync(user.Id, ids, cancellationToken).ConfigureAwait(false);
 
         return Result.Success();
     }

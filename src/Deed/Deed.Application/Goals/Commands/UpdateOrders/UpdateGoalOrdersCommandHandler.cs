@@ -13,9 +13,9 @@ internal sealed class UpdateGoalOrdersCommandHandler(
 {
     public async Task<Result> Handle(UpdateGoalOrdersCommand request, CancellationToken cancellationToken)
     {
-        ArgumentNullException.ThrowIfNullOrEmpty(user.Name);
+        ArgumentNullException.ThrowIfNullOrEmpty(user.Id);
 
-        await repository.UpdateOrderIndexesAsync([.. request.Goals.Select(e => (e.Id, e.OrderIndex))], user.Name, cancellationToken).ConfigureAwait(false);
+        await repository.UpdateOrderIndexesAsync([.. request.Goals.Select(e => (e.Id, e.OrderIndex))], user.Id, cancellationToken).ConfigureAwait(false);
         await unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         return Result.Success();

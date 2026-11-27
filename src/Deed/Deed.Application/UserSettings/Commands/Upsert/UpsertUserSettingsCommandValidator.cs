@@ -13,6 +13,10 @@ internal sealed class UpsertUserSettingsCommandValidator : AbstractValidator<Ups
             .Must(c => Enum.TryParse<CurrencyType>(c, out var pc) && !pc.Equals(CurrencyType.None))
             .WithError(ValidationErrors.General.InvalidCurrencyType);
 
+        RuleFor(c => c.Theme)
+            .Must(t => Enum.TryParse<ThemeType>(t, out _))
+            .WithError(ValidationErrors.General.InvalidTheme);
+
         RuleFor(c => c.BalanceReminderCron)
             .MaximumLength(128);
 

@@ -27,7 +27,7 @@ internal sealed class ConnectBankAccountCommandHandler(
     public async Task<Result> Handle(ConnectBankAccountCommand command, CancellationToken cancellationToken)
     {
         var account = await accountRepository
-            .GetAsync(new BankAccountByIdSpecification(command.Id, user.Name!), cancellationToken)
+            .GetAsync(new BankAccountByIdSpecification(command.Id, user.Id), cancellationToken)
             .ConfigureAwait(false);
 
         if (account is null)
@@ -36,7 +36,7 @@ internal sealed class ConnectBankAccountCommandHandler(
         }
 
         var existing = await connectionRepository
-            .GetAsync(new BankConnectionByAccountSpecification(user.Name!, account.Provider, account.Iban), cancellationToken)
+            .GetAsync(new BankConnectionByAccountSpecification(user.Id, account.Provider, account.Iban), cancellationToken)
             .ConfigureAwait(false);
 
         if (existing is not null)
@@ -45,7 +45,7 @@ internal sealed class ConnectBankAccountCommandHandler(
         }
 
         var source = await connectionRepository
-            .GetAsync(new BankConnectionByIdSpecification(account.SourceConnectionId, user.Name!), cancellationToken)
+            .GetAsync(new BankConnectionByIdSpecification(account.SourceConnectionId, user.Id), cancellationToken)
             .ConfigureAwait(false);
 
         if (source is null || source.Status != BankConnectionStatus.Active)
@@ -74,7 +74,7 @@ internal sealed class ConnectBankAccountCommandHandler(
 
         await backfillTrigger.TriggerAsync(cancellationToken).ConfigureAwait(false);
 
-        Log.Information("Bank account {Id} connected for {User}", account.Id, user.Name);
+        Log.Information("Bank account {Id} connected for {User}", account.Id, user.Id);
 
         return Result.Success();
     }

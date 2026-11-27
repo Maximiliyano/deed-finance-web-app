@@ -95,7 +95,9 @@ export class BudgetEstimationService {
     const previous = this.state$.value;
     const orderMap = new Map(estimations.map(o => [o.id, o.orderIndex]));
     this.state$.next(
-      [...previous].sort((a, b) => (orderMap.get(a.id) ?? a.orderIndex) - (orderMap.get(b.id) ?? b.orderIndex))
+      previous
+        .map(estimation => ({ ...estimation, orderIndex: orderMap.get(estimation.id) ?? estimation.orderIndex }))
+        .sort((a, b) => a.orderIndex - b.orderIndex)
     );
     return this.http.put<void>(`${this.baseUrl}/orders`, { estimations }).pipe(
       catchError(err => {

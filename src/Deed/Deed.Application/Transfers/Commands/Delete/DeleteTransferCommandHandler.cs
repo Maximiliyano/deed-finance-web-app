@@ -19,7 +19,7 @@ internal sealed class DeleteTransferCommandHandler(
     public async Task<Result> Handle(DeleteTransferCommand command, CancellationToken cancellationToken)
     {
         var transfer = await transferRepository
-            .GetAsync(new TransferByIdSpecification(command.Id, user.Name), cancellationToken)
+            .GetAsync(new TransferByIdSpecification(command.Id, user.Id), cancellationToken)
             .ConfigureAwait(false);
 
         if (transfer is null)
@@ -28,11 +28,11 @@ internal sealed class DeleteTransferCommandHandler(
         }
 
         var source = await capitalRepository
-            .GetAsync(new CapitalByIdSpecification(transfer.SourceCapitalId, user.Name), cancellationToken)
+            .GetAsync(new CapitalByIdSpecification(transfer.SourceCapitalId, user.Id), cancellationToken)
             .ConfigureAwait(false);
 
         var destination = await capitalRepository
-            .GetAsync(new CapitalByIdSpecification(transfer.DestinationCapitalId, user.Name), cancellationToken)
+            .GetAsync(new CapitalByIdSpecification(transfer.DestinationCapitalId, user.Id), cancellationToken)
             .ConfigureAwait(false);
 
         if (source is not null)

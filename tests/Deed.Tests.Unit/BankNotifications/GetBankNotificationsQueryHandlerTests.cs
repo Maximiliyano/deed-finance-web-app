@@ -22,7 +22,7 @@ public sealed class GetBankNotificationsQueryHandlerTests
 
     public GetBankNotificationsQueryHandlerTests()
     {
-        _userMock.Name.Returns("owner");
+        _userMock.Id.Returns("owner");
         _connectionsMock
             .GetAllAsync(Arg.Any<BankConnectionByUserSpecification>(), Arg.Any<CancellationToken>())
             .Returns(

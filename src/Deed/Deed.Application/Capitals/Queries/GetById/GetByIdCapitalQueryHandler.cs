@@ -13,7 +13,7 @@ internal sealed class GetByIdCapitalQueryHandler(ICapitalRepository repository, 
 {
     public async Task<Result<CapitalResponse>> Handle(GetByIdCapitalQuery query, CancellationToken cancellationToken)
     {
-        var summaries = await repository.GetSummariesAsync(new CapitalByIdSpecification(query.Id, user.Name), cancellationToken).ConfigureAwait(false);
+        var summaries = await repository.GetSummariesAsync(new CapitalByIdSpecification(query.Id, user.Id), cancellationToken).ConfigureAwait(false);
 
         var summary = summaries.SingleOrDefault();
 

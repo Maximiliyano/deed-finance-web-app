@@ -16,7 +16,7 @@ public sealed class PatchCapitalSetForSavingsCommandHandlerTests
 
     public PatchCapitalSetForSavingsCommandHandlerTests()
     {
-        _user.Name.Returns("testuser");
+        _user.Id.Returns("testuser");
         _handler = new PatchCapitalSetForSavingsCommandHandler(_repository, _user);
     }
 

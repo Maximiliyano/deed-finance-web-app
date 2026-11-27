@@ -92,7 +92,9 @@ export class DebtService {
     const previous = this.state$.value;
     const orderMap = new Map(debts.map(o => [o.id, o.orderIndex]));
     this.state$.next(
-      [...previous].sort((a, b) => (orderMap.get(a.id) ?? a.orderIndex) - (orderMap.get(b.id) ?? b.orderIndex))
+      previous
+        .map(debt => ({ ...debt, orderIndex: orderMap.get(debt.id) ?? debt.orderIndex }))
+        .sort((a, b) => a.orderIndex - b.orderIndex)
     );
     return this.http.put<void>(`${this.baseUrl}/orders`, { debts }).pipe(
       catchError(err => {

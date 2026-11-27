@@ -15,7 +15,7 @@ internal sealed class DeleteCapitalCommandHandler(
 {
     public async Task<Result> Handle(DeleteCapitalCommand command, CancellationToken cancellationToken)
     {
-        var capital = await repository.GetAsync(new CapitalByIdSpecification(command.Id, user.Name), cancellationToken).ConfigureAwait(false);
+        var capital = await repository.GetAsync(new CapitalByIdSpecification(command.Id, user.Id), cancellationToken).ConfigureAwait(false);
 
         if (capital is null)
         {

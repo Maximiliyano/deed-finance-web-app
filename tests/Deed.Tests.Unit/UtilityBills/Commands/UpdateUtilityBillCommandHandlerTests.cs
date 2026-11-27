@@ -20,7 +20,7 @@ public sealed class UpdateUtilityBillCommandHandlerTests
 
     public UpdateUtilityBillCommandHandlerTests()
     {
-        _userMock.Name.Returns("testuser");
+        _userMock.Id.Returns("testuser");
         _handler = new UpdateUtilityBillCommandHandler(_repositoryMock, _unitOfWorkMock, _userMock);
     }
 

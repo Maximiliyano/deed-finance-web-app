@@ -16,7 +16,7 @@ internal sealed class CreateExpenseTagCommandHandler(
 {
     public async Task<Result<int>> Handle(CreateExpenseTagCommand command, CancellationToken cancellationToken)
     {
-        var expense = await expenseRepository.GetAsync(new ExpenseByIdSpecification(command.ExpenseId, user.Name, enableTracking: true), cancellationToken);
+        var expense = await expenseRepository.GetAsync(new ExpenseByIdSpecification(command.ExpenseId, user.Id, enableTracking: true), cancellationToken);
 
         if (expense is null)
         {

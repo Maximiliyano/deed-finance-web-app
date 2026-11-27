@@ -17,7 +17,7 @@ public sealed class GetAllExpenseTagsQueryHandlerTests
 
     public GetAllExpenseTagsQueryHandlerTests()
     {
-        _user.Name.Returns("testuser");
+        _user.Id.Returns("testuser");
         _handler = new GetAllExpenseTagsQueryHandler(_repository, _user);
     }
 

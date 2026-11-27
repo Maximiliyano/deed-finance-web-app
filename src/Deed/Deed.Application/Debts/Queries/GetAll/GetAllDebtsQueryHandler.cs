@@ -15,7 +15,7 @@ internal sealed class GetAllDebtsQueryHandler(IDebtRepository repository, IUser 
         CancellationToken cancellationToken)
     {
         var debts = await repository
-            .GetAllAsync(new DebtsByUserSpecification(user.Name!), cancellationToken)
+            .GetAllAsync(new DebtsByUserSpecification(user.Id), cancellationToken)
             .ConfigureAwait(false);
 
         return Result.Success(debts.ToResponses());

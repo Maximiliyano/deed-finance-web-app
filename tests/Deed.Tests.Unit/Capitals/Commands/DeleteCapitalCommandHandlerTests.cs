@@ -21,7 +21,7 @@ public sealed class DeleteCapitalCommandHandlerTests
 
     public DeleteCapitalCommandHandlerTests()
     {
-        _userMock.Name.Returns("testUser");
+        _userMock.Id.Returns("testUser");
         _handler = new DeleteCapitalCommandHandler(_capitalRepositoryMock, _unitOfWorkMock, _userMock);
     }
 

@@ -23,7 +23,7 @@ internal sealed class PayUtilityBillCommandHandler(
     public async Task<Result<int>> Handle(PayUtilityBillCommand command, CancellationToken cancellationToken)
     {
         var bill = await billRepository
-            .GetAsync(new UtilityBillByIdSpecification(command.Id, user.Name), cancellationToken)
+            .GetAsync(new UtilityBillByIdSpecification(command.Id, user.Id), cancellationToken)
             .ConfigureAwait(false);
 
         if (bill is null)
@@ -32,7 +32,7 @@ internal sealed class PayUtilityBillCommandHandler(
         }
 
         var capital = await capitalRepository
-            .GetAsync(new CapitalByIdSpecification(bill.CapitalId, user.Name), cancellationToken)
+            .GetAsync(new CapitalByIdSpecification(bill.CapitalId, user.Id), cancellationToken)
             .ConfigureAwait(false);
 
         if (capital is null)

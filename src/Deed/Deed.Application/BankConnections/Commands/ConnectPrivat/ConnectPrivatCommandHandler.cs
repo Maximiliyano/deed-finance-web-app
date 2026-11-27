@@ -43,7 +43,7 @@ internal sealed class ConnectPrivatCommandHandler(
         }
 
         var existing = await repository
-            .GetAsync(new BankConnectionByAccountSpecification(user.Name!, BankProvider.PrivatAutoclient, iban, tracking: true), cancellationToken)
+            .GetAsync(new BankConnectionByAccountSpecification(user.Id, BankProvider.PrivatAutoclient, iban, tracking: true), cancellationToken)
             .ConfigureAwait(false);
 
         var encrypted = tokenProtector.Protect(token);
@@ -80,7 +80,7 @@ internal sealed class ConnectPrivatCommandHandler(
         await unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         var imported = await syncService
-            .StageHistoryAsync(user.Name!, label, connection.Id, connection.Currency, check.Value, cancellationToken)
+            .StageHistoryAsync(user.Id, label, connection.Id, connection.Currency, check.Value, cancellationToken)
             .ConfigureAwait(false);
 
         connection.BackfillFrom ??= now.AddDays(-FullHistoryDays);
@@ -90,7 +90,7 @@ internal sealed class ConnectPrivatCommandHandler(
 
         await backfillTrigger.TriggerAsync(cancellationToken).ConfigureAwait(false);
 
-        Log.Information("Bank connection saved for {User}, imported {Imported} historical transactions", user.Name, imported);
+        Log.Information("Bank connection saved for {User}, imported {Imported} historical transactions", user.Id, imported);
 
         return Result.Success();
     }

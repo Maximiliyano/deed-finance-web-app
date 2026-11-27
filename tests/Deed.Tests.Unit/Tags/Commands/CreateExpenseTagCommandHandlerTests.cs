@@ -17,7 +17,7 @@ public sealed class CreateExpenseTagCommandHandlerTests
 
     public CreateExpenseTagCommandHandlerTests()
     {
-        _user.Name.Returns("testuser");
+        _user.Id.Returns("testuser");
         _handler = new CreateExpenseTagCommandHandler(_expenseRepository, _unitOfWork, _user);
     }
 

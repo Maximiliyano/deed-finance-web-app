@@ -2,6 +2,7 @@ namespace Deed.Application.UserSettings.Responses;
 
 public sealed record UserSettingsResponse(
     string Currency,
+    string Theme,
     bool BalanceReminderEnabled,
     string? BalanceReminderCron,
     bool ExpenseReminderEnabled,

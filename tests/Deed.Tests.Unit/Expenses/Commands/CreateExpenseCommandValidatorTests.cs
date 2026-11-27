@@ -24,7 +24,7 @@ public sealed class CreateExpenseCommandValidatorTests
             .Returns(new Category { Name = "Food", Type = CategoryType.Expenses });
         _provider.UtcNow.Returns(DateTimeOffset.UtcNow);
         _provider.MinValue.Returns(DateTime.MinValue);
-        _user.Name.Returns("testuser");
+        _user.Id.Returns("testuser");
         _validator = new CreateExpenseCommandValidator(_categoryRepository, _capitalRepository, _provider, _user);
     }
 

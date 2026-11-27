@@ -19,7 +19,7 @@ public sealed class GetAllIncomesQueryHandlerTests
 
     public GetAllIncomesQueryHandlerTests()
     {
-        _userMock.Name.Returns("testuser");
+        _userMock.Id.Returns("testuser");
         _handler = new GetIncomesQueryHandler(_userMock, _incomeRepositoryMock);
     }
 

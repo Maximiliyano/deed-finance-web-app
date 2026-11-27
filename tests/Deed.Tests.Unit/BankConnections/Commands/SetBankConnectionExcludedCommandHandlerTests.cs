@@ -21,7 +21,7 @@ public sealed class SetBankConnectionExcludedCommandHandlerTests
 
     public SetBankConnectionExcludedCommandHandlerTests()
     {
-        _userMock.Name.Returns("owner");
+        _userMock.Id.Returns("owner");
 
         _handler = new SetBankConnectionExcludedCommandHandler(_userMock, _repositoryMock, _unitOfWorkMock);
     }

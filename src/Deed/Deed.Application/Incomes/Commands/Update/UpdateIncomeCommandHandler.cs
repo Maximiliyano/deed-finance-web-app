@@ -19,7 +19,7 @@ internal sealed class UpdateIncomeCommandHandler(
     public async Task<Result> Handle(UpdateIncomeCommand command, CancellationToken cancellationToken)
     {
         var income = await incomeRepository.GetAsync(
-            new IncomeByIdSpecification(command.Id, user.Name, includeTags: command.TagNames is not null, enableTracking: true), cancellationToken)
+            new IncomeByIdSpecification(command.Id, user.Id, includeTags: command.TagNames is not null, enableTracking: true), cancellationToken)
             .ConfigureAwait(false);
 
         if (income?.Capital is null || income?.Category is null)

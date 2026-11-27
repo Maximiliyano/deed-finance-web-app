@@ -21,7 +21,7 @@ public sealed class DeleteExpenseCommandHandlerTests
 
     public DeleteExpenseCommandHandlerTests()
     {
-        _userMock.Name.Returns("tester");
+        _userMock.Id.Returns("tester");
         _handler = new DeleteExpenseCommandHandler(_capitalRepositoryMock, _expenseRepositoryMock, _unitOfWorkMock, _userMock);
     }
 

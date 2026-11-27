@@ -19,7 +19,7 @@ public sealed class GetByIdCapitalQueryHandlerTests
 
     public GetByIdCapitalQueryHandlerTests()
     {
-        _userMock.Name.Returns("testuser");
+        _userMock.Id.Returns("testuser");
         _handler = new GetByIdCapitalQueryHandler(_repositoryMock, _userMock);
     }
 

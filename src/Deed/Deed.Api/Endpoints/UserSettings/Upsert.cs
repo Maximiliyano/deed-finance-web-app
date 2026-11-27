@@ -19,7 +19,8 @@ internal sealed class Upsert : IEndpoint
                 request.DebtReminderEnabled,
                 request.DebtReminderCron,
                 request.EmailNotificationsEnabled,
-                request.BankAlertsEmailEnabled), ct))
+                request.BankAlertsEmailEnabled,
+                request.Theme), ct))
                 .Process(ResultType.NoContent))
             .AllowAnonymous()
             .WithTags(nameof(UserSettings));

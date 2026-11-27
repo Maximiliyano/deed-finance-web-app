@@ -16,7 +16,7 @@ public sealed class PatchCapitalIncludeInTotalCommandHandlerTests
 
     public PatchCapitalIncludeInTotalCommandHandlerTests()
     {
-        _user.Name.Returns("testuser");
+        _user.Id.Returns("testuser");
         _handler = new PatchCapitalIncludeInTotalCommandHandler(_repository, _user);
     }
 

@@ -23,7 +23,7 @@ public sealed class GetBankTransactionsQueryHandlerTests
     public GetBankTransactionsQueryHandlerTests()
     {
         var user = Substitute.For<IUser>();
-        user.Name.Returns("owner");
+        user.Id.Returns("owner");
         _connectionsMock
             .GetAllAsync(Arg.Any<BankConnectionByUserSpecification>(), Arg.Any<CancellationToken>())
             .Returns(

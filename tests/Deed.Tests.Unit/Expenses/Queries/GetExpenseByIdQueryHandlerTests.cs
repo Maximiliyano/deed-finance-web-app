@@ -19,7 +19,7 @@ public sealed class GetExpenseByIdQueryHandlerTests
 
     public GetExpenseByIdQueryHandlerTests()
     {
-        _userMock.Name.Returns("testuser");
+        _userMock.Id.Returns("testuser");
         _handler = new GetExpenseByIdQueryHandler(_expenseRepositoryMock, _userMock);
     }
 

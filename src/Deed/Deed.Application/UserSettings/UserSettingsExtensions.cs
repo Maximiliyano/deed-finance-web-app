@@ -10,6 +10,7 @@ internal static class UserSettingsExtensions
     internal static UserSettingsResponse ToResponse(this DomainUserSettings settings)
         => new(
             settings.Currency.ToString(),
+            settings.Theme.ToString(),
             settings.BalanceReminderEnabled,
             settings.BalanceReminderCron,
             settings.ExpenseReminderEnabled,
@@ -23,6 +24,7 @@ internal static class UserSettingsExtensions
         => new()
         {
             Currency = Enum.Parse<CurrencyType>(command.Currency),
+            Theme = Enum.Parse<ThemeType>(command.Theme),
             BalanceReminderEnabled = command.BalanceReminderEnabled,
             BalanceReminderCron = command.BalanceReminderCron,
             ExpenseReminderEnabled = command.ExpenseReminderEnabled,

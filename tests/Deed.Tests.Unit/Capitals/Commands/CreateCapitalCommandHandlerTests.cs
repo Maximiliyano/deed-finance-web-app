@@ -62,7 +62,7 @@ public sealed class CreateCapitalCommandHandlerTests
     {
         // Arrange
         _userMock.IsAuthenticated.Returns(false);
-        _userMock.Name.Returns(AuthConstants.DefaultUserName);
+        _userMock.Id.Returns(AuthConstants.DefaultUserName);
         _repositoryMock
             .CountAsync(Arg.Any<UserCreatedCapitalsSpecification>(), Arg.Any<CancellationToken>())
             .Returns(AuthConstants.EntityLimit - 1);
@@ -84,7 +84,7 @@ public sealed class CreateCapitalCommandHandlerTests
     {
         // Arrange
         _userMock.IsAuthenticated.Returns(false);
-        _userMock.Name.Returns(AuthConstants.DefaultUserName);
+        _userMock.Id.Returns(AuthConstants.DefaultUserName);
         _repositoryMock
             .CountAsync(Arg.Any<UserCreatedCapitalsSpecification>(), Arg.Any<CancellationToken>())
             .Returns(AuthConstants.EntityLimit);

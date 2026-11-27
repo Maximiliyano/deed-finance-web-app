@@ -13,7 +13,7 @@ internal sealed class GetExpenseByIdQueryHandler(IExpenseRepository repository, 
 {
     public async Task<Result<ExpenseResponse>> Handle(GetExpenseByIdQuery query, CancellationToken cancellationToken)
     {
-        var expense = await repository.GetAsync(new ExpenseByIdSpecification(query.Id, user.Name), cancellationToken).ConfigureAwait(false);
+        var expense = await repository.GetAsync(new ExpenseByIdSpecification(query.Id, user.Id), cancellationToken).ConfigureAwait(false);
 
         if (expense is null)
         {

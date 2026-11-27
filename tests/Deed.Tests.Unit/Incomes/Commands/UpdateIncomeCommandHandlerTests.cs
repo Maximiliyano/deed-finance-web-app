@@ -21,7 +21,7 @@ public sealed class UpdateIncomeCommandHandlerTests
 
     public UpdateIncomeCommandHandlerTests()
     {
-        _userMock.Name.Returns("testUser");
+        _userMock.Id.Returns("testUser");
         _tagRepository.GetAllAsync(Arg.Any<ISpecification<Tag>>(), Arg.Any<CancellationToken>())
             .Returns(Enumerable.Empty<Tag>());
         _handler = new UpdateIncomeCommandHandler(_incomeRepository, _tagRepository, _unitOfWork, _userMock);

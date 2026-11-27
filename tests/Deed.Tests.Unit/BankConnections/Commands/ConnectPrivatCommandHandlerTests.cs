@@ -32,7 +32,7 @@ public sealed class ConnectPrivatCommandHandlerTests
 
     public ConnectPrivatCommandHandlerTests()
     {
-        _userMock.Name.Returns("testuser");
+        _userMock.Id.Returns("testuser");
         _clockMock.UtcNow.Returns(Now);
         _protectorMock.Protect(Arg.Any<string>()).Returns(call => $"enc:{call.Arg<string>()}");
 

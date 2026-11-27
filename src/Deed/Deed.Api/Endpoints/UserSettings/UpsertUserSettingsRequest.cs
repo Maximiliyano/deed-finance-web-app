@@ -1,3 +1,5 @@
+using Deed.Domain.Enums;
+
 namespace Deed.Api.Endpoints.UserSettings;
 
 internal sealed record UpsertUserSettingsRequest(
@@ -9,4 +11,5 @@ internal sealed record UpsertUserSettingsRequest(
     bool DebtReminderEnabled,
     string? DebtReminderCron,
     bool EmailNotificationsEnabled,
-    bool BankAlertsEmailEnabled = false);
+    bool BankAlertsEmailEnabled = false,
+    string Theme = nameof(ThemeType.System));

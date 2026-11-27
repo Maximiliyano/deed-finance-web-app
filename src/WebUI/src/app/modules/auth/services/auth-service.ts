@@ -2,12 +2,14 @@ import { Injectable, inject } from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {BehaviorSubject, catchError, Observable, of, shareReplay, tap} from 'rxjs';
 import {User} from '../models/user';
+import {UserSettingsService} from '../../home/services/user-settings.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
   private readonly http = inject(HttpClient);
+  private readonly userSettingsService = inject(UserSettingsService);
 
   private readonly userSubject = new BehaviorSubject<User | null>(null);
   readonly user$ = this.userSubject.asObservable();
@@ -38,6 +40,7 @@ export class AuthService {
         .pipe(
           catchError(() => of(null)),
           tap(user => {
+            this.userSettingsService.seed(user?.settings ?? null);
             this.userSubject.next(user);
             this.loaded = true;
             this.pending$ = null;

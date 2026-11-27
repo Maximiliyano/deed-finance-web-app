@@ -93,7 +93,9 @@ export class GoalService {
     const previous = this.state$.value;
     const orderMap = new Map(goals.map(o => [o.id, o.orderIndex]));
     this.state$.next(
-      [...previous].sort((a, b) => (orderMap.get(a.id) ?? a.orderIndex) - (orderMap.get(b.id) ?? b.orderIndex))
+      previous
+        .map(goal => ({ ...goal, orderIndex: orderMap.get(goal.id) ?? goal.orderIndex }))
+        .sort((a, b) => a.orderIndex - b.orderIndex)
     );
     return this.http.put<void>(`${this.baseUrl}/orders`, { goals }).pipe(
       catchError(err => {

@@ -25,7 +25,7 @@ public sealed class UpdateBankConnectionCommandHandlerTests
 
     public UpdateBankConnectionCommandHandlerTests()
     {
-        _userMock.Name.Returns("owner");
+        _userMock.Id.Returns("owner");
         _repositoryMock.GetAsync(Arg.Any<BankConnectionByIdSpecification>(), Arg.Any<CancellationToken>()).Returns(_connection);
         _capitalsMock
             .GetAsync(Arg.Any<CapitalByIdSpecification>(), Arg.Any<CancellationToken>())

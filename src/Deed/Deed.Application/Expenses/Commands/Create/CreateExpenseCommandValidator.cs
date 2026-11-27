@@ -21,7 +21,7 @@ internal sealed class CreateExpenseCommandValidator : AbstractValidator<CreateEx
     {
         RuleFor(e => e.CapitalId)
             .MustAsync(async (capitalId, ct) => await capitalRepository
-                .AnyAsync(new CapitalByIdSpecification(capitalId, user.Name), ct).ConfigureAwait(false))
+                .AnyAsync(new CapitalByIdSpecification(capitalId, user.Id), ct).ConfigureAwait(false))
             .WithError(ValidationErrors.General.NotFound("capital"));
 
         RuleFor(e => e.CategoryId)

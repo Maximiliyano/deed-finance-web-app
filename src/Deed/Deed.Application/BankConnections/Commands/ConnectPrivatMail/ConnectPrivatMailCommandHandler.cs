@@ -35,7 +35,7 @@ internal sealed class ConnectPrivatMailCommandHandler(
         var iban = BankConnectionExtensions.NormalizeIban(command.Iban);
 
         var existing = await repository
-            .GetAsync(new BankConnectionByAccountSpecification(user.Name!, BankProvider.PrivatMail, iban), cancellationToken)
+            .GetAsync(new BankConnectionByAccountSpecification(user.Id, BankProvider.PrivatMail, iban), cancellationToken)
             .ConfigureAwait(false);
 
         if (existing is not null)
@@ -61,7 +61,7 @@ internal sealed class ConnectPrivatMailCommandHandler(
 
         await unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
-        Log.Information("Statement mail connection {Id} created for {User}", connection.Id, user.Name);
+        Log.Information("Statement mail connection {Id} created for {User}", connection.Id, user.Id);
 
         return Result.Success(new PrivatMailConnectionResponse(connection.Id, key));
     }

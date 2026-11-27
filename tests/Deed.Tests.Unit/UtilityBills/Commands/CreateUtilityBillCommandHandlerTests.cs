@@ -55,7 +55,7 @@ public sealed class CreateUtilityBillCommandHandlerTests
     {
         // Arrange
         _userMock.IsAuthenticated.Returns(false);
-        _userMock.Name.Returns("anon");
+        _userMock.Id.Returns("anon");
         _repositoryMock
             .CountAsync(Arg.Any<UtilityBillsByUserSpecification>(), Arg.Any<CancellationToken>())
             .Returns(AuthConstants.EntityLimit);

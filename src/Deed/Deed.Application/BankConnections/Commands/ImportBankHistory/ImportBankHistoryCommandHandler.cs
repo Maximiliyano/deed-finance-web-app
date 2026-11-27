@@ -25,7 +25,7 @@ internal sealed class ImportBankHistoryCommandHandler(
             return Result.Failure<BankHistoryImportResponse>(DomainErrors.Bank.InvalidPeriod);
         }
 
-        var response = await syncService.ImportHistoryAsync(user.Name!, command.From, to, cancellationToken).ConfigureAwait(false);
+        var response = await syncService.ImportHistoryAsync(user.Id, command.From, to, cancellationToken).ConfigureAwait(false);
 
         if (response.InProgress)
         {

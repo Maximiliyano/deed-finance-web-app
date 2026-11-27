@@ -33,7 +33,7 @@ internal sealed class UpdateExpenseCommandValidator : AbstractValidator<UpdateEx
 
         RuleFor(e => e.CapitalId)
             .MustAsync(async (capitalId, ct) => await capitalRepository
-                .AnyAsync(new CapitalByIdSpecification(capitalId!.Value, user.Name), ct).ConfigureAwait(false))
+                .AnyAsync(new CapitalByIdSpecification(capitalId!.Value, user.Id), ct).ConfigureAwait(false))
             .WithError(ValidationErrors.General.NotFound("capital"))
             .When(e => e.CapitalId.HasValue);
 

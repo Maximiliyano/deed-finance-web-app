@@ -16,7 +16,7 @@ internal sealed class DeleteExpenseCommandHandler(
 {
     public async Task<Result> Handle(DeleteExpenseCommand command, CancellationToken cancellationToken)
     {
-        var expense = await expenseRepository.GetAsync(new ExpenseByIdSpecification(command.Id, user.Name, includeCapital: true), cancellationToken).ConfigureAwait(false);
+        var expense = await expenseRepository.GetAsync(new ExpenseByIdSpecification(command.Id, user.Id, includeCapital: true), cancellationToken).ConfigureAwait(false);
 
         if (expense?.Capital is null)
         {

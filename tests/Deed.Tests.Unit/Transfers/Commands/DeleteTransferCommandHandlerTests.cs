@@ -19,7 +19,7 @@ public sealed class DeleteTransferCommandHandlerTests
 
     public DeleteTransferCommandHandlerTests()
     {
-        _user.Name.Returns("testuser");
+        _user.Id.Returns("testuser");
         _handler = new DeleteTransferCommandHandler(_transferRepository, _capitalRepository, _unitOfWork, _user);
     }
 

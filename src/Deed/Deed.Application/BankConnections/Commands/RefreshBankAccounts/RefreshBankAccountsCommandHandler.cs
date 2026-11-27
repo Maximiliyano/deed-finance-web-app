@@ -10,7 +10,7 @@ internal sealed class RefreshBankAccountsCommandHandler(IUser user, IBankAccount
 {
     public async Task<Result<int>> Handle(RefreshBankAccountsCommand command, CancellationToken cancellationToken)
     {
-        var refreshed = await refreshService.RefreshUserAsync(user.Name!, cancellationToken).ConfigureAwait(false);
+        var refreshed = await refreshService.RefreshUserAsync(user.Id, cancellationToken).ConfigureAwait(false);
 
         return Result.Success(refreshed);
     }

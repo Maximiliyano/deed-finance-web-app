@@ -2,7 +2,7 @@
 
 public interface IUser
 {
-    string? ExternalId { get; }
+    string Id { get; }
     
     string? Email { get; }
     

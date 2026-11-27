@@ -1,4 +1,5 @@
 using Deed.Application.Abstractions.Messaging;
+using Deed.Domain.Enums;
 
 namespace Deed.Application.UserSettings.Commands.Upsert;
 
@@ -11,5 +12,6 @@ public sealed record UpsertUserSettingsCommand(
     bool DebtReminderEnabled,
     string? DebtReminderCron,
     bool EmailNotificationsEnabled,
-    bool BankAlertsEmailEnabled = false)
+    bool BankAlertsEmailEnabled = false,
+    string Theme = nameof(ThemeType.System))
     : ICommand;

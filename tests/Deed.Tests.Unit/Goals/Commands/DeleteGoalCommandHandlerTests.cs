@@ -20,7 +20,7 @@ public sealed class DeleteGoalCommandHandlerTests
 
     public DeleteGoalCommandHandlerTests()
     {
-        _userMock.Name.Returns("testuser");
+        _userMock.Id.Returns("testuser");
         _handler = new DeleteGoalCommandHandler(_repositoryMock, _unitOfWorkMock, _userMock);
     }
 

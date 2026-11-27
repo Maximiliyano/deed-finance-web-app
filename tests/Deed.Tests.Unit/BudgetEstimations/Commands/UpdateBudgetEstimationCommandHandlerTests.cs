@@ -20,7 +20,7 @@ public sealed class UpdateBudgetEstimationCommandHandlerTests
 
     public UpdateBudgetEstimationCommandHandlerTests()
     {
-        _userMock.Name.Returns("testuser");
+        _userMock.Id.Returns("testuser");
         _handler = new UpdateBudgetEstimationCommandHandler(_repositoryMock, _unitOfWorkMock, _userMock);
     }
 

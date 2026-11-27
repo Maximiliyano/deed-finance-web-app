@@ -20,7 +20,7 @@ public sealed class UpdateGoalCommandHandlerTests
 
     public UpdateGoalCommandHandlerTests()
     {
-        _userMock.Name.Returns("testuser");
+        _userMock.Id.Returns("testuser");
         _handler = new UpdateGoalCommandHandler(_repositoryMock, _unitOfWorkMock, _userMock);
     }
 

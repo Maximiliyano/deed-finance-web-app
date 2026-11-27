@@ -16,7 +16,7 @@ public sealed class GetBankConnectionsQueryHandlerTests
     {
         // Arrange
         var user = Substitute.For<IUser>();
-        user.Name.Returns("owner");
+        user.Id.Returns("owner");
         var repository = Substitute.For<IBankConnectionRepository>();
         repository
             .GetAllAsync(Arg.Any<BankConnectionByUserSpecification>(), Arg.Any<CancellationToken>())

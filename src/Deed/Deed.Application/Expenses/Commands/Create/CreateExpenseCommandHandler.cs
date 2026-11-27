@@ -24,7 +24,7 @@ internal sealed class CreateExpenseCommandHandler(
         if (!user.IsAuthenticated)
         {
             var count = await expenseRepository.CountAsync(
-                new ExpenseByQueriesSpecification(user.Name!), cancellationToken).ConfigureAwait(false);
+                new ExpenseByQueriesSpecification(user.Id), cancellationToken).ConfigureAwait(false);
             
             if (count >= AuthConstants.EntityLimit)
             {
@@ -32,7 +32,7 @@ internal sealed class CreateExpenseCommandHandler(
             }
         }
 
-        var capital = await capitalRepository.GetAsync(new CapitalByIdSpecification(command.CapitalId, user.Name), cancellationToken).ConfigureAwait(false);
+        var capital = await capitalRepository.GetAsync(new CapitalByIdSpecification(command.CapitalId, user.Id), cancellationToken).ConfigureAwait(false);
 
         if (capital is null)
         {

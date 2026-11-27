@@ -14,7 +14,7 @@ public sealed class MarkBankNotificationsReadCommandHandlerTests
     public MarkBankNotificationsReadCommandHandlerTests()
     {
         var user = Substitute.For<IUser>();
-        user.Name.Returns("owner");
+        user.Id.Returns("owner");
 
         _handler = new MarkBankNotificationsReadCommandHandler(user, _repositoryMock);
     }

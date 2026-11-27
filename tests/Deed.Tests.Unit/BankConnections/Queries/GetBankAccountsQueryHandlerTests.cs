@@ -19,7 +19,7 @@ public sealed class GetBankAccountsQueryHandlerTests
     {
         // Arrange
         var user = Substitute.For<IUser>();
-        user.Name.Returns("owner");
+        user.Id.Returns("owner");
         var accounts = Substitute.For<IBankAccountRepository>();
         accounts
             .GetAllAsync(Arg.Any<BankAccountsByUserSpecification>(), Arg.Any<CancellationToken>())

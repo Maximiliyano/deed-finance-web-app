@@ -20,7 +20,7 @@ public sealed class DeleteBudgetEstimationCommandHandlerTests
 
     public DeleteBudgetEstimationCommandHandlerTests()
     {
-        _userMock.Name.Returns("testuser");
+        _userMock.Id.Returns("testuser");
         _handler = new DeleteBudgetEstimationCommandHandler(_repositoryMock, _unitOfWorkMock, _userMock);
     }
 

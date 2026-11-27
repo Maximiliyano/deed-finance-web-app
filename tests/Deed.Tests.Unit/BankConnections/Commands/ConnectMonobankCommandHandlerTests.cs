@@ -32,7 +32,7 @@ public sealed class ConnectMonobankCommandHandlerTests
 
     public ConnectMonobankCommandHandlerTests()
     {
-        _userMock.Name.Returns("owner");
+        _userMock.Id.Returns("owner");
         _clockMock.UtcNow.Returns(Now);
         _protectorMock.Protect(Arg.Any<string>()).Returns(call => $"enc:{call.Arg<string>()}");
         _repositoryMock

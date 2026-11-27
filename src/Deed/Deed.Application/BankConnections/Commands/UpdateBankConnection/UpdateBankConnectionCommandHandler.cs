@@ -22,7 +22,7 @@ internal sealed class UpdateBankConnectionCommandHandler(
     public async Task<Result> Handle(UpdateBankConnectionCommand command, CancellationToken cancellationToken)
     {
         var connection = await repository
-            .GetAsync(new BankConnectionByIdSpecification(command.Id, user.Name!, tracking: true), cancellationToken)
+            .GetAsync(new BankConnectionByIdSpecification(command.Id, user.Id, tracking: true), cancellationToken)
             .ConfigureAwait(false);
 
         if (connection is null)
@@ -38,7 +38,7 @@ internal sealed class UpdateBankConnectionCommandHandler(
         if (command.CapitalId is { } capitalId)
         {
             var capital = await capitalRepository
-                .GetAsync(new CapitalByIdSpecification(capitalId, user.Name), cancellationToken)
+                .GetAsync(new CapitalByIdSpecification(capitalId, user.Id), cancellationToken)
                 .ConfigureAwait(false);
 
             if (capital is null)

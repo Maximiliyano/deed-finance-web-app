@@ -19,7 +19,7 @@ public sealed class UpsertUserSettingsCommandHandlerTests
 
     public UpsertUserSettingsCommandHandlerTests()
     {
-        _userMock.Name.Returns("testuser");
+        _userMock.Id.Returns("testuser");
         _handler = new UpsertUserSettingsCommandHandler(_repositoryMock, _unitOfWorkMock, _userMock);
     }
 

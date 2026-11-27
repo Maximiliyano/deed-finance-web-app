@@ -20,7 +20,7 @@ public sealed class CancelBankHistoryCommandHandlerTests
 
     public CancelBankHistoryCommandHandlerTests()
     {
-        _userMock.Name.Returns("owner");
+        _userMock.Id.Returns("owner");
 
         _handler = new CancelBankHistoryCommandHandler(_userMock, _repositoryMock, _unitOfWorkMock);
     }

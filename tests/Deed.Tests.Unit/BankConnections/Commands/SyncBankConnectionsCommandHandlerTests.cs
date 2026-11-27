@@ -13,7 +13,7 @@ public sealed class SyncBankConnectionsCommandHandlerTests
     {
         // Arrange
         var user = Substitute.For<IUser>();
-        user.Name.Returns("owner");
+        user.Id.Returns("owner");
         var service = Substitute.For<IBankTransactionSyncService>();
         service.SyncUserAsync("owner", Arg.Any<CancellationToken>()).Returns(4);
         var handler = new SyncBankConnectionsCommandHandler(user, service);

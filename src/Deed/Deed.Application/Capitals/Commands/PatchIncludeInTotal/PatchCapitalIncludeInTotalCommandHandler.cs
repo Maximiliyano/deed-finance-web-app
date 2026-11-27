@@ -11,9 +11,9 @@ internal sealed class PatchCapitalIncludeInTotalCommandHandler(ICapitalRepositor
 {
     public async Task<Result> Handle(PatchCapitalIncludeInTotalCommand request, CancellationToken cancellationToken)
     {
-        ArgumentNullException.ThrowIfNullOrEmpty(user.Name);
+        ArgumentNullException.ThrowIfNullOrEmpty(user.Id);
 
-        var isUpdateSuccessfull = await repository.PatchIncludeInTotalAsync(request.Id, request.IncludeInTotal, user.Name, cancellationToken);
+        var isUpdateSuccessfull = await repository.PatchIncludeInTotalAsync(request.Id, request.IncludeInTotal, user.Id, cancellationToken);
 
         if (!isUpdateSuccessfull)
         {

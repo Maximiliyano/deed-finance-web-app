@@ -19,7 +19,7 @@ internal sealed class CreateUtilityBillCommandHandler(
         if (!user.IsAuthenticated)
         {
             var count = await repository.CountAsync(
-                new UtilityBillsByUserSpecification(user.Name!), cancellationToken).ConfigureAwait(false);
+                new UtilityBillsByUserSpecification(user.Id), cancellationToken).ConfigureAwait(false);
 
             if (count >= AuthConstants.EntityLimit)
             {

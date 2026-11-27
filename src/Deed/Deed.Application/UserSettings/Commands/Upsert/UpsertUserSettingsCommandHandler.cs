@@ -16,7 +16,7 @@ internal sealed class UpsertUserSettingsCommandHandler(
 {
     public async Task<Result> Handle(UpsertUserSettingsCommand command, CancellationToken cancellationToken)
     {
-        var existing = await repository.GetAsync(user.Name!, cancellationToken).ConfigureAwait(false);
+        var existing = await repository.GetAsync(user.Id, cancellationToken).ConfigureAwait(false);
 
         if (existing is null)
         {
@@ -32,6 +32,7 @@ internal sealed class UpsertUserSettingsCommandHandler(
             }
 
             existing.Currency = Enum.Parse<CurrencyType>(command.Currency);
+            existing.Theme = Enum.Parse<ThemeType>(command.Theme);
             existing.BalanceReminderEnabled = command.BalanceReminderEnabled;
             existing.BalanceReminderCron = command.BalanceReminderCron;
             existing.ExpenseReminderEnabled = command.ExpenseReminderEnabled;
@@ -47,13 +48,14 @@ internal sealed class UpsertUserSettingsCommandHandler(
 
         await unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
-        Log.Information("UserSettings upserted for {User}", user.Name);
+        Log.Information("UserSettings upserted for {User}", user.Id);
 
         return Result.Success();
     }
 
     private bool HasNoChanges(UpsertUserSettingsCommand command, UserSettingsEntity existing) =>
         existing.Currency == Enum.Parse<CurrencyType>(command.Currency) &&
+        existing.Theme == Enum.Parse<ThemeType>(command.Theme) &&
         existing.BalanceReminderEnabled == command.BalanceReminderEnabled &&
         existing.BalanceReminderCron == command.BalanceReminderCron &&
         existing.ExpenseReminderEnabled == command.ExpenseReminderEnabled &&

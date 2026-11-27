@@ -29,7 +29,7 @@ public sealed class CapitalOwnershipScopingTests
 
     public CapitalOwnershipScopingTests()
     {
-        _user.Name.Returns(TestUser);
+        _user.Id.Returns(TestUser);
         _user.IsAuthenticated.Returns(true);
 
         _capitalRepository

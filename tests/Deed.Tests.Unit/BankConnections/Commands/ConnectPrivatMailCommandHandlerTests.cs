@@ -25,7 +25,7 @@ public sealed class ConnectPrivatMailCommandHandlerTests
 
     public ConnectPrivatMailCommandHandlerTests()
     {
-        _userMock.Name.Returns("testuser");
+        _userMock.Id.Returns("testuser");
         _clockMock.UtcNow.Returns(Now);
         _repositoryMock
             .GetAsync(Arg.Any<BankConnectionByAccountSpecification>(), Arg.Any<CancellationToken>())

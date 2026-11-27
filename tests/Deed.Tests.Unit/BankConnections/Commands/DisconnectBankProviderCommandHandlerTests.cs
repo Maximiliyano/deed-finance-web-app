@@ -22,7 +22,7 @@ public sealed class DisconnectBankProviderCommandHandlerTests
 
     public DisconnectBankProviderCommandHandlerTests()
     {
-        _userMock.Name.Returns("owner");
+        _userMock.Id.Returns("owner");
 
         _handler = new DisconnectBankProviderCommandHandler(_userMock, _connectionsMock, _accountsMock, _notificationsMock, _unitOfWorkMock);
     }

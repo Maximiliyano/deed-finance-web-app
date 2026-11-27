@@ -23,7 +23,7 @@ internal sealed class ImportBankNotificationCommandHandler(
     public async Task<Result> Handle(ImportBankNotificationCommand command, CancellationToken cancellationToken)
     {
         var notification = await notificationRepository
-            .GetAsync(new BankNotificationsByUserSpecification(user.Name!, ids: [command.Id], tracking: true), cancellationToken)
+            .GetAsync(new BankNotificationsByUserSpecification(user.Id, ids: [command.Id], tracking: true), cancellationToken)
             .ConfigureAwait(false);
 
         if (notification is null)
@@ -42,7 +42,7 @@ internal sealed class ImportBankNotificationCommandHandler(
         }
 
         var connection = await connectionRepository
-            .GetAsync(new BankConnectionByIdSpecification(connectionId, user.Name!), cancellationToken)
+            .GetAsync(new BankConnectionByIdSpecification(connectionId, user.Id), cancellationToken)
             .ConfigureAwait(false);
 
         if (connection is null || connection.IsExcluded)

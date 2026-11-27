@@ -22,13 +22,13 @@ internal sealed class DisconnectBankProviderCommandHandler(
         var provider = Enum.Parse<BankProvider>(command.Provider, true);
 
         var connections = (await connectionRepository
-            .GetAllAsync(new BankConnectionByUserSpecification(user.Name!, tracking: true), cancellationToken)
+            .GetAllAsync(new BankConnectionByUserSpecification(user.Id, tracking: true), cancellationToken)
             .ConfigureAwait(false))
             .Where(c => c.Provider == provider)
             .ToList();
 
         var accounts = (await accountRepository
-            .GetAllAsync(new BankAccountsByUserSpecification(user.Name!, tracking: true), cancellationToken)
+            .GetAllAsync(new BankAccountsByUserSpecification(user.Id, tracking: true), cancellationToken)
             .ConfigureAwait(false))
             .Where(a => a.Provider == provider)
             .ToList();
@@ -51,13 +51,13 @@ internal sealed class DisconnectBankProviderCommandHandler(
         await unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         var removed = await notificationRepository
-            .DeleteByConnectionsAsync(user.Name!, [.. connections.Select(c => c.Id)], cancellationToken)
+            .DeleteByConnectionsAsync(user.Id, [.. connections.Select(c => c.Id)], cancellationToken)
             .ConfigureAwait(false);
 
         Log.Information(
             "{Provider} disconnected for {User}: {Connections} connection(s), {Accounts} account(s), {Transactions} stored transaction(s) removed",
             provider,
-            user.Name,
+            user.Id,
             connections.Count,
             accounts.Count,
             removed);

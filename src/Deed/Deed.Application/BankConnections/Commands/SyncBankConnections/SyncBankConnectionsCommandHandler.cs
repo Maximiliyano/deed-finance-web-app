@@ -10,7 +10,7 @@ internal sealed class SyncBankConnectionsCommandHandler(IUser user, IBankTransac
 {
     public async Task<Result<int>> Handle(SyncBankConnectionsCommand command, CancellationToken cancellationToken)
     {
-        var created = await syncService.SyncUserAsync(user.Name!, cancellationToken).ConfigureAwait(false);
+        var created = await syncService.SyncUserAsync(user.Id, cancellationToken).ConfigureAwait(false);
 
         return Result.Success(created);
     }

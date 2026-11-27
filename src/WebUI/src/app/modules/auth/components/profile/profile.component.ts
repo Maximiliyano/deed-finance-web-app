@@ -97,7 +97,7 @@ export class ProfileComponent implements OnInit {
 
   ngOnInit(): void {
     this.settingsForm = this.fb.group({
-      currency: [this.user?.currency ?? CURRENCY_DEFAULT, Validators.required]
+      currency: [this.userSettingsService.current?.currency ?? CURRENCY_DEFAULT, Validators.required]
     });
 
     this.notificationForm = this.fb.group({

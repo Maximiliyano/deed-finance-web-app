@@ -18,7 +18,7 @@ public sealed class GetAllTransfersQueryHandlerTests
 
     public GetAllTransfersQueryHandlerTests()
     {
-        _user.Name.Returns("testuser");
+        _user.Id.Returns("testuser");
         _handler = new GetAllTransfersQueryHandler(_repository, _user);
     }
 

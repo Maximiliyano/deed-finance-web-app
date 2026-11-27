@@ -7,15 +7,15 @@ namespace Deed.Application.Auth;
 public sealed class User(IHttpContextAccessor accessor, IOptions<AuthSettings> authSettings)
     : IUser
 {
-    public string? ExternalId => GetValue(AuthClaimTypes.Sub);
+    public string Id => IsAuthenticated
+        ? GetValue(AuthClaimTypes.Sub) ?? throw new InvalidOperationException("The authenticated user has no sub claim.")
+        : AuthConstants.DefaultUserName;
 
     public string? Email => GetValue(AuthClaimTypes.Email);
 
     public bool? IsEmailVerified => bool.TryParse(GetValue(AuthClaimTypes.EmailVerified), out var v) && v;
 
-    public string Name => IsAuthenticated
-        ? GetValue(AuthClaimTypes.Name)
-        : AuthConstants.DefaultUserName;
+    public string? Name => IsAuthenticated ? GetValue(AuthClaimTypes.Name) : null;
 
     public IReadOnlyCollection<string> Roles => GetValueList(authSettings.Value.RolesClaim);
 

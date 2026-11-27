@@ -20,7 +20,7 @@ public sealed class GetAllDebtsQueryHandlerTests
 
     public GetAllDebtsQueryHandlerTests()
     {
-        _userMock.Name.Returns("testuser");
+        _userMock.Id.Returns("testuser");
         _handler = new GetAllDebtsQueryHandler(_repositoryMock, _userMock);
     }
 
