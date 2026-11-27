@@ -80,6 +80,9 @@ public static class DomainErrors
 
         public static Error NotPending
             => Error.Conflict("Bank.NotPending", "This transaction is no longer waiting for confirmation.");
+
+        public static Error MailNotConfigured
+            => Error.BadRequest("Bank.MailNotConfigured", "Importing statements by e-mail is not set up on this server.");
     }
 
     public static class Category

@@ -112,8 +112,31 @@ public sealed class BankTransactionSyncService(
 
         var baseline = connection.CreatedAt - BaselineTolerance;
 
-        var candidates = InAccountCurrency(result.Value, connection.Currency)
-            .Where(t => t.OccurredAt >= baseline)
+        return await IngestAsync(connection, result.Value.Where(t => t.OccurredAt >= baseline).ToList(), result.Value.Count, now, cancellationToken).ConfigureAwait(false);
+    }
+
+    public async Task<int> ImportStatementAsync(BankConnection connection, IReadOnlyCollection<BankTransaction> transactions, CancellationToken cancellationToken)
+    {
+        var baseline = connection.CreatedAt - BaselineTolerance;
+
+        var history = transactions.Where(t => t.OccurredAt < baseline).ToList();
+
+        if (history.Count > 0)
+        {
+            await StageHistoryAsync(connection.CreatedBy, connection.Label, connection.Id, connection.Currency, history, cancellationToken).ConfigureAwait(false);
+        }
+
+        return await IngestAsync(
+            connection,
+            transactions.Where(t => t.OccurredAt >= baseline).ToList(),
+            transactions.Count,
+            dateTimeProvider.UtcNow,
+            cancellationToken).ConfigureAwait(false);
+    }
+
+    private async Task<int> IngestAsync(BankConnection connection, IReadOnlyCollection<BankTransaction> current, int fetched, DateTimeOffset now, CancellationToken cancellationToken)
+    {
+        var candidates = InAccountCurrency(current, connection.Currency)
             .GroupBy(t => t.ExternalId, StringComparer.OrdinalIgnoreCase)
             .Select(g => g.First())
             .ToList();
@@ -144,7 +167,7 @@ public sealed class BankTransactionSyncService(
             "Bank sync for {User} ({Label}): fetched {Fetched}, new {New}",
             connection.CreatedBy,
             connection.Label,
-            result.Value.Count,
+            fetched,
             notifications.Count);
 
         if (notifications.Count > 0)

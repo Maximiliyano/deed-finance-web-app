@@ -40,6 +40,21 @@ public sealed class ActiveBankConnectionsSpecificationTests
     }
 
     [Fact]
+    public void Criteria_NoProvider_SkipsTheTokenlessMailConnections()
+    {
+        // Arrange
+        var mail = new BankConnection(5) { EncryptedToken = string.Empty, AccountIban = "UA5", Status = BankConnectionStatus.Active, Provider = BankProvider.PrivatMail, CreatedBy = "owner" };
+        var matches = new ActiveBankConnectionsSpecification("owner").Criteria!.Compile();
+        var matchesMail = new ActiveBankConnectionsSpecification(provider: BankProvider.PrivatMail).Criteria!.Compile();
+
+        // Act
+        var kept = new[] { matches(mail), matches(_counted), matchesMail(mail) };
+
+        // Assert
+        kept.Should().Equal(false, true, true);
+    }
+
+    [Fact]
     public void Criteria_TokenInvalidOrOtherUser_IsSkipped()
     {
         // Arrange

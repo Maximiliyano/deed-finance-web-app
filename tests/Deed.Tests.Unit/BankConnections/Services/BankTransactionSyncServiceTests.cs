@@ -666,6 +666,63 @@ public sealed class BankTransactionSyncServiceTests
             Arg.Any<string>(), Arg.Any<string>(), Arg.Any<DateTimeOffset>(), Arg.Any<DateTimeOffset>(), Arg.Any<CancellationToken>());
     }
 
+    [Fact]
+    public async Task ImportStatementAsync_MixedRows_StagesOldOnesAsHistoryAndCreatesNewOnesPending()
+    {
+        // Arrange
+        _connection.CapitalId = 5;
+        BankTransaction[] rows = [Transaction("old", Now.AddDays(-5)), Transaction("new", Now.AddMinutes(-2))];
+
+        // Act
+        var created = await _service.ImportStatementAsync(_connection, rows, CancellationToken.None);
+
+        // Assert
+        created.Should().Be(1);
+        _notificationsMock.Received(1).CreateRange(Arg.Is<IEnumerable<BankNotification>>(items =>
+            items.Count() == 1 &&
+            items.Single().ExternalId == "old" &&
+            items.Single().ImportStatus == BankImportStatus.None &&
+            items.Single().IsRead &&
+            items.Single().CreatedBy == "owner"));
+        _notificationsMock.Received(1).CreateRange(Arg.Is<IEnumerable<BankNotification>>(items =>
+            items.Count() == 1 &&
+            items.Single().ExternalId == "new" &&
+            items.Single().ImportStatus == BankImportStatus.Pending &&
+            !items.Single().IsRead));
+        _connection.LastSyncAt.Should().Be(Now);
+        await _unitOfWorkMock.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task ImportStatementAsync_AlreadyStoredTransaction_IsNotCreatedAgain()
+    {
+        // Arrange
+        _notificationsMock
+            .GetExternalIdsAsync(Arg.Any<BankNotificationsByExternalIdsSpecification>(), Arg.Any<CancellationToken>())
+            .Returns(new List<string> { "new" });
+
+        // Act
+        var created = await _service.ImportStatementAsync(_connection, [Transaction("new", Now.AddMinutes(-2))], CancellationToken.None);
+
+        // Assert
+        created.Should().Be(0);
+        _notificationsMock.DidNotReceive().CreateRange(Arg.Any<IEnumerable<BankNotification>>());
+    }
+
+    [Fact]
+    public async Task ImportStatementAsync_StatementCurrency_IsReplacedByTheConnectionCurrency()
+    {
+        // Arrange
+        _connection.Currency = "UAH";
+        var row = new BankTransaction("fx", BankTransactionDirection.Outgoing, 382m, "EUR", "Shop", null, Now.AddMinutes(-2));
+
+        // Act
+        await _service.ImportStatementAsync(_connection, [row], CancellationToken.None);
+
+        // Assert
+        _notificationsMock.Received(1).CreateRange(Arg.Is<IEnumerable<BankNotification>>(items => items.Single().Currency == "UAH"));
+    }
+
     private static BankTransaction Transaction(string id, DateTimeOffset occurredAt)
         => new(id, BankTransactionDirection.Outgoing, 150m, "UAH", "John", "Rent", occurredAt);
 

@@ -9,7 +9,7 @@ import {
   signal
 } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
-import { switchMap } from 'rxjs';
+import { catchError, of, switchMap } from 'rxjs';
 import { AuthService } from '../../services/auth-service';
 
 import { SharedModule } from '../../../../shared/shared.module';
@@ -29,10 +29,12 @@ import { BankConnectionService } from '../../../bank/services/bank-connection.se
 import { BankConnectionSettingsDialogComponent } from '../../../bank/components/bank-connection-settings-dialog/bank-connection-settings-dialog.component';
 import { ConnectMonobankDialogComponent } from '../../../bank/components/connect-monobank-dialog/connect-monobank-dialog.component';
 import { ConnectPrivatDialogComponent } from '../../../bank/components/connect-privat-dialog/connect-privat-dialog.component';
+import { ConnectPrivatMailDialogComponent } from '../../../bank/components/connect-privat-mail-dialog/connect-privat-mail-dialog.component';
 
 const BANK_PROVIDERS: { value: BankProvider; label: string }[] = [
   { value: 'PrivatAutoclient', label: 'Privat24 Business' },
-  { value: 'Monobank', label: 'Monobank' }
+  { value: 'Monobank', label: 'Monobank' },
+  { value: 'PrivatMail', label: 'Privat24 personal' }
 ];
 
 const DEFAULT_REMINDER_CRON = '0 0 9 * * ?';
@@ -65,6 +67,9 @@ export class ProfileComponent implements OnInit {
 
   readonly bankConnections = toSignal(this.bankConnectionService.connections$, { initialValue: [] });
   readonly bankAccounts = toSignal(this.bankAccountService.accounts$, { initialValue: [] });
+  readonly mailInfo = toSignal(this.bankConnectionService.mailInfo().pipe(catchError(() => of(null))), {
+    initialValue: null
+  });
   readonly availableAccounts = computed(() => this.bankAccounts().filter(account => account.connectionId === null));
   readonly connectedProviders = computed(() =>
     BANK_PROVIDERS.filter(
@@ -146,6 +151,36 @@ export class ProfileComponent implements OnInit {
     });
   }
 
+  connectPrivatMail(): void {
+    const addressTemplate = this.mailInfo()?.addressTemplate;
+
+    if (!addressTemplate) return;
+
+    this.dialogService
+      .open(ConnectPrivatMailDialogComponent, { data: { addressTemplate } })
+      .afterClosed$.pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((connectionId: number | null | undefined) => {
+        const connection = this.bankConnections().find(item => item.id === connectionId);
+
+        if (connection) {
+          this.openConnectionSettings(connection);
+        }
+
+        this.cdr.markForCheck();
+      });
+  }
+
+  copyMailAddress(connection: BankConnection): void {
+    const template = this.mailInfo()?.addressTemplate;
+
+    if (!template || !connection.mailKey) return;
+
+    navigator.clipboard.writeText(template.replace('{key}', connection.mailKey)).then(
+      () => this.popupMessageService.success('Statement address copied'),
+      () => this.popupMessageService.info('Clipboard is not available. Copy the address from the connection dialog.')
+    );
+  }
+
   connectMonobank(existing?: BankConnection): void {
     const dialogRef = this.dialogService.open(ConnectMonobankDialogComponent, {
       data: existing ? { label: existing.label } : null
@@ -219,7 +254,7 @@ export class ProfileComponent implements OnInit {
   }
 
   providerName(connection: BankConnection): string {
-    return connection.provider === 'Monobank' ? 'Monobank' : 'Privat24 Business';
+    return BANK_PROVIDERS.find(option => option.value === connection.provider)?.label ?? connection.provider;
   }
 
   toggleExcluded(connection: BankConnection): void {

@@ -44,6 +44,7 @@ const TYPE_OPTIONS: { value: TypeFilter; label: string }[] = [
 
 const PROVIDER_OPTIONS: { value: BankProvider; label: string }[] = [
   { value: 'PrivatAutoclient', label: 'Privat24' },
+  { value: 'PrivatMail', label: 'Privat24 personal' },
   { value: 'Monobank', label: 'Monobank' }
 ];
 

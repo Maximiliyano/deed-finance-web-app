@@ -45,6 +45,11 @@
   }
 }
 
+.mail-address {
+  font-size: var(--fs-sm);
+  text-overflow: ellipsis;
+}
+
 .token-field {
   display: flex;
   align-items: center;

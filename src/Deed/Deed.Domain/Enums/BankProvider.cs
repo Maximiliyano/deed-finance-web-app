@@ -4,5 +4,6 @@ public enum BankProvider
 {
     None = 0,
     PrivatAutoclient = 1,
-    Monobank = 2
+    Monobank = 2,
+    PrivatMail = 3
 }

@@ -1,4 +1,4 @@
-export type BankProvider = 'PrivatAutoclient' | 'Monobank';
+export type BankProvider = 'PrivatAutoclient' | 'Monobank' | 'PrivatMail';
 
 export type BankImportStatus = 'None' | 'Pending' | 'Imported' | 'Dismissed';
 
@@ -18,6 +18,7 @@ export interface BankConnection {
   backfillFrom: string | null;
   backfillCursor: string | null;
   isExcluded: boolean;
+  mailKey: string | null;
 }
 
 export interface BankHistoryImportRequest {
@@ -34,6 +35,22 @@ export interface ConnectPrivatRequest {
   iban: string;
   label: string;
   currency?: string;
+}
+
+export interface ConnectPrivatMailRequest {
+  iban: string;
+  label: string;
+  currency?: string;
+}
+
+export interface PrivatMailConnection {
+  id: number;
+  mailKey: string;
+}
+
+export interface StatementMailInfo {
+  enabled: boolean;
+  addressTemplate: string | null;
 }
 
 export interface ConnectMonobankRequest {

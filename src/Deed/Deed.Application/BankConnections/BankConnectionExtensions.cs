@@ -1,5 +1,6 @@
 using Deed.Application.BankConnections.Responses;
 using Deed.Domain.Entities;
+using Deed.Domain.Enums;
 
 namespace Deed.Application.BankConnections;
 
@@ -19,7 +20,8 @@ internal static class BankConnectionExtensions
             connection.IncomeCategoryId,
             connection.BackfillFrom,
             connection.BackfillCursor,
-            connection.IsExcluded);
+            connection.IsExcluded,
+            connection.Provider == BankProvider.PrivatMail ? connection.ProviderAccountId : null);
 
     internal static IReadOnlyList<BankConnectionResponse> ToResponses(this IEnumerable<BankConnection> connections)
         => [.. connections.Select(c => c.ToResponse())];

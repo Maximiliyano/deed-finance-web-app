@@ -90,7 +90,8 @@
                 <span class="toggle-hint">Hidden from the bank page and not checked. Count it again to resume.</span>
               } @else {
                 <span class="toggle-hint"
-                  >Last checked {{ connection.lastSyncAt | date: 'dd MMM, HH:mm' }} ·
+                  >{{ connection.provider === 'PrivatMail' ? 'Updated' : 'Last checked' }}
+                  {{ connection.lastSyncAt | date: 'dd MMM, HH:mm' }} ·
                   @if (connection.capitalId === null) {
                     No capital linked
                   } @else if (connection.autoImport) {
@@ -105,6 +106,17 @@
               @if (connection.status === 'TokenInvalid') {
                 <button type="button" class="btn btn-secondary btn-sm" (click)="reconnect(connection)">
                   Reconnect
+                </button>
+              }
+              @if (connection.provider === 'PrivatMail' && mailInfo()?.enabled) {
+                <button
+                  type="button"
+                  class="icon-btn"
+                  [attr.aria-label]="'Copy statement address for ' + connection.label"
+                  title="Copy the e-mail address Privat24 sends statements to"
+                  (click)="copyMailAddress(connection)"
+                >
+                  <i class="fas fa-envelope"></i>
                 </button>
               }
               <button
@@ -192,6 +204,11 @@
             <button type="button" class="btn btn-secondary" (click)="connectMonobank()">
               <i class="fas fa-plus"></i> Monobank
             </button>
+            @if (mailInfo()?.enabled) {
+              <button type="button" class="btn btn-secondary" (click)="connectPrivatMail()">
+                <i class="fas fa-plus"></i> Privat24 personal
+              </button>
+            }
           </div>
         </div>
       </div>

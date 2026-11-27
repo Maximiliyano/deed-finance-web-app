@@ -8,6 +8,7 @@ using Deed.Infrastructure.BackgroundJobs.BankAccountRefresh;
 using Deed.Infrastructure.BackgroundJobs.BankBackfill;
 using Deed.Infrastructure.BackgroundJobs.BankTransactionSync;
 using Deed.Infrastructure.BackgroundJobs.ReminderDigest;
+using Deed.Infrastructure.BackgroundJobs.StatementMailSync;
 using Deed.Infrastructure.BackgroundJobs.UpsertLatestExchange;
 using Deed.Infrastructure.Caching;
 using Deed.Infrastructure.Persistence;
@@ -108,6 +109,8 @@ public static class DependencyInjection
         services.ConfigureOptions<BankBackfillJobSetup>();
 
         services.ConfigureOptions<BankAccountRefreshJobSetup>();
+
+        services.ConfigureOptions<StatementMailSyncJobSetup>();
 
         return services;
     }

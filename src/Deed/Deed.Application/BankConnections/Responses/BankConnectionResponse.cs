@@ -13,4 +13,5 @@ public sealed record BankConnectionResponse(
     int? IncomeCategoryId,
     DateTimeOffset? BackfillFrom,
     DateTimeOffset? BackfillCursor,
-    bool IsExcluded);
+    bool IsExcluded,
+    string? MailKey = null);
