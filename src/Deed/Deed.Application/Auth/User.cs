@@ -1,8 +1,10 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Deed.Application.Abstractions.Settings;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Options;
 
 namespace Deed.Application.Auth;
 
-public sealed class User(IHttpContextAccessor accessor)
+public sealed class User(IHttpContextAccessor accessor, IOptions<AuthSettings> authSettings)
     : IUser
 {
     public string? ExternalId => GetValue(AuthClaimTypes.Sub);
@@ -15,7 +17,7 @@ public sealed class User(IHttpContextAccessor accessor)
         ? GetValue(AuthClaimTypes.Name)
         : AuthConstants.DefaultUserName;
 
-    public IReadOnlyCollection<string> Roles => GetValueList(AuthClaimTypes.Role);
+    public IReadOnlyCollection<string> Roles => GetValueList(authSettings.Value.RolesClaim);
 
     public Uri? PictureUrl
     {

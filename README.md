@@ -149,7 +149,7 @@ Backend settings come from `appsettings*.json`, user secrets and environment var
 | --- | --- |
 | `DatabaseConnection` | SQL Server connection string. |
 | `ConnectionStrings:Redis` | Redis (`host:port` or `redis[s]://:password@host:port`). Default `localhost:6379`; Compose sets `deed.redis:6379`. |
-| `AuthSettings:{Domain,ClientId,ClientSecret,Audience}` | Auth0 OpenID Connect settings. |
+| `AuthSettings:{Domain,ClientId,ClientSecret,Audience,RolesClaim}` | Auth0 OpenID Connect settings. `RolesClaim` (default `https://deed-app/roles`) is the custom claim that carries the roles. |
 | `WebUrlSettings:{UIUrl,AllowedHeaders,AllowedMethods}` | Frontend origin used for CORS (credentials allowed) and post-login/logout redirects. |
 | `ProxySettings:Key` | Shared secret the Netlify proxy sends as `X-Internal-Proxy-Key` (same value as `PROXY_SECRET`). When set, every request except `/health/live` without the matching header gets 403, and the client IP is read from `X-Client-Ip`. When empty (local development, Compose) the check is off and a warning is logged in production. |
 | `RateLimitSettings:{ApiPermitsPerMinute,BankPermitsPerMinute,AuthPermitsPerMinute}` | Fixed one-minute windows per user (or client IP when anonymous): all `/api` calls (default 300), bank connect/sync/history/refresh calls (10) and `api/auth/login` (10). Exceeding one returns 429 with `Retry-After`. |

@@ -111,7 +111,7 @@ public static class DependencyInjection
                     options.TokenValidationParameters = new TokenValidationParameters
                     {
                         NameClaimType = "name",
-                        RoleClaimType = "https://deed-app/roles"
+                        RoleClaimType = authSettings.RolesClaim
                     };
 
 

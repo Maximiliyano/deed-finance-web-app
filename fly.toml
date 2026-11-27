@@ -21,6 +21,7 @@ type = "http"
 [http_service]
 auto_start_machines = true
 auto_stop_machines = true
+min_machines_running = 1
 force_https = true
 internal_port = 8080
 processes = ["app"]

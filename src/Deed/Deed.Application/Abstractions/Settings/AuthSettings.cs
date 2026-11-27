@@ -1,4 +1,6 @@
-﻿namespace Deed.Application.Abstractions.Settings;
+﻿using Deed.Application.Auth;
+
+namespace Deed.Application.Abstractions.Settings;
 
 public sealed class AuthSettings
 {
@@ -9,4 +11,6 @@ public sealed class AuthSettings
     public required string ClientId { get; init; }
     
     public required string ClientSecret { get; init; }
+
+    public string RolesClaim { get; init; } = AuthClaimTypes.Role;
 }
