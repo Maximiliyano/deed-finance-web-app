@@ -11,6 +11,7 @@ internal sealed class Sync : IEndpoint
         app.MapPost("api/bank-connections/sync", async (ISender sender, CancellationToken ct) =>
             (await sender.Send(new SyncBankConnectionsCommand(), ct)).Process())
             .RequireAuthorization()
+            .RequireRateLimiting(RateLimitPolicies.Bank)
             .WithTags(nameof(BankConnections));
     }
 }

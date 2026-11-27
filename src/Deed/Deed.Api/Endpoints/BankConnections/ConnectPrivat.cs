@@ -14,6 +14,7 @@ internal sealed class ConnectPrivat : IEndpoint
             (await sender.Send(new ConnectPrivatCommand(request.Token, request.Iban, request.Label, request.Currency), ct))
                 .Process(ResultType.NoContent))
             .RequireAuthorization()
+            .RequireRateLimiting(RateLimitPolicies.Bank)
             .WithTags(nameof(BankConnections));
     }
 }

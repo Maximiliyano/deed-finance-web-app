@@ -14,6 +14,7 @@ internal sealed class ConnectBankAccount : IEndpoint
             (await sender.Send(new ConnectBankAccountCommand(id, request?.Label), ct))
                 .Process(ResultType.NoContent))
             .RequireAuthorization()
+            .RequireRateLimiting(RateLimitPolicies.Bank)
             .WithTags(nameof(BankAccounts));
     }
 }

@@ -12,6 +12,7 @@ internal sealed class GetMonobankAccounts : IEndpoint
         app.MapPost("api/bank-connections/monobank/accounts", async (MonobankAccountsRequest request, ISender sender, CancellationToken ct) =>
             (await sender.Send(new GetMonobankAccountsQuery(request.Token), ct)).Process())
             .RequireAuthorization()
+            .RequireRateLimiting(RateLimitPolicies.Bank)
             .WithTags(nameof(BankConnections));
     }
 }

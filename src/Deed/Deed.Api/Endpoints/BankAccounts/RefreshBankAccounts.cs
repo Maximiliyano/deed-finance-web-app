@@ -11,6 +11,7 @@ internal sealed class RefreshBankAccounts : IEndpoint
         app.MapPost("api/bank-accounts/refresh", async (ISender sender, CancellationToken ct) =>
             (await sender.Send(new RefreshBankAccountsCommand(), ct)).Process())
             .RequireAuthorization()
+            .RequireRateLimiting(RateLimitPolicies.Bank)
             .WithTags(nameof(BankAccounts));
     }
 }

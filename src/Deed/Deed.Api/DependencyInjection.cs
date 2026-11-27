@@ -1,3 +1,4 @@
+using Deed.Api.Extensions;
 using Deed.Api.Hubs;
 using Deed.Api.Middlewares;
 using Deed.Application.Abstractions.Services;
@@ -27,6 +28,8 @@ internal static class DependencyInjection
 
         services.AddExceptionHandler<GlobalExceptionHandler>();
         services.AddProblemDetails();
+
+        services.AddRateLimiting();
 
         return services;
     }

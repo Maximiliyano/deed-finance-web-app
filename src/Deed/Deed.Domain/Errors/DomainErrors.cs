@@ -23,6 +23,9 @@ public static class DomainErrors
         
         public static Error InvalidCurrency
             => Error.BadRequest(nameof(InvalidCurrency), "The currency is invalid.");
+
+        public static Error TooManyRequests
+            => Error.TooManyRequests(nameof(TooManyRequests), "Too many requests. Please wait a moment and try again.");
     }
 
     public static class Capital

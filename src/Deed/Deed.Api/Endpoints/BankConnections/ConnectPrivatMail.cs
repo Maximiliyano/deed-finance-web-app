@@ -12,6 +12,7 @@ internal sealed class ConnectPrivatMail : IEndpoint
         app.MapPost("api/bank-connections/privat-mail", async (ConnectPrivatMailRequest request, ISender sender, CancellationToken ct) =>
             (await sender.Send(new ConnectPrivatMailCommand(request.Iban, request.Label, request.Currency), ct)).Process())
             .RequireAuthorization()
+            .RequireRateLimiting(RateLimitPolicies.Bank)
             .WithTags(nameof(BankConnections));
     }
 }

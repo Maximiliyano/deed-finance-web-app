@@ -7,4 +7,5 @@ public enum ErrorType
     BadRequest,
     NotFound,
     Conflict,
+    TooManyRequests,
 }

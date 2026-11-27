@@ -146,7 +146,7 @@ Ports: API 8000 (http) / 8001 (https) locally, 8080 on Fly.io; SQL Server 8002 -
 - `.github/workflows/backend-deploy.yml`: build + unit tests (PRs and `master`), then `flyctl deploy --remote-only` on `master` (`FLY_API_TOKEN`)
 - `.github/workflows/frontend-deploy.yml`: `ng build --configuration=production` (Node 20), then Netlify deploy on `master` (`NETLIFY_AUTH_TOKEN`, `NETLIFY_SITE_ID`)
 - `.github/workflows/claude.yml`: `@claude` mentions in issues/PRs (`ANTHROPIC_API_KEY`)
-- Netlify function `src/WebUI/netlify/functions/api.mts` proxies `/api/*`, `/signin-oidc`, `/signout-callback-oidc` to `BACKEND_URL` with an `X-Internal-Proxy-Key` header (`PROXY_SECRET`)
+- Netlify function `src/WebUI/netlify/functions/api.mts` proxies `/api/*`, `/signin-oidc`, `/signout-callback-oidc` to `BACKEND_URL` with an `X-Internal-Proxy-Key` header (`PROXY_SECRET`) and the real client IP in `X-Client-Ip`. `ProxyKeyMiddleware` (`ProxySettings:Key`) returns 403 without the key (off when the key is empty; `/health/live` is exempt), `UseForwardedHeaders()` runs first, `SecurityHeadersMiddleware` is production-only, and `RateLimitingExtensions` partitions by `name` claim or client IP (policies `bank`, `auth` via `RequireRateLimiting`; 429 maps to `ErrorType.TooManyRequests`)
 
 ## Code Style
 - File-scoped namespaces (enforced via `.editorconfig`)
@@ -174,5 +174,5 @@ Ports: API 8000 (http) / 8001 (https) locally, 8080 on Fly.io; SQL Server 8002 -
 - `src/Deed/Deed.Infrastructure/Persistence/Migrations` is in `.gitignore`: a fresh clone has no migrations. Create one (see command above) before running the API in Development or the integration tests
 - `docker-compose.yml` `dev` profile builds `src/WebUI/Dockerfile.dev`, which does not exist in the repo
 - `src/Deed/docker-compose*.yml` and `src/Deed/launchSettings.json` are Visual Studio copies with context `src/Deed`; use the root compose file from the CLI
-- `ForwardedHeadersOptions` is configured but `UseForwardedHeaders()` is never called, and the backend does not validate `X-Internal-Proxy-Key`
+- `ForwardedHeadersOptions` trusts any proxy (`KnownProxies` cleared), so the proxy key is what keeps forwarded headers honest: leave `ProxySettings:Key` set in production
 - `MemoryCacheSettings` is named "Memory" but backs the Redis cache

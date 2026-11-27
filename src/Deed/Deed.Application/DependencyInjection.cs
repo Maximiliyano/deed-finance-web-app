@@ -177,6 +177,10 @@ public static class DependencyInjection
 
             services.Configure<StatementMailSettings>(configuration.GetSection(nameof(StatementMailSettings)));
 
+            services.Configure<ProxySettings>(configuration.GetSection(nameof(ProxySettings)));
+
+            services.Configure<RateLimitSettings>(configuration.GetSection(nameof(RateLimitSettings)));
+
             return services;
         }
     }

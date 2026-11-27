@@ -2,6 +2,7 @@ using Deed.Api;
 using Deed.Api.Extensions;
 using Deed.Api.Hubs;
 using Deed.Application;
+using Deed.Application.Abstractions.Settings;
 using Deed.Infrastructure;
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
@@ -22,6 +23,8 @@ builder.Services.AddEndpoints();
 
 var app = builder.Build();
 
+app.UseForwardedHeaders();
+
 if (app.Environment.IsDevelopment())
 {
     await app.ApplyMigrationsAsync();
@@ -30,7 +33,15 @@ if (app.Environment.IsDevelopment())
 else
 {
     app.UseHsts();
+    app.UseSecurityHeaders();
+
+    if (string.IsNullOrEmpty(app.Configuration[$"{nameof(ProxySettings)}:{nameof(ProxySettings.Key)}"]))
+    {
+        Log.Warning("ProxySettings:Key is not set, so requests are accepted without the proxy key");
+    }
 }
+
+app.UseProxyKey();
 
 app.UseExceptionHandler();
 
@@ -42,6 +53,7 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseAuthentication();
+app.UseRateLimiter();
 app.UseAuthorization();
 
 app.UseRequestContextLogging();

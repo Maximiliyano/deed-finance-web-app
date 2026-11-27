@@ -14,6 +14,7 @@ internal sealed class ImportHistory : IEndpoint
         app.MapPost("api/bank-connections/history", async (ImportBankHistoryRequest? request, ISender sender, CancellationToken ct) =>
             (await sender.Send(new ImportBankHistoryCommand(request?.From ?? DateTimeOffset.UtcNow.AddDays(-DefaultDays), request?.To), ct)).Process())
             .RequireAuthorization()
+            .RequireRateLimiting(RateLimitPolicies.Bank)
             .WithTags(nameof(BankConnections));
     }
 }

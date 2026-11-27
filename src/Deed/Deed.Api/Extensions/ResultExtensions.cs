@@ -26,7 +26,7 @@ internal static class ResultExtensions
             _ => throw new ArgumentException(ResultConstants.InvalidResultTypeMessage)
         };
 
-    private static IResult ToProblemDetails(IList<Error> errors)
+    internal static IResult ToProblemDetails(IList<Error> errors)
     {
         var error = errors[0];
 

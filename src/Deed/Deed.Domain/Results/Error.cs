@@ -31,4 +31,7 @@ public sealed record Error
 
     public static Error Conflict(string code, string message)
         => new(code, message, ErrorType.Conflict);
+
+    public static Error TooManyRequests(string code, string message)
+        => new(code, message, ErrorType.TooManyRequests);
 }

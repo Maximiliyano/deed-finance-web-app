@@ -14,6 +14,7 @@ internal sealed class ConnectMonobank : IEndpoint
             (await sender.Send(new ConnectMonobankCommand(request.Token, request.AccountId, request.Iban, request.Label, request.Currency), ct))
                 .Process(ResultType.NoContent))
             .RequireAuthorization()
+            .RequireRateLimiting(RateLimitPolicies.Bank)
             .WithTags(nameof(BankConnections));
     }
 }

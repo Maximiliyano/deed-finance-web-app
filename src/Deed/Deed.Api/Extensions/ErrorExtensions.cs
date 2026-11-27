@@ -11,6 +11,7 @@ internal static class ErrorExtensions
             ErrorType.BadRequest => StatusCodes.Status400BadRequest,
             ErrorType.Validation => StatusCodes.Status400BadRequest,
             ErrorType.Conflict => StatusCodes.Status409Conflict,
+            ErrorType.TooManyRequests => StatusCodes.Status429TooManyRequests,
             ErrorType.Failure => StatusCodes.Status500InternalServerError,
             _ => StatusCodes.Status500InternalServerError
         };

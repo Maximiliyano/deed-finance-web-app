@@ -24,6 +24,7 @@ internal sealed class Login : IEndpoint
             }, [AuthConstants.AuthenticationScheme]);
         })
         .WithTags(nameof(User))
-        .AllowAnonymous();
+        .AllowAnonymous()
+        .RequireRateLimiting(RateLimitPolicies.Auth);
     }
 }

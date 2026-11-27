@@ -12,6 +12,7 @@ internal sealed class GetPrivatAccounts : IEndpoint
         app.MapPost("api/bank-connections/privat/accounts", async (PrivatAccountsRequest request, ISender sender, CancellationToken ct) =>
             (await sender.Send(new GetPrivatAccountsQuery(request.Token), ct)).Process())
             .RequireAuthorization()
+            .RequireRateLimiting(RateLimitPolicies.Bank)
             .WithTags(nameof(BankConnections));
     }
 }
